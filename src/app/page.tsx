@@ -347,38 +347,14 @@ function InboundSection() {
             </div>
           </div>
 
-          {/* Right - Image with overlay */}
+          {/* Right - Image */}
           <div style={{ position: 'relative' }}>
             <div style={{ borderRadius: 20, overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
               <img 
-                src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=600&h=700&fit=crop"
-                alt="Professional on phone"
-                style={{ width: '100%', height: 'auto', display: 'block' }}
+                src="/garage.png"
+                alt="Garage werkplaats"
+                style={{ width: '100%', height: 'auto', display: 'block', maxHeight: 500, objectFit: 'cover' }}
               />
-            </div>
-
-            {/* Floating UI overlay */}
-            <div style={{
-              position: 'absolute',
-              bottom: 60,
-              left: -20,
-              background: '#1a1a2e',
-              borderRadius: 16,
-              padding: 20,
-              boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
-              maxWidth: 280,
-            }}>
-              <p style={{ fontSize: 14, color: 'white', marginBottom: 16 }}>
-                &quot;Hallo, u spreekt met Kapsalon Belle. Waarmee kan ik u helpen?&quot;
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {['Afspraak Bijgewerkt', 'Bevestiging Verstuurd', 'Team Genotificeerd'].map((item, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Check size={14} style={{ color: '#22c55e' }} />
-                    <span style={{ fontSize: 12, color: '#9ca3af' }}>{item}</span>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
         </div>
