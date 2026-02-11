@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Phone,
   Calendar,
@@ -24,6 +24,105 @@ import {
   Heart,
   RefreshCw,
 } from 'lucide-react';
+
+/* ============================================
+   DEMO MODAL
+============================================ */
+function DemoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  useEffect(() => {
+    if (isOpen) {
+      // Load ElevenLabs widget script
+      const existingScript = document.getElementById('elevenlabs-widget');
+      if (!existingScript) {
+        const script = document.createElement('script');
+        script.id = 'elevenlabs-widget';
+        script.src = 'https://elevenlabs.io/convai-widget/index.js';
+        script.async = true;
+        document.body.appendChild(script);
+      }
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'rgba(0,0,0,0.8)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000,
+      padding: 20,
+    }}>
+      <div style={{
+        background: 'white',
+        borderRadius: 24,
+        padding: 32,
+        maxWidth: 500,
+        width: '100%',
+        position: 'relative',
+        textAlign: 'center',
+      }}>
+        {/* Close button */}
+        <button 
+          onClick={onClose}
+          style={{
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            background: '#f3f4f6',
+            border: 'none',
+            borderRadius: '50%',
+            width: 40,
+            height: 40,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 20,
+          }}
+        >
+          ×
+        </button>
+
+        {/* Header */}
+        <div style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 8,
+          background: '#f3f4f6',
+          padding: '8px 16px',
+          borderRadius: 20,
+          marginBottom: 24,
+        }}>
+          <div style={{ width: 8, height: 8, background: '#22c55e', borderRadius: '50%' }} />
+          <span style={{ fontSize: 14, color: '#374151' }}>Live demo</span>
+        </div>
+
+        <h3 style={{ fontSize: 24, fontWeight: 700, color: '#1a1a2e', marginBottom: 16 }}>
+          Praat met onze demo receptionist
+        </h3>
+        <p style={{ color: '#6b7280', marginBottom: 32, fontSize: 15 }}>
+          Stel vragen over Kapsalon Belle, of vraag een afspraak te boeken.
+        </p>
+
+        {/* ElevenLabs Widget */}
+        <div style={{ marginBottom: 24 }}>
+          <elevenlabs-convai agent-id="agent_7001kh7ck6cvfpqvrt1gc63bs88k"></elevenlabs-convai>
+        </div>
+
+        <p style={{ fontSize: 12, color: '#9ca3af' }}>
+          Sta microfoon toegang toe wanneer gevraagd.
+        </p>
+      </div>
+    </div>
+  );
+}
 
 /* ============================================
    NAVIGATION
@@ -131,7 +230,7 @@ function Navigation() {
 /* ============================================
    HERO SECTION - Intavia Style
 ============================================ */
-function HeroSection() {
+function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
   return (
     <section style={{
       background: 'linear-gradient(180deg, #0f0a14 0%, #1a1025 100%)',
@@ -184,7 +283,7 @@ function HeroSection() {
                 <Calendar size={18} />
                 Start gratis proefperiode
               </a>
-              <a href="#demo" style={{
+              <button onClick={onOpenDemo} style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 8,
@@ -194,12 +293,12 @@ function HeroSection() {
                 borderRadius: 8,
                 fontSize: 16,
                 fontWeight: 600,
-                textDecoration: 'none',
                 border: '1px solid rgba(255,255,255,0.2)',
+                cursor: 'pointer',
               }}>
                 <PhoneCall size={18} />
                 Luister Demo Gesprek
-              </a>
+              </button>
             </div>
           </div>
         </div>
@@ -278,7 +377,7 @@ function HeroSection() {
 /* ============================================
    FEATURE SECTION 1 - Inbound Calls
 ============================================ */
-function InboundSection() {
+function InboundSection({ onOpenDemo }: { onOpenDemo: () => void }) {
   return (
     <section id="features" style={{ background: '#e3e3e3', padding: '200px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
@@ -313,7 +412,7 @@ function InboundSection() {
                 <Calendar size={16} />
                 Start gratis
               </a>
-              <a href="#demo" style={{
+              <button onClick={onOpenDemo} style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 8,
@@ -323,12 +422,12 @@ function InboundSection() {
                 borderRadius: 8,
                 fontSize: 14,
                 fontWeight: 600,
-                textDecoration: 'none',
                 border: '1px solid #e5e7eb',
+                cursor: 'pointer',
               }}>
                 <PhoneCall size={16} />
                 Luister Demo Gesprek
-              </a>
+              </button>
             </div>
 
             {/* Feature list */}
@@ -366,7 +465,7 @@ function InboundSection() {
 /* ============================================
    FEATURE SECTION 2 - Outbound Calls
 ============================================ */
-function OutboundSection() {
+function OutboundSection({ onOpenDemo }: { onOpenDemo: () => void }) {
   return (
     <section style={{ background: '#e3e3e3', padding: '200px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
@@ -506,7 +605,7 @@ function OutboundSection() {
                 <Calendar size={16} />
                 Start gratis
               </a>
-              <a href="#demo" style={{
+              <button onClick={onOpenDemo} style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 8,
@@ -516,12 +615,12 @@ function OutboundSection() {
                 borderRadius: 8,
                 fontSize: 14,
                 fontWeight: 600,
-                textDecoration: 'none',
                 border: '1px solid #e5e7eb',
+                cursor: 'pointer',
               }}>
                 <PhoneCall size={16} />
                 Luister Demo Gesprek
-              </a>
+              </button>
             </div>
 
             {/* Feature list */}
@@ -548,7 +647,7 @@ function OutboundSection() {
 /* ============================================
    FEATURE SECTION 3 - Automation
 ============================================ */
-function AutomationSection() {
+function AutomationSection({ onOpenDemo }: { onOpenDemo: () => void }) {
   return (
     <section style={{ background: '#e3e3e3', padding: '200px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
@@ -583,7 +682,7 @@ function AutomationSection() {
                 <Calendar size={16} />
                 Start gratis
               </a>
-              <a href="#demo" style={{
+              <button onClick={onOpenDemo} style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 8,
@@ -593,12 +692,12 @@ function AutomationSection() {
                 borderRadius: 8,
                 fontSize: 14,
                 fontWeight: 600,
-                textDecoration: 'none',
                 border: '1px solid #e5e7eb',
+                cursor: 'pointer',
               }}>
                 <PhoneCall size={16} />
                 Luister Demo Gesprek
-              </a>
+              </button>
             </div>
 
             {/* Feature list */}
@@ -980,18 +1079,21 @@ function Footer() {
    MAIN PAGE
 ============================================ */
 export default function Home() {
+  const [demoOpen, setDemoOpen] = useState(false);
+  
   return (
     <main>
       <Navigation />
-      <HeroSection />
-      <InboundSection />
-      <OutboundSection />
-      <AutomationSection />
+      <HeroSection onOpenDemo={() => setDemoOpen(true)} />
+      <InboundSection onOpenDemo={() => setDemoOpen(true)} />
+      <OutboundSection onOpenDemo={() => setDemoOpen(true)} />
+      <AutomationSection onOpenDemo={() => setDemoOpen(true)} />
       <HowItWorksSection />
       <PricingSection />
       <FAQSection />
       <CTASection />
       <Footer />
+      <DemoModal isOpen={demoOpen} onClose={() => setDemoOpen(false)} />
     </main>
   );
 }
