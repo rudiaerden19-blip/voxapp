@@ -248,7 +248,7 @@ function FeaturesSection() {
     {
       icon: Mic,
       title: 'Voice cloning',
-      desc: 'Kloon uw eigen stem in 5 minuten. De AI klinkt precies als u.',
+      desc: 'Kloon uw eigen stem in 5 minuten. VoxApp klinkt precies als u.',
     },
     {
       icon: Globe,
