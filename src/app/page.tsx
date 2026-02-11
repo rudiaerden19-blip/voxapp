@@ -7,7 +7,6 @@ import {
   MessageSquare,
   Clock,
   Users,
-  BarChart3,
   Settings,
   Check,
   ArrowRight,
@@ -15,12 +14,15 @@ import {
   X,
   Mic,
   Bell,
-  Shield,
-  Globe,
+  Send,
   Headphones,
   ChevronRight,
-  Zap,
+  PhoneCall,
+  CalendarCheck,
+  UserCheck,
   FileText,
+  Heart,
+  RefreshCw,
 } from 'lucide-react';
 
 /* ============================================
@@ -31,157 +33,373 @@ function Navigation() {
 
   return (
     <>
-      <nav className="nav">
-        <div className="container nav-container">
-          <a href="/" className="nav-logo">
-            <span>Vox</span>App
-          </a>
-
-          <div className="nav-links">
-            <a href="#features">Functies</a>
-            <a href="#how-it-works">Hoe het werkt</a>
-            <a href="#pricing">Prijzen</a>
-            <a href="#faq">FAQ</a>
-          </div>
-
-          <div className="nav-cta">
-            <a href="/login">Inloggen</a>
-            <a href="/register" className="btn-primary" style={{ padding: '10px 24px', fontSize: '14px' }}>
-              Gratis proberen <ArrowRight size={16} />
+      <nav style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 100,
+        background: 'rgba(15, 10, 20, 0.95)',
+        backdropFilter: 'blur(10px)',
+        borderBottom: '1px solid rgba(255,255,255,0.1)',
+      }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 72 }}>
+            <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 22, fontWeight: 700, color: 'white', textDecoration: 'none' }}>
+              <span style={{ color: '#f97316' }}>Vox</span>App
             </a>
-          </div>
 
-          <button className="mobile-menu-btn" onClick={() => setMobileOpen(!mobileOpen)}>
-            {mobileOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+            <div style={{ display: 'none', alignItems: 'center', gap: 32 }} className="desktop-nav">
+              <a href="#features" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>Functies</a>
+              <a href="#how-it-works" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>Hoe het werkt</a>
+              <a href="#pricing" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>Prijzen</a>
+            </div>
+
+            <div style={{ display: 'none', alignItems: 'center', gap: 16 }} className="desktop-nav">
+              <a href="/login" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>Inloggen</a>
+              <a href="/register" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: '#f97316',
+                color: 'white',
+                padding: '10px 20px',
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 600,
+                textDecoration: 'none',
+              }}>
+                Gratis proberen
+              </a>
+            </div>
+
+            <button 
+              onClick={() => setMobileOpen(!mobileOpen)}
+              style={{ display: 'flex', padding: 8, background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}
+              className="mobile-menu-btn"
+            >
+              {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
       </nav>
 
-      <div className={`mobile-menu ${mobileOpen ? 'open' : ''}`}>
-        <a href="#features" onClick={() => setMobileOpen(false)}>Functies</a>
-        <a href="#how-it-works" onClick={() => setMobileOpen(false)}>Hoe het werkt</a>
-        <a href="#pricing" onClick={() => setMobileOpen(false)}>Prijzen</a>
-        <a href="#faq" onClick={() => setMobileOpen(false)}>FAQ</a>
-        <a href="/login" onClick={() => setMobileOpen(false)}>Inloggen</a>
-        <div style={{ paddingTop: 24 }}>
-          <a href="/register" className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-            Gratis proberen <ArrowRight size={16} />
-          </a>
+      {mobileOpen && (
+        <div style={{
+          position: 'fixed',
+          top: 72,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: '#0f0a14',
+          zIndex: 99,
+          padding: 24,
+        }}>
+          <a href="#features" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Functies</a>
+          <a href="#how-it-works" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Hoe het werkt</a>
+          <a href="#pricing" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Prijzen</a>
+          <div style={{ marginTop: 24 }}>
+            <a href="/register" style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              background: '#f97316',
+              color: 'white',
+              padding: '14px 24px',
+              borderRadius: 8,
+              fontSize: 16,
+              fontWeight: 600,
+              textDecoration: 'none',
+            }}>
+              Gratis proberen <ArrowRight size={18} />
+            </a>
+          </div>
         </div>
-      </div>
+      )}
+
+      <style jsx>{`
+        @media (min-width: 1024px) {
+          .desktop-nav { display: flex !important; }
+          .mobile-menu-btn { display: none !important; }
+        }
+      `}</style>
     </>
   );
 }
 
 /* ============================================
-   HERO SECTION
+   HERO SECTION - Intavia Style
 ============================================ */
 function HeroSection() {
   return (
-    <section className="section-dark" style={{ paddingTop: 140, paddingBottom: 80 }}>
-      <div className="container">
-        {/* Trust bar */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '32px', marginBottom: 60 }}>
-          {[
-            'SLIMME RECEPTIONIST',
-            'INGEBOUWDE AGENDA',
-            'VOICE CLONING',
-          ].map((item) => (
-            <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Check size={18} style={{ color: '#22c55e' }} />
-              <span style={{ fontSize: 13, fontWeight: 600, color: '#9ca3af', letterSpacing: '0.5px' }}>{item}</span>
-            </div>
-          ))}
+    <section style={{
+      background: 'linear-gradient(180deg, #0f0a14 0%, #1a1025 100%)',
+      paddingTop: 120,
+      paddingBottom: 80,
+      minHeight: '100vh',
+      position: 'relative',
+      overflow: 'hidden',
+    }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
+        {/* Badge */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 32 }}>
+          <Phone size={16} style={{ color: '#f97316' }} />
+          <span style={{ color: '#9ca3af', fontSize: 14 }}>Slimme Receptionist voor Groeiende Bedrijven</span>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 60, alignItems: 'center' }}>
-          {/* Text content */}
-          <div style={{ textAlign: 'center', maxWidth: 800, margin: '0 auto' }}>
-            <h1 style={{ fontSize: 'clamp(36px, 6vw, 56px)', fontWeight: 700, marginBottom: 24, lineHeight: 1.1 }}>
-              De slimme receptionist die{' '}
-              <span style={{ color: '#f97316' }}>afspraken boekt.</span>
+          {/* Left content */}
+          <div style={{ maxWidth: 600 }}>
+            <h1 style={{ 
+              fontSize: 'clamp(36px, 5vw, 52px)', 
+              fontWeight: 700, 
+              lineHeight: 1.15, 
+              color: 'white',
+              marginBottom: 24,
+            }}>
+              Mis nooit een oproep.<br />
+              Boek meer afspraken.<br />
+              <span style={{ color: '#f97316' }}>Bespaar tijd.</span>
             </h1>
 
-            <p style={{ fontSize: 18, color: '#9ca3af', marginBottom: 40, maxWidth: 600, margin: '0 auto 40px' }}>
-              Mis nooit meer een oproep. VoxApp neemt de telefoon op, boekt afspraken 
-              in uw agenda, en beantwoordt vragen. 24/7. Met uw eigen stem.
+            <p style={{ fontSize: 18, color: '#9ca3af', lineHeight: 1.7, marginBottom: 32 }}>
+              VoxApp beheert uw oproepen, boekt afspraken en beantwoordt vragen — zodat u kunt focussen op uw werk.
             </p>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center', marginBottom: 48 }}>
-              <a href="/register" className="btn-primary">
-                Start gratis proefperiode <ArrowRight size={18} />
+            {/* CTA Buttons */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 48 }}>
+              <a href="/register" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: '#f97316',
+                color: 'white',
+                padding: '16px 28px',
+                borderRadius: 8,
+                fontSize: 16,
+                fontWeight: 600,
+                textDecoration: 'none',
+              }}>
+                <Calendar size={18} />
+                Start gratis proefperiode
               </a>
-              <a href="#demo" className="btn-secondary">
-                Bekijk demo
+              <a href="#demo" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: 'transparent',
+                color: 'white',
+                padding: '16px 28px',
+                borderRadius: 8,
+                fontSize: 16,
+                fontWeight: 600,
+                textDecoration: 'none',
+                border: '1px solid rgba(255,255,255,0.2)',
+              }}>
+                <PhoneCall size={18} />
+                Bel Demo Receptionist
               </a>
-            </div>
-
-            {/* Mini trust */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 32, fontSize: 14, color: '#6b7280' }}>
-              <span>✓ Geen contract</span>
-              <span>✓ Eerste maand gratis</span>
-              <span>✓ Setup in 10 minuten</span>
             </div>
           </div>
         </div>
 
-        {/* Dashboard preview */}
-        <div style={{ marginTop: 80 }}>
+        {/* Hero Image with Floating Elements */}
+        <div style={{ position: 'relative', marginTop: 40 }}>
           <div style={{ 
-            background: '#16161f', 
-            border: '1px solid #2a2a35', 
-            borderRadius: 20, 
-            padding: 32,
+            position: 'relative',
             maxWidth: 900,
-            margin: '0 auto'
+            margin: '0 auto',
           }}>
-            {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
-              <div>
-                <p style={{ color: '#6b7280', fontSize: 14 }}>Welkom terug</p>
-                <h3 style={{ fontSize: 20, fontWeight: 600 }}>Kapsalon Belle</h3>
-              </div>
-              <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg, #f97316, #ea580c)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600 }}>
-                KB
-              </div>
+            {/* Main Image */}
+            <div style={{
+              borderRadius: 24,
+              overflow: 'hidden',
+              boxShadow: '0 40px 80px rgba(0,0,0,0.4)',
+            }}>
+              <img 
+                src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=900&h=600&fit=crop"
+                alt="Professional receptionist"
+                style={{ width: '100%', height: 'auto', display: 'block' }}
+              />
             </div>
 
-            {/* Stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16, marginBottom: 32 }}>
+            {/* Floating Chat Bubble - Top Right */}
+            <div style={{
+              position: 'absolute',
+              top: 40,
+              right: -20,
+              background: 'white',
+              borderRadius: 16,
+              padding: 16,
+              boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+              maxWidth: 280,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e' }} />
+                <span style={{ fontSize: 12, color: '#6b7280' }}>VoxApp Receptionist</span>
+              </div>
+              <p style={{ fontSize: 14, color: '#1a1a2e', margin: 0 }}>
+                &quot;Goedemiddag, Kapsalon Belle. Waarmee kan ik u helpen?&quot;
+              </p>
+            </div>
+
+            {/* Action Badges - Right Side */}
+            <div style={{ position: 'absolute', top: 160, right: -30, display: 'flex', flexDirection: 'column', gap: 12 }}>
               {[
-                { icon: Phone, label: 'Vandaag', value: '24', sub: 'oproepen' },
-                { icon: Calendar, label: 'Geboekt', value: '18', sub: 'afspraken' },
-                { icon: Clock, label: 'Gespaard', value: '2.4u', sub: 'per dag' },
-              ].map((stat) => (
-                <div key={stat.label} style={{ background: '#1e1e28', borderRadius: 12, padding: 20 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                    <stat.icon size={16} style={{ color: '#f97316' }} />
-                    <span style={{ fontSize: 12, color: '#6b7280' }}>{stat.label}</span>
-                  </div>
-                  <p style={{ fontSize: 28, fontWeight: 700 }}>{stat.value}</p>
-                  <p style={{ fontSize: 12, color: '#6b7280' }}>{stat.sub}</p>
+                { icon: Check, text: 'Receptionist Beantwoordt', color: '#22c55e' },
+                { icon: CalendarCheck, text: 'Afspraak Ingepland', color: '#f97316' },
+                { icon: Send, text: 'Bevestiging Verstuurd', color: '#3b82f6' },
+              ].map((badge, i) => (
+                <div key={i} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  background: 'white',
+                  borderRadius: 8,
+                  padding: '10px 16px',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                }}>
+                  <badge.icon size={16} style={{ color: badge.color }} />
+                  <span style={{ fontSize: 13, fontWeight: 500, color: '#1a1a2e' }}>{badge.text}</span>
                 </div>
               ))}
             </div>
 
-            {/* Recent calls */}
-            <div>
-              <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 16 }}>Recente gesprekken</p>
+            {/* Bottom notification */}
+            <div style={{
+              position: 'absolute',
+              bottom: 40,
+              left: 40,
+              background: 'rgba(15, 10, 20, 0.95)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: 12,
+              padding: 16,
+              border: '1px solid rgba(255,255,255,0.1)',
+              maxWidth: 320,
+            }}>
+              <p style={{ fontSize: 12, color: '#9ca3af', marginBottom: 8 }}>Klant heeft zojuist gevraagd over parking bij de zaak. We hebben alle details doorgestuurd.</p>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                background: '#f97316',
+                padding: '8px 12px',
+                borderRadius: 6,
+                width: 'fit-content',
+              }}>
+                <FileText size={14} style={{ color: 'white' }} />
+                <span style={{ fontSize: 12, color: 'white', fontWeight: 500 }}>Bekijk transcript →</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================
+   FEATURE SECTION 1 - Inbound Calls
+============================================ */
+function InboundSection() {
+  return (
+    <section id="features" style={{ background: '#ffffff', padding: '100px 0' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 60, alignItems: 'center' }}>
+          {/* Left - Text */}
+          <div>
+            <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
+              Inkomende Oproepen
+            </p>
+            <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 700, color: '#1a1a2e', lineHeight: 1.2, marginBottom: 20 }}>
+              Lever de snelle, persoonlijke antwoorden die klanten verwachten.
+            </h2>
+            <p style={{ fontSize: 16, color: '#6b7280', lineHeight: 1.7, marginBottom: 32 }}>
+              Elke oproep wordt snel en natuurlijk beantwoord. Klanten krijgen direct antwoord, 
+              makkelijke boekingen, en een vriendelijke ervaring die past bij uw merk.
+            </p>
+
+            {/* CTA Buttons */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 32 }}>
+              <a href="/register" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: '#f97316',
+                color: 'white',
+                padding: '12px 24px',
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 600,
+                textDecoration: 'none',
+              }}>
+                <Calendar size={16} />
+                Start gratis
+              </a>
+              <a href="#demo" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: 'transparent',
+                color: '#1a1a2e',
+                padding: '12px 24px',
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 600,
+                textDecoration: 'none',
+                border: '1px solid #e5e7eb',
+              }}>
+                <PhoneCall size={16} />
+                Bel Demo Receptionist
+              </a>
+            </div>
+
+            {/* Feature list */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {[
+                { icon: MessageSquare, text: 'Beantwoord klantvragen' },
+                { icon: Calendar, text: 'Beheer afspraakwijzigingen' },
+                { icon: PhoneCall, text: 'Route prioriteitsoproepen' },
+                { icon: Users, text: 'Vang nieuwe leads' },
+              ].map((item, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <item.icon size={18} style={{ color: '#6b7280' }} />
+                  <span style={{ fontSize: 15, color: '#1a1a2e' }}>{item.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right - Image with overlay */}
+          <div style={{ position: 'relative' }}>
+            <div style={{ borderRadius: 20, overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
+              <img 
+                src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=600&h=700&fit=crop"
+                alt="Professional on phone"
+                style={{ width: '100%', height: 'auto', display: 'block' }}
+              />
+            </div>
+
+            {/* Floating UI overlay */}
+            <div style={{
+              position: 'absolute',
+              bottom: 60,
+              left: -20,
+              background: '#1a1a2e',
+              borderRadius: 16,
+              padding: 20,
+              boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+              maxWidth: 280,
+            }}>
+              <p style={{ fontSize: 14, color: 'white', marginBottom: 16 }}>
+                &quot;Hallo, u spreekt met Kapsalon Belle. Waarmee kan ik u helpen?&quot;
+              </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {[
-                  { name: 'Marie Van den Berg', action: 'Afspraak geboekt - Knippen & Kleuren', time: '2 min' },
-                  { name: 'Peter Janssen', action: 'Vraag beantwoord - Openingsuren', time: '8 min' },
-                  { name: 'Lisa de Groot', action: 'Afspraak verzet naar morgen 14:00', time: '15 min' },
-                ].map((call, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 16, background: '#1e1e28', borderRadius: 10 }}>
-                    <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(34, 197, 94, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Check size={18} style={{ color: '#22c55e' }} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <p style={{ fontWeight: 500, fontSize: 14 }}>{call.name}</p>
-                      <p style={{ fontSize: 12, color: '#6b7280' }}>{call.action}</p>
-                    </div>
-                    <span style={{ fontSize: 12, color: '#6b7280' }}>{call.time}</span>
+                {['Afspraak Bijgewerkt', 'Bevestiging Verstuurd', 'Team Genotificeerd'].map((item, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Check size={14} style={{ color: '#22c55e' }} />
+                    <span style={{ fontSize: 12, color: '#9ca3af' }}>{item}</span>
                   </div>
                 ))}
               </div>
@@ -194,153 +412,208 @@ function HeroSection() {
 }
 
 /* ============================================
-   STATS SECTION
+   FEATURE SECTION 2 - Outbound Calls
 ============================================ */
-function StatsSection() {
-  const stats = [
-    { value: '6.6M+', label: 'Potentiële klanten' },
-    { value: '24/7', label: 'Beschikbaarheid' },
-    { value: '10 min', label: 'Setup tijd' },
-    { value: '3', label: 'Talen ondersteund' },
-  ];
-
+function OutboundSection() {
   return (
-    <section style={{ padding: '60px 0', background: '#12121a', borderTop: '1px solid #2a2a35', borderBottom: '1px solid #2a2a35' }}>
-      <div className="container">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 32, textAlign: 'center' }}>
-          {stats.map((stat) => (
-            <div key={stat.label}>
-              <p className="stat-value">{stat.value}</p>
-              <p className="stat-label">{stat.label}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ============================================
-   FEATURES SECTION
-============================================ */
-function FeaturesSection() {
-  const features = [
-    {
-      icon: Phone,
-      title: 'Beantwoord oproepen',
-      desc: 'Professionele begroeting met uw bedrijfsnaam. Natuurlijk en vriendelijk.',
-    },
-    {
-      icon: Calendar,
-      title: 'Boek afspraken',
-      desc: 'Direct in uw ingebouwde agenda. Geen externe tools of sync-problemen.',
-    },
-    {
-      icon: MessageSquare,
-      title: 'Beantwoord vragen',
-      desc: 'Openingsuren, prijzen, diensten - alles automatisch beantwoord.',
-    },
-    {
-      icon: Bell,
-      title: 'Stuur herinneringen',
-      desc: 'Automatische SMS-herinneringen dag voor de afspraak. Minder no-shows.',
-    },
-    {
-      icon: Mic,
-      title: 'Voice cloning',
-      desc: 'Kloon uw eigen stem in 5 minuten. VoxApp klinkt precies als u.',
-    },
-    {
-      icon: Globe,
-      title: '3 talen',
-      desc: 'Nederlands, Frans en Duits. Automatische taalherkenning.',
-    },
-    {
-      icon: BarChart3,
-      title: 'Rapporten',
-      desc: 'Inzicht in oproepen, afspraken en trends. Data-gedreven beslissingen.',
-    },
-    {
-      icon: FileText,
-      title: 'Transcripties',
-      desc: 'Elk gesprek wordt automatisch uitgeschreven en samengevat.',
-    },
-    {
-      icon: Shield,
-      title: 'GDPR compliant',
-      desc: 'Alle data versleuteld op Europese servers. 100% privacy-proof.',
-    },
-  ];
-
-  return (
-    <section id="features" className="section section-light">
-      <div className="container">
-        <div style={{ textAlign: 'center', marginBottom: 64 }}>
-          <p className="section-label">FUNCTIES</p>
-          <h2 className="section-title" style={{ color: '#1a1a2e' }}>
-            Alles wat u nodig heeft
-          </h2>
-          <p className="section-subtitle" style={{ margin: '0 auto' }}>
-            Eén platform voor telefonie, agendabeheer en klantcommunicatie.
-          </p>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
-          {features.map((feature) => (
-            <div key={feature.title} className="card-light">
-              <div className="icon-box">
-                <feature.icon size={24} />
+    <section style={{ background: '#fafafa', padding: '100px 0' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 60, alignItems: 'center' }}>
+          {/* Left - Calendar Mockup */}
+          <div style={{ position: 'relative' }}>
+            <div style={{
+              background: '#1a1a2e',
+              borderRadius: 20,
+              padding: 24,
+              boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+            }}>
+              {/* Calendar header */}
+              <div style={{ display: 'flex', gap: 24, marginBottom: 20 }}>
+                <span style={{ color: 'white', fontSize: 14, fontWeight: 500 }}>MA</span>
+                <span style={{ color: 'white', fontSize: 14, fontWeight: 500 }}>DI</span>
               </div>
-              <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8, color: '#1a1a2e' }}>{feature.title}</h3>
-              <p style={{ fontSize: 14, color: '#6b7280', lineHeight: 1.6 }}>{feature.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
 
-/* ============================================
-   AGENDA SECTION (USP)
-============================================ */
-function AgendaSection() {
-  return (
-    <section className="section section-dark">
-      <div className="container">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 64, alignItems: 'center' }}>
-          <div style={{ maxWidth: 600 }}>
-            <p className="section-label">UNIEK BIJ VOXAPP</p>
-            <h2 className="section-title">
-              Ingebouwde agenda.{' '}
-              <span style={{ color: '#f97316' }}>Geen externe tools.</span>
+              {/* Calendar items */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={{ background: '#4f46e5', borderRadius: 8, padding: 16, marginLeft: 0 }}>
+                  <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>10:30</p>
+                  <p style={{ fontSize: 14, color: 'white', fontWeight: 500 }}>Consultatie</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8 }}>
+                    <Check size={12} style={{ color: '#22c55e' }} />
+                    <span style={{ fontSize: 11, color: '#22c55e' }}>Nieuwe Boeking</span>
+                  </div>
+                </div>
+
+                <div style={{ background: '#7c3aed', borderRadius: 8, padding: 16, marginLeft: 80 }}>
+                  <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>14:15</p>
+                  <p style={{ fontSize: 14, color: 'white', fontWeight: 500 }}>Follow-up Boeking</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8 }}>
+                    <Check size={12} style={{ color: '#22c55e' }} />
+                    <span style={{ fontSize: 11, color: '#22c55e' }}>Nieuwe Boeking</span>
+                  </div>
+                </div>
+
+                <div style={{ background: '#4f46e5', borderRadius: 8, padding: 16, marginLeft: 0 }}>
+                  <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>16:00</p>
+                  <p style={{ fontSize: 14, color: 'white', fontWeight: 500 }}>Nieuwe Afspraak</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8 }}>
+                    <Check size={12} style={{ color: '#22c55e' }} />
+                    <span style={{ fontSize: 11, color: '#22c55e' }}>Nieuwe Boeking</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right - Text */}
+          <div>
+            <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
+              Uitgaande Oproepen
+            </p>
+            <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 700, color: '#1a1a2e', lineHeight: 1.2, marginBottom: 20 }}>
+              Verhoog boekingen en houd uw agenda vol.
             </h2>
-            <p className="section-subtitle" style={{ marginBottom: 32 }}>
-              Dit is wat ons onderscheidt. VoxApp boekt afspraken direct in de 
-              VoxApp agenda. Geen Google Calendar, geen Outlook, geen sync-problemen. 
-              Eén platform voor alles.
+            <p style={{ fontSize: 16, color: '#6b7280', lineHeight: 1.7, marginBottom: 32 }}>
+              Uitgaande oproepen vullen uw agenda. Klanten ontvangen herinneringen, 
+              follow-ups en herboeking-verzoeken — allemaal natuurlijk en in lijn met uw merk.
             </p>
 
-            <ul className="feature-list">
-              {[
-                'Dag, week en maand weergave',
-                'Per medewerker met werkuren',
-                'Diensten met duur & prijs',
-                'Automatische SMS herinneringen',
-                'Online booking pagina voor klanten',
-                'Wachtlijst beheer',
-              ].map((item) => (
-                <li key={item}>
-                  <Check size={18} />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-
-            <div style={{ marginTop: 32 }}>
-              <a href="/register" className="btn-primary">
-                Probeer de agenda gratis <ArrowRight size={18} />
+            {/* CTA Buttons */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 32 }}>
+              <a href="/register" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: '#f97316',
+                color: 'white',
+                padding: '12px 24px',
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 600,
+                textDecoration: 'none',
+              }}>
+                <Calendar size={16} />
+                Start gratis
               </a>
+              <a href="#demo" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: 'transparent',
+                color: '#1a1a2e',
+                padding: '12px 24px',
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 600,
+                textDecoration: 'none',
+                border: '1px solid #e5e7eb',
+              }}>
+                <PhoneCall size={16} />
+                Bel Demo Receptionist
+              </a>
+            </div>
+
+            {/* Feature list */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {[
+                { icon: Users, text: 'Doordachte lead follow-ups' },
+                { icon: Calendar, text: 'Terugkerende afspraken plannen' },
+                { icon: Heart, text: 'Nazorg check-ins' },
+                { icon: Bell, text: 'Vriendelijke herboeking-herinneringen' },
+              ].map((item, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <item.icon size={18} style={{ color: '#6b7280' }} />
+                  <span style={{ fontSize: 15, color: '#1a1a2e' }}>{item.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================
+   FEATURE SECTION 3 - Automation
+============================================ */
+function AutomationSection() {
+  return (
+    <section style={{ background: '#ffffff', padding: '100px 0' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 60, alignItems: 'center' }}>
+          {/* Left - Text */}
+          <div>
+            <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
+              Geautomatiseerde Taken
+            </p>
+            <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 700, color: '#1a1a2e', lineHeight: 1.2, marginBottom: 20 }}>
+              Laat administratie stilletjes op de achtergrond draaien.
+            </h2>
+            <p style={{ fontSize: 16, color: '#6b7280', lineHeight: 1.7, marginBottom: 32 }}>
+              Routine boekingen, wijzigingen en follow-ups draaien automatisch — 
+              zodat uw team gefocust kan blijven op wat echt belangrijk is.
+            </p>
+
+            {/* CTA Buttons */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 32 }}>
+              <a href="/register" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: '#f97316',
+                color: 'white',
+                padding: '12px 24px',
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 600,
+                textDecoration: 'none',
+              }}>
+                <Calendar size={16} />
+                Start gratis
+              </a>
+              <a href="#demo" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: 'transparent',
+                color: '#1a1a2e',
+                padding: '12px 24px',
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 600,
+                textDecoration: 'none',
+                border: '1px solid #e5e7eb',
+              }}>
+                <PhoneCall size={16} />
+                Bel Demo Receptionist
+              </a>
+            </div>
+
+            {/* Feature list */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {[
+                { icon: Send, text: 'Verstuur boekingslinks automatisch' },
+                { icon: RefreshCw, text: 'Beheer afspraakwijzigingen' },
+                { icon: PhoneCall, text: 'Route prioriteitsoproepen' },
+                { icon: UserCheck, text: 'Vang en koester nieuwe leads' },
+              ].map((item, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <item.icon size={18} style={{ color: '#6b7280' }} />
+                  <span style={{ fontSize: 15, color: '#1a1a2e' }}>{item.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right - Image */}
+          <div style={{ position: 'relative' }}>
+            <div style={{ borderRadius: 20, overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
+              <img 
+                src="https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&h=700&fit=crop"
+                alt="Beauty salon professional"
+                style={{ width: '100%', height: 'auto', display: 'block' }}
+              />
             </div>
           </div>
         </div>
@@ -356,38 +629,66 @@ function HowItWorksSection() {
   const steps = [
     { num: '01', icon: Users, title: 'Account aanmaken', desc: 'Registreer in 2 minuten. Kies uw sector en vul bedrijfsgegevens in.' },
     { num: '02', icon: Settings, title: 'Diensten & medewerkers', desc: 'Voeg diensten toe met prijzen. Configureer werkuren per medewerker.' },
-    { num: '03', icon: Mic, title: 'Stem kiezen of klonen', desc: 'Kies een standaard stem of kloon uw eigen stem in 5 minuten.' },
-    { num: '04', icon: Phone, title: 'Telefoonnummer koppelen', desc: 'Krijg een nieuw nummer of koppel uw bestaande via doorschakeling.' },
+    { num: '03', icon: Mic, title: 'Stem kiezen', desc: 'Kies een standaard stem of kloon uw eigen stem in 5 minuten.' },
+    { num: '04', icon: Phone, title: 'Ga live', desc: 'Koppel uw nummer en uw receptionist is actief. Klaar!' },
   ];
 
   return (
-    <section id="how-it-works" className="section section-dark" style={{ background: '#12121a' }}>
-      <div className="container">
+    <section id="how-it-works" style={{ background: '#0f0a14', padding: '100px 0' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: 64 }}>
-          <p className="section-label">HOE HET WERKT</p>
-          <h2 className="section-title">
+          <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
+            HOE HET WERKT
+          </p>
+          <h2 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 700, color: 'white', marginBottom: 16 }}>
             Live in <span style={{ color: '#f97316' }}>10 minuten</span>
           </h2>
-          <p className="section-subtitle" style={{ margin: '0 auto' }}>
-            Onze stap-voor-stap wizard begeleidt u door de setup. Geen IT-team nodig.
+          <p style={{ fontSize: 18, color: '#9ca3af', maxWidth: 500, margin: '0 auto' }}>
+            Geen technische kennis nodig. Onze wizard begeleidt u door elke stap.
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 24 }}>
           {steps.map((step) => (
-            <div key={step.num} className="card" style={{ position: 'relative' }}>
-              <span style={{ position: 'absolute', top: 24, right: 24, fontSize: 48, fontWeight: 700, color: '#2a2a35' }}>{step.num}</span>
-              <div className="icon-box">
-                <step.icon size={24} />
+            <div key={step.num} style={{
+              background: '#1a1025',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 16,
+              padding: 32,
+              position: 'relative',
+            }}>
+              <span style={{ position: 'absolute', top: 24, right: 24, fontSize: 48, fontWeight: 700, color: 'rgba(255,255,255,0.05)' }}>{step.num}</span>
+              <div style={{
+                width: 56,
+                height: 56,
+                borderRadius: 12,
+                background: 'rgba(249, 115, 22, 0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 20,
+              }}>
+                <step.icon size={24} style={{ color: '#f97316' }} />
               </div>
-              <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{step.title}</h3>
+              <h3 style={{ fontSize: 18, fontWeight: 600, color: 'white', marginBottom: 8 }}>{step.title}</h3>
               <p style={{ fontSize: 14, color: '#9ca3af', lineHeight: 1.6 }}>{step.desc}</p>
             </div>
           ))}
         </div>
 
         <div style={{ textAlign: 'center', marginTop: 48 }}>
-          <a href="/register" className="btn-primary">
+          <a href="/register" style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            background: '#f97316',
+            color: 'white',
+            padding: '16px 32px',
+            borderRadius: 8,
+            fontSize: 16,
+            fontWeight: 600,
+            textDecoration: 'none',
+          }}>
             Start nu - eerste maand gratis <ArrowRight size={18} />
           </a>
         </div>
@@ -403,105 +704,108 @@ function PricingSection() {
   const plans = [
     {
       name: 'Starter',
-      icon: Zap,
       price: '99',
-      desc: 'Perfect voor zelfstandigen en kleine praktijken.',
+      desc: 'Perfect voor zelfstandigen.',
       minutes: '300',
       extra: '0,40',
-      features: [
-        'Receptionist 24/7',
-        'Ingebouwde agenda',
-        '1 medewerker',
-        'SMS bevestigingen',
-        'Gesprekstranscripties',
-        'Email support',
-      ],
+      features: ['Receptionist 24/7', 'Ingebouwde agenda', '1 medewerker', 'SMS bevestigingen', 'Gesprekstranscripties', 'Email support'],
       popular: false,
     },
     {
       name: 'Pro',
-      icon: Zap,
       price: '149',
-      desc: 'Voor groeiende teams met meerdere medewerkers.',
+      desc: 'Voor groeiende teams.',
       minutes: '750',
       extra: '0,35',
-      features: [
-        'Alles van Starter, plus:',
-        '5 medewerkers',
-        'Voice cloning',
-        'Uitgaande herinneringen',
-        'Online booking pagina',
-        'Priority support',
-      ],
+      features: ['Alles van Starter, plus:', '5 medewerkers', 'Voice cloning', 'Uitgaande herinneringen', 'Online booking pagina', 'Priority support'],
       popular: true,
     },
     {
       name: 'Business',
-      icon: Zap,
       price: '249',
-      desc: 'Voor grotere bedrijven met hoge volumes.',
+      desc: 'Voor grotere bedrijven.',
       minutes: '1500',
       extra: '0,30',
-      features: [
-        'Alles van Pro, plus:',
-        'Onbeperkt medewerkers',
-        'Meerdere locaties',
-        'API toegang',
-        'Custom integraties',
-        'Dedicated account manager',
-      ],
+      features: ['Alles van Pro, plus:', 'Onbeperkt medewerkers', 'Meerdere locaties', 'API toegang', 'Custom integraties', 'Account manager'],
       popular: false,
     },
   ];
 
   return (
-    <section id="pricing" className="section section-dark">
-      <div className="container">
+    <section id="pricing" style={{ background: '#0f0a14', padding: '100px 0' }}>
+      <div style={{ maxWidth: 1000, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: 64 }}>
-          <p className="section-label">PRIJZEN</p>
-          <h2 className="section-title">
+          <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
+            PRIJZEN
+          </p>
+          <h2 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 700, color: 'white', marginBottom: 16 }}>
             Simpele, <span style={{ color: '#f97316' }}>transparante prijzen</span>
           </h2>
-          <p className="section-subtitle" style={{ margin: '0 auto' }}>
+          <p style={{ fontSize: 18, color: '#9ca3af' }}>
             Alles inbegrepen. Geen verrassingen.
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24, maxWidth: 1000, margin: '0 auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
           {plans.map((plan) => (
-            <div key={plan.name} className={`pricing-card ${plan.popular ? 'popular' : ''}`}>
-              {plan.popular && <span className="pricing-badge">Populair</span>}
-              
-              <div className="pricing-name">
-                <plan.icon size={18} style={{ color: '#f97316' }} />
-                {plan.name}
-              </div>
-              <p className="pricing-desc">{plan.desc}</p>
+            <div key={plan.name} style={{
+              background: '#1a1025',
+              border: plan.popular ? '2px solid #f97316' : '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 20,
+              padding: '40px 32px',
+              position: 'relative',
+            }}>
+              {plan.popular && (
+                <span style={{
+                  position: 'absolute',
+                  top: -12,
+                  right: 24,
+                  background: '#f97316',
+                  color: 'white',
+                  padding: '4px 16px',
+                  borderRadius: 20,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                }}>Populair</span>
+              )}
 
-              <div className="pricing-price">
-                <span style={{ fontSize: 20, color: '#6b7280' }}>€</span>
-                <span className="pricing-amount">{plan.price}</span>
-                <span className="pricing-period">/maand</span>
+              <h3 style={{ fontSize: 20, fontWeight: 600, color: 'white', marginBottom: 8 }}>{plan.name}</h3>
+              <p style={{ fontSize: 14, color: '#9ca3af', marginBottom: 24 }}>{plan.desc}</p>
+
+              <div style={{ marginBottom: 24 }}>
+                <span style={{ fontSize: 18, color: '#9ca3af' }}>€</span>
+                <span style={{ fontSize: 48, fontWeight: 700, color: '#f97316' }}>{plan.price}</span>
+                <span style={{ fontSize: 16, color: '#9ca3af' }}>/maand</span>
               </div>
 
               <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 24 }}>
-                {plan.minutes} minuten incl. • €{plan.extra}/extra min
+                {plan.minutes} min incl. • €{plan.extra}/extra min
               </p>
 
-              <ul className="pricing-features">
-                {plan.features.map((feature) => (
-                  <li key={feature}>
-                    <Check size={16} />
+              <ul style={{ listStyle: 'none', padding: 0, marginBottom: 32 }}>
+                {plan.features.map((feature, i) => (
+                  <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', fontSize: 14, color: '#d1d5db' }}>
+                    <Check size={16} style={{ color: '#f97316' }} />
                     {feature}
                   </li>
                 ))}
               </ul>
 
-              <a 
-                href="/register" 
-                className={plan.popular ? 'btn-primary' : 'btn-secondary'}
-                style={{ width: '100%', justifyContent: 'center' }}
-              >
+              <a href="/register" style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                background: plan.popular ? '#f97316' : 'transparent',
+                color: 'white',
+                padding: '14px 24px',
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 600,
+                textDecoration: 'none',
+                border: plan.popular ? 'none' : '1px solid rgba(255,255,255,0.2)',
+              }}>
                 Kies {plan.name}
               </a>
 
@@ -523,61 +827,35 @@ function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   const faqs = [
-    {
-      q: 'Hoe snel kan ik starten?',
-      a: 'Binnen 10 minuten. Onze setup wizard begeleidt u stap voor stap. U hoeft alleen bedrijfsgegevens, diensten en werkuren in te vullen.',
-    },
-    {
-      q: 'Kan ik mijn bestaande telefoonnummer behouden?',
-      a: 'Ja! U kunt uw bestaande nummer doorschakelen naar uw VoxApp nummer. Zo verandert er niets voor uw klanten.',
-    },
-    {
-      q: 'Hoe werkt de voice cloning?',
-      a: 'U leest 5 minuten een tekst in via onze app. Uw stem wordt geanalyseerd en creëert een digitale kopie die precies zo klinkt als u.',
-    },
-    {
-      q: 'Wat als VoxApp een vraag niet kan beantwoorden?',
-      a: 'VoxApp is getraind om vragen door te verbinden naar u of een voicemail achter te laten. U bepaalt zelf in de instellingen hoe dit werkt.',
-    },
-    {
-      q: 'Welke talen worden ondersteund?',
-      a: 'Nederlands, Frans en Duits. VoxApp herkent automatisch in welke taal de beller spreekt en schakelt over.',
-    },
-    {
-      q: 'Is er een contract of opzegtermijn?',
-      a: 'Nee. U kunt maandelijks opzeggen, zonder opgaaf van reden. De eerste maand is volledig gratis.',
-    },
+    { q: 'Hoe snel kan ik starten?', a: 'Binnen 10 minuten. Onze setup wizard begeleidt u stap voor stap.' },
+    { q: 'Kan ik mijn bestaande nummer behouden?', a: 'Ja! U kunt uw bestaande nummer doorschakelen naar VoxApp.' },
+    { q: 'Hoe werkt de voice cloning?', a: 'U leest 5 minuten een tekst in. VoxApp klinkt daarna precies als u.' },
+    { q: 'Welke talen worden ondersteund?', a: 'Nederlands, Frans en Duits. Automatische taalherkenning.' },
+    { q: 'Is er een contract?', a: 'Nee. Maandelijks opzegbaar, eerste maand gratis.' },
   ];
 
   return (
-    <section id="faq" className="section section-dark" style={{ background: '#12121a' }}>
-      <div className="container" style={{ maxWidth: 800 }}>
-        <div style={{ textAlign: 'center', marginBottom: 64 }}>
-          <p className="section-label">FAQ</p>
-          <h2 className="section-title">
+    <section style={{ background: '#1a1025', padding: '100px 0' }}>
+      <div style={{ maxWidth: 700, margin: '0 auto', padding: '0 24px' }}>
+        <div style={{ textAlign: 'center', marginBottom: 48 }}>
+          <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>FAQ</p>
+          <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 700, color: 'white' }}>
             Veelgestelde <span style={{ color: '#f97316' }}>vragen</span>
           </h2>
         </div>
 
         <div>
           {faqs.map((faq, i) => (
-            <div key={i} className="faq-item">
+            <div key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
               <div 
-                className="faq-question"
                 onClick={() => setOpenIndex(openIndex === i ? null : i)}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px 0', cursor: 'pointer' }}
               >
-                <span>{faq.q}</span>
-                <ChevronRight 
-                  size={20} 
-                  style={{ 
-                    color: '#f97316',
-                    transform: openIndex === i ? 'rotate(90deg)' : 'none',
-                    transition: 'transform 0.2s'
-                  }} 
-                />
+                <span style={{ fontWeight: 600, color: 'white' }}>{faq.q}</span>
+                <ChevronRight size={20} style={{ color: '#f97316', transform: openIndex === i ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />
               </div>
               {openIndex === i && (
-                <div className="faq-answer">{faq.a}</div>
+                <p style={{ paddingBottom: 24, color: '#9ca3af', lineHeight: 1.7 }}>{faq.a}</p>
               )}
             </div>
           ))}
@@ -592,20 +870,42 @@ function FAQSection() {
 ============================================ */
 function CTASection() {
   return (
-    <section className="section section-dark">
-      <div className="container" style={{ textAlign: 'center' }}>
-        <h2 className="section-title">
-          Klaar om nooit meer een{' '}
-          <span style={{ color: '#f97316' }}>oproep te missen?</span>
+    <section style={{ background: '#0f0a14', padding: '100px 0' }}>
+      <div style={{ maxWidth: 700, margin: '0 auto', padding: '0 24px', textAlign: 'center' }}>
+        <h2 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 700, color: 'white', marginBottom: 20 }}>
+          Klaar om nooit meer een <span style={{ color: '#f97316' }}>oproep te missen?</span>
         </h2>
-        <p className="section-subtitle" style={{ margin: '0 auto 40px' }}>
-          Start vandaag nog met VoxApp. Eerste maand gratis, geen contract, setup in 10 minuten.
+        <p style={{ fontSize: 18, color: '#9ca3af', marginBottom: 40 }}>
+          Start vandaag nog. Eerste maand gratis, geen contract.
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
-          <a href="/register" className="btn-primary">
+          <a href="/register" style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            background: '#f97316',
+            color: 'white',
+            padding: '16px 32px',
+            borderRadius: 8,
+            fontSize: 16,
+            fontWeight: 600,
+            textDecoration: 'none',
+          }}>
             Start gratis proefperiode <ArrowRight size={18} />
           </a>
-          <a href="/contact" className="btn-secondary">
+          <a href="/contact" style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            background: 'transparent',
+            color: 'white',
+            padding: '16px 32px',
+            borderRadius: 8,
+            fontSize: 16,
+            fontWeight: 600,
+            textDecoration: 'none',
+            border: '1px solid rgba(255,255,255,0.2)',
+          }}>
             <Headphones size={18} />
             Praat met ons team
           </a>
@@ -620,52 +920,40 @@ function CTASection() {
 ============================================ */
 function Footer() {
   return (
-    <footer style={{ background: '#0a0a0f', borderTop: '1px solid #2a2a35', padding: '80px 0 40px' }}>
-      <div className="container">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 48, marginBottom: 48 }}>
-          {/* Brand */}
+    <footer style={{ background: '#0a0710', borderTop: '1px solid rgba(255,255,255,0.1)', padding: '60px 0 40px' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 40, marginBottom: 40 }}>
           <div>
-            <a href="/" className="nav-logo" style={{ marginBottom: 16, display: 'inline-flex' }}>
-              <span>Vox</span>App
+            <a href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 22, fontWeight: 700, color: 'white', textDecoration: 'none', marginBottom: 16 }}>
+              <span style={{ color: '#f97316' }}>Vox</span>App
             </a>
-            <p style={{ fontSize: 14, color: '#6b7280', lineHeight: 1.7, marginTop: 16 }}>
-              De slimme receptionist voor elke KMO. Mis nooit meer een oproep.
+            <p style={{ fontSize: 14, color: '#6b7280', lineHeight: 1.6, marginTop: 16 }}>
+              De slimme receptionist voor elke KMO.
             </p>
           </div>
-
-          {/* Product */}
           <div>
-            <h4 style={{ fontWeight: 600, marginBottom: 20 }}>Product</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <h4 style={{ fontWeight: 600, color: 'white', marginBottom: 16 }}>Product</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <a href="#features" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>Functies</a>
               <a href="#pricing" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>Prijzen</a>
-              <a href="#" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>Integraties</a>
             </div>
           </div>
-
-          {/* Bedrijf */}
           <div>
-            <h4 style={{ fontWeight: 600, marginBottom: 20 }}>Bedrijf</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <h4 style={{ fontWeight: 600, color: 'white', marginBottom: 16 }}>Bedrijf</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <a href="#" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>Over ons</a>
-              <a href="#" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>Blog</a>
               <a href="/contact" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>Contact</a>
             </div>
           </div>
-
-          {/* Support */}
           <div>
-            <h4 style={{ fontWeight: 600, marginBottom: 20 }}>Support</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <h4 style={{ fontWeight: 600, color: 'white', marginBottom: 16 }}>Support</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <a href="#" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>Help Center</a>
-              <a href="#faq" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>FAQ</a>
-              <a href="#" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>Status</a>
+              <a href="#" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>FAQ</a>
             </div>
           </div>
         </div>
-
-        {/* Bottom */}
-        <div style={{ borderTop: '1px solid #2a2a35', paddingTop: 24, display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 16 }}>
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 24, display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 16 }}>
           <p style={{ fontSize: 13, color: '#6b7280' }}>© 2026 VoxApp. Alle rechten voorbehouden.</p>
           <div style={{ display: 'flex', gap: 24 }}>
             <a href="#" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 13 }}>Privacy</a>
@@ -685,9 +973,9 @@ export default function Home() {
     <main>
       <Navigation />
       <HeroSection />
-      <StatsSection />
-      <FeaturesSection />
-      <AgendaSection />
+      <InboundSection />
+      <OutboundSection />
+      <AutomationSection />
       <HowItWorksSection />
       <PricingSection />
       <FAQSection />
