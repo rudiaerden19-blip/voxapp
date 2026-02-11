@@ -35,18 +35,19 @@ function DemoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
   const [isTyping, setIsTyping] = useState(false);
   const [audioRef, setAudioRef] = useState<HTMLAudioElement | null>(null);
 
-  // Demo conversation script with audio files
+  // Demo conversation script with audio files - Flemish friendly conversation
   const conversation = [
-    { speaker: 'receptionist', text: 'Goedemiddag, u spreekt met Kapsalon Belle. Waarmee kan ik u helpen?', audio: '/audio/r1.mp3' },
-    { speaker: 'customer', text: 'Hallo, ik zou graag een afspraak willen maken voor knippen.', audio: '/audio/c1.mp3' },
-    { speaker: 'receptionist', text: 'Natuurlijk! Voor wanneer had u in gedachten?', audio: '/audio/r2.mp3' },
-    { speaker: 'customer', text: 'Heeft u morgen nog iets vrij?', audio: '/audio/c2.mp3' },
-    { speaker: 'receptionist', text: 'Laat me even kijken... Ja, morgen om 14:00 of om 16:30 is er nog plaats.', audio: '/audio/r3.mp3' },
-    { speaker: 'customer', text: '14:00 is perfect.', audio: '/audio/c3.mp3' },
-    { speaker: 'receptionist', text: 'Uitstekend! Ik noteer u voor morgen 14:00. Dat is €25. Mag ik uw naam?', audio: '/audio/r4.mp3' },
-    { speaker: 'customer', text: 'Peter Janssen.', audio: '/audio/c4.mp3' },
-    { speaker: 'receptionist', text: 'Dank u, meneer Janssen. U ontvangt een SMS bevestiging. Tot morgen!', audio: '/audio/r5.mp3' },
-    { speaker: 'customer', text: 'Dank u wel, tot morgen!', audio: '/audio/c5.mp3' },
+    { speaker: 'receptionist', text: 'Goedemiddag, Kapsalon Belle, met Sara!', audio: '/audio/r1.mp3' },
+    { speaker: 'customer', text: 'Hey Sara, met Lisa hier. Alles goed met je?', audio: '/audio/c1.mp3' },
+    { speaker: 'receptionist', text: 'Ja prima! En met jou? Waarmee kan ik je helpen schat?', audio: '/audio/r2.mp3' },
+    { speaker: 'customer', text: 'Ik zou nog eens moeten langskomen voor te knippen eigenlijk.', audio: '/audio/c2.mp3' },
+    { speaker: 'receptionist', text: 'Ah ja, da\'s al een tijdje geleden hé! Wanneer zou het je passen?', audio: '/audio/r3.mp3' },
+    { speaker: 'customer', text: 'Zou er morgen misschien nog iets vrij zijn?', audio: '/audio/c3.mp3' },
+    { speaker: 'receptionist', text: 'Eens even kijken hoor... ja morgen om 14 uur of om half 5 kan nog. Wat past je het beste?', audio: '/audio/r4.mp3' },
+    { speaker: 'customer', text: '14 uur is perfect voor mij.', audio: '/audio/c4.mp3' },
+    { speaker: 'receptionist', text: 'Super! Dan zet ik je in voor morgen om 14 uur. Je krijgt nog een bevestiging via SMS hé!', audio: '/audio/r5.mp3' },
+    { speaker: 'customer', text: 'Top, merci hé Sara! Tot morgen dan!', audio: '/audio/c5.mp3' },
+    { speaker: 'receptionist', text: 'Graag gedaan! Tot morgen Lisa, ciao!', audio: '/audio/r6.mp3' },
   ];
 
   // Stop audio when modal closes
