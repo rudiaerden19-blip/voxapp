@@ -760,8 +760,8 @@ function PricingSection() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
           {plans.map((plan) => (
             <div key={plan.name} style={{
-              background: '#1a1025',
-              border: plan.popular ? '2px solid #f97316' : '1px solid rgba(255,255,255,0.1)',
+              background: '#ffffff',
+              border: plan.popular ? '2px solid #f97316' : '1px solid #d1d5db',
               borderRadius: 20,
               padding: '40px 32px',
               position: 'relative',
@@ -781,8 +781,8 @@ function PricingSection() {
                 }}>Populair</span>
               )}
 
-              <h3 style={{ fontSize: 20, fontWeight: 600, color: 'white', marginBottom: 8 }}>{plan.name}</h3>
-              <p style={{ fontSize: 14, color: '#9ca3af', marginBottom: 24 }}>{plan.desc}</p>
+              <h3 style={{ fontSize: 20, fontWeight: 600, color: '#1a1a2e', marginBottom: 8 }}>{plan.name}</h3>
+              <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>{plan.desc}</p>
 
               <div style={{ marginBottom: 24 }}>
                 <span style={{ fontSize: 18, color: '#9ca3af' }}>€</span>
@@ -796,7 +796,7 @@ function PricingSection() {
 
               <ul style={{ listStyle: 'none', padding: 0, marginBottom: 32 }}>
                 {plan.features.map((feature, i) => (
-                  <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', fontSize: 14, color: '#d1d5db' }}>
+                  <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', fontSize: 14, color: '#374151' }}>
                     <Check size={16} style={{ color: '#f97316' }} />
                     {feature}
                   </li>
@@ -809,13 +809,13 @@ function PricingSection() {
                 justifyContent: 'center',
                 gap: 8,
                 background: plan.popular ? '#f97316' : 'transparent',
-                color: 'white',
+                color: plan.popular ? 'white' : '#1a1a2e',
                 padding: '14px 24px',
                 borderRadius: 8,
                 fontSize: 14,
                 fontWeight: 600,
                 textDecoration: 'none',
-                border: plan.popular ? 'none' : '1px solid rgba(255,255,255,0.2)',
+                border: plan.popular ? 'none' : '1px solid #d1d5db',
               }}>
                 Kies {plan.name}
               </a>
