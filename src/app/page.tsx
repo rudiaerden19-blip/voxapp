@@ -40,18 +40,18 @@ function DemoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
     { speaker: 'receptionist', text: 'Kapsalon Belle, goedemiddag, met Belle.', audio: '/audio/b1.mp3' },
     { speaker: 'customer', text: 'Goedemiddag, met Sanne. Ik bel even om een afspraak te maken om mijn haar te laten knippen en kleuren.', audio: '/audio/s1.mp3' },
     { speaker: 'receptionist', text: 'Dag Sanne, dat kan zeker. Wat had je graag laten doen?', audio: '/audio/b2.mp3' },
-    { speaker: 'customer', text: 'Ik zou het graag tot op schouderlengte laten knippen en misschien wat lichtere tinten erin, iets fris maar niet te opvallend.', audio: '/audio/s2.mp3' },
+    { speaker: 'customer', text: 'Ik zou het graag tot schouderlengte laten knippen, en misschien wat lichtere tinten erin. Iets fris, maar niet te opvallend.', audio: '/audio/s2.mp3' },
     { speaker: 'receptionist', text: 'Dat klinkt mooi. Eerder subtiele highlights dus?', audio: '/audio/b3.mp3' },
     { speaker: 'customer', text: 'Ja, liefst heel natuurlijk.', audio: '/audio/s3.mp3' },
     { speaker: 'receptionist', text: 'Prima. Wanneer past het voor jou?', audio: '/audio/b4.mp3' },
     { speaker: 'customer', text: 'Is er deze week nog een plaatsje in de namiddag?', audio: '/audio/s4.mp3' },
-    { speaker: 'receptionist', text: 'Even kijken… Donderdag om half twee heb ik nog tijd. Past dat?', audio: '/audio/b5.mp3' },
+    { speaker: 'receptionist', text: 'Even kijken, donderdag om half twee heb ik nog tijd. Past dat?', audio: '/audio/b5.mp3' },
     { speaker: 'customer', text: 'Ja, dat is perfect.', audio: '/audio/s5.mp3' },
     { speaker: 'receptionist', text: 'Super, dan noteer ik je voor donderdag om 13u30 voor knippen en kleuren. Reken op een tweetal uurtjes.', audio: '/audio/b6.mp3' },
     { speaker: 'customer', text: 'Helemaal goed, dank je wel.', audio: '/audio/s6.mp3' },
-    { speaker: 'receptionist', text: 'Graag gedaan. Tot donderdag!', audio: '/audio/b7.mp3' },
-    { speaker: 'customer', text: 'Tot dan, fijne dag!', audio: '/audio/s7.mp3' },
-    { speaker: 'receptionist', text: 'Jij ook, dag!', audio: '/audio/b8.mp3' },
+    { speaker: 'receptionist', text: 'Graag gedaan. Tot donderdag.', audio: '/audio/b7.mp3' },
+    { speaker: 'customer', text: 'Tot dan, fijne dag.', audio: '/audio/s7.mp3' },
+    { speaker: 'receptionist', text: 'Jij ook, dag.', audio: '/audio/b8.mp3' },
   ];
 
   // Stop audio when modal closes
