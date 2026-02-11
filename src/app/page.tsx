@@ -280,7 +280,7 @@ function HeroSection() {
 ============================================ */
 function InboundSection() {
   return (
-    <section id="features" style={{ background: '#ffffff', padding: '100px 0' }}>
+    <section id="features" style={{ background: '#ffffff', padding: '140px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 60, alignItems: 'center' }}>
           {/* Left - Text */}
@@ -368,7 +368,7 @@ function InboundSection() {
 ============================================ */
 function OutboundSection() {
   return (
-    <section style={{ background: '#fafafa', padding: '100px 0' }}>
+    <section style={{ background: '#fafafa', padding: '140px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 60, alignItems: 'center' }}>
           {/* Left - Professional Calendar */}
@@ -550,7 +550,7 @@ function OutboundSection() {
 ============================================ */
 function AutomationSection() {
   return (
-    <section style={{ background: '#ffffff', padding: '100px 0' }}>
+    <section style={{ background: '#ffffff', padding: '140px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 60, alignItems: 'center' }}>
           {/* Left - Text */}
@@ -645,7 +645,7 @@ function HowItWorksSection() {
   ];
 
   return (
-    <section id="how-it-works" style={{ background: '#0f0a14', padding: '100px 0' }}>
+    <section id="how-it-works" style={{ background: '#0f0a14', padding: '140px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: 64 }}>
           <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
@@ -743,7 +743,7 @@ function PricingSection() {
   ];
 
   return (
-    <section id="pricing" style={{ background: '#0f0a14', padding: '100px 0' }}>
+    <section id="pricing" style={{ background: '#0f0a14', padding: '140px 0' }}>
       <div style={{ maxWidth: 1000, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: 64 }}>
           <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
@@ -846,7 +846,7 @@ function FAQSection() {
   ];
 
   return (
-    <section style={{ background: '#1a1025', padding: '100px 0' }}>
+    <section style={{ background: '#1a1025', padding: '140px 0' }}>
       <div style={{ maxWidth: 700, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>FAQ</p>
@@ -881,7 +881,7 @@ function FAQSection() {
 ============================================ */
 function CTASection() {
   return (
-    <section style={{ background: '#0f0a14', padding: '100px 0' }}>
+    <section style={{ background: '#0f0a14', padding: '140px 0' }}>
       <div style={{ maxWidth: 700, margin: '0 auto', padding: '0 24px', textAlign: 'center' }}>
         <h2 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 700, color: 'white', marginBottom: 20 }}>
           Klaar om nooit meer een <span style={{ color: '#f97316' }}>oproep te missen?</span>
