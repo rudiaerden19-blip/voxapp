@@ -1,0 +1,130 @@
+# VoxApp - AI Receptionist Platform
+
+## Wat is VoxApp?
+VoxApp is een AI-receptionist platform voor KMO's in België, Nederland en Duitsland.
+De AI neemt de telefoon op voor bedrijven (kappers, restaurants, dokters, garages, advocaten, etc.),
+boekt afspraken, beantwoordt vragen, en stuurt bevestigingen. 24/7. Met de eigen stem van de eigenaar.
+
+## Website: www.voxapp.tech
+## GitHub: https://github.com/rudiaerden19-blip/voxapp.git
+
+---
+
+## TECH STACK
+
+### Hosting & Deployment
+- **Vercel** — hosting, deployment, automatisch via GitHub push
+- **NIET lokaal bouwen** — alles gaat via GitHub → Vercel
+
+### Frontend
+- **Next.js** (App Router, TypeScript)
+- **Tailwind CSS v4** — LET OP: v4 gebruikt `@import "tailwindcss"` in globals.css, NIET de oude @tailwind directives
+- **Mobile-first design** — alles wordt EERST voor telefoon gebouwd, daarna desktop
+- **Lucide React** — icons
+
+### Backend / Database
+- **Supabase** — PostgreSQL database, auth, realtime
+  - URL: https://bkjqadaamxmwjeenzslr.supabase.co
+  - Anon key staat in .env.local
+
+### AI Voice Engine
+- **ElevenLabs** — Conversational AI agents, text-to-speech, voice cloning
+  - Nederlands, Frans, Duits ondersteund
+  - Native Twilio integratie
+  - Voice cloning: klant kan eigen stem klonen (5 min opnemen)
+  - Prijs: ~$0.08-0.10/minuut
+
+### Telefonie
+- **Twilio** — Telefoonnummers, inkomend/uitgaand bellen, SMS
+  - Belgische nummers (+32)
+  - Nederlandse nummers (+31)
+  - Duitse nummers (+49)
+  - Prijs: ~€0.06/min inkomend + €3/maand per nummer
+
+---
+
+## WAT WE BOUWEN
+
+### 1. Marketing Website (www.voxapp.tech)
+Professionele landing page in de stijl van www.intavia.ai:
+- Hero sectie (donkere achtergrond, headline links, foto rechts met UI overlays)
+- Feature secties (witte achtergrond, tekst links, foto rechts, met tabs/slider)
+- Reviews sectie (donkere achtergrond, horizontale slider met klantreviews)
+- Pricing sectie (3 plannen: Starter €99, Pro €149, Business €249)
+- Footer met links
+- MOBILE-FIRST: ontwerp eerst voor telefoon, daarna responsive naar desktop
+- Kleuren: professioneel donker (#1a1a2e) + wit + subtiele accenten
+- GEEN felle kleuren, GEEN paars/rood/neon
+
+### 2. Dashboard (voor de klant die VoxApp gebruikt)
+Na inloggen ziet de klant:
+- **Overzicht**: aantal oproepen vandaag, afspraken geboekt, gemiste oproepen
+- **Gesprekken**: lijst van alle oproepen + transcripties
+- **Agenda**: dag/week/maand weergave, afspraken per medewerker
+- **Diensten**: lijst van diensten met naam, duur, prijs
+- **Medewerkers**: wie werkt wanneer
+- **AI Instellingen**: begroeting, stem kiezen/klonen, openingsuren, FAQ's, doorverbind-nummer
+- **Abonnement**: plan, verbruik, facturen
+
+### 3. Setup Wizard (onboarding nieuwe klant)
+Stap-voor-stap flow:
+1. Sector kiezen (kapper, restaurant, dokter, garage, advocaat, etc.)
+2. Bedrijfsinfo invullen (naam, adres, openingsuren)
+3. Diensten toevoegen (naam, duur, prijs)
+4. Medewerkers toevoegen (naam, werkdagen/uren)
+5. Stem kiezen (standaard NL stem of eigen stem klonen)
+6. Telefoonnummer koppelen
+7. Klaar — AI receptionist is actief
+
+### 4. Backend / API
+- ElevenLabs agent aanmaken per klant (via ElevenLabs API)
+- Twilio nummer provisionen per klant (via Twilio API)
+- Webhook: gesprek binnenkomt → loggen in Supabase + actie uitvoeren
+- Agenda API: boeken, wijzigen, annuleren
+- SMS versturen via Twilio (bevestigingen, herinneringen)
+
+### 5. Kassa-koppeling (voor horeca klanten met Vysion Horeca)
+- API endpoint: AI stuurt bestelling → verschijnt in Vysion Kassa
+- Menu sync: producten uit Vysion Kassa → AI kent het menu
+- Dit is een APART project, later toe te voegen
+
+---
+
+## DATABASE TABELLEN (Supabase)
+
+```
+businesses        — klantgegevens, sector, plan, instellingen
+services          — diensten per business (knippen €35, consult €50, etc.)
+staff             — medewerkers + werkuren per business
+appointments      — afspraken/agenda items
+calls             — alle gesprekken + transcripties + samenvatting
+call_actions      — wat de AI deed per gesprek (geboekt, doorverbonden, info gegeven)
+subscriptions     — abonnement + minuten verbruik
+phone_numbers     — Twilio nummers per klant
+```
+
+---
+
+## PRICING MODEL
+
+| Plan     | Prijs      | Minuten  | Extra minuut |
+|----------|-----------|----------|-------------|
+| Starter  | €99/maand  | 300 min  | €0,40/min   |
+| Pro      | €149/maand | 750 min  | €0,35/min   |
+| Business | €249/maand | 1500 min | €0,30/min   |
+
+Kostprijs per klant: ~€25/maand → Marge: 75-83%
+
+---
+
+## REGELS VOOR AGENTS
+
+1. **NOOIT lokaal bouwen** — alles via GitHub → Vercel
+2. **Mobile-first** — ontwerp ALTIJD eerst voor telefoonscherm
+3. **Tailwind v4** — gebruik `@import "tailwindcss"` NIET de oude syntax
+4. **Professioneel design** — kijk naar www.intavia.ai als referentie
+5. **Geen felle kleuren** — geen paars, rood, neon. Gebruik donker (#1a1a2e), wit, grijs, subtiele accenten
+6. **Test op telefoon** — de klant bekijkt alles op telefoon
+7. **Nederlands** — alle tekst in het Nederlands (België)
+8. **Supabase keys** staan in .env.local, NOOIT committen
+9. **Na elke wijziging**: git add, commit, push → Vercel deployed automatisch
