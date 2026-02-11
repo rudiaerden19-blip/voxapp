@@ -26,11 +26,13 @@ import {
 } from 'lucide-react';
 
 /* ============================================
-   DEMO MODAL - Plays recorded conversation
+   DEMO MODAL - Audio conversation with live transcript
 ============================================ */
 function DemoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentLine, setCurrentLine] = useState(0);
+  const [typingText, setTypingText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
 
   // Demo conversation script
   const conversation = [
@@ -38,27 +40,45 @@ function DemoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
     { speaker: 'customer', text: 'Hallo, ik zou graag een afspraak willen maken voor knippen.' },
     { speaker: 'receptionist', text: 'Natuurlijk! Voor wanneer had u in gedachten?' },
     { speaker: 'customer', text: 'Heeft u morgen nog iets vrij?' },
-    { speaker: 'receptionist', text: 'Laat me even kijken... Ja, morgen om 14:00 of om 16:30 is er nog plaats. Wat past u het beste?' },
+    { speaker: 'receptionist', text: 'Laat me even kijken... Ja, morgen om 14:00 of om 16:30 is er nog plaats.' },
     { speaker: 'customer', text: '14:00 is perfect.' },
-    { speaker: 'receptionist', text: 'Uitstekend! Dan noteer ik u voor morgen om 14:00 voor knippen. Dat is €25. Mag ik uw naam?' },
+    { speaker: 'receptionist', text: 'Uitstekend! Ik noteer u voor morgen 14:00. Dat is €25. Mag ik uw naam?' },
     { speaker: 'customer', text: 'Peter Janssen.' },
-    { speaker: 'receptionist', text: 'Dank u wel, meneer Janssen. U bent geboekt voor morgen 14:00. U ontvangt zo een bevestiging per SMS. Tot morgen!' },
+    { speaker: 'receptionist', text: 'Dank u, meneer Janssen. U ontvangt een SMS bevestiging. Tot morgen!' },
     { speaker: 'customer', text: 'Dank u wel, tot morgen!' },
   ];
 
+  // Typing effect for current line
   useEffect(() => {
-    if (isOpen && isPlaying && currentLine < conversation.length) {
-      const timer = setTimeout(() => {
-        setCurrentLine(prev => prev + 1);
-      }, 2500);
-      return () => clearTimeout(timer);
+    if (isPlaying && currentLine < conversation.length) {
+      const fullText = conversation[currentLine].text;
+      setIsTyping(true);
+      setTypingText('');
+      
+      let charIndex = 0;
+      const typingInterval = setInterval(() => {
+        if (charIndex < fullText.length) {
+          setTypingText(fullText.slice(0, charIndex + 1));
+          charIndex++;
+        } else {
+          clearInterval(typingInterval);
+          setIsTyping(false);
+          // Move to next line after a pause
+          setTimeout(() => {
+            setCurrentLine(prev => prev + 1);
+          }, 800);
+        }
+      }, 40); // Speed of typing
+
+      return () => clearInterval(typingInterval);
     }
-  }, [isOpen, isPlaying, currentLine, conversation.length]);
+  }, [isPlaying, currentLine]);
 
   useEffect(() => {
     if (isOpen) {
       setCurrentLine(0);
       setIsPlaying(false);
+      setTypingText('');
     }
   }, [isOpen]);
 
@@ -66,13 +86,18 @@ function DemoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
 
   const handlePlay = () => {
     setCurrentLine(0);
+    setTypingText('');
     setIsPlaying(true);
   };
 
   const handleReplay = () => {
     setCurrentLine(0);
+    setTypingText('');
     setIsPlaying(true);
   };
+
+  const isComplete = currentLine >= conversation.length;
+  const currentSpeaker = currentLine < conversation.length ? conversation[currentLine].speaker : null;
 
   return (
     <div style={{
@@ -81,7 +106,7 @@ function DemoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
       left: 0,
       right: 0,
       bottom: 0,
-      background: 'rgba(0,0,0,0.85)',
+      background: 'rgba(0,0,0,0.9)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -91,10 +116,11 @@ function DemoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
       <div style={{
         background: 'white',
         borderRadius: 24,
-        padding: 32,
-        maxWidth: 500,
+        padding: 0,
+        maxWidth: 480,
         width: '100%',
         position: 'relative',
+        overflow: 'hidden',
       }}>
         {/* Close button */}
         <button 
@@ -103,135 +129,263 @@ function DemoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
             position: 'absolute',
             top: 16,
             right: 16,
-            background: '#f3f4f6',
+            background: 'rgba(255,255,255,0.9)',
             border: 'none',
             borderRadius: '50%',
-            width: 40,
-            height: 40,
+            width: 36,
+            height: 36,
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             fontSize: 20,
+            zIndex: 10,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
           }}
         >
           ×
         </button>
 
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+        <div style={{ padding: '32px 32px 24px', textAlign: 'center', background: '#fafafa' }}>
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: 8,
-            background: '#fef3c7',
+            background: 'white',
             padding: '8px 16px',
             borderRadius: 20,
-            marginBottom: 16,
+            marginBottom: 20,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
           }}>
-            <Headphones size={16} style={{ color: '#f97316' }} />
-            <span style={{ fontSize: 14, color: '#92400e', fontWeight: 500 }}>Demo gesprek</span>
+            <div style={{ 
+              width: 8, 
+              height: 8, 
+              background: isPlaying ? '#22c55e' : '#9ca3af', 
+              borderRadius: '50%',
+              animation: isPlaying ? 'pulse 1.5s infinite' : 'none',
+            }} />
+            <span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>Live demo</span>
           </div>
-          <h3 style={{ fontSize: 22, fontWeight: 700, color: '#1a1a2e', marginBottom: 8 }}>
-            Luister mee met een telefoongesprek
-          </h3>
-          <p style={{ color: '#6b7280', fontSize: 14 }}>
-            Een klant belt Kapsalon Belle om een afspraak te maken
+          <p style={{ color: '#6b7280', fontSize: 15, lineHeight: 1.6, margin: 0 }}>
+            Luister mee hoe VoxApp een afspraak boekt voor Kapsalon Belle
           </p>
         </div>
 
-        {/* Conversation display */}
+        {/* Audio Visualizer */}
+        <div style={{ 
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          padding: '40px 32px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}>
+          {/* Spinning audio indicator */}
+          <div style={{
+            width: 120,
+            height: 120,
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 24,
+            animation: isPlaying ? 'spin 3s linear infinite' : 'none',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+          }}>
+            <div style={{
+              width: 80,
+              height: 80,
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              {isPlaying ? (
+                <Mic size={32} style={{ color: 'white' }} />
+              ) : (
+                <Phone size={32} style={{ color: 'white' }} />
+              )}
+            </div>
+          </div>
+
+          {/* Audio bars */}
+          <div style={{ display: 'flex', gap: 4, height: 32, alignItems: 'center' }}>
+            {[...Array(14)].map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  width: 6,
+                  height: isPlaying ? `${Math.random() * 24 + 8}px` : '8px',
+                  background: 'rgba(255,255,255,0.6)',
+                  borderRadius: 3,
+                  transition: 'height 0.15s ease',
+                  animation: isPlaying ? `audioBar 0.5s ease-in-out ${i * 0.05}s infinite alternate` : 'none',
+                }}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Transcript area */}
         <div style={{
-          background: '#f9fafb',
-          borderRadius: 16,
-          padding: 20,
-          minHeight: 300,
-          maxHeight: 350,
+          padding: '24px 32px',
+          minHeight: 180,
+          maxHeight: 220,
           overflowY: 'auto',
-          marginBottom: 24,
+          background: 'white',
         }}>
           {!isPlaying && currentLine === 0 ? (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 260 }}>
-              <button 
-                onClick={handlePlay}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 12,
-                  background: '#f97316',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 16,
-                  padding: '24px 48px',
-                  cursor: 'pointer',
-                  fontSize: 16,
-                  fontWeight: 600,
-                }}
-              >
-                <Phone size={32} />
-                Start gesprek
-              </button>
+            <div style={{ textAlign: 'center', color: '#9ca3af', fontSize: 14, paddingTop: 20 }}>
+              Klik op de knop hieronder om het gesprek te starten
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Completed lines */}
               {conversation.slice(0, currentLine).map((line, i) => (
-                <div 
-                  key={i}
-                  style={{
-                    display: 'flex',
-                    justifyContent: line.speaker === 'customer' ? 'flex-end' : 'flex-start',
-                  }}
-                >
-                  <div style={{
-                    maxWidth: '85%',
-                    padding: '12px 16px',
-                    borderRadius: 16,
-                    background: line.speaker === 'customer' ? '#e5e7eb' : '#f97316',
-                    color: line.speaker === 'customer' ? '#1a1a2e' : 'white',
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <span style={{ 
+                    fontSize: 11, 
+                    fontWeight: 600, 
+                    textTransform: 'uppercase', 
+                    letterSpacing: 0.5,
+                    color: line.speaker === 'receptionist' ? '#16a34a' : '#2563eb',
                   }}>
-                    <div style={{ fontSize: 10, opacity: 0.7, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                      {line.speaker === 'customer' ? 'Klant' : 'Receptionist'}
-                    </div>
-                    <div style={{ fontSize: 14, lineHeight: 1.5 }}>{line.text}</div>
-                  </div>
+                    {line.speaker === 'receptionist' ? 'Receptionist' : 'Klant'}
+                  </span>
+                  <span style={{ 
+                    fontSize: 15, 
+                    lineHeight: 1.5,
+                    color: line.speaker === 'receptionist' ? '#15803d' : '#1d4ed8',
+                  }}>
+                    {line.text}
+                  </span>
                 </div>
               ))}
-              {isPlaying && currentLine < conversation.length && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0' }}>
-                  <div style={{ width: 8, height: 8, background: '#f97316', borderRadius: '50%', animation: 'pulse 1s infinite' }} />
-                  <span style={{ fontSize: 12, color: '#6b7280' }}>Gesprek bezig...</span>
+              
+              {/* Currently typing line */}
+              {isTyping && currentSpeaker && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <span style={{ 
+                    fontSize: 11, 
+                    fontWeight: 600, 
+                    textTransform: 'uppercase', 
+                    letterSpacing: 0.5,
+                    color: currentSpeaker === 'receptionist' ? '#16a34a' : '#2563eb',
+                  }}>
+                    {currentSpeaker === 'receptionist' ? 'Receptionist' : 'Klant'}
+                  </span>
+                  <span style={{ 
+                    fontSize: 15, 
+                    lineHeight: 1.5,
+                    color: currentSpeaker === 'receptionist' ? '#15803d' : '#1d4ed8',
+                  }}>
+                    {typingText}<span style={{ 
+                      display: 'inline-block', 
+                      width: 2, 
+                      height: 16, 
+                      background: currentSpeaker === 'receptionist' ? '#16a34a' : '#2563eb',
+                      marginLeft: 2,
+                      animation: 'blink 0.8s infinite',
+                    }} />
+                  </span>
                 </div>
               )}
             </div>
           )}
         </div>
 
-        {/* Controls */}
-        {currentLine >= conversation.length && (
-          <div style={{ textAlign: 'center' }}>
+        {/* Button */}
+        <div style={{ padding: '0 32px 32px', background: 'white' }}>
+          {!isPlaying && !isComplete ? (
+            <button 
+              onClick={handlePlay}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 10,
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: 12,
+                padding: '16px 32px',
+                cursor: 'pointer',
+                fontSize: 16,
+                fontWeight: 600,
+                boxShadow: '0 4px 14px rgba(102, 126, 234, 0.4)',
+              }}
+            >
+              Start live demo
+            </button>
+          ) : isComplete ? (
             <button 
               onClick={handleReplay}
               style={{
-                display: 'inline-flex',
+                width: '100%',
+                display: 'flex',
                 alignItems: 'center',
-                gap: 8,
+                justifyContent: 'center',
+                gap: 10,
                 background: '#f3f4f6',
                 color: '#374151',
                 border: 'none',
-                borderRadius: 8,
-                padding: '12px 24px',
+                borderRadius: 12,
+                padding: '16px 32px',
                 cursor: 'pointer',
-                fontSize: 14,
-                fontWeight: 500,
+                fontSize: 16,
+                fontWeight: 600,
               }}
             >
-              <RefreshCw size={16} />
+              <RefreshCw size={18} />
               Opnieuw afspelen
             </button>
-          </div>
-        )}
+          ) : (
+            <div style={{ 
+              textAlign: 'center', 
+              color: '#9ca3af', 
+              fontSize: 13,
+              padding: '8px 0',
+            }}>
+              Gesprek bezig...
+            </div>
+          )}
+        </div>
+
+        {/* Footer note */}
+        <div style={{ 
+          padding: '16px 32px', 
+          background: '#fafafa', 
+          textAlign: 'center',
+          borderTop: '1px solid #f3f4f6',
+        }}>
+          <p style={{ fontSize: 12, color: '#9ca3af', margin: 0 }}>
+            Dit is een simulatie van hoe VoxApp uw telefoongesprekken afhandelt.
+          </p>
+        </div>
       </div>
+
+      {/* CSS Animations */}
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
+        }
+        @keyframes audioBar {
+          0% { height: 8px; }
+          100% { height: 28px; }
+        }
+      `}</style>
     </div>
   );
 }
