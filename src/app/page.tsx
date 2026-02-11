@@ -198,7 +198,7 @@ function HeroSection() {
                 border: '1px solid rgba(255,255,255,0.2)',
               }}>
                 <PhoneCall size={18} />
-                Bel Demo Receptionist
+                Luister Demo Gesprek
               </a>
             </div>
           </div>
@@ -327,7 +327,7 @@ function InboundSection() {
                 border: '1px solid #e5e7eb',
               }}>
                 <PhoneCall size={16} />
-                Bel Demo Receptionist
+                Luister Demo Gesprek
               </a>
             </div>
 
@@ -520,7 +520,7 @@ function OutboundSection() {
                 border: '1px solid #e5e7eb',
               }}>
                 <PhoneCall size={16} />
-                Bel Demo Receptionist
+                Luister Demo Gesprek
               </a>
             </div>
 
@@ -597,7 +597,7 @@ function AutomationSection() {
                 border: '1px solid #e5e7eb',
               }}>
                 <PhoneCall size={16} />
-                Bel Demo Receptionist
+                Luister Demo Gesprek
               </a>
             </div>
 
