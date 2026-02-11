@@ -216,13 +216,13 @@ function HeroSection() {
               borderRadius: 24,
               overflow: 'hidden',
               boxShadow: '0 40px 80px rgba(0,0,0,0.4)',
-              maxWidth: 500,
+              maxWidth: 600,
               margin: '0 auto',
             }}>
               <img 
                 src="/hero-receptionist.png"
                 alt="Professionele receptionist"
-                style={{ width: '100%', height: 'auto', display: 'block', maxHeight: 400, objectFit: 'cover' }}
+                style={{ width: '100%', height: 'auto', display: 'block', maxHeight: 500, objectFit: 'cover' }}
               />
             </div>
 
@@ -268,32 +268,6 @@ function HeroSection() {
               ))}
             </div>
 
-            {/* Bottom notification */}
-            <div style={{
-              position: 'absolute',
-              bottom: 40,
-              left: 40,
-              background: 'rgba(15, 10, 20, 0.95)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: 12,
-              padding: 16,
-              border: '1px solid rgba(255,255,255,0.1)',
-              maxWidth: 320,
-            }}>
-              <p style={{ fontSize: 12, color: '#9ca3af', marginBottom: 8 }}>Klant heeft zojuist gevraagd over parking bij de zaak. We hebben alle details doorgestuurd.</p>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                background: '#f97316',
-                padding: '8px 12px',
-                borderRadius: 6,
-                width: 'fit-content',
-              }}>
-                <FileText size={14} style={{ color: 'white' }} />
-                <span style={{ fontSize: 12, color: 'white', fontWeight: 500 }}>Bekijk transcript →</span>
-              </div>
-            </div>
           </div>
         </div>
       </div>
