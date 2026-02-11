@@ -33,85 +33,67 @@ function DemoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
   const [currentLine, setCurrentLine] = useState(0);
   const [typingText, setTypingText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [audioRef, setAudioRef] = useState<HTMLAudioElement | null>(null);
 
-  // Demo conversation script
+  // Demo conversation script with audio files
   const conversation = [
-    { speaker: 'receptionist', text: 'Goedemiddag, u spreekt met Kapsalon Belle. Waarmee kan ik u helpen?' },
-    { speaker: 'customer', text: 'Hallo, ik zou graag een afspraak willen maken voor knippen.' },
-    { speaker: 'receptionist', text: 'Natuurlijk! Voor wanneer had u in gedachten?' },
-    { speaker: 'customer', text: 'Heeft u morgen nog iets vrij?' },
-    { speaker: 'receptionist', text: 'Laat me even kijken... Ja, morgen om 14:00 of om 16:30 is er nog plaats.' },
-    { speaker: 'customer', text: '14:00 is perfect.' },
-    { speaker: 'receptionist', text: 'Uitstekend! Ik noteer u voor morgen 14:00. Dat is €25. Mag ik uw naam?' },
-    { speaker: 'customer', text: 'Peter Janssen.' },
-    { speaker: 'receptionist', text: 'Dank u, meneer Janssen. U ontvangt een SMS bevestiging. Tot morgen!' },
-    { speaker: 'customer', text: 'Dank u wel, tot morgen!' },
+    { speaker: 'receptionist', text: 'Goedemiddag, u spreekt met Kapsalon Belle. Waarmee kan ik u helpen?', audio: '/audio/r1.mp3' },
+    { speaker: 'customer', text: 'Hallo, ik zou graag een afspraak willen maken voor knippen.', audio: '/audio/c1.mp3' },
+    { speaker: 'receptionist', text: 'Natuurlijk! Voor wanneer had u in gedachten?', audio: '/audio/r2.mp3' },
+    { speaker: 'customer', text: 'Heeft u morgen nog iets vrij?', audio: '/audio/c2.mp3' },
+    { speaker: 'receptionist', text: 'Laat me even kijken... Ja, morgen om 14:00 of om 16:30 is er nog plaats.', audio: '/audio/r3.mp3' },
+    { speaker: 'customer', text: '14:00 is perfect.', audio: '/audio/c3.mp3' },
+    { speaker: 'receptionist', text: 'Uitstekend! Ik noteer u voor morgen 14:00. Dat is €25. Mag ik uw naam?', audio: '/audio/r4.mp3' },
+    { speaker: 'customer', text: 'Peter Janssen.', audio: '/audio/c4.mp3' },
+    { speaker: 'receptionist', text: 'Dank u, meneer Janssen. U ontvangt een SMS bevestiging. Tot morgen!', audio: '/audio/r5.mp3' },
+    { speaker: 'customer', text: 'Dank u wel, tot morgen!', audio: '/audio/c5.mp3' },
   ];
 
-  // Speak text using Web Speech API
-  const speakText = (text: string, isReceptionist: boolean) => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'nl-NL';
-      utterance.rate = 0.95;
-      
-      // Get available voices
-      const voices = window.speechSynthesis.getVoices();
-      const dutchVoices = voices.filter(v => v.lang.startsWith('nl'));
-      
-      if (dutchVoices.length > 0) {
-        // Try to use different voices for receptionist vs customer
-        if (isReceptionist) {
-          // Prefer female voice for receptionist
-          const femaleVoice = dutchVoices.find(v => v.name.toLowerCase().includes('female') || v.name.includes('Ellen') || v.name.includes('Fleur'));
-          utterance.voice = femaleVoice || dutchVoices[0];
-          utterance.pitch = 1.1;
-        } else {
-          // Prefer male voice for customer
-          const maleVoice = dutchVoices.find(v => v.name.toLowerCase().includes('male') || v.name.includes('Xander') || v.name.includes('Frank'));
-          utterance.voice = maleVoice || dutchVoices[dutchVoices.length > 1 ? 1 : 0];
-          utterance.pitch = 0.9;
-        }
-      }
-      
-      window.speechSynthesis.speak(utterance);
-    }
-  };
-
-  // Stop speech when modal closes
+  // Stop audio when modal closes
   useEffect(() => {
-    if (!isOpen && typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+    if (!isOpen && audioRef) {
+      audioRef.pause();
+      audioRef.currentTime = 0;
     }
-  }, [isOpen]);
+  }, [isOpen, audioRef]);
 
-  // Typing effect for current line
+  // Play audio and type text for current line
   useEffect(() => {
     if (isPlaying && currentLine < conversation.length) {
-      const fullText = conversation[currentLine].text;
-      const speaker = conversation[currentLine].speaker;
+      const line = conversation[currentLine];
       setIsTyping(true);
       setTypingText('');
       
-      // Speak the text
-      speakText(fullText, speaker === 'receptionist');
+      // Play the audio
+      const audio = new Audio(line.audio);
+      setAudioRef(audio);
+      audio.play();
       
+      // When audio ends, move to next line
+      audio.onended = () => {
+        setIsTyping(false);
+        setTimeout(() => {
+          setCurrentLine(prev => prev + 1);
+        }, 400);
+      };
+      
+      // Sync typing with audio duration
+      const fullText = line.text;
       let charIndex = 0;
+      const charsPerSecond = 15; // Approximate speaking speed
       const typingInterval = setInterval(() => {
         if (charIndex < fullText.length) {
           setTypingText(fullText.slice(0, charIndex + 1));
           charIndex++;
         } else {
           clearInterval(typingInterval);
-          setIsTyping(false);
-          // Move to next line after a pause
-          setTimeout(() => {
-            setCurrentLine(prev => prev + 1);
-          }, 800);
         }
-      }, 40); // Speed of typing
+      }, 50);
 
-      return () => clearInterval(typingInterval);
+      return () => {
+        clearInterval(typingInterval);
+        audio.pause();
+      };
     }
   }, [isPlaying, currentLine]);
 
@@ -126,19 +108,16 @@ function DemoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
   if (!isOpen) return null;
 
   const handlePlay = () => {
-    // Load voices first (needed for some browsers)
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.getVoices();
-    }
     setCurrentLine(0);
     setTypingText('');
     setIsPlaying(true);
   };
 
   const handleReplay = () => {
-    // Cancel any ongoing speech
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+    // Stop any playing audio
+    if (audioRef) {
+      audioRef.pause();
+      audioRef.currentTime = 0;
     }
     setCurrentLine(0);
     setTypingText('');
