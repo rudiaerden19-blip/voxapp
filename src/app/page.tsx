@@ -48,12 +48,53 @@ function DemoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
     { speaker: 'customer', text: 'Dank u wel, tot morgen!' },
   ];
 
+  // Speak text using Web Speech API
+  const speakText = (text: string, isReceptionist: boolean) => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'nl-NL';
+      utterance.rate = 0.95;
+      
+      // Get available voices
+      const voices = window.speechSynthesis.getVoices();
+      const dutchVoices = voices.filter(v => v.lang.startsWith('nl'));
+      
+      if (dutchVoices.length > 0) {
+        // Try to use different voices for receptionist vs customer
+        if (isReceptionist) {
+          // Prefer female voice for receptionist
+          const femaleVoice = dutchVoices.find(v => v.name.toLowerCase().includes('female') || v.name.includes('Ellen') || v.name.includes('Fleur'));
+          utterance.voice = femaleVoice || dutchVoices[0];
+          utterance.pitch = 1.1;
+        } else {
+          // Prefer male voice for customer
+          const maleVoice = dutchVoices.find(v => v.name.toLowerCase().includes('male') || v.name.includes('Xander') || v.name.includes('Frank'));
+          utterance.voice = maleVoice || dutchVoices[dutchVoices.length > 1 ? 1 : 0];
+          utterance.pitch = 0.9;
+        }
+      }
+      
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  // Stop speech when modal closes
+  useEffect(() => {
+    if (!isOpen && typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+  }, [isOpen]);
+
   // Typing effect for current line
   useEffect(() => {
     if (isPlaying && currentLine < conversation.length) {
       const fullText = conversation[currentLine].text;
+      const speaker = conversation[currentLine].speaker;
       setIsTyping(true);
       setTypingText('');
+      
+      // Speak the text
+      speakText(fullText, speaker === 'receptionist');
       
       let charIndex = 0;
       const typingInterval = setInterval(() => {
@@ -85,12 +126,20 @@ function DemoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
   if (!isOpen) return null;
 
   const handlePlay = () => {
+    // Load voices first (needed for some browsers)
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.getVoices();
+    }
     setCurrentLine(0);
     setTypingText('');
     setIsPlaying(true);
   };
 
   const handleReplay = () => {
+    // Cancel any ongoing speech
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
     setCurrentLine(0);
     setTypingText('');
     setIsPlaying(true);
