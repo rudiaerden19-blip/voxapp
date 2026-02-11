@@ -419,46 +419,105 @@ function OutboundSection() {
     <section style={{ background: '#fafafa', padding: '100px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 60, alignItems: 'center' }}>
-          {/* Left - Calendar Mockup */}
+          {/* Left - Professional Calendar */}
           <div style={{ position: 'relative' }}>
             <div style={{
-              background: '#1a1a2e',
+              background: 'white',
               borderRadius: 20,
-              padding: 24,
-              boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+              overflow: 'hidden',
             }}>
               {/* Calendar header */}
-              <div style={{ display: 'flex', gap: 24, marginBottom: 20 }}>
-                <span style={{ color: 'white', fontSize: 14, fontWeight: 500 }}>MA</span>
-                <span style={{ color: 'white', fontSize: 14, fontWeight: 500 }}>DI</span>
+              <div style={{ background: '#f97316', padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12, marginBottom: 4 }}>Februari 2026</p>
+                  <p style={{ color: 'white', fontSize: 18, fontWeight: 600 }}>Week Overzicht</p>
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '8px 16px', borderRadius: 6, fontSize: 13, fontWeight: 500 }}>Dag</button>
+                  <button style={{ background: 'white', border: 'none', color: '#f97316', padding: '8px 16px', borderRadius: 6, fontSize: 13, fontWeight: 600 }}>Week</button>
+                </div>
               </div>
 
-              {/* Calendar items */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <div style={{ background: '#4f46e5', borderRadius: 8, padding: 16, marginLeft: 0 }}>
-                  <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>10:30</p>
-                  <p style={{ fontSize: 14, color: 'white', fontWeight: 500 }}>Consultatie</p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8 }}>
-                    <Check size={12} style={{ color: '#22c55e' }} />
-                    <span style={{ fontSize: 11, color: '#22c55e' }}>Nieuwe Boeking</span>
+              {/* Days header */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', borderBottom: '1px solid #e5e7eb' }}>
+                {['Ma 10', 'Di 11', 'Wo 12', 'Do 13', 'Vr 14'].map((day, i) => (
+                  <div key={i} style={{ padding: '12px 8px', textAlign: 'center', borderRight: i < 4 ? '1px solid #e5e7eb' : 'none' }}>
+                    <span style={{ fontSize: 12, color: i === 1 ? '#f97316' : '#6b7280', fontWeight: i === 1 ? 600 : 400 }}>{day}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Calendar body */}
+              <div style={{ padding: 16 }}>
+                {/* Time slots */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {/* 09:00 */}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                    <span style={{ fontSize: 11, color: '#9ca3af', width: 40 }}>09:00</span>
+                    <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8 }}>
+                      <div style={{ background: '#fef3c7', borderLeft: '3px solid #f59e0b', borderRadius: 4, padding: 8 }}>
+                        <p style={{ fontSize: 11, fontWeight: 600, color: '#92400e' }}>Knippen</p>
+                        <p style={{ fontSize: 10, color: '#a16207' }}>Marie V.</p>
+                      </div>
+                      <div></div>
+                      <div style={{ background: '#dbeafe', borderLeft: '3px solid #3b82f6', borderRadius: 4, padding: 8 }}>
+                        <p style={{ fontSize: 11, fontWeight: 600, color: '#1e40af' }}>Consult</p>
+                        <p style={{ fontSize: 10, color: '#1d4ed8' }}>Peter J.</p>
+                      </div>
+                      <div></div>
+                      <div></div>
+                    </div>
+                  </div>
+
+                  {/* 10:00 */}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                    <span style={{ fontSize: 11, color: '#9ca3af', width: 40 }}>10:00</span>
+                    <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8 }}>
+                      <div></div>
+                      <div style={{ background: '#ffedd5', borderLeft: '3px solid #f97316', borderRadius: 4, padding: 8 }}>
+                        <p style={{ fontSize: 11, fontWeight: 600, color: '#9a3412' }}>Kleuren</p>
+                        <p style={{ fontSize: 10, color: '#c2410c' }}>Lisa G.</p>
+                      </div>
+                      <div></div>
+                      <div style={{ background: '#dcfce7', borderLeft: '3px solid #22c55e', borderRadius: 4, padding: 8 }}>
+                        <p style={{ fontSize: 11, fontWeight: 600, color: '#166534' }}>Knippen</p>
+                        <p style={{ fontSize: 10, color: '#15803d' }}>Jan P.</p>
+                      </div>
+                      <div style={{ background: '#fef3c7', borderLeft: '3px solid #f59e0b', borderRadius: 4, padding: 8 }}>
+                        <p style={{ fontSize: 11, fontWeight: 600, color: '#92400e' }}>Baard</p>
+                        <p style={{ fontSize: 10, color: '#a16207' }}>Tom H.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 11:00 */}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                    <span style={{ fontSize: 11, color: '#9ca3af', width: 40 }}>11:00</span>
+                    <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8 }}>
+                      <div style={{ background: '#dcfce7', borderLeft: '3px solid #22c55e', borderRadius: 4, padding: 8 }}>
+                        <p style={{ fontSize: 11, fontWeight: 600, color: '#166534' }}>Föhnen</p>
+                        <p style={{ fontSize: 10, color: '#15803d' }}>Emma S.</p>
+                      </div>
+                      <div></div>
+                      <div></div>
+                      <div></div>
+                      <div style={{ background: '#dbeafe', borderLeft: '3px solid #3b82f6', borderRadius: 4, padding: 8 }}>
+                        <p style={{ fontSize: 11, fontWeight: 600, color: '#1e40af' }}>Knippen</p>
+                        <p style={{ fontSize: 10, color: '#1d4ed8' }}>Anna K.</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div style={{ background: '#7c3aed', borderRadius: 8, padding: 16, marginLeft: 80 }}>
-                  <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>14:15</p>
-                  <p style={{ fontSize: 14, color: 'white', fontWeight: 500 }}>Follow-up Boeking</p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8 }}>
-                    <Check size={12} style={{ color: '#22c55e' }} />
-                    <span style={{ fontSize: 11, color: '#22c55e' }}>Nieuwe Boeking</span>
+                {/* New booking indicator */}
+                <div style={{ marginTop: 16, padding: 12, background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Check size={16} style={{ color: 'white' }} />
                   </div>
-                </div>
-
-                <div style={{ background: '#4f46e5', borderRadius: 8, padding: 16, marginLeft: 0 }}>
-                  <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>16:00</p>
-                  <p style={{ fontSize: 14, color: 'white', fontWeight: 500 }}>Nieuwe Afspraak</p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8 }}>
-                    <Check size={12} style={{ color: '#22c55e' }} />
-                    <span style={{ fontSize: 11, color: '#22c55e' }}>Nieuwe Boeking</span>
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: '#166534' }}>Nieuwe boeking via VoxApp</p>
+                    <p style={{ fontSize: 11, color: '#15803d' }}>Sarah M. - Knippen & Kleuren - Di 11 feb, 14:00</p>
                   </div>
                 </div>
               </div>
