@@ -536,7 +536,7 @@ function FAQSection() {
       a: 'U leest 5 minuten een tekst in via onze app. Uw stem wordt geanalyseerd en creëert een digitale kopie die precies zo klinkt als u.',
     },
     {
-      q: 'Wat als de AI een vraag niet kan beantwoorden?',
+      q: 'Wat als VoxApp een vraag niet kan beantwoorden?',
       a: 'VoxApp is getraind om vragen door te verbinden naar u of een voicemail achter te laten. U bepaalt zelf in de instellingen hoe dit werkt.',
     },
     {
