@@ -26,24 +26,53 @@ import {
 } from 'lucide-react';
 
 /* ============================================
-   DEMO MODAL
+   DEMO MODAL - Plays recorded conversation
 ============================================ */
 function DemoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentLine, setCurrentLine] = useState(0);
+
+  // Demo conversation script
+  const conversation = [
+    { speaker: 'receptionist', text: 'Goedemiddag, u spreekt met Kapsalon Belle. Waarmee kan ik u helpen?' },
+    { speaker: 'customer', text: 'Hallo, ik zou graag een afspraak willen maken voor knippen.' },
+    { speaker: 'receptionist', text: 'Natuurlijk! Voor wanneer had u in gedachten?' },
+    { speaker: 'customer', text: 'Heeft u morgen nog iets vrij?' },
+    { speaker: 'receptionist', text: 'Laat me even kijken... Ja, morgen om 14:00 of om 16:30 is er nog plaats. Wat past u het beste?' },
+    { speaker: 'customer', text: '14:00 is perfect.' },
+    { speaker: 'receptionist', text: 'Uitstekend! Dan noteer ik u voor morgen om 14:00 voor knippen. Dat is €25. Mag ik uw naam?' },
+    { speaker: 'customer', text: 'Peter Janssen.' },
+    { speaker: 'receptionist', text: 'Dank u wel, meneer Janssen. U bent geboekt voor morgen 14:00. U ontvangt zo een bevestiging per SMS. Tot morgen!' },
+    { speaker: 'customer', text: 'Dank u wel, tot morgen!' },
+  ];
+
+  useEffect(() => {
+    if (isOpen && isPlaying && currentLine < conversation.length) {
+      const timer = setTimeout(() => {
+        setCurrentLine(prev => prev + 1);
+      }, 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, isPlaying, currentLine, conversation.length]);
+
   useEffect(() => {
     if (isOpen) {
-      // Load ElevenLabs widget script
-      const existingScript = document.getElementById('elevenlabs-widget');
-      if (!existingScript) {
-        const script = document.createElement('script');
-        script.id = 'elevenlabs-widget';
-        script.src = 'https://elevenlabs.io/convai-widget/index.js';
-        script.async = true;
-        document.body.appendChild(script);
-      }
+      setCurrentLine(0);
+      setIsPlaying(false);
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
+
+  const handlePlay = () => {
+    setCurrentLine(0);
+    setIsPlaying(true);
+  };
+
+  const handleReplay = () => {
+    setCurrentLine(0);
+    setIsPlaying(true);
+  };
 
   return (
     <div style={{
@@ -52,7 +81,7 @@ function DemoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
       left: 0,
       right: 0,
       bottom: 0,
-      background: 'rgba(0,0,0,0.8)',
+      background: 'rgba(0,0,0,0.85)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -66,7 +95,6 @@ function DemoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
         maxWidth: 500,
         width: '100%',
         position: 'relative',
-        textAlign: 'center',
       }}>
         {/* Close button */}
         <button 
@@ -91,34 +119,118 @@ function DemoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
         </button>
 
         {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            background: '#fef3c7',
+            padding: '8px 16px',
+            borderRadius: 20,
+            marginBottom: 16,
+          }}>
+            <Headphones size={16} style={{ color: '#f97316' }} />
+            <span style={{ fontSize: 14, color: '#92400e', fontWeight: 500 }}>Demo gesprek</span>
+          </div>
+          <h3 style={{ fontSize: 22, fontWeight: 700, color: '#1a1a2e', marginBottom: 8 }}>
+            Luister mee met een telefoongesprek
+          </h3>
+          <p style={{ color: '#6b7280', fontSize: 14 }}>
+            Een klant belt Kapsalon Belle om een afspraak te maken
+          </p>
+        </div>
+
+        {/* Conversation display */}
         <div style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 8,
-          background: '#f3f4f6',
-          padding: '8px 16px',
-          borderRadius: 20,
+          background: '#f9fafb',
+          borderRadius: 16,
+          padding: 20,
+          minHeight: 300,
+          maxHeight: 350,
+          overflowY: 'auto',
           marginBottom: 24,
         }}>
-          <div style={{ width: 8, height: 8, background: '#22c55e', borderRadius: '50%' }} />
-          <span style={{ fontSize: 14, color: '#374151' }}>Live demo</span>
+          {!isPlaying && currentLine === 0 ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 260 }}>
+              <button 
+                onClick={handlePlay}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 12,
+                  background: '#f97316',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 16,
+                  padding: '24px 48px',
+                  cursor: 'pointer',
+                  fontSize: 16,
+                  fontWeight: 600,
+                }}
+              >
+                <Phone size={32} />
+                Start gesprek
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {conversation.slice(0, currentLine).map((line, i) => (
+                <div 
+                  key={i}
+                  style={{
+                    display: 'flex',
+                    justifyContent: line.speaker === 'customer' ? 'flex-end' : 'flex-start',
+                  }}
+                >
+                  <div style={{
+                    maxWidth: '85%',
+                    padding: '12px 16px',
+                    borderRadius: 16,
+                    background: line.speaker === 'customer' ? '#e5e7eb' : '#f97316',
+                    color: line.speaker === 'customer' ? '#1a1a2e' : 'white',
+                  }}>
+                    <div style={{ fontSize: 10, opacity: 0.7, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                      {line.speaker === 'customer' ? 'Klant' : 'Receptionist'}
+                    </div>
+                    <div style={{ fontSize: 14, lineHeight: 1.5 }}>{line.text}</div>
+                  </div>
+                </div>
+              ))}
+              {isPlaying && currentLine < conversation.length && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0' }}>
+                  <div style={{ width: 8, height: 8, background: '#f97316', borderRadius: '50%', animation: 'pulse 1s infinite' }} />
+                  <span style={{ fontSize: 12, color: '#6b7280' }}>Gesprek bezig...</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        <h3 style={{ fontSize: 24, fontWeight: 700, color: '#1a1a2e', marginBottom: 16 }}>
-          Praat met onze demo receptionist
-        </h3>
-        <p style={{ color: '#6b7280', marginBottom: 32, fontSize: 15 }}>
-          Stel vragen over Kapsalon Belle, of vraag een afspraak te boeken.
-        </p>
-
-        {/* ElevenLabs Widget */}
-        <div style={{ marginBottom: 24 }}>
-          <elevenlabs-convai agent-id="agent_7001kh7ck6cvfpqvrt1gc63bs88k"></elevenlabs-convai>
-        </div>
-
-        <p style={{ fontSize: 12, color: '#9ca3af' }}>
-          Sta microfoon toegang toe wanneer gevraagd.
-        </p>
+        {/* Controls */}
+        {currentLine >= conversation.length && (
+          <div style={{ textAlign: 'center' }}>
+            <button 
+              onClick={handleReplay}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: '#f3f4f6',
+                color: '#374151',
+                border: 'none',
+                borderRadius: 8,
+                padding: '12px 24px',
+                cursor: 'pointer',
+                fontSize: 14,
+                fontWeight: 500,
+              }}
+            >
+              <RefreshCw size={16} />
+              Opnieuw afspelen
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
