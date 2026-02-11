@@ -218,8 +218,8 @@ function HeroSection() {
               boxShadow: '0 40px 80px rgba(0,0,0,0.4)',
             }}>
               <img 
-                src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=900&h=600&fit=crop"
-                alt="Professional receptionist"
+                src="/hero-receptionist.png"
+                alt="Professionele receptionist"
                 style={{ width: '100%', height: 'auto', display: 'block' }}
               />
             </div>
