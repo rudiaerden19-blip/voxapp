@@ -35,19 +35,23 @@ function DemoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
   const [isTyping, setIsTyping] = useState(false);
   const [audioRef, setAudioRef] = useState<HTMLAudioElement | null>(null);
 
-  // Demo conversation script with audio files - Flemish friendly conversation
+  // Demo conversation - Belle & Sanne - professional hair salon call
   const conversation = [
-    { speaker: 'receptionist', text: 'Goedemiddag, Kapsalon Belle, met Sara!', audio: '/audio/r1.mp3' },
-    { speaker: 'customer', text: 'Hey Sara, met Lisa hier. Alles goed met je?', audio: '/audio/c1.mp3' },
-    { speaker: 'receptionist', text: 'Ja prima! En met jou? Waarmee kan ik je helpen schat?', audio: '/audio/r2.mp3' },
-    { speaker: 'customer', text: 'Ik zou nog eens moeten langskomen voor te knippen eigenlijk.', audio: '/audio/c2.mp3' },
-    { speaker: 'receptionist', text: 'Ah ja, da\'s al een tijdje geleden hé! Wanneer zou het je passen?', audio: '/audio/r3.mp3' },
-    { speaker: 'customer', text: 'Zou er morgen misschien nog iets vrij zijn?', audio: '/audio/c3.mp3' },
-    { speaker: 'receptionist', text: 'Eens even kijken hoor... ja morgen om 14 uur of om half 5 kan nog. Wat past je het beste?', audio: '/audio/r4.mp3' },
-    { speaker: 'customer', text: '14 uur is perfect voor mij.', audio: '/audio/c4.mp3' },
-    { speaker: 'receptionist', text: 'Super! Dan zet ik je in voor morgen om 14 uur. Je krijgt nog een bevestiging via SMS hé!', audio: '/audio/r5.mp3' },
-    { speaker: 'customer', text: 'Top, merci hé Sara! Tot morgen dan!', audio: '/audio/c5.mp3' },
-    { speaker: 'receptionist', text: 'Graag gedaan! Tot morgen Lisa, ciao!', audio: '/audio/r6.mp3' },
+    { speaker: 'receptionist', text: 'Kapsalon Belle, goedemiddag, met Belle.', audio: '/audio/b1.mp3' },
+    { speaker: 'customer', text: 'Goedemiddag, met Sanne. Ik bel even om een afspraak te maken om mijn haar te laten knippen en kleuren.', audio: '/audio/s1.mp3' },
+    { speaker: 'receptionist', text: 'Dag Sanne, dat kan zeker. Wat had je graag laten doen?', audio: '/audio/b2.mp3' },
+    { speaker: 'customer', text: 'Ik zou het graag tot op schouderlengte laten knippen en misschien wat lichtere tinten erin, iets fris maar niet te opvallend.', audio: '/audio/s2.mp3' },
+    { speaker: 'receptionist', text: 'Dat klinkt mooi. Eerder subtiele highlights dus?', audio: '/audio/b3.mp3' },
+    { speaker: 'customer', text: 'Ja, liefst heel natuurlijk.', audio: '/audio/s3.mp3' },
+    { speaker: 'receptionist', text: 'Prima. Wanneer past het voor jou?', audio: '/audio/b4.mp3' },
+    { speaker: 'customer', text: 'Is er deze week nog een plaatsje in de namiddag?', audio: '/audio/s4.mp3' },
+    { speaker: 'receptionist', text: 'Even kijken… Donderdag om half twee heb ik nog tijd. Past dat?', audio: '/audio/b5.mp3' },
+    { speaker: 'customer', text: 'Ja, dat is perfect.', audio: '/audio/s5.mp3' },
+    { speaker: 'receptionist', text: 'Super, dan noteer ik je voor donderdag om 13u30 voor knippen en kleuren. Reken op een tweetal uurtjes.', audio: '/audio/b6.mp3' },
+    { speaker: 'customer', text: 'Helemaal goed, dank je wel.', audio: '/audio/s6.mp3' },
+    { speaker: 'receptionist', text: 'Graag gedaan. Tot donderdag!', audio: '/audio/b7.mp3' },
+    { speaker: 'customer', text: 'Tot dan, fijne dag!', audio: '/audio/s7.mp3' },
+    { speaker: 'receptionist', text: 'Jij ook, dag!', audio: '/audio/b8.mp3' },
   ];
 
   // Stop audio when modal closes
