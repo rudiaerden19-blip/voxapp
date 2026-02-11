@@ -881,12 +881,12 @@ function FAQSection() {
 ============================================ */
 function CTASection() {
   return (
-    <section style={{ background: '#0f0a14', padding: '200px 0' }}>
+    <section style={{ background: '#e3e3e3', padding: '200px 0' }}>
       <div style={{ maxWidth: 700, margin: '0 auto', padding: '0 24px', textAlign: 'center' }}>
-        <h2 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 700, color: 'white', marginBottom: 20 }}>
+        <h2 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 700, color: '#1a1a2e', marginBottom: 20 }}>
           Klaar om nooit meer een <span style={{ color: '#f97316' }}>oproep te missen?</span>
         </h2>
-        <p style={{ fontSize: 18, color: '#9ca3af', marginBottom: 40 }}>
+        <p style={{ fontSize: 18, color: '#6b7280', marginBottom: 40 }}>
           Start vandaag nog. Eerste maand gratis, geen contract.
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
@@ -909,13 +909,13 @@ function CTASection() {
             alignItems: 'center',
             gap: 8,
             background: 'transparent',
-            color: 'white',
+            color: '#1a1a2e',
             padding: '16px 32px',
             borderRadius: 8,
             fontSize: 16,
             fontWeight: 600,
             textDecoration: 'none',
-            border: '1px solid rgba(255,255,255,0.2)',
+            border: '1px solid #d1d5db',
           }}>
             <Headphones size={18} />
             Praat met ons team
