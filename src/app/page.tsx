@@ -743,7 +743,7 @@ function PricingSection() {
   ];
 
   return (
-    <section id="pricing" style={{ background: '#0f0a14', padding: '200px 0' }}>
+    <section id="pricing" style={{ background: '#e3e3e3', padding: '200px 0' }}>
       <div style={{ maxWidth: 1000, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: 64 }}>
           <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
