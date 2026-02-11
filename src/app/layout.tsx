@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "VoxApp - AI Receptionist voor uw zaak",
-  description: "Mis nooit meer een oproep. Uw AI receptionist neemt op, boekt afspraken en beantwoordt vragen. 24/7. Met uw eigen stem.",
-  keywords: "AI receptionist, telefoon, KMO, afspraken, België, Nederland",
+  title: "VoxApp - Slimme Receptionist voor uw zaak",
+  description: "Mis nooit meer een oproep. VoxApp neemt op, boekt afspraken en beantwoordt vragen. 24/7. Met uw eigen stem.",
+  keywords: "receptionist, telefoon, KMO, afspraken, België, Nederland",
   openGraph: {
-    title: "VoxApp - AI Receptionist",
-    description: "Mis nooit meer een oproep. AI receptionist voor elke KMO.",
+    title: "VoxApp - Slimme Receptionist",
+    description: "Mis nooit meer een oproep. Slimme receptionist voor elke KMO.",
     url: "https://voxapp.tech",
     siteName: "VoxApp",
     type: "website",

@@ -83,7 +83,7 @@ function HeroSection() {
         {/* Trust bar */}
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '32px', marginBottom: 60 }}>
           {[
-            'AI RECEPTIONIST',
+            'SLIMME RECEPTIONIST',
             'INGEBOUWDE AGENDA',
             'VOICE CLONING',
           ].map((item) => (
@@ -98,7 +98,7 @@ function HeroSection() {
           {/* Text content */}
           <div style={{ textAlign: 'center', maxWidth: 800, margin: '0 auto' }}>
             <h1 style={{ fontSize: 'clamp(36px, 6vw, 56px)', fontWeight: 700, marginBottom: 24, lineHeight: 1.1 }}>
-              De AI-receptionist die{' '}
+              De slimme receptionist die{' '}
               <span style={{ color: '#f97316' }}>afspraken boekt.</span>
             </h1>
 
@@ -228,7 +228,7 @@ function FeaturesSection() {
     {
       icon: Phone,
       title: 'Beantwoord oproepen',
-      desc: 'Professionele begroeting met uw bedrijfsnaam. De AI klinkt natuurlijk en vriendelijk.',
+      desc: 'Professionele begroeting met uw bedrijfsnaam. Natuurlijk en vriendelijk.',
     },
     {
       icon: Calendar,
@@ -281,7 +281,7 @@ function FeaturesSection() {
             Alles wat u nodig heeft
           </h2>
           <p className="section-subtitle" style={{ margin: '0 auto' }}>
-            Eén platform voor AI-telefonie, agendabeheer en klantcommunicatie.
+            Eén platform voor telefonie, agendabeheer en klantcommunicatie.
           </p>
         </div>
 
@@ -316,7 +316,7 @@ function AgendaSection() {
               <span style={{ color: '#f97316' }}>Geen externe tools.</span>
             </h2>
             <p className="section-subtitle" style={{ marginBottom: 32 }}>
-              Dit is wat ons onderscheidt. Uw AI receptionist boekt afspraken direct in de 
+              Dit is wat ons onderscheidt. VoxApp boekt afspraken direct in de 
               VoxApp agenda. Geen Google Calendar, geen Outlook, geen sync-problemen. 
               Eén platform voor alles.
             </p>
@@ -409,7 +409,7 @@ function PricingSection() {
       minutes: '300',
       extra: '0,40',
       features: [
-        'AI receptionist 24/7',
+        'Receptionist 24/7',
         'Ingebouwde agenda',
         '1 medewerker',
         'SMS bevestigingen',
@@ -529,19 +529,19 @@ function FAQSection() {
     },
     {
       q: 'Kan ik mijn bestaande telefoonnummer behouden?',
-      a: 'Ja! U kunt uw bestaande nummer doorschakelen naar uw VoxApp AI-nummer. Zo verandert er niets voor uw klanten.',
+      a: 'Ja! U kunt uw bestaande nummer doorschakelen naar uw VoxApp nummer. Zo verandert er niets voor uw klanten.',
     },
     {
       q: 'Hoe werkt de voice cloning?',
-      a: 'U leest 5 minuten een tekst in via onze app. Onze AI analyseert uw stem en creëert een digitale kopie die precies zo klinkt als u.',
+      a: 'U leest 5 minuten een tekst in via onze app. Uw stem wordt geanalyseerd en creëert een digitale kopie die precies zo klinkt als u.',
     },
     {
       q: 'Wat als de AI een vraag niet kan beantwoorden?',
-      a: 'De AI is getraind om vragen door te verbinden naar u of een voicemail achter te laten. U bepaalt zelf in de instellingen hoe dit werkt.',
+      a: 'VoxApp is getraind om vragen door te verbinden naar u of een voicemail achter te laten. U bepaalt zelf in de instellingen hoe dit werkt.',
     },
     {
       q: 'Welke talen worden ondersteund?',
-      a: 'Nederlands, Frans en Duits. De AI herkent automatisch in welke taal de beller spreekt en schakelt over.',
+      a: 'Nederlands, Frans en Duits. VoxApp herkent automatisch in welke taal de beller spreekt en schakelt over.',
     },
     {
       q: 'Is er een contract of opzegtermijn?',
@@ -629,7 +629,7 @@ function Footer() {
               <span>Vox</span>App
             </a>
             <p style={{ fontSize: 14, color: '#6b7280', lineHeight: 1.7, marginTop: 16 }}>
-              De AI-receptionist voor elke KMO. Mis nooit meer een oproep.
+              De slimme receptionist voor elke KMO. Mis nooit meer een oproep.
             </p>
           </div>
 
