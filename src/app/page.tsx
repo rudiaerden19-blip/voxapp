@@ -280,7 +280,7 @@ function HeroSection() {
 ============================================ */
 function InboundSection() {
   return (
-    <section id="features" style={{ background: '#ffffff', padding: '200px 0' }}>
+    <section id="features" style={{ background: '#e3e3e3', padding: '200px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 60, alignItems: 'center' }}>
           {/* Left - Text */}
@@ -368,7 +368,7 @@ function InboundSection() {
 ============================================ */
 function OutboundSection() {
   return (
-    <section style={{ background: '#fafafa', padding: '200px 0' }}>
+    <section style={{ background: '#e3e3e3', padding: '200px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 60, alignItems: 'center' }}>
           {/* Left - Professional Calendar */}
@@ -550,7 +550,7 @@ function OutboundSection() {
 ============================================ */
 function AutomationSection() {
   return (
-    <section style={{ background: '#ffffff', padding: '200px 0' }}>
+    <section style={{ background: '#e3e3e3', padding: '200px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 60, alignItems: 'center' }}>
           {/* Left - Text */}
