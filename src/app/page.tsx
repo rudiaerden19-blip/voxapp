@@ -216,11 +216,13 @@ function HeroSection() {
               borderRadius: 24,
               overflow: 'hidden',
               boxShadow: '0 40px 80px rgba(0,0,0,0.4)',
+              maxWidth: 500,
+              margin: '0 auto',
             }}>
               <img 
                 src="/hero-receptionist.png"
                 alt="Professionele receptionist"
-                style={{ width: '100%', height: 'auto', display: 'block' }}
+                style={{ width: '100%', height: 'auto', display: 'block', maxHeight: 400, objectFit: 'cover' }}
               />
             </div>
 
