@@ -41,7 +41,7 @@ function DemoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
     { speaker: 'customer', text: 'Hallo meneer, ik had mijn wagen binnengebracht. Kan u eens zien of hij al klaar is?', audio: '/audio/g_c1.mp3' },
     { speaker: 'receptionist', text: 'Mag ik even uw nummerplaat, meneer?', audio: '/audio/g_r2.mp3' },
     { speaker: 'customer', text: 'AWS405, een grijze Ford Focus.', audio: '/audio/g_c2.mp3' },
-    { speaker: 'receptionist', text: 'Ahh ja, ik zie het. Uw wagen is klaar, meneer. U kan hem na 13 uur komen afhalen bij ons.', audio: '/audio/g_r3.mp3' },
+    { speaker: 'receptionist', text: 'Ah ja, ik zie het. Uw wagen is klaar, meneer. U kan hem na 13 uur komen afhalen bij ons.', audio: '/audio/g_r3.mp3' },
     { speaker: 'customer', text: 'Ok, das goed. Dan kom ik hem straks halen.', audio: '/audio/g_c3.mp3' },
     { speaker: 'receptionist', text: 'Perfect, meneer. Tot straks!', audio: '/audio/g_r4.mp3' },
   ];
