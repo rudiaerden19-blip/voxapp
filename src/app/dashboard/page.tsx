@@ -42,7 +42,7 @@ export default function DashboardPage() {
     // Get business
     const { data: business, error: businessError } = await supabase
       .from('businesses')
-      .select('id')
+      .select('*')
       .eq('user_id', user.id)
       .single();
 
@@ -50,6 +50,8 @@ export default function DashboardPage() {
       setLoading(false);
       return;
     }
+
+    const businessId = business.id;
 
     // Get today's appointments
     const today = new Date();
@@ -60,7 +62,7 @@ export default function DashboardPage() {
     const { data: appointmentsData } = await supabase
       .from('appointments')
       .select('*, services(name)')
-      .eq('business_id', business.id)
+      .eq('business_id', businessId)
       .gte('start_time', today.toISOString())
       .lt('start_time', tomorrow.toISOString())
       .order('start_time', { ascending: true });
@@ -75,7 +77,7 @@ export default function DashboardPage() {
     const { count: monthlyCount } = await supabase
       .from('appointments')
       .select('*', { count: 'exact', head: true })
-      .eq('business_id', business.id)
+      .eq('business_id', businessId)
       .gte('start_time', monthStart.toISOString());
 
     if (monthlyCount !== null) {
@@ -86,7 +88,7 @@ export default function DashboardPage() {
     const { count: conversationsCount } = await supabase
       .from('conversations')
       .select('*', { count: 'exact', head: true })
-      .eq('business_id', business.id)
+      .eq('business_id', businessId)
       .gte('created_at', today.toISOString());
 
     if (conversationsCount !== null) {

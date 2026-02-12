@@ -81,7 +81,7 @@ export default function StaffPage() {
     // Get business
     const { data: business, error: businessError } = await supabase
       .from('businesses')
-      .select('id')
+      .select('*')
       .eq('user_id', user.id)
       .single();
 
@@ -90,13 +90,14 @@ export default function StaffPage() {
       return;
     }
 
-    setBusinessId(business.id);
+    const currentBusinessId = business.id;
+    setBusinessId(currentBusinessId);
 
     // Get staff
     const { data: staffData, error: staffError } = await supabase
       .from('staff')
       .select('*')
-      .eq('business_id', business.id)
+      .eq('business_id', currentBusinessId)
       .order('name', { ascending: true });
 
     if (staffError) {

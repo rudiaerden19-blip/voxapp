@@ -60,7 +60,7 @@ export default function ServicesPage() {
     // Get business
     const { data: business, error: businessError } = await supabase
       .from('businesses')
-      .select('id')
+      .select('*')
       .eq('user_id', user.id)
       .single();
 
@@ -69,13 +69,14 @@ export default function ServicesPage() {
       return;
     }
 
-    setBusinessId(business.id);
+    const currentBusinessId = business.id;
+    setBusinessId(currentBusinessId);
 
     // Get services
     const { data: servicesData, error: servicesError } = await supabase
       .from('services')
       .select('*')
-      .eq('business_id', business.id)
+      .eq('business_id', currentBusinessId)
       .order('name', { ascending: true });
 
     if (servicesError) {
