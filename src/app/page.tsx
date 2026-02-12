@@ -78,21 +78,30 @@ function DemoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
         }, 400);
       };
       
-      // Sync typing with audio duration
+      // Sync typing with audio duration - add delay for customer lines (real recordings may have silence at start)
       const fullText = line.text;
       let charIndex = 0;
-      const charsPerSecond = 15; // Approximate speaking speed
-      const typingInterval = setInterval(() => {
-        if (charIndex < fullText.length) {
-          setTypingText(fullText.slice(0, charIndex + 1));
-          charIndex++;
-        } else {
-          clearInterval(typingInterval);
-        }
-      }, 50);
+      const startDelay = line.speaker === 'customer' ? 400 : 0; // Delay for real recordings
+      
+      const typingTimeout = setTimeout(() => {
+        const typingInterval = setInterval(() => {
+          if (charIndex < fullText.length) {
+            setTypingText(fullText.slice(0, charIndex + 1));
+            charIndex++;
+          } else {
+            clearInterval(typingInterval);
+          }
+        }, 50);
+        
+        // Store interval for cleanup
+        (audio as unknown as { typingInterval: NodeJS.Timeout }).typingInterval = typingInterval;
+      }, startDelay);
 
       return () => {
-        clearInterval(typingInterval);
+        clearTimeout(typingTimeout);
+        if ((audio as unknown as { typingInterval: NodeJS.Timeout }).typingInterval) {
+          clearInterval((audio as unknown as { typingInterval: NodeJS.Timeout }).typingInterval);
+        }
         audio.pause();
       };
     }
