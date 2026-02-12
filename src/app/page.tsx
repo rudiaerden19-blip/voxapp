@@ -202,7 +202,7 @@ function DemoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
             <span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>Live demo</span>
           </div>
           <p style={{ color: '#6b7280', fontSize: 15, lineHeight: 1.6, margin: 0 }}>
-            Luister mee hoe VoxApp een afspraak boekt voor Kapsalon Belle
+            Luister mee hoe VoxApp een klant te woord staat voor Garage Willems
           </p>
         </div>
 
@@ -641,7 +641,7 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
                 <span style={{ fontSize: 12, color: '#6b7280' }}>VoxApp Receptionist</span>
               </div>
               <p style={{ fontSize: 14, color: '#1a1a2e', margin: 0 }}>
-                &quot;Goedemiddag, Kapsalon Belle. Waarmee kan ik u helpen?&quot;
+                &quot;Hallo, met garage Willems. Hoe kan ik u helpen?&quot;
               </p>
             </div>
 
