@@ -28,15 +28,29 @@ import {
 /* ============================================
    DEMO MODAL - Audio conversation with live transcript
 ============================================ */
-function DemoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+function DemoModal({ isOpen, onClose, demoType = 'belle' }: { isOpen: boolean; onClose: () => void; demoType?: 'belle' | 'garage' }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentLine, setCurrentLine] = useState(0);
   const [typingText, setTypingText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [audioRef, setAudioRef] = useState<HTMLAudioElement | null>(null);
 
-  // Demo conversation - Garage Willems
-  const conversation = [
+  // Demo conversations
+  const belleConversation = [
+    { speaker: 'receptionist', text: 'Hallo, met kapsalon Belle. Hoe kan ik u helpen?', audio: '/audio/b1.mp3' },
+    { speaker: 'customer', text: 'Hallo, ik wil een afspraak maken voor knippen en verven.', audio: '/audio/s1.mp3' },
+    { speaker: 'receptionist', text: 'Natuurlijk, wanneer zou u willen komen?', audio: '/audio/b2.mp3' },
+    { speaker: 'customer', text: 'Donderdag.', audio: '/audio/s2.mp3' },
+    { speaker: 'receptionist', text: 'Donderdag om 14 uur, kan dat?', audio: '/audio/b3.mp3' },
+    { speaker: 'customer', text: 'Ja, dat kan.', audio: '/audio/s3.mp3' },
+    { speaker: 'receptionist', text: 'Prima, mag ik uw naam?', audio: '/audio/b4.mp3' },
+    { speaker: 'customer', text: 'Veerle.', audio: '/audio/s4.mp3' },
+    { speaker: 'receptionist', text: 'Dank u, dat is genoteerd. U krijgt nog een smsje van ons, goed?', audio: '/audio/b5.mp3' },
+    { speaker: 'customer', text: 'Perfect, bedankt.', audio: '/audio/s5.mp3' },
+    { speaker: 'receptionist', text: 'Graag gedaan, tot donderdag!', audio: '/audio/b6.mp3' },
+  ];
+
+  const garageConversation = [
     { speaker: 'receptionist', text: 'Hallo, met garage Willems. Hoe kan ik u helpen?', audio: '/audio/g_r1.mp3' },
     { speaker: 'customer', text: 'Hallo meneer, ik had mijn wagen binnengebracht. Kan u eens zien of hij al klaar is?', audio: '/audio/g_c1.mp3' },
     { speaker: 'receptionist', text: 'Mag ik even uw nummerplaat, meneer?', audio: '/audio/g_r2.mp3' },
@@ -45,6 +59,8 @@ function DemoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
     { speaker: 'customer', text: 'Ok, das goed. Dan kom ik hem straks halen.', audio: '/audio/g_c3.mp3' },
     { speaker: 'receptionist', text: 'Perfect, meneer. Tot straks!', audio: '/audio/g_r4.mp3' },
   ];
+
+  const conversation = demoType === 'garage' ? garageConversation : belleConversation;
 
   // Stop audio when modal closes
   useEffect(() => {
@@ -202,7 +218,7 @@ function DemoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
             <span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>Live demo</span>
           </div>
           <p style={{ color: '#6b7280', fontSize: 15, lineHeight: 1.6, margin: 0 }}>
-            Luister mee hoe VoxApp een klant te woord staat voor Garage Willems
+            Luister mee hoe VoxApp een afspraak boekt voor Kapsalon Belle
           </p>
         </div>
 
@@ -641,7 +657,7 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
                 <span style={{ fontSize: 12, color: '#6b7280' }}>VoxApp Receptionist</span>
               </div>
               <p style={{ fontSize: 14, color: '#1a1a2e', margin: 0 }}>
-                &quot;Hallo, met garage Willems. Hoe kan ik u helpen?&quot;
+                &quot;Goedemiddag, Kapsalon Belle. Waarmee kan ik u helpen?&quot;
               </p>
             </div>
 
@@ -765,7 +781,7 @@ function InboundSection({ onOpenDemo }: { onOpenDemo: () => void }) {
 /* ============================================
    FEATURE SECTION 2 - Outbound Calls
 ============================================ */
-function OutboundSection({ onOpenDemo }: { onOpenDemo: () => void }) {
+function OutboundSection() {
   return (
     <section style={{ background: '#e3e3e3', padding: '200px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
@@ -905,22 +921,6 @@ function OutboundSection({ onOpenDemo }: { onOpenDemo: () => void }) {
                 <Calendar size={16} />
                 Start gratis
               </a>
-              <button onClick={onOpenDemo} style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                background: 'transparent',
-                color: '#1a1a2e',
-                padding: '12px 24px',
-                borderRadius: 8,
-                fontSize: 14,
-                fontWeight: 600,
-                border: '1px solid #e5e7eb',
-                cursor: 'pointer',
-              }}>
-                <PhoneCall size={16} />
-                Luister Demo Gesprek
-              </button>
             </div>
 
             {/* Feature list */}
@@ -947,7 +947,7 @@ function OutboundSection({ onOpenDemo }: { onOpenDemo: () => void }) {
 /* ============================================
    FEATURE SECTION 3 - Automation
 ============================================ */
-function AutomationSection({ onOpenDemo }: { onOpenDemo: () => void }) {
+function AutomationSection() {
   return (
     <section style={{ background: '#e3e3e3', padding: '200px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
@@ -982,22 +982,6 @@ function AutomationSection({ onOpenDemo }: { onOpenDemo: () => void }) {
                 <Calendar size={16} />
                 Start gratis
               </a>
-              <button onClick={onOpenDemo} style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                background: 'transparent',
-                color: '#1a1a2e',
-                padding: '12px 24px',
-                borderRadius: 8,
-                fontSize: 14,
-                fontWeight: 600,
-                border: '1px solid #e5e7eb',
-                cursor: 'pointer',
-              }}>
-                <PhoneCall size={16} />
-                Luister Demo Gesprek
-              </button>
             </div>
 
             {/* Feature list */}
@@ -1380,20 +1364,31 @@ function Footer() {
 ============================================ */
 export default function Home() {
   const [demoOpen, setDemoOpen] = useState(false);
+  const [demoType, setDemoType] = useState<'belle' | 'garage'>('belle');
+
+  const openBelleDemo = () => {
+    setDemoType('belle');
+    setDemoOpen(true);
+  };
+
+  const openGarageDemo = () => {
+    setDemoType('garage');
+    setDemoOpen(true);
+  };
   
   return (
     <main>
       <Navigation />
-      <HeroSection onOpenDemo={() => setDemoOpen(true)} />
-      <InboundSection onOpenDemo={() => setDemoOpen(true)} />
-      <OutboundSection onOpenDemo={() => setDemoOpen(true)} />
-      <AutomationSection onOpenDemo={() => setDemoOpen(true)} />
+      <HeroSection onOpenDemo={openBelleDemo} />
+      <InboundSection onOpenDemo={openGarageDemo} />
+      <OutboundSection />
+      <AutomationSection />
       <HowItWorksSection />
       <PricingSection />
       <FAQSection />
       <CTASection />
       <Footer />
-      <DemoModal isOpen={demoOpen} onClose={() => setDemoOpen(false)} />
+      <DemoModal isOpen={demoOpen} onClose={() => setDemoOpen(false)} demoType={demoType} />
     </main>
   );
 }
