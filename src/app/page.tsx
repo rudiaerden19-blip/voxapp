@@ -28,7 +28,7 @@ import {
 /* ============================================
    DEMO MODAL - Audio conversation with live transcript
 ============================================ */
-function DemoModal({ isOpen, onClose, demoType = 'belle' }: { isOpen: boolean; onClose: () => void; demoType?: 'belle' | 'garage' }) {
+function DemoModal({ isOpen, onClose, demoType = 'belle' }: { isOpen: boolean; onClose: () => void; demoType?: 'belle' | 'garage' | 'restaurant' }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentLine, setCurrentLine] = useState(0);
   const [typingText, setTypingText] = useState('');
@@ -60,7 +60,16 @@ function DemoModal({ isOpen, onClose, demoType = 'belle' }: { isOpen: boolean; o
     { speaker: 'receptionist', text: 'Perfect, meneer. Tot straks!', audio: '/audio/g_r4.mp3' },
   ];
 
-  const conversation = demoType === 'garage' ? garageConversation : belleConversation;
+  const restaurantConversation = [
+    { speaker: 'receptionist', text: 'Goeiedag, met restaurant De Molen.', audio: '/audio/r_r1.mp3' },
+    { speaker: 'customer', text: 'Goedemiddag, wij zouden graag willen reserveren voor morgen avond om 19u, is dat nog mogelijk?', audio: '/audio/r_c1.mp3' },
+    { speaker: 'receptionist', text: 'Even kijken... ja, morgen avond kan nog. Met hoeveel personen?', audio: '/audio/r_r2.mp3' },
+    { speaker: 'customer', text: '4 personen.', audio: '/audio/r_c2.mp3' },
+    { speaker: 'receptionist', text: 'Ok, dat is genoteerd. Morgenavond 19 uur voor 4 personen. Dank u wel voor de reservering en tot morgen.', audio: '/audio/r_r3.mp3' },
+    { speaker: 'customer', text: 'Tot morgen.', audio: '/audio/r_c3.mp3' },
+  ];
+
+  const conversation = demoType === 'garage' ? garageConversation : demoType === 'restaurant' ? restaurantConversation : belleConversation;
 
   // Stop audio when modal closes
   useEffect(() => {
@@ -1452,7 +1461,7 @@ function Footer() {
 ============================================ */
 export default function Home() {
   const [demoOpen, setDemoOpen] = useState(false);
-  const [demoType, setDemoType] = useState<'belle' | 'garage'>('belle');
+  const [demoType, setDemoType] = useState<'belle' | 'garage' | 'restaurant'>('belle');
 
   const openBelleDemo = () => {
     setDemoType('belle');
@@ -1463,13 +1472,18 @@ export default function Home() {
     setDemoType('garage');
     setDemoOpen(true);
   };
+
+  const openRestaurantDemo = () => {
+    setDemoType('restaurant');
+    setDemoOpen(true);
+  };
   
   return (
     <main>
       <Navigation />
       <HeroSection onOpenDemo={openBelleDemo} />
       <InboundSection onOpenDemo={openGarageDemo} />
-      <RestaurantSection onOpenDemo={openBelleDemo} />
+      <RestaurantSection onOpenDemo={openRestaurantDemo} />
       <OutboundSection />
       <AutomationSection />
       <HowItWorksSection />
