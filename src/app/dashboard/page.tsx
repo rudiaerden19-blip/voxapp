@@ -40,13 +40,13 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
 
   useEffect(() => {
     checkAuth();
   }, []);
 
   const checkAuth = async () => {
+    const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
@@ -87,6 +87,7 @@ export default function DashboardPage() {
   };
 
   const handleLogout = async () => {
+    const supabase = createClient();
     await supabase.auth.signOut();
     router.push('/login');
   };

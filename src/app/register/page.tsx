@@ -15,7 +15,6 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
 
   const businessTypes = [
     { value: 'salon', label: 'Kapsalon / Schoonheidssalon' },
@@ -34,6 +33,8 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
+      const supabase = createClient();
+      
       // 1. Create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
