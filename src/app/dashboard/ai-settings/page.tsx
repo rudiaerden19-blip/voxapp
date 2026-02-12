@@ -1,0 +1,20 @@
+'use client';
+
+import DashboardLayout from '@/components/DashboardLayout';
+import { Phone } from 'lucide-react';
+
+export default function AISettingsPage() {
+  return (
+    <DashboardLayout>
+      <div style={{ marginBottom: 32 }}>
+        <h1 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>AI Receptionist</h1>
+        <p style={{ color: '#9ca3af', fontSize: 16 }}>Configureer je AI telefoniste</p>
+      </div>
+
+      <div style={{ background: '#16161f', borderRadius: 16, border: '1px solid #2a2a35', padding: 60, textAlign: 'center' }}>
+        <Phone size={48} style={{ color: '#6b7280', marginBottom: 16 }} />
+        <p style={{ color: '#9ca3af' }}>AI Receptionist instellingen komen binnenkort</p>
+      </div>
+    </DashboardLayout>
+  );
+}
