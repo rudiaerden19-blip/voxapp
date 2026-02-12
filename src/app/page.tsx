@@ -61,11 +61,11 @@ function DemoModal({ isOpen, onClose, demoType = 'belle' }: { isOpen: boolean; o
   ];
 
   const restaurantConversation = [
-    { speaker: 'receptionist', text: 'Goeiedag, met restaurant De Molen.', audio: '/audio/r_r1.mp3' },
+    { speaker: 'receptionist', text: 'Goeiedag, met restaurant De Molen. Wat kan ik voor u doen?', audio: '/audio/r_r1.mp3' },
     { speaker: 'customer', text: 'Goedemiddag, wij zouden graag willen reserveren voor morgen avond om 19u, is dat nog mogelijk?', audio: '/audio/r_c1.mp3' },
-    { speaker: 'receptionist', text: 'Even kijken... ja, morgen avond kan nog. Met hoeveel personen?', audio: '/audio/r_r2.mp3' },
+    { speaker: 'receptionist', text: 'Even kijken... ja, voor morgen avond kan nog perfect hoor meneer.', audio: '/audio/r_r2.mp3' },
     { speaker: 'customer', text: '4 personen.', audio: '/audio/r_c2.mp3' },
-    { speaker: 'receptionist', text: 'Ok, dat is genoteerd. Morgenavond 19 uur voor 4 personen. Dank u wel voor de reservering en tot morgen.', audio: '/audio/r_r3.mp3' },
+    { speaker: 'receptionist', text: 'Met 4 personen, ok dat is genoteerd meneer. Morgenavond om 19 uur voor 4 personen. U krijgt hier ook nog een smsje voor.', audio: '/audio/r_r3.mp3' },
     { speaker: 'customer', text: 'Tot morgen.', audio: '/audio/r_c3.mp3' },
   ];
 
