@@ -81,7 +81,7 @@ function DemoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
       // Sync typing with audio duration - add delay for customer lines (real recordings may have silence at start)
       const fullText = line.text;
       let charIndex = 0;
-      const startDelay = line.speaker === 'customer' ? 400 : 0; // Delay for real recordings
+      const startDelay = line.speaker === 'customer' ? 150 : 0; // Delay for real recordings
       
       const typingTimeout = setTimeout(() => {
         const typingInterval = setInterval(() => {
