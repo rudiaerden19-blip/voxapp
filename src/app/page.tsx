@@ -1153,6 +1153,7 @@ function TryLiveSection() {
       // Start the conversation with the agent
       await conversation.startSession({
         agentId: 'agent_7001kh7ck6cvfpqvrt1gc63bs88k',
+        connectionType: 'webrtc',
       });
     } catch (error) {
       console.error('Failed to start call:', error);
