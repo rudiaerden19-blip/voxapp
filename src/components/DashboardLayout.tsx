@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
+import type { Business } from '@/lib/database.types';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -16,14 +17,6 @@ import {
   X,
   Briefcase
 } from 'lucide-react';
-
-interface Business {
-  id: string;
-  name: string;
-  type: string;
-  subscription_status: string;
-  trial_ends_at: string;
-}
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -59,14 +52,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       return;
     }
 
-    const { data: businessData } = await supabase
+    const { data: businessData, error: businessError } = await supabase
       .from('businesses')
       .select('*')
       .eq('user_id', user.id)
       .single();
 
-    if (businessData) {
-      setBusiness(businessData as Business);
+    if (!businessError && businessData) {
+      setBusiness(businessData);
     }
 
     setLoading(false);

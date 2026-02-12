@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
+import type { Staff, WorkingHours } from '@/lib/database.types';
 import DashboardLayout from '@/components/DashboardLayout';
 import { 
   Plus,
@@ -14,23 +15,6 @@ import {
   Check,
   Users,
 } from 'lucide-react';
-
-interface WorkingHours {
-  [key: string]: {
-    start: string;
-    end: string;
-    working: boolean;
-  };
-}
-
-interface Staff {
-  id: string;
-  name: string;
-  email: string | null;
-  phone: string | null;
-  working_hours: WorkingHours | null;
-  is_active: boolean;
-}
 
 interface FormData {
   name: string;
@@ -50,7 +34,7 @@ const defaultWorkingHours: WorkingHours = {
   sunday: { start: '09:00', end: '13:00', working: false },
 };
 
-const dayLabels: { [key: string]: string } = {
+const dayLabels: Record<string, string> = {
   monday: 'Maandag',
   tuesday: 'Dinsdag',
   wednesday: 'Woensdag',
@@ -95,28 +79,28 @@ export default function StaffPage() {
     if (!user) return;
 
     // Get business
-    const { data: businessData } = await supabase
+    const { data: business, error: businessError } = await supabase
       .from('businesses')
       .select('id')
       .eq('user_id', user.id)
       .single();
 
-    if (!businessData) {
+    if (businessError || !business) {
       setLoading(false);
       return;
     }
 
-    setBusinessId(businessData.id);
+    setBusinessId(business.id);
 
     // Get staff
-    const { data: staffData, error } = await supabase
+    const { data: staffData, error: staffError } = await supabase
       .from('staff')
       .select('*')
-      .eq('business_id', businessData.id)
+      .eq('business_id', business.id)
       .order('name', { ascending: true });
 
-    if (error) {
-      console.error('Error loading staff:', error);
+    if (staffError) {
+      console.error('Error loading staff:', staffError);
     } else if (staffData) {
       setStaff(staffData);
     }
@@ -194,33 +178,37 @@ export default function StaffPage() {
     try {
       if (editingStaff) {
         // Update
-        const { error } = await supabase
+        const { error: updateError } = await supabase
           .from('staff')
           .update(staffData)
           .eq('id', editingStaff.id);
 
-        if (error) throw error;
+        if (updateError) throw updateError;
 
         setStaff(staff.map(s => 
-          s.id === editingStaff.id ? { ...s, ...staffData } : s
+          s.id === editingStaff.id 
+            ? { ...s, ...staffData, updated_at: new Date().toISOString() } 
+            : s
         ));
       } else {
         // Create
-        const { data, error } = await supabase
+        const { data, error: insertError } = await supabase
           .from('staff')
           .insert([staffData])
           .select()
           .single();
 
-        if (error) throw error;
-
-        setStaff([...staff, data]);
+        if (insertError) throw insertError;
+        if (data) {
+          setStaff([...staff, data]);
+        }
       }
 
       closeModal();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error saving staff:', err);
-      setError(err.message || 'Er ging iets mis bij het opslaan');
+      const errorMessage = err instanceof Error ? err.message : 'Er ging iets mis bij het opslaan';
+      setError(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -231,18 +219,19 @@ export default function StaffPage() {
     const supabase = createClient();
 
     try {
-      const { error } = await supabase
+      const { error: deleteError } = await supabase
         .from('staff')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (deleteError) throw deleteError;
 
       setStaff(staff.filter(s => s.id !== id));
       setDeleteConfirm(null);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error deleting staff:', err);
-      alert('Kon medewerker niet verwijderen: ' + (err.message || 'Onbekende fout'));
+      const errorMessage = err instanceof Error ? err.message : 'Onbekende fout';
+      alert('Kon medewerker niet verwijderen: ' + errorMessage);
     } finally {
       setDeleting(false);
     }
@@ -251,7 +240,7 @@ export default function StaffPage() {
   const getWorkingDays = (hours: WorkingHours | null) => {
     if (!hours) return '-';
     const workingDays = Object.entries(hours)
-      .filter(([_, val]) => val.working)
+      .filter(([, val]) => val.working)
       .map(([day]) => dayLabels[day]?.substring(0, 2))
       .join(', ');
     return workingDays || 'Geen';

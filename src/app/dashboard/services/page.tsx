@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
+import type { Service } from '@/lib/database.types';
 import DashboardLayout from '@/components/DashboardLayout';
 import { 
   Plus,
@@ -13,15 +14,6 @@ import {
   Briefcase,
   Check,
 } from 'lucide-react';
-
-interface Service {
-  id: string;
-  name: string;
-  description: string | null;
-  duration_minutes: number;
-  price: number | null;
-  is_active: boolean;
-}
 
 interface FormData {
   name: string;
@@ -66,28 +58,28 @@ export default function ServicesPage() {
     if (!user) return;
 
     // Get business
-    const { data: businessData } = await supabase
+    const { data: business, error: businessError } = await supabase
       .from('businesses')
       .select('id')
       .eq('user_id', user.id)
       .single();
 
-    if (!businessData) {
+    if (businessError || !business) {
       setLoading(false);
       return;
     }
 
-    setBusinessId(businessData.id);
+    setBusinessId(business.id);
 
     // Get services
-    const { data: servicesData, error } = await supabase
+    const { data: servicesData, error: servicesError } = await supabase
       .from('services')
       .select('*')
-      .eq('business_id', businessData.id)
+      .eq('business_id', business.id)
       .order('name', { ascending: true });
 
-    if (error) {
-      console.error('Error loading services:', error);
+    if (servicesError) {
+      console.error('Error loading services:', servicesError);
     } else if (servicesData) {
       setServices(servicesData);
     }
@@ -152,33 +144,37 @@ export default function ServicesPage() {
     try {
       if (editingService) {
         // Update
-        const { error } = await supabase
+        const { error: updateError } = await supabase
           .from('services')
           .update(serviceData)
           .eq('id', editingService.id);
 
-        if (error) throw error;
+        if (updateError) throw updateError;
 
         setServices(services.map(s => 
-          s.id === editingService.id ? { ...s, ...serviceData } : s
+          s.id === editingService.id 
+            ? { ...s, ...serviceData, updated_at: new Date().toISOString() } 
+            : s
         ));
       } else {
         // Create
-        const { data, error } = await supabase
+        const { data, error: insertError } = await supabase
           .from('services')
           .insert([serviceData])
           .select()
           .single();
 
-        if (error) throw error;
-
-        setServices([...services, data]);
+        if (insertError) throw insertError;
+        if (data) {
+          setServices([...services, data]);
+        }
       }
 
       closeModal();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error saving service:', err);
-      setError(err.message || 'Er ging iets mis bij het opslaan');
+      const errorMessage = err instanceof Error ? err.message : 'Er ging iets mis bij het opslaan';
+      setError(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -189,18 +185,19 @@ export default function ServicesPage() {
     const supabase = createClient();
 
     try {
-      const { error } = await supabase
+      const { error: deleteError } = await supabase
         .from('services')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (deleteError) throw deleteError;
 
       setServices(services.filter(s => s.id !== id));
       setDeleteConfirm(null);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error deleting service:', err);
-      alert('Kon dienst niet verwijderen: ' + (err.message || 'Onbekende fout'));
+      const errorMessage = err instanceof Error ? err.message : 'Onbekende fout';
+      alert('Kon dienst niet verwijderen: ' + errorMessage);
     } finally {
       setDeleting(false);
     }
@@ -302,7 +299,7 @@ export default function ServicesPage() {
           </div>
         ) : (
           <div>
-            {/* Table header */}
+            {/* Table header - desktop */}
             <div style={{
               display: 'grid',
               gridTemplateColumns: '1fr 120px 100px 80px 100px',
@@ -315,7 +312,7 @@ export default function ServicesPage() {
               color: '#6b7280',
               textTransform: 'uppercase',
               letterSpacing: '0.5px',
-            }}>
+            }} className="services-header">
               <div>Naam</div>
               <div>Duur</div>
               <div>Prijs</div>
@@ -335,6 +332,7 @@ export default function ServicesPage() {
                   borderBottom: '1px solid #2a2a35',
                   alignItems: 'center',
                 }}
+                className="services-row"
               >
                 <div>
                   <p style={{ color: 'white', fontWeight: 500, marginBottom: 4 }}>
@@ -738,15 +736,6 @@ export default function ServicesPage() {
           </div>
         </div>
       )}
-
-      {/* Responsive styles for table */}
-      <style jsx global>{`
-        @media (max-width: 768px) {
-          [style*="gridTemplateColumns: '1fr 120px 100px 80px 100px'"] {
-            grid-template-columns: 1fr !important;
-          }
-        }
-      `}</style>
     </DashboardLayout>
   );
 }

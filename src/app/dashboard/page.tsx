@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
+import type { AppointmentWithService } from '@/lib/database.types';
 import DashboardLayout from '@/components/DashboardLayout';
 import { 
   Calendar, 
@@ -11,14 +12,6 @@ import {
   Plus,
 } from 'lucide-react';
 
-interface Appointment {
-  id: string;
-  customer_name: string;
-  start_time: string;
-  status: string;
-  services?: { name: string };
-}
-
 interface Stats {
   appointmentsToday: number;
   conversationsToday: number;
@@ -27,7 +20,7 @@ interface Stats {
 }
 
 export default function DashboardPage() {
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [appointments, setAppointments] = useState<AppointmentWithService[]>([]);
   const [stats, setStats] = useState<Stats>({
     appointmentsToday: 0,
     conversationsToday: 0,
@@ -47,18 +40,16 @@ export default function DashboardPage() {
     if (!user) return;
 
     // Get business
-    const { data: businessData } = await supabase
+    const { data: business, error: businessError } = await supabase
       .from('businesses')
       .select('id')
       .eq('user_id', user.id)
       .single();
 
-    if (!businessData) {
+    if (businessError || !business) {
       setLoading(false);
       return;
     }
-
-    const businessId = businessData.id;
 
     // Get today's appointments
     const today = new Date();
@@ -69,13 +60,13 @@ export default function DashboardPage() {
     const { data: appointmentsData } = await supabase
       .from('appointments')
       .select('*, services(name)')
-      .eq('business_id', businessId)
+      .eq('business_id', business.id)
       .gte('start_time', today.toISOString())
       .lt('start_time', tomorrow.toISOString())
       .order('start_time', { ascending: true });
 
     if (appointmentsData) {
-      setAppointments(appointmentsData);
+      setAppointments(appointmentsData as AppointmentWithService[]);
       setStats(prev => ({ ...prev, appointmentsToday: appointmentsData.length }));
     }
 
@@ -84,7 +75,7 @@ export default function DashboardPage() {
     const { count: monthlyCount } = await supabase
       .from('appointments')
       .select('*', { count: 'exact', head: true })
-      .eq('business_id', businessId)
+      .eq('business_id', business.id)
       .gte('start_time', monthStart.toISOString());
 
     if (monthlyCount !== null) {
@@ -95,7 +86,7 @@ export default function DashboardPage() {
     const { count: conversationsCount } = await supabase
       .from('conversations')
       .select('*', { count: 'exact', head: true })
-      .eq('business_id', businessId)
+      .eq('business_id', business.id)
       .gte('created_at', today.toISOString());
 
     if (conversationsCount !== null) {
