@@ -75,13 +75,13 @@ function DemoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
         setIsTyping(false);
         setTimeout(() => {
           setCurrentLine(prev => prev + 1);
-        }, 400);
+        }, 100); // Sneller naar volgende lijn
       };
       
       // Sync typing with audio duration - add delay for customer lines (real recordings may have silence at start)
       const fullText = line.text;
       let charIndex = 0;
-      const startDelay = line.speaker === 'customer' ? 150 : 0; // Delay for real recordings
+      const startDelay = 0; // No delay
       
       const typingTimeout = setTimeout(() => {
         const typingInterval = setInterval(() => {
