@@ -806,7 +806,7 @@ function RestaurantSection({ onOpenDemo }: { onOpenDemo: () => void }) {
               Mis nooit meer een reservering.
             </h2>
             <p style={{ fontSize: 16, color: '#6b7280', lineHeight: 1.7, marginBottom: 32 }}>
-              Uw AI-receptionist neemt reserveringen aan, bevestigt beschikbaarheid en stuurt automatisch bevestigingen — 
+              Uw receptionist neemt reserveringen aan, bevestigt beschikbaarheid en stuurt automatisch bevestigingen — 
               ook buiten de openingsuren.
             </p>
 
