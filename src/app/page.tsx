@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useConversation } from '@elevenlabs/react';
 import {
   Phone,
   Calendar,
@@ -23,6 +24,7 @@ import {
   FileText,
   Heart,
   RefreshCw,
+  PhoneOff,
 } from 'lucide-react';
 
 /* ============================================
@@ -1114,6 +1116,241 @@ function AutomationSection() {
 }
 
 /* ============================================
+   TRY LIVE SECTION - Test the AI receptionist
+============================================ */
+function TryLiveSection() {
+  const [callStatus, setCallStatus] = useState<'idle' | 'connecting' | 'connected' | 'ended' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const conversationRef = useRef<ReturnType<typeof useConversation> | null>(null);
+
+  // We'll use the hook at component level
+  const conversation = useConversation({
+    onConnect: () => {
+      setCallStatus('connected');
+    },
+    onDisconnect: () => {
+      setCallStatus('idle');
+    },
+    onError: (error) => {
+      console.error('Conversation error:', error);
+      setErrorMessage('Er ging iets mis. Probeer het opnieuw.');
+      setCallStatus('error');
+    },
+    onModeChange: ({ mode }) => {
+      setIsSpeaking(mode === 'speaking');
+    },
+  });
+
+  const startCall = async () => {
+    try {
+      setCallStatus('connecting');
+      setErrorMessage('');
+      
+      // Request microphone permission
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // Start the conversation with the agent
+      await conversation.startSession({
+        agentId: 'agent_7001kh7ck6cvfpqvrt1gc63bs88k',
+      });
+    } catch (error) {
+      console.error('Failed to start call:', error);
+      setErrorMessage('Kon geen verbinding maken. Controleer of je microfoon toegang hebt gegeven.');
+      setCallStatus('error');
+    }
+  };
+
+  const endCall = async () => {
+    try {
+      await conversation.endSession();
+      setCallStatus('ended');
+      setTimeout(() => setCallStatus('idle'), 1500);
+    } catch (error) {
+      console.error('Failed to end call:', error);
+      setCallStatus('idle');
+    }
+  };
+
+  const isActive = callStatus === 'connecting' || callStatus === 'connected';
+
+  return (
+    <section style={{ background: '#1a1a2e', padding: '120px 0' }}>
+      <div style={{ maxWidth: 800, margin: '0 auto', padding: '0 24px', textAlign: 'center' }}>
+        <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
+          Probeer Het Zelf
+        </p>
+        <h2 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: 700, color: 'white', lineHeight: 1.2, marginBottom: 20 }}>
+          Bel nu met onze receptionist
+        </h2>
+        <p style={{ fontSize: 18, color: '#9ca3af', lineHeight: 1.7, marginBottom: 48, maxWidth: 600, margin: '0 auto 48px' }}>
+          Test zelf hoe natuurlijk onze receptionist klinkt. Probeer een afspraak te maken of stel een vraag.
+        </p>
+
+        {/* Call Button */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
+          {!isActive ? (
+            <>
+              <button 
+                onClick={startCall}
+                disabled={callStatus === 'connecting'}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 12,
+                  background: callStatus === 'error' ? '#ef4444' : '#22c55e',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 100,
+                  width: 120,
+                  height: 120,
+                  fontSize: 18,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  boxShadow: `0 0 40px ${callStatus === 'error' ? 'rgba(239, 68, 68, 0.4)' : 'rgba(34, 197, 94, 0.4)'}`,
+                  transition: 'all 0.3s ease',
+                }}
+                onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              >
+                <Phone size={40} />
+              </button>
+              {errorMessage && (
+                <p style={{ color: '#ef4444', fontSize: 14, maxWidth: 300 }}>
+                  {errorMessage}
+                </p>
+              )}
+              {callStatus === 'ended' && (
+                <p style={{ color: '#22c55e', fontSize: 14 }}>
+                  Gesprek beëindigd. Bedankt voor het testen!
+                </p>
+              )}
+              {callStatus === 'idle' && !errorMessage && (
+                <p style={{ color: '#6b7280', fontSize: 14 }}>
+                  Klik om te bellen • Gratis • Geen registratie nodig
+                </p>
+              )}
+            </>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
+              {/* Call Status */}
+              <div style={{
+                background: callStatus === 'connected' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(249, 115, 22, 0.1)',
+                border: `2px solid ${callStatus === 'connected' ? '#22c55e' : '#f97316'}`,
+                borderRadius: 20,
+                padding: '40px 60px',
+                minWidth: 300,
+              }}>
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  gap: 12,
+                  marginBottom: 16,
+                }}>
+                  <div style={{
+                    width: 12,
+                    height: 12,
+                    borderRadius: '50%',
+                    background: callStatus === 'connected' ? '#22c55e' : '#f97316',
+                    animation: 'pulse 1.5s infinite',
+                  }} />
+                  <span style={{ color: 'white', fontSize: 16, fontWeight: 500 }}>
+                    {callStatus === 'connecting' && 'Verbinden...'}
+                    {callStatus === 'connected' && (isSpeaking ? 'Receptionist spreekt...' : 'Receptionist luistert...')}
+                  </span>
+                </div>
+                
+                {callStatus === 'connected' && (
+                  <p style={{ color: '#9ca3af', fontSize: 14, marginBottom: 0 }}>
+                    {isSpeaking ? 'Even wachten...' : 'Spreek nu, de receptionist luistert'}
+                  </p>
+                )}
+              </div>
+
+              {/* Audio Visualizer */}
+              {callStatus === 'connected' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, height: 40 }}>
+                  {[...Array(5)].map((_, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        width: 6,
+                        height: isSpeaking ? `${20 + Math.random() * 20}px` : '8px',
+                        background: isSpeaking ? '#22c55e' : '#6b7280',
+                        borderRadius: 3,
+                        transition: 'height 0.1s ease',
+                        animation: isSpeaking ? `audioWave 0.5s infinite ${i * 0.1}s` : 'none',
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* End Call Button */}
+              <button 
+                onClick={endCall}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  background: '#ef4444',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 100,
+                  width: 80,
+                  height: 80,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                <PhoneOff size={32} />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Example prompts */}
+        {!isActive && callStatus !== 'ended' && (
+          <div style={{ marginTop: 48 }}>
+            <p style={{ color: '#6b7280', fontSize: 14, marginBottom: 16 }}>Probeer bijvoorbeeld:</p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 12 }}>
+              {[
+                '"Ik wil een afspraak maken"',
+                '"Wat zijn jullie prijzen?"',
+                '"Zijn jullie morgen open?"',
+              ].map((prompt, i) => (
+                <span key={i} style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 20,
+                  padding: '8px 16px',
+                  color: '#9ca3af',
+                  fontSize: 13,
+                }}>
+                  {prompt}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* CSS Animation for audio wave */}
+      <style>{`
+        @keyframes audioWave {
+          0%, 100% { height: 8px; }
+          50% { height: 32px; }
+        }
+      `}</style>
+    </section>
+  );
+}
+
+/* ============================================
    HOW IT WORKS
 ============================================ */
 function HowItWorksSection() {
@@ -1486,6 +1723,7 @@ export default function Home() {
       <RestaurantSection onOpenDemo={openRestaurantDemo} />
       <OutboundSection />
       <AutomationSection />
+      <TryLiveSection />
       <HowItWorksSection />
       <PricingSection />
       <FAQSection />
