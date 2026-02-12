@@ -62,7 +62,7 @@ export default function DashboardPage() {
       .single();
 
     if (businessData) {
-      setBusiness(businessData);
+      setBusiness(businessData as Business);
 
       // Get today's appointments
       const today = new Date();
@@ -73,7 +73,7 @@ export default function DashboardPage() {
       const { data: appointmentsData } = await supabase
         .from('appointments')
         .select('*, services(name)')
-        .eq('business_id', businessData.id)
+        .eq('business_id', (businessData as Business).id)
         .gte('start_time', today.toISOString())
         .lt('start_time', tomorrow.toISOString())
         .order('start_time', { ascending: true });
