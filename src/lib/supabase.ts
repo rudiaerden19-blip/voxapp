@@ -1,8 +1,82 @@
-import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import { createClient as createSupabaseClient, SupabaseClient } from '@supabase/supabase-js'
 
-let supabaseInstance: ReturnType<typeof createSupabaseClient> | null = null
+// Database types voor Supabase
+type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
-export function createClient() {
+interface Database {
+  public: {
+    Tables: {
+      businesses: {
+        Row: { id: string; user_id: string; name: string; type: string; phone: string | null; email: string | null; address: string | null; opening_hours: Json | null; subscription_status: string; trial_ends_at: string | null; elevenlabs_agent_id: string | null; created_at: string; updated_at: string }
+        Insert: { id?: string; user_id: string; name: string; type: string; phone?: string | null; email?: string | null; address?: string | null; opening_hours?: Json | null; subscription_status?: string; trial_ends_at?: string | null; elevenlabs_agent_id?: string | null; created_at?: string; updated_at?: string }
+        Update: { id?: string; user_id?: string; name?: string; type?: string; phone?: string | null; email?: string | null; address?: string | null; opening_hours?: Json | null; subscription_status?: string; trial_ends_at?: string | null; elevenlabs_agent_id?: string | null; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      services: {
+        Row: { id: string; business_id: string; name: string; description: string | null; duration_minutes: number; price: number | null; is_active: boolean; created_at: string; updated_at: string }
+        Insert: { id?: string; business_id: string; name: string; description?: string | null; duration_minutes: number; price?: number | null; is_active?: boolean; created_at?: string; updated_at?: string }
+        Update: { id?: string; business_id?: string; name?: string; description?: string | null; duration_minutes?: number; price?: number | null; is_active?: boolean; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      staff: {
+        Row: { id: string; business_id: string; name: string; email: string | null; phone: string | null; working_hours: Json | null; is_active: boolean; created_at: string; updated_at: string }
+        Insert: { id?: string; business_id: string; name: string; email?: string | null; phone?: string | null; working_hours?: Json | null; is_active?: boolean; created_at?: string; updated_at?: string }
+        Update: { id?: string; business_id?: string; name?: string; email?: string | null; phone?: string | null; working_hours?: Json | null; is_active?: boolean; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      appointments: {
+        Row: { id: string; business_id: string; service_id: string | null; staff_id: string | null; customer_name: string; customer_phone: string | null; customer_email: string | null; start_time: string; end_time: string; status: string; notes: string | null; created_at: string; updated_at: string }
+        Insert: { id?: string; business_id: string; service_id?: string | null; staff_id?: string | null; customer_name: string; customer_phone?: string | null; customer_email?: string | null; start_time: string; end_time: string; status?: string; notes?: string | null; created_at?: string; updated_at?: string }
+        Update: { id?: string; business_id?: string; service_id?: string | null; staff_id?: string | null; customer_name?: string; customer_phone?: string | null; customer_email?: string | null; start_time?: string; end_time?: string; status?: string; notes?: string | null; created_at?: string; updated_at?: string }
+        Relationships: [
+          { foreignKeyName: "appointments_service_id_fkey"; columns: ["service_id"]; isOneToOne: false; referencedRelation: "services"; referencedColumns: ["id"] },
+          { foreignKeyName: "appointments_staff_id_fkey"; columns: ["staff_id"]; isOneToOne: false; referencedRelation: "staff"; referencedColumns: ["id"] },
+          { foreignKeyName: "appointments_business_id_fkey"; columns: ["business_id"]; isOneToOne: false; referencedRelation: "businesses"; referencedColumns: ["id"] }
+        ]
+      }
+      conversations: {
+        Row: { id: string; business_id: string; caller_phone: string | null; transcript: string | null; summary: string | null; action_taken: string | null; appointment_id: string | null; duration_seconds: number | null; created_at: string }
+        Insert: { id?: string; business_id: string; caller_phone?: string | null; transcript?: string | null; summary?: string | null; action_taken?: string | null; appointment_id?: string | null; duration_seconds?: number | null; created_at?: string }
+        Update: { id?: string; business_id?: string; caller_phone?: string | null; transcript?: string | null; summary?: string | null; action_taken?: string | null; appointment_id?: string | null; duration_seconds?: number | null; created_at?: string }
+        Relationships: []
+      }
+      menu_items: {
+        Row: { id: string; business_id: string; name: string; description: string | null; price: number; category: string | null; is_available: boolean; created_at: string; updated_at: string }
+        Insert: { id?: string; business_id: string; name: string; description?: string | null; price: number; category?: string | null; is_available?: boolean; created_at?: string; updated_at?: string }
+        Update: { id?: string; business_id?: string; name?: string; description?: string | null; price?: number; category?: string | null; is_available?: boolean; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      orders: {
+        Row: { id: string; business_id: string; customer_name: string; customer_phone: string | null; status: string; total_amount: number; pickup_time: string | null; notes: string | null; created_at: string; updated_at: string }
+        Insert: { id?: string; business_id: string; customer_name: string; customer_phone?: string | null; status?: string; total_amount: number; pickup_time?: string | null; notes?: string | null; created_at?: string; updated_at?: string }
+        Update: { id?: string; business_id?: string; customer_name?: string; customer_phone?: string | null; status?: string; total_amount?: number; pickup_time?: string | null; notes?: string | null; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      order_items: {
+        Row: { id: string; order_id: string; menu_item_id: string; quantity: number; unit_price: number; created_at: string }
+        Insert: { id?: string; order_id: string; menu_item_id: string; quantity: number; unit_price: number; created_at?: string }
+        Update: { id?: string; order_id?: string; menu_item_id?: string; quantity?: number; unit_price?: number; created_at?: string }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+let supabaseInstance: SupabaseClient<Database> | null = null
+
+export function createClient(): SupabaseClient<Database> {
   if (supabaseInstance) {
     return supabaseInstance
   }
@@ -14,6 +88,6 @@ export function createClient() {
     throw new Error('Missing Supabase environment variables')
   }
 
-  supabaseInstance = createSupabaseClient(supabaseUrl, supabaseAnonKey)
+  supabaseInstance = createSupabaseClient<Database>(supabaseUrl, supabaseAnonKey)
   return supabaseInstance
 }

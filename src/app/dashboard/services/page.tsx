@@ -95,7 +95,7 @@ export default function ServicesPage() {
           price: formData.price ? parseFloat(formData.price) : null,
           is_active: formData.is_active,
         };
-        const { data } = await supabase.from('services').insert([insertData]).select().single();
+        const { data } = await supabase.from('services').insert(insertData).select().single();
         if (data) setServices([...services, data as Service]);
       }
       closeModal();

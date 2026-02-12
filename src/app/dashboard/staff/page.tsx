@@ -121,7 +121,7 @@ export default function StaffPage() {
           working_hours: formData.working_hours,
           is_active: formData.is_active,
         };
-        const { data } = await supabase.from('staff').insert([insertData]).select().single();
+        const { data } = await supabase.from('staff').insert(insertData).select().single();
         if (data) setStaff([...staff, data as Staff]);
       }
       closeModal();
