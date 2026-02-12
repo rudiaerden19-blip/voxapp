@@ -16,6 +16,72 @@ body {
   color: #ffffff;
   line-height: 1.6;
   overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+}
+
+html {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+}
+
+/* Mobile fixes */
+@media (max-width: 768px) {
+  * {
+    max-width: 100vw;
+  }
+  
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  section {
+    padding: 60px 16px !important;
+  }
+  
+  section > div {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    max-width: 100% !important;
+  }
+  
+  /* Hide calendar on very small screens */
+  .calendar-widget {
+    display: none;
+  }
+  
+  /* Stack grids vertically */
+  [style*="grid"] {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Fix button wrapping */
+  [style*="flex-wrap: wrap"] {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  /* Fix pricing grid */
+  [style*="gridTemplateColumns"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  section {
+    padding: 40px 12px !important;
+  }
+  
+  h1, h2 {
+    font-size: 28px !important;
+    line-height: 1.2 !important;
+  }
+  
+  p {
+    font-size: 15px !important;
+  }
 }
 
 :root {

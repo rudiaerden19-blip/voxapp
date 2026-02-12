@@ -708,7 +708,7 @@ function InboundSection({ onOpenDemo }: { onOpenDemo: () => void }) {
   return (
     <section id="features" style={{ background: '#e3e3e3', padding: '200px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 60, alignItems: 'center' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))', gap: 60, alignItems: 'center' }}>
           {/* Left - Text */}
           <div>
             <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
@@ -796,7 +796,7 @@ function RestaurantSection({ onOpenDemo }: { onOpenDemo: () => void }) {
   return (
     <section style={{ background: '#f5f5f5', padding: '200px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 60, alignItems: 'center' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))', gap: 60, alignItems: 'center' }}>
           {/* Left - Image */}
           <div style={{ position: 'relative' }}>
             <div style={{ borderRadius: 20, overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
@@ -884,9 +884,9 @@ function OutboundSection() {
   return (
     <section style={{ background: '#e3e3e3', padding: '200px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 60, alignItems: 'center' }}>
-          {/* Left - Professional Calendar */}
-          <div style={{ position: 'relative' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))', gap: 60, alignItems: 'center' }}>
+          {/* Left - Professional Calendar - Hidden on mobile */}
+          <div style={{ position: 'relative' }} className="hidden md:block">
             <div style={{
               background: 'white',
               borderRadius: 20,
@@ -1050,7 +1050,7 @@ function AutomationSection() {
   return (
     <section style={{ background: '#e3e3e3', padding: '200px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 60, alignItems: 'center' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))', gap: 60, alignItems: 'center' }}>
           {/* Left - Text */}
           <div>
             <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
@@ -1240,7 +1240,7 @@ function TryLiveSection() {
                 border: `2px solid ${callStatus === 'connected' ? '#22c55e' : '#f97316'}`,
                 borderRadius: 20,
                 padding: '40px 60px',
-                minWidth: 300,
+                minWidth: 'min(300px, 90vw)',
               }}>
                 <div style={{ 
                   display: 'flex', 
