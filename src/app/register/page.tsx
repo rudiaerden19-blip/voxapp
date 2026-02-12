@@ -67,8 +67,9 @@ export default function RegisterPage() {
           router.push('/dashboard');
         }
       }
-    } catch (err) {
-      setError('Er ging iets mis. Probeer het opnieuw.');
+    } catch (err: any) {
+      console.error('Registration error:', err);
+      setError(err?.message || 'Er ging iets mis. Probeer het opnieuw.');
     } finally {
       setLoading(false);
     }
