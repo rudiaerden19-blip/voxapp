@@ -1,24 +1,8 @@
-import { createBrowserClient } from '@supabase/ssr'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+
+const supabaseUrl = 'https://bkjqadaamxmwjeenzslr.supabase.co'
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJranFhZGFhbXhtd2plZW56c2xyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4NDE4ODYsImV4cCI6MjA4NjQxNzg4Nn0.S150ziiXSs_TH9TsktOTmWuidi9gNwho6naAjZkUjyY'
 
 export function createClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    // Return a dummy client during build time
-    return {
-      auth: {
-        getUser: async () => ({ data: { user: null }, error: null }),
-        signInWithPassword: async () => ({ data: null, error: { message: 'Not configured' } }),
-        signUp: async () => ({ data: null, error: { message: 'Not configured' } }),
-        signOut: async () => ({ error: null }),
-      },
-      from: () => ({
-        select: () => ({ eq: () => ({ single: async () => ({ data: null, error: null }), order: () => ({ data: [], error: null }) }) }),
-        insert: async () => ({ error: null }),
-      }),
-    } as any
-  }
-
-  return createBrowserClient(supabaseUrl, supabaseAnonKey)
+  return createSupabaseClient(supabaseUrl, supabaseAnonKey)
 }
