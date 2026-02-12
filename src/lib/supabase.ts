@@ -1,7 +1,6 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-import type { Database } from './database.types'
 
-let supabaseInstance: ReturnType<typeof createSupabaseClient<Database>> | null = null
+let supabaseInstance: ReturnType<typeof createSupabaseClient> | null = null
 
 export function createClient() {
   if (supabaseInstance) {
@@ -15,6 +14,6 @@ export function createClient() {
     throw new Error('Missing Supabase environment variables')
   }
 
-  supabaseInstance = createSupabaseClient<Database>(supabaseUrl, supabaseAnonKey)
+  supabaseInstance = createSupabaseClient(supabaseUrl, supabaseAnonKey)
   return supabaseInstance
 }

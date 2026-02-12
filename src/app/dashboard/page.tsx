@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
-import type { AppointmentWithService } from '@/lib/database.types';
 import DashboardLayout from '@/components/DashboardLayout';
 import { 
   Calendar, 
@@ -12,6 +11,14 @@ import {
   Plus,
 } from 'lucide-react';
 
+interface Appointment {
+  id: string;
+  customer_name: string;
+  start_time: string;
+  status: string;
+  services?: { name: string } | null;
+}
+
 interface Stats {
   appointmentsToday: number;
   conversationsToday: number;
@@ -20,7 +27,7 @@ interface Stats {
 }
 
 export default function DashboardPage() {
-  const [appointments, setAppointments] = useState<AppointmentWithService[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [stats, setStats] = useState<Stats>({
     appointmentsToday: 0,
     conversationsToday: 0,
@@ -40,18 +47,18 @@ export default function DashboardPage() {
     if (!user) return;
 
     // Get business
-    const { data: business, error: businessError } = await supabase
+    const { data: businessData } = await supabase
       .from('businesses')
       .select('*')
       .eq('user_id', user.id)
       .single();
 
-    if (businessError || !business) {
+    if (!businessData) {
       setLoading(false);
       return;
     }
 
-    const businessId = business.id;
+    const businessId = (businessData as { id: string }).id;
 
     // Get today's appointments
     const today = new Date();
@@ -68,7 +75,7 @@ export default function DashboardPage() {
       .order('start_time', { ascending: true });
 
     if (appointmentsData) {
-      setAppointments(appointmentsData as AppointmentWithService[]);
+      setAppointments(appointmentsData as Appointment[]);
       setStats(prev => ({ ...prev, appointmentsToday: appointmentsData.length }));
     }
 
@@ -128,7 +135,6 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
-      {/* Header */}
       <div style={{ marginBottom: 32 }}>
         <h1 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>
           Welkom terug!
@@ -138,40 +144,18 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* Stats cards */}
       <div style={{ 
         display: 'grid', 
         gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
         gap: 20,
         marginBottom: 32,
       }}>
-        <StatCard 
-          icon={Calendar} 
-          label="Afspraken vandaag" 
-          value={stats.appointmentsToday.toString()} 
-          loading={loading}
-        />
-        <StatCard 
-          icon={Phone} 
-          label="Gesprekken vandaag" 
-          value={stats.conversationsToday.toString()} 
-          loading={loading}
-        />
-        <StatCard 
-          icon={Clock} 
-          label="Gemiste oproepen" 
-          value={stats.missedCalls.toString()} 
-          loading={loading}
-        />
-        <StatCard 
-          icon={TrendingUp} 
-          label="Deze maand" 
-          value={stats.monthlyAppointments.toString()} 
-          loading={loading}
-        />
+        <StatCard icon={Calendar} label="Afspraken vandaag" value={stats.appointmentsToday.toString()} loading={loading} />
+        <StatCard icon={Phone} label="Gesprekken vandaag" value={stats.conversationsToday.toString()} loading={loading} />
+        <StatCard icon={Clock} label="Gemiste oproepen" value={stats.missedCalls.toString()} loading={loading} />
+        <StatCard icon={TrendingUp} label="Deze maand" value={stats.monthlyAppointments.toString()} loading={loading} />
       </div>
 
-      {/* Today's appointments */}
       <div style={{
         background: '#16161f',
         borderRadius: 16,
@@ -179,86 +163,42 @@ export default function DashboardPage() {
         padding: 24,
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h2 style={{ color: 'white', fontSize: 18, fontWeight: 600 }}>
-            Afspraken vandaag
-          </h2>
-          <a 
-            href="/dashboard/appointments"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              background: '#f97316',
-              color: 'white',
-              border: 'none',
-              borderRadius: 8,
-              padding: '8px 16px',
-              fontSize: 14,
-              fontWeight: 500,
-              cursor: 'pointer',
-              textDecoration: 'none',
-            }}
-          >
+          <h2 style={{ color: 'white', fontSize: 18, fontWeight: 600 }}>Afspraken vandaag</h2>
+          <a href="/dashboard/appointments" style={{
+            display: 'flex', alignItems: 'center', gap: 8, background: '#f97316', color: 'white',
+            border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 14, fontWeight: 500, textDecoration: 'none',
+          }}>
             <Plus size={16} />
             Nieuwe afspraak
           </a>
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>
-            Laden...
-          </div>
+          <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>Laden...</div>
         ) : appointments.length === 0 ? (
-          <div style={{ 
-            textAlign: 'center', 
-            padding: 40,
-            color: '#6b7280',
-          }}>
+          <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>
             <Calendar size={48} style={{ marginBottom: 16, opacity: 0.5 }} />
             <p>Geen afspraken voor vandaag</p>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {appointments.map((apt) => (
-              <div 
-                key={apt.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 16,
-                  padding: 16,
-                  background: '#0a0a0f',
-                  borderRadius: 8,
-                }}
-              >
+              <div key={apt.id} style={{
+                display: 'flex', alignItems: 'center', gap: 16, padding: 16, background: '#0a0a0f', borderRadius: 8,
+              }}>
                 <div style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 8,
-                  background: 'rgba(249, 115, 22, 0.15)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#f97316',
+                  width: 48, height: 48, borderRadius: 8, background: 'rgba(249, 115, 22, 0.15)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f97316',
                 }}>
                   <Clock size={20} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <p style={{ color: 'white', fontWeight: 500 }}>{apt.customer_name}</p>
-                  <p style={{ color: '#6b7280', fontSize: 13 }}>
-                    {apt.services?.name || 'Afspraak'}
-                  </p>
+                  <p style={{ color: '#6b7280', fontSize: 13 }}>{apt.services?.name || 'Afspraak'}</p>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <p style={{ color: '#f97316', fontWeight: 600 }}>
-                    {formatTime(apt.start_time)}
-                  </p>
-                  <p style={{ 
-                    color: getStatusColor(apt.status), 
-                    fontSize: 12,
-                  }}>
-                    {getStatusLabel(apt.status)}
-                  </p>
+                  <p style={{ color: '#f97316', fontWeight: 600 }}>{formatTime(apt.start_time)}</p>
+                  <p style={{ color: getStatusColor(apt.status), fontSize: 12 }}>{getStatusLabel(apt.status)}</p>
                 </div>
               </div>
             ))}
@@ -269,41 +209,20 @@ export default function DashboardPage() {
   );
 }
 
-function StatCard({ 
-  icon: Icon, 
-  label, 
-  value, 
-  loading 
-}: { 
-  icon: React.ComponentType<{ size?: number }>; 
-  label: string; 
-  value: string;
-  loading?: boolean;
+function StatCard({ icon: Icon, label, value, loading }: { 
+  icon: React.ComponentType<{ size?: number }>; label: string; value: string; loading?: boolean;
 }) {
   return (
-    <div style={{
-      background: '#16161f',
-      borderRadius: 12,
-      border: '1px solid #2a2a35',
-      padding: 20,
-    }}>
+    <div style={{ background: '#16161f', borderRadius: 12, border: '1px solid #2a2a35', padding: 20 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
         <div style={{
-          width: 40,
-          height: 40,
-          borderRadius: 8,
-          background: 'rgba(249, 115, 22, 0.15)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#f97316',
+          width: 40, height: 40, borderRadius: 8, background: 'rgba(249, 115, 22, 0.15)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f97316',
         }}>
           <Icon size={18} />
         </div>
       </div>
-      <p style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 4 }}>
-        {loading ? '-' : value}
-      </p>
+      <p style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 4 }}>{loading ? '-' : value}</p>
       <p style={{ color: '#6b7280', fontSize: 13 }}>{label}</p>
     </div>
   );
