@@ -44,7 +44,7 @@ function DemoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
     { speaker: 'receptionist', text: 'Donderdag om 14 uur, kan dat?', audio: '/audio/b3.mp3' },
     { speaker: 'customer', text: 'Ja, dat kan.', audio: '/audio/s3.mp3' },
     { speaker: 'receptionist', text: 'Prima, mag ik uw naam?', audio: '/audio/b4.mp3' },
-    { speaker: 'customer', text: 'Sanne.', audio: '/audio/s4.mp3' },
+    { speaker: 'customer', text: 'Veerle.', audio: '/audio/s4.mp3' },
     { speaker: 'receptionist', text: 'Dank u, dat is genoteerd. U krijgt nog een smsje van ons, goed?', audio: '/audio/b5.mp3' },
     { speaker: 'customer', text: 'Perfect, bedankt.', audio: '/audio/s5.mp3' },
     { speaker: 'receptionist', text: 'Graag gedaan, tot donderdag!', audio: '/audio/b6.mp3' },
