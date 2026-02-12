@@ -1194,7 +1194,6 @@ function TryLiveSection() {
             <>
               <button 
                 onClick={startCall}
-                disabled={callStatus === 'connecting'}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
