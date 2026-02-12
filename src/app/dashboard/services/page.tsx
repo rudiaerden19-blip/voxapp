@@ -75,21 +75,27 @@ export default function ServicesPage() {
     setError('');
     const supabase = createClient();
 
-    const serviceData = {
-      business_id: businessId,
-      name: formData.name.trim(),
-      description: formData.description.trim() || null,
-      duration_minutes: formData.duration_minutes,
-      price: formData.price ? parseFloat(formData.price) : null,
-      is_active: formData.is_active,
-    };
-
     try {
       if (editingService) {
-        await supabase.from('services').update(serviceData).eq('id', editingService.id);
-        setServices(services.map(s => s.id === editingService.id ? { ...s, ...serviceData } as Service : s));
+        const updateData = {
+          name: formData.name.trim(),
+          description: formData.description.trim() || null,
+          duration_minutes: formData.duration_minutes,
+          price: formData.price ? parseFloat(formData.price) : null,
+          is_active: formData.is_active,
+        };
+        await supabase.from('services').update(updateData).eq('id', editingService.id);
+        setServices(services.map(s => s.id === editingService.id ? { ...s, ...updateData, id: s.id } as Service : s));
       } else {
-        const { data } = await supabase.from('services').insert([serviceData]).select().single();
+        const insertData = {
+          business_id: businessId,
+          name: formData.name.trim(),
+          description: formData.description.trim() || null,
+          duration_minutes: formData.duration_minutes,
+          price: formData.price ? parseFloat(formData.price) : null,
+          is_active: formData.is_active,
+        };
+        const { data } = await supabase.from('services').insert([insertData]).select().single();
         if (data) setServices([...services, data as Service]);
       }
       closeModal();

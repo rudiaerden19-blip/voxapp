@@ -101,21 +101,27 @@ export default function StaffPage() {
     setError('');
     const supabase = createClient();
 
-    const staffData = {
-      business_id: businessId,
-      name: formData.name.trim(),
-      email: formData.email.trim() || null,
-      phone: formData.phone.trim() || null,
-      working_hours: formData.working_hours,
-      is_active: formData.is_active,
-    };
-
     try {
       if (editingStaff) {
-        await supabase.from('staff').update(staffData).eq('id', editingStaff.id);
-        setStaff(staff.map(s => s.id === editingStaff.id ? { ...s, ...staffData } as Staff : s));
+        const updateData = {
+          name: formData.name.trim(),
+          email: formData.email.trim() || null,
+          phone: formData.phone.trim() || null,
+          working_hours: formData.working_hours,
+          is_active: formData.is_active,
+        };
+        await supabase.from('staff').update(updateData).eq('id', editingStaff.id);
+        setStaff(staff.map(s => s.id === editingStaff.id ? { ...s, ...updateData, id: s.id } as Staff : s));
       } else {
-        const { data } = await supabase.from('staff').insert([staffData]).select().single();
+        const insertData = {
+          business_id: businessId,
+          name: formData.name.trim(),
+          email: formData.email.trim() || null,
+          phone: formData.phone.trim() || null,
+          working_hours: formData.working_hours,
+          is_active: formData.is_active,
+        };
+        const { data } = await supabase.from('staff').insert([insertData]).select().single();
         if (data) setStaff([...staff, data as Staff]);
       }
       closeModal();
