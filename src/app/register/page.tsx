@@ -51,14 +51,14 @@ export default function RegisterPage() {
         // 2. Create business record
         const { error: businessError } = await supabase
           .from('businesses')
-          .insert({
+          .insert([{
             user_id: authData.user.id,
             name: businessName,
             type: businessType,
             phone: phone,
             email: email,
-            trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 dagen trial
-          });
+            trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          }] as any);
 
         if (businessError) {
           console.error('Business creation error:', businessError);
