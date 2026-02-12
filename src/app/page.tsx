@@ -779,7 +779,95 @@ function InboundSection({ onOpenDemo }: { onOpenDemo: () => void }) {
 }
 
 /* ============================================
-   FEATURE SECTION 2 - Outbound Calls
+   FEATURE SECTION 2 - Restaurant Reservations
+============================================ */
+function RestaurantSection({ onOpenDemo }: { onOpenDemo: () => void }) {
+  return (
+    <section style={{ background: '#f5f5f5', padding: '200px 0' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 60, alignItems: 'center' }}>
+          {/* Left - Image */}
+          <div style={{ position: 'relative' }}>
+            <div style={{ borderRadius: 20, overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
+              <img 
+                src="/restaurant.png"
+                alt="Restaurant interieur"
+                style={{ width: '100%', height: 'auto', display: 'block', maxHeight: 500, objectFit: 'cover' }}
+              />
+            </div>
+          </div>
+
+          {/* Right - Text */}
+          <div>
+            <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
+              Restaurant Reserveringen
+            </p>
+            <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 700, color: '#1a1a2e', lineHeight: 1.2, marginBottom: 20 }}>
+              Mis nooit meer een reservering.
+            </h2>
+            <p style={{ fontSize: 16, color: '#6b7280', lineHeight: 1.7, marginBottom: 32 }}>
+              Uw AI-receptionist neemt reserveringen aan, bevestigt beschikbaarheid en stuurt automatisch bevestigingen — 
+              ook buiten de openingsuren.
+            </p>
+
+            {/* CTA Buttons */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 32 }}>
+              <a href="/register" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: '#f97316',
+                color: 'white',
+                padding: '12px 24px',
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 600,
+                textDecoration: 'none',
+              }}>
+                <Calendar size={16} />
+                Start gratis
+              </a>
+              <button onClick={onOpenDemo} style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: 'transparent',
+                color: '#1a1a2e',
+                padding: '12px 24px',
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 600,
+                border: '1px solid #e5e7eb',
+                cursor: 'pointer',
+              }}>
+                <PhoneCall size={16} />
+                Luister Demo Gesprek
+              </button>
+            </div>
+
+            {/* Feature list */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {[
+                { icon: MessageSquare, text: 'Neem reserveringen aan 24/7' },
+                { icon: Calendar, text: 'Check beschikbaarheid realtime' },
+                { icon: Bell, text: 'Stuur automatische bevestigingen' },
+                { icon: Users, text: 'Beheer groepsreserveringen' },
+              ].map((item, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <item.icon size={18} style={{ color: '#6b7280' }} />
+                  <span style={{ fontSize: 15, color: '#1a1a2e' }}>{item.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================
+   FEATURE SECTION 3 - Outbound Calls
 ============================================ */
 function OutboundSection() {
   return (
@@ -1381,6 +1469,7 @@ export default function Home() {
       <Navigation />
       <HeroSection onOpenDemo={openBelleDemo} />
       <InboundSection onOpenDemo={openGarageDemo} />
+      <RestaurantSection onOpenDemo={openBelleDemo} />
       <OutboundSection />
       <AutomationSection />
       <HowItWorksSection />
