@@ -64,7 +64,7 @@ export default function RegisterPage() {
           console.error('Business creation error:', businessError);
           setError('Account aangemaakt maar bedrijf kon niet worden opgeslagen. Neem contact op.');
         } else {
-          router.push('/dashboard');
+          router.push('/dashboard/onboarding');
         }
       }
     } catch (err: any) {
