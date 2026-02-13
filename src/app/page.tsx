@@ -881,7 +881,51 @@ function RestaurantSection({ onOpenDemo }: { onOpenDemo: () => void }) {
 /* ============================================
    FEATURE SECTION - Frituur Bestellingen
 ============================================ */
-function FrituurSection({ onOpenDemo }: { onOpenDemo: () => void }) {
+function FrituurSection() {
+  const [callStatus, setCallStatus] = useState<'idle' | 'connecting' | 'connected' | 'ended' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  const conversation = useConversation({
+    onConnect: () => setCallStatus('connected'),
+    onDisconnect: () => setCallStatus('idle'),
+    onError: (error) => {
+      console.error('Conversation error:', error);
+      setErrorMessage('Er ging iets mis. Probeer het opnieuw.');
+      setCallStatus('error');
+    },
+    onModeChange: ({ mode }) => setIsSpeaking(mode === 'speaking'),
+  });
+
+  const startCall = async () => {
+    try {
+      setCallStatus('connecting');
+      setErrorMessage('');
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Frituur agent - replace with actual frituur agent ID when created
+      await conversation.startSession({
+        agentId: 'agent_7001kh7ck6cvfpqvrt1gc63bs88k',
+        connectionType: 'webrtc',
+      });
+    } catch (error) {
+      console.error('Failed to start call:', error);
+      setErrorMessage('Kon geen verbinding maken. Controleer je microfoon.');
+      setCallStatus('error');
+    }
+  };
+
+  const endCall = async () => {
+    try {
+      await conversation.endSession();
+      setCallStatus('ended');
+      setTimeout(() => setCallStatus('idle'), 1500);
+    } catch (error) {
+      setCallStatus('idle');
+    }
+  };
+
+  const isActive = callStatus === 'connecting' || callStatus === 'connected';
+
   return (
     <section style={{ background: '#e3e3e3', padding: '200px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
@@ -906,43 +950,81 @@ function FrituurSection({ onOpenDemo }: { onOpenDemo: () => void }) {
               Bestellingen opnemen via spraak.
             </h2>
             <p style={{ fontSize: 16, color: '#6b7280', lineHeight: 1.7, marginBottom: 32 }}>
-              Klanten bellen of spreken hun bestelling in op uw website. De AI noteert alles correct, 
+              Klanten bellen of spreken hun bestelling in. De AI noteert alles correct, 
               berekent de prijs en geeft een afhaaltijd — zonder wachtrij.
             </p>
 
-            {/* CTA Buttons */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 32 }}>
-              <a href="/register" style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                background: '#f97316',
-                color: 'white',
-                padding: '12px 24px',
-                borderRadius: 8,
-                fontSize: 14,
-                fontWeight: 600,
-                textDecoration: 'none',
-              }}>
-                <ShoppingBag size={16} />
-                Start gratis
-              </a>
-              <button onClick={onOpenDemo} style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                background: 'transparent',
-                color: '#1a1a2e',
-                padding: '12px 24px',
-                borderRadius: 8,
-                fontSize: 14,
-                fontWeight: 600,
-                border: '1px solid #e5e7eb',
-                cursor: 'pointer',
-              }}>
-                <PhoneCall size={16} />
-                Luister Demo Gesprek
-              </button>
+            {/* Live Call Button */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 16, marginBottom: 32 }}>
+              {!isActive ? (
+                <>
+                  <button 
+                    onClick={startCall}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: callStatus === 'error' ? '#ef4444' : '#22c55e',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: 100,
+                      width: 80,
+                      height: 80,
+                      cursor: 'pointer',
+                      boxShadow: `0 0 30px ${callStatus === 'error' ? 'rgba(239, 68, 68, 0.4)' : 'rgba(34, 197, 94, 0.4)'}`,
+                      transition: 'all 0.3s ease',
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                    onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                  >
+                    <Phone size={32} />
+                  </button>
+                  <p style={{ color: '#6b7280', fontSize: 14 }}>
+                    Klik om te bestellen bij Frituur De Schans
+                  </p>
+                  {errorMessage && (
+                    <p style={{ color: '#ef4444', fontSize: 13 }}>{errorMessage}</p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div style={{ position: 'relative' }}>
+                    <button 
+                      onClick={endCall}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: '#ef4444',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: 100,
+                        width: 80,
+                        height: 80,
+                        cursor: 'pointer',
+                        boxShadow: '0 0 30px rgba(239, 68, 68, 0.4)',
+                        animation: isSpeaking ? 'pulse 1.5s infinite' : 'none',
+                      }}
+                    >
+                      <PhoneOff size={32} />
+                    </button>
+                    {callStatus === 'connecting' && (
+                      <div style={{
+                        position: 'absolute',
+                        inset: -6,
+                        border: '3px solid #22c55e',
+                        borderTopColor: 'transparent',
+                        borderRadius: '50%',
+                        animation: 'spin 1s linear infinite',
+                      }} />
+                    )}
+                  </div>
+                  <p style={{ color: '#1a1a2e', fontSize: 14, fontWeight: 500 }}>
+                    {callStatus === 'connecting' ? 'Verbinden met Frituur De Schans...' : 
+                     isSpeaking ? 'Medewerker spreekt...' : 'Spreek uw bestelling in...'}
+                  </p>
+                </>
+              )}
             </div>
 
             {/* Feature list */}
@@ -1814,7 +1896,7 @@ export default function Home() {
       <HeroSection onOpenDemo={openBelleDemo} />
       <InboundSection onOpenDemo={openGarageDemo} />
       <RestaurantSection onOpenDemo={openRestaurantDemo} />
-      <FrituurSection onOpenDemo={openRestaurantDemo} />
+      <FrituurSection />
       <OutboundSection />
       <AutomationSection />
       <TryLiveSection />
