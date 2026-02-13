@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import DashboardLayout from '@/components/DashboardLayout';
-import { Save, Building2, Clock, Phone, Mail, MapPin, Check } from 'lucide-react';
+import { Save, Building2, Clock, Phone, Mail, MapPin, Check, CreditCard, ExternalLink } from 'lucide-react';
 
 interface OpeningHours {
   [key: string]: { open: string; close: string; closed: boolean };
@@ -17,6 +18,9 @@ interface Business {
   email: string | null;
   address: string | null;
   opening_hours: OpeningHours | null;
+  subscription_status: string;
+  trial_ends_at: string | null;
+  stripe_customer_id: string | null;
 }
 
 const defaultOpeningHours: OpeningHours = {
@@ -45,12 +49,16 @@ const businessTypes = [
   { value: 'other', label: 'Anders' },
 ];
 
-export default function SettingsPage() {
+function SettingsContent() {
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
-  const [businessId, setBusinessId] = useState<string | null>(null);
+  const [business, setBusiness] = useState<Business | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [portalLoading, setPortalLoading] = useState(false);
+
   const [formData, setFormData] = useState({
     name: '',
     type: 'other',
@@ -60,6 +68,14 @@ export default function SettingsPage() {
     opening_hours: defaultOpeningHours,
   });
 
+  // Check for success/canceled from Stripe
+  useEffect(() => {
+    if (searchParams.get('success') === 'true') {
+      setSaved(true);
+      setTimeout(() => setSaved(false), 5000);
+    }
+  }, [searchParams]);
+
   useEffect(() => { loadBusiness(); }, []);
 
   const loadBusiness = async () => {
@@ -67,15 +83,15 @@ export default function SettingsPage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data: business } = await supabase
+    const { data: businessData } = await supabase
       .from('businesses')
       .select('*')
       .eq('user_id', user.id)
       .single();
 
-    if (business) {
-      const biz = business as Business;
-      setBusinessId(biz.id);
+    if (businessData) {
+      const biz = businessData as Business;
+      setBusiness(biz);
       setFormData({
         name: biz.name || '',
         type: biz.type || 'other',
@@ -97,7 +113,7 @@ export default function SettingsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!businessId) return;
+    if (!business) return;
 
     setSaving(true);
     setError('');
@@ -115,7 +131,7 @@ export default function SettingsPage() {
         address: formData.address.trim() || null,
         opening_hours: formData.opening_hours,
       })
-      .eq('id', businessId);
+      .eq('id', business.id);
 
     if (updateError) {
       setError('Er ging iets mis bij het opslaan');
@@ -126,6 +142,82 @@ export default function SettingsPage() {
     setSaving(false);
   };
 
+  const handleStartSubscription = async () => {
+    if (!business) return;
+    setCheckoutLoading(true);
+
+    try {
+      const response = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          businessId: business.id,
+          email: formData.email || business.email,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setError(data.error || 'Er ging iets mis');
+      }
+    } catch (err) {
+      setError('Er ging iets mis bij het starten van de checkout');
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    if (!business?.stripe_customer_id) return;
+    setPortalLoading(true);
+
+    try {
+      const response = await fetch('/api/stripe/portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerId: business.stripe_customer_id,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setError(data.error || 'Er ging iets mis');
+      }
+    } catch (err) {
+      setError('Er ging iets mis bij het openen van het portaal');
+    } finally {
+      setPortalLoading(false);
+    }
+  };
+
+  const getSubscriptionStatus = () => {
+    if (!business) return { label: 'Onbekend', color: '#6b7280', bg: 'rgba(107, 114, 128, 0.1)' };
+    
+    switch (business.subscription_status) {
+      case 'active':
+        return { label: 'Actief', color: '#22c55e', bg: 'rgba(34, 197, 94, 0.1)' };
+      case 'trial':
+        return { label: 'Proefperiode', color: '#f97316', bg: 'rgba(249, 115, 22, 0.1)' };
+      case 'past_due':
+        return { label: 'Betaling mislukt', color: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)' };
+      case 'canceled':
+        return { label: 'Geannuleerd', color: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)' };
+      default:
+        return { label: 'Geen abonnement', color: '#6b7280', bg: 'rgba(107, 114, 128, 0.1)' };
+    }
+  };
+
+  const getDaysRemaining = () => {
+    if (!business?.trial_ends_at) return 0;
+    const diff = Math.ceil((new Date(business.trial_ends_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+    return Math.max(0, diff);
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -134,11 +226,95 @@ export default function SettingsPage() {
     );
   }
 
+  const status = getSubscriptionStatus();
+
   return (
     <DashboardLayout>
       <div style={{ marginBottom: 32 }}>
         <h1 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Instellingen</h1>
-        <p style={{ color: '#9ca3af', fontSize: 16 }}>Beheer je bedrijfsgegevens en openingstijden</p>
+        <p style={{ color: '#9ca3af', fontSize: 16 }}>Beheer je bedrijfsgegevens en abonnement</p>
+      </div>
+
+      {/* Subscription Section */}
+      <div style={{ background: '#16161f', borderRadius: 16, border: '1px solid #2a2a35', padding: 24, marginBottom: 24 }}>
+        <h2 style={{ color: 'white', fontSize: 18, fontWeight: 600, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <CreditCard size={20} style={{ color: '#f97316' }} /> Abonnement
+        </h2>
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+              <span style={{
+                padding: '6px 12px', borderRadius: 20, fontSize: 13, fontWeight: 600,
+                background: status.bg, color: status.color,
+              }}>
+                {status.label}
+              </span>
+              {business?.subscription_status === 'trial' && (
+                <span style={{ color: '#6b7280', fontSize: 14 }}>
+                  Nog {getDaysRemaining()} dagen
+                </span>
+              )}
+            </div>
+            <p style={{ color: '#9ca3af', fontSize: 14 }}>
+              {business?.subscription_status === 'active' 
+                ? 'Je abonnement is actief. €99/maand.' 
+                : business?.subscription_status === 'trial'
+                ? 'Je proefperiode loopt. Upgrade om door te gaan na de trial.'
+                : 'Start een abonnement om VoxApp te gebruiken.'}
+            </p>
+          </div>
+
+          <div>
+            {business?.stripe_customer_id ? (
+              <button
+                onClick={handleManageSubscription}
+                disabled={portalLoading}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '12px 20px', background: 'transparent',
+                  border: '1px solid #2a2a35', borderRadius: 8,
+                  color: '#9ca3af', fontSize: 14, fontWeight: 500,
+                  cursor: portalLoading ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {portalLoading ? 'Laden...' : <><ExternalLink size={16} /> Beheer abonnement</>}
+              </button>
+            ) : (
+              <button
+                onClick={handleStartSubscription}
+                disabled={checkoutLoading}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '12px 24px', background: checkoutLoading ? '#6b7280' : '#f97316',
+                  border: 'none', borderRadius: 8,
+                  color: 'white', fontSize: 14, fontWeight: 600,
+                  cursor: checkoutLoading ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {checkoutLoading ? 'Laden...' : 'Start abonnement - €99/maand'}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Pricing info */}
+        <div style={{ marginTop: 20, padding: 16, background: '#0a0a0f', borderRadius: 8 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24 }}>
+            <div>
+              <p style={{ color: '#6b7280', fontSize: 12, marginBottom: 4 }}>Prijs</p>
+              <p style={{ color: 'white', fontSize: 16, fontWeight: 600 }}>€99/maand</p>
+            </div>
+            <div>
+              <p style={{ color: '#6b7280', fontSize: 12, marginBottom: 4 }}>Inclusief</p>
+              <p style={{ color: 'white', fontSize: 14 }}>300 minuten • SMS • 24/7 AI</p>
+            </div>
+            <div>
+              <p style={{ color: '#6b7280', fontSize: 12, marginBottom: 4 }}>Extra minuten</p>
+              <p style={{ color: 'white', fontSize: 14 }}>€0.40/min</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -303,5 +479,17 @@ export default function SettingsPage() {
         </button>
       </form>
     </DashboardLayout>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={
+      <DashboardLayout>
+        <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>Laden...</div>
+      </DashboardLayout>
+    }>
+      <SettingsContent />
+    </Suspense>
   );
 }
