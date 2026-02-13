@@ -881,239 +881,84 @@ function RestaurantSection({ onOpenDemo }: { onOpenDemo: () => void }) {
 /* ============================================
    FEATURE SECTION - Frituur Bestellingen
 ============================================ */
-function FrituurSection() {
+function FrituurSection({ onOpenDemo }: { onOpenDemo: () => void }) {
   return (
-    <section style={{ background: '#1a1a2e', padding: '200px 0' }}>
+    <section style={{ background: '#e3e3e3', padding: '200px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))', gap: 60, alignItems: 'center' }}>
-          {/* Left - Text */}
-          <div>
-            <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
-              Frituren & Afhaalzaken
-            </p>
-            <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 700, color: 'white', lineHeight: 1.2, marginBottom: 20 }}>
-              Bestellingen opnemen via spraak.
-            </h2>
-            <p style={{ fontSize: 16, color: '#9ca3af', lineHeight: 1.7, marginBottom: 32 }}>
-              Klanten bellen of spreken hun bestelling in op uw website. De AI noteert alles correct, 
-              berekent de prijs en geeft een afhaaltijd — zonder wachtrij.
-            </p>
-
-            {/* Feature list */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {[
-                { icon: MessageSquare, text: 'Neemt bestellingen aan via telefoon of website' },
-                { icon: Clock, text: 'Berekent automatisch afhaaltijd' },
-                { icon: Check, text: 'Bevestigt bestelling + totaalprijs' },
-                { icon: Bell, text: 'SMS bevestiging naar klant' },
-              ].map((item, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <item.icon size={18} style={{ color: '#f97316' }} />
-                  <span style={{ fontSize: 15, color: 'white' }}>{item.text}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Right - Image */}
+          {/* Left - Image */}
           <div style={{ position: 'relative' }}>
-            <div style={{ borderRadius: 20, overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+            <div style={{ borderRadius: 20, overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
               <img 
                 src="/frituur.jpg"
                 alt="Frituur met verse friet"
                 style={{ width: '100%', height: 'auto', display: 'block', maxHeight: 500, objectFit: 'cover' }}
               />
             </div>
-            {/* Order badge */}
-            <div style={{
-              position: 'absolute',
-              bottom: -20,
-              left: -20,
-              background: '#f97316',
-              borderRadius: 16,
-              padding: '16px 24px',
-              boxShadow: '0 10px 30px rgba(249, 115, 22, 0.4)',
-            }}>
-              <p style={{ color: 'white', fontSize: 14, fontWeight: 600 }}>Nieuwe bestelling</p>
-              <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12 }}>Grote friet, frikandel, bicky</p>
-              <p style={{ color: 'white', fontSize: 18, fontWeight: 700, marginTop: 4 }}>€12,50</p>
-            </div>
           </div>
-        </div>
-      </div>
-    </section>
-  );
-}
 
-/* ============================================
-   FRITUUR ORDER DEMO - Voice Ordering
-============================================ */
-function FrituurOrderSection() {
-  const [callStatus, setCallStatus] = useState<'idle' | 'connecting' | 'connected' | 'ended' | 'error'>('idle');
-  const [errorMessage, setErrorMessage] = useState('');
-  const [isSpeaking, setIsSpeaking] = useState(false);
+          {/* Right - Text */}
+          <div>
+            <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
+              Frituren & Afhaalzaken
+            </p>
+            <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 700, color: '#1a1a2e', lineHeight: 1.2, marginBottom: 20 }}>
+              Bestellingen opnemen via spraak.
+            </h2>
+            <p style={{ fontSize: 16, color: '#6b7280', lineHeight: 1.7, marginBottom: 32 }}>
+              Klanten bellen of spreken hun bestelling in op uw website. De AI noteert alles correct, 
+              berekent de prijs en geeft een afhaaltijd — zonder wachtrij.
+            </p>
 
-  const conversation = useConversation({
-    onConnect: () => {
-      setCallStatus('connected');
-    },
-    onDisconnect: () => {
-      setCallStatus('idle');
-    },
-    onError: (error) => {
-      console.error('Conversation error:', error);
-      setErrorMessage('Er ging iets mis. Probeer het opnieuw.');
-      setCallStatus('error');
-    },
-    onModeChange: ({ mode }) => {
-      setIsSpeaking(mode === 'speaking');
-    },
-  });
-
-  const startCall = async () => {
-    try {
-      setCallStatus('connecting');
-      setErrorMessage('');
-      
-      await navigator.mediaDevices.getUserMedia({ audio: true });
-      
-      // Use the same agent for now - can be replaced with frituur-specific agent
-      await conversation.startSession({
-        agentId: 'agent_7001kh7ck6cvfpqvrt1gc63bs88k',
-        connectionType: 'webrtc',
-      });
-    } catch (error) {
-      console.error('Failed to start call:', error);
-      setErrorMessage('Kon geen verbinding maken. Controleer je microfoon.');
-      setCallStatus('error');
-    }
-  };
-
-  const endCall = async () => {
-    try {
-      await conversation.endSession();
-      setCallStatus('ended');
-      setTimeout(() => setCallStatus('idle'), 1500);
-    } catch (error) {
-      console.error('Failed to end call:', error);
-      setCallStatus('idle');
-    }
-  };
-
-  const isActive = callStatus === 'connecting' || callStatus === 'connected';
-
-  return (
-    <section style={{ background: '#0a0a0f', padding: '120px 0' }}>
-      <div style={{ maxWidth: 800, margin: '0 auto', padding: '0 24px', textAlign: 'center' }}>
-        <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
-          Probeer Het Zelf
-        </p>
-        <h2 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: 700, color: 'white', lineHeight: 1.2, marginBottom: 20 }}>
-          Bestel nu via spraak
-        </h2>
-        <p style={{ fontSize: 18, color: '#9ca3af', lineHeight: 1.7, marginBottom: 48, maxWidth: 600, margin: '0 auto 48px' }}>
-          Test hoe klanten hun frituurbestelling kunnen inspreken. Zeg bijvoorbeeld: 
-          &quot;Een grote friet, twee frikandellen en een bicky burger.&quot;
-        </p>
-
-        {/* Call Button */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
-          {!isActive ? (
-            <>
-              <button 
-                onClick={startCall}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: callStatus === 'error' ? '#ef4444' : '#f97316',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 100,
-                  width: 120,
-                  height: 120,
-                  fontSize: 18,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  boxShadow: `0 0 40px ${callStatus === 'error' ? 'rgba(239, 68, 68, 0.4)' : 'rgba(249, 115, 22, 0.4)'}`,
-                  transition: 'all 0.3s ease',
-                }}
-                onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-              >
-                <ShoppingBag size={40} />
-              </button>
-              {errorMessage && (
-                <p style={{ color: '#ef4444', fontSize: 14, maxWidth: 300 }}>
-                  {errorMessage}
-                </p>
-              )}
-              <p style={{ color: '#6b7280', fontSize: 14 }}>
-                Klik om te bestellen • Gratis • Geen registratie nodig
-              </p>
-            </>
-          ) : (
-            <>
-              <div style={{ position: 'relative' }}>
-                <button 
-                  onClick={endCall}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background: '#ef4444',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: 100,
-                    width: 120,
-                    height: 120,
-                    fontSize: 18,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    boxShadow: '0 0 40px rgba(239, 68, 68, 0.4)',
-                    animation: isSpeaking ? 'pulse 1.5s infinite' : 'none',
-                  }}
-                >
-                  <PhoneOff size={40} />
-                </button>
-                {callStatus === 'connecting' && (
-                  <div style={{
-                    position: 'absolute',
-                    inset: -8,
-                    border: '3px solid #f97316',
-                    borderTopColor: 'transparent',
-                    borderRadius: '50%',
-                    animation: 'spin 1s linear infinite',
-                  }} />
-                )}
-              </div>
-              <p style={{ color: '#9ca3af', fontSize: 14 }}>
-                {callStatus === 'connecting' ? 'Verbinden...' : isSpeaking ? 'AI spreekt...' : 'Spreek uw bestelling in...'}
-              </p>
-            </>
-          )}
-        </div>
-
-        {/* Example orders */}
-        <div style={{ marginTop: 48 }}>
-          <p style={{ color: '#6b7280', fontSize: 14, marginBottom: 16 }}>Probeer bijvoorbeeld:</p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 12 }}>
-            {[
-              '"Een grote friet met mayo"',
-              '"Twee frikandellen speciaal"',
-              '"Bicky burger menu"',
-            ].map((example, i) => (
-              <span key={i} style={{
-                background: 'rgba(249, 115, 22, 0.1)',
-                color: '#f97316',
-                padding: '8px 16px',
-                borderRadius: 20,
-                fontSize: 13,
-                border: '1px solid rgba(249, 115, 22, 0.3)',
+            {/* CTA Buttons */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 32 }}>
+              <a href="/register" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: '#f97316',
+                color: 'white',
+                padding: '12px 24px',
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 600,
+                textDecoration: 'none',
               }}>
-                {example}
-              </span>
-            ))}
+                <ShoppingBag size={16} />
+                Start gratis
+              </a>
+              <button onClick={onOpenDemo} style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: 'transparent',
+                color: '#1a1a2e',
+                padding: '12px 24px',
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 600,
+                border: '1px solid #e5e7eb',
+                cursor: 'pointer',
+              }}>
+                <PhoneCall size={16} />
+                Luister Demo Gesprek
+              </button>
+            </div>
+
+            {/* Feature list */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {[
+                { icon: MessageSquare, text: 'Neemt bestellingen aan via telefoon' },
+                { icon: Clock, text: 'Berekent automatisch afhaaltijd' },
+                { icon: Check, text: 'Bevestigt bestelling + totaalprijs' },
+                { icon: Bell, text: 'SMS bevestiging naar klant' },
+              ].map((item, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <item.icon size={18} style={{ color: '#6b7280' }} />
+                  <span style={{ fontSize: 15, color: '#1a1a2e' }}>{item.text}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -1969,8 +1814,7 @@ export default function Home() {
       <HeroSection onOpenDemo={openBelleDemo} />
       <InboundSection onOpenDemo={openGarageDemo} />
       <RestaurantSection onOpenDemo={openRestaurantDemo} />
-      <FrituurSection />
-      <FrituurOrderSection />
+      <FrituurSection onOpenDemo={openRestaurantDemo} />
       <OutboundSection />
       <AutomationSection />
       <TryLiveSection />
