@@ -902,9 +902,9 @@ function FrituurSection() {
       setCallStatus('connecting');
       setErrorMessage('');
       await navigator.mediaDevices.getUserMedia({ audio: true });
-      // Frituur agent - replace with actual frituur agent ID when created
+      // Frituur De Schans agent
       await conversation.startSession({
-        agentId: 'agent_7001kh7ck6cvfpqvrt1gc63bs88k',
+        agentId: 'agent_4801khcaeveffx7tbayp097p54kh',
         connectionType: 'webrtc',
       });
     } catch (error) {
