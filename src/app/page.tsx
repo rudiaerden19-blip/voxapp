@@ -1435,6 +1435,7 @@ function PricingSection() {
       price: '99',
       desc: 'Perfect voor zelfstandigen.',
       minutes: '300',
+      appointments: '~150',
       extra: '0,40',
       features: ['Receptionist 24/7', 'Ingebouwde agenda', '1 medewerker', 'SMS bevestigingen', 'Gesprekstranscripties', 'Email support'],
       popular: false,
@@ -1444,6 +1445,7 @@ function PricingSection() {
       price: '149',
       desc: 'Voor groeiende teams.',
       minutes: '750',
+      appointments: '~375',
       extra: '0,35',
       features: ['Alles van Starter, plus:', '5 medewerkers', 'Voice cloning', 'Uitgaande herinneringen', 'Online booking pagina', 'Priority support'],
       popular: true,
@@ -1453,6 +1455,7 @@ function PricingSection() {
       price: '249',
       desc: 'Voor grotere bedrijven.',
       minutes: '1500',
+      appointments: '~750',
       extra: '0,30',
       features: ['Alles van Pro, plus:', 'Onbeperkt medewerkers', 'Meerdere locaties', 'API toegang', 'Custom integraties', 'Account manager'],
       popular: false,
@@ -1508,7 +1511,8 @@ function PricingSection() {
               </div>
 
               <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 24 }}>
-                {plan.minutes} min incl. • €{plan.extra}/extra min
+                {plan.appointments} afspraken/maand<br />
+                <span style={{ fontSize: 12 }}>({plan.minutes} min incl. • €{plan.extra}/extra min)</span>
               </p>
 
               <ul style={{ listStyle: 'none', padding: 0, marginBottom: 32 }}>
