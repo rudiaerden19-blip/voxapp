@@ -934,8 +934,8 @@ function FrituurSection() {
               Bestellingen opnemen via spraak.
             </h2>
             <p style={{ fontSize: 16, color: '#6b7280', lineHeight: 1.7, marginBottom: 32 }}>
-              Klanten bellen of spreken hun bestelling in. De AI noteert alles correct, 
-              berekent de prijs en geeft een afhaaltijd — zonder wachtrij.
+Klanten bellen of spreken hun bestelling in. De receptie noteert alles correct, 
+            berekent de prijs en geeft een afhaaltijd — zonder wachtrij.
             </p>
 
             {/* Live Call Button */}
