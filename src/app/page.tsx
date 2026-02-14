@@ -472,6 +472,7 @@ function LanguageSelector() {
     { code: 'nl', name: 'Nederlands', flag: '🇳🇱' },
     { code: 'en', name: 'English', flag: '🇬🇧' },
     { code: 'fr', name: 'Français', flag: '🇫🇷' },
+    { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
   ];
   
   const current = languages.find(l => l.code === currentLang) || languages[0];
