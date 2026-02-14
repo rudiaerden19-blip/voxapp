@@ -687,11 +687,11 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
               ))}
             </div>
 
-            {/* Breathing Circle with Phone Button - Left Side */}
+            {/* Breathing Circle with Phone Button - Bottom Right Corner of Image */}
             <div style={{
               position: 'absolute',
-              bottom: -40,
-              left: 40,
+              bottom: -80,
+              right: 80,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
