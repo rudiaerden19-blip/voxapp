@@ -447,6 +447,10 @@ function DemoModal({ isOpen, onClose, demoType = 'belle' }: { isOpen: boolean; o
           0%, 100% { height: 20px; }
           50% { height: 80px; }
         }
+        @keyframes breathe {
+          0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(34, 197, 94, 0.5); }
+          50% { transform: scale(1.1); box-shadow: 0 0 50px rgba(34, 197, 94, 0.8); }
+        }
         .audio-bar {
           height: 20px;
           animation: audioBar 0.8s ease-in-out infinite;
@@ -681,36 +685,37 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
                   <span style={{ fontSize: 13, fontWeight: 500, color: '#1a1a2e' }}>{badge.text}</span>
                 </div>
               ))}
+            </div>
 
-              {/* Audio Visualizer Circle under SMS Verstuurd */}
+            {/* Breathing Circle with Phone Button - Left Side */}
+            <div style={{
+              position: 'absolute',
+              bottom: -60,
+              left: -40,
+              width: 200,
+              height: 200,
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, rgba(236, 72, 153, 0.1) 50%, transparent 70%)',
+              border: '1px solid rgba(139, 92, 246, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 0 60px rgba(139, 92, 246, 0.3)',
+            }}>
+              {/* Breathing Green Phone Button */}
               <div style={{
-                width: 180,
-                height: 180,
+                width: 80,
+                height: 80,
                 borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.1) 50%, transparent 70%)',
-                border: '1px solid rgba(139, 92, 246, 0.3)',
+                background: '#22c55e',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 0 40px rgba(139, 92, 246, 0.2)',
-                marginTop: 8,
+                boxShadow: '0 0 30px rgba(34, 197, 94, 0.5)',
+                animation: 'breathe 2s ease-in-out infinite',
+                cursor: 'pointer',
               }}>
-                {/* Animated Bars */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, height: 80 }}>
-                  {[0, 1, 2, 3, 4, 5, 6].map((i) => (
-                    <div
-                      key={i}
-                      style={{
-                        width: 6,
-                        height: 30,
-                        borderRadius: 3,
-                        background: `linear-gradient(180deg, #8b5cf6 0%, #ec4899 100%)`,
-                        animation: 'audioBar 0.8s ease-in-out infinite',
-                        animationDelay: `${i * 0.12}s`,
-                      }}
-                    />
-                  ))}
-                </div>
+                <Phone size={32} style={{ color: 'white' }} />
               </div>
             </div>
 
