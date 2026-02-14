@@ -103,8 +103,7 @@ export default function OverOnsPage() {
             alignItems: 'center'
           }}>
             <div>
-              <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 12 }}>OPRICHTER & CEO</p>
-              <h2 style={{ fontSize: 32, fontWeight: 700, marginBottom: 20 }}>Rudi Aerden</h2>
+              <h2 style={{ fontSize: 32, fontWeight: 700, marginBottom: 20, color: '#f97316' }}>Vysion Group</h2>
               <p style={{ color: '#9ca3af', lineHeight: 1.8, marginBottom: 20 }}>
                 In 2013 richtte Rudi Aerden Vysion op met een duidelijke visie: technologie 
                 toegankelijk maken voor elk bedrijf, ongeacht grootte of budget. Wat begon als 
