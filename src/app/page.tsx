@@ -1726,13 +1726,13 @@ function TryLiveSection() {
     <section style={{ background: '#1a1a2e', padding: '120px 0' }}>
       <div style={{ maxWidth: 800, margin: '0 auto', padding: '0 24px', textAlign: 'center' }}>
         <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
-          Probeer Het Zelf
+          Test Het Zelf
         </p>
         <h2 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: 700, color: 'white', lineHeight: 1.2, marginBottom: 20 }}>
-          Bel nu met onze receptionist
+          Bel nu met Kapsalon Belle
         </h2>
         <p style={{ fontSize: 18, color: '#9ca3af', lineHeight: 1.7, marginBottom: 48, maxWidth: 600, margin: '0 auto 48px' }}>
-          Test zelf hoe natuurlijk onze receptionist klinkt. Probeer een afspraak te maken of stel een vraag.
+          Maak een afspraak, vraag naar prijzen, openingsuren of een specifieke medewerker. Onze AI receptie helpt u verder.
         </p>
 
         {/* Call Button */}
@@ -1866,9 +1866,11 @@ function TryLiveSection() {
             <p style={{ color: '#6b7280', fontSize: 14, marginBottom: 16 }}>Probeer bijvoorbeeld:</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 12 }}>
               {[
-                '"Ik wil een afspraak maken"',
-                '"Wat zijn jullie prijzen?"',
-                '"Zijn jullie morgen open?"',
+                '"Ik wil een afspraak maken voor knippen"',
+                '"Wat kost knippen en verven?"',
+                '"Wat zijn de openingsuren?"',
+                '"Is Lisa beschikbaar donderdag?"',
+                '"Kan ik morgen langskomen?"',
               ].map((prompt, i) => (
                 <span key={i} style={{
                   background: 'rgba(255,255,255,0.05)',
