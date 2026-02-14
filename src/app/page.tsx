@@ -690,7 +690,7 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
             {/* Breathing Circle with Phone Button - Bottom Left Corner of Image */}
             <div style={{
               position: 'absolute',
-              bottom: -140,
+              bottom: -220,
               left: 20,
               display: 'flex',
               flexDirection: 'column',
@@ -701,8 +701,8 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
                 width: 180,
                 height: 180,
                 borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, rgba(236, 72, 153, 0.1) 50%, transparent 70%)',
-                border: '1px solid rgba(139, 92, 246, 0.3)',
+                background: 'radial-gradient(circle, #2d1f42 0%, #1a1025 70%)',
+                border: '1px solid rgba(139, 92, 246, 0.5)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
