@@ -1878,9 +1878,9 @@ export default function Home() {
     <main>
       <Navigation />
       <HeroSection onOpenDemo={openBelleDemo} />
+      <FrituurSection />
       <InboundSection onOpenDemo={openGarageDemo} />
       <RestaurantSection onOpenDemo={openRestaurantDemo} />
-      <FrituurSection />
       <OutboundSection />
       <AutomationSection />
       <TryLiveSection />
