@@ -350,9 +350,17 @@ export default function OverOnsPage() {
               </a>
             </p>
             <p style={{ color: '#9ca3af' }}>
-              <strong style={{ color: 'white' }}>Website:</strong>{' '}
+              <strong style={{ color: 'white' }}>Websites:</strong>{' '}
               <a href="https://voxapp.tech" style={{ color: '#f97316', textDecoration: 'none' }}>
                 voxapp.tech
+              </a>
+              {' | '}
+              <a href="https://www.vysionhoreca.com" style={{ color: '#f97316', textDecoration: 'none' }}>
+                vysionhoreca.com
+              </a>
+              {' | '}
+              <a href="https://www.vysionapps.io" style={{ color: '#f97316', textDecoration: 'none' }}>
+                vysionapps.io
               </a>
             </p>
             <p style={{ color: '#9ca3af' }}>
