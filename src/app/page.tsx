@@ -564,7 +564,7 @@ function Navigation() {
 }
 
 /* ============================================
-   HERO SECTION - With Live Frituur Demo
+   HERO SECTION - With Frituur Image + Live Demo
 ============================================ */
 function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
   const [callStatus, setCallStatus] = useState<'idle' | 'connecting' | 'connected' | 'ended' | 'error'>('idle');
@@ -614,7 +614,7 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
     <section style={{
       background: 'linear-gradient(180deg, #0f0a14 0%, #1a1025 100%)',
       paddingTop: 100,
-      paddingBottom: 60,
+      paddingBottom: 80,
       minHeight: '100vh',
       position: 'relative',
       overflow: 'hidden',
@@ -626,8 +626,8 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
           <span style={{ color: '#9ca3af', fontSize: 13 }}>Slimme Receptionist voor Groeiende Bedrijven</span>
         </div>
 
-        {/* Hero Content */}
-        <div style={{ textAlign: 'center', maxWidth: 700, margin: '0 auto' }}>
+        {/* Hero Text */}
+        <div style={{ maxWidth: 600, marginBottom: 40 }}>
           <h1 style={{ 
             fontSize: 'clamp(28px, 7vw, 52px)', 
             fontWeight: 700, 
@@ -640,105 +640,17 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
             <span style={{ color: '#f97316' }}>Bespaar tijd.</span>
           </h1>
 
-          <p style={{ fontSize: 16, color: '#9ca3af', lineHeight: 1.7, marginBottom: 40 }}>
+          <p style={{ fontSize: 16, color: '#9ca3af', lineHeight: 1.7, marginBottom: 24 }}>
             VoxApp beheert uw oproepen, boekt afspraken en beantwoordt vragen — zodat u kunt focussen op uw werk.
           </p>
 
-          {/* Live Demo Call Button */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, marginBottom: 40 }}>
-            {!isActive ? (
-              <>
-                <div style={{
-                  width: 160,
-                  height: 160,
-                  borderRadius: '50%',
-                  background: 'radial-gradient(circle, #2d1f42 0%, #1a1025 70%)',
-                  border: '1px solid rgba(139, 92, 246, 0.5)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: '0 0 60px rgba(139, 92, 246, 0.3)',
-                }}>
-                  <button 
-                    onClick={startCall}
-                    style={{
-                      width: 100,
-                      height: 100,
-                      borderRadius: '50%',
-                      background: callStatus === 'error' ? '#ef4444' : '#22c55e',
-                      border: 'none',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 0 30px rgba(34, 197, 94, 0.5)',
-                      animation: 'breathe 2s ease-in-out infinite',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <Phone size={40} style={{ color: 'white' }} />
-                  </button>
-                </div>
-                <div style={{ textAlign: 'center' }}>
-                  <p style={{ color: '#f97316', fontSize: 16, fontWeight: 600, margin: '0 0 8px 0' }}>
-                    Probeer het nu - Bel onze AI
-                  </p>
-                  <p style={{ color: '#9ca3af', fontSize: 14, margin: 0 }}>
-                    Klik en maak een bestelling bij Frituur De Schans
-                  </p>
-                </div>
-                {errorMessage && (
-                  <p style={{ color: '#ef4444', fontSize: 13 }}>{errorMessage}</p>
-                )}
-              </>
-            ) : (
-              <>
-                <div style={{ position: 'relative' }}>
-                  <button 
-                    onClick={endCall}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: '#ef4444',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: 100,
-                      width: 100,
-                      height: 100,
-                      cursor: 'pointer',
-                      boxShadow: '0 0 40px rgba(239, 68, 68, 0.4)',
-                      animation: isSpeaking ? 'pulse 1.5s infinite' : 'none',
-                    }}
-                  >
-                    <PhoneOff size={40} />
-                  </button>
-                  {callStatus === 'connecting' && (
-                    <div style={{
-                      position: 'absolute',
-                      inset: -8,
-                      border: '3px solid #22c55e',
-                      borderTopColor: 'transparent',
-                      borderRadius: '50%',
-                      animation: 'spin 1s linear infinite',
-                    }} />
-                  )}
-                </div>
-                <p style={{ color: '#9ca3af', fontSize: 15, fontWeight: 500 }}>
-                  {callStatus === 'connecting' ? 'Verbinden met Frituur De Schans...' : 
-                   isSpeaking ? 'Medewerker spreekt...' : 'Spreek uw bestelling in...'}
-                </p>
-              </>
-            )}
-          </div>
-
-          {/* CTA Button */}
           <a href="/register" style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: 8,
             background: '#f97316',
             color: 'white',
-            padding: '14px 28px',
+            padding: '14px 24px',
             borderRadius: 8,
             fontSize: 15,
             fontWeight: 600,
@@ -747,6 +659,108 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
             <Calendar size={18} />
             Start gratis proefperiode
           </a>
+        </div>
+
+        {/* Frituur Image */}
+        <div style={{ 
+          maxWidth: 600,
+          margin: '0 auto 40px',
+          borderRadius: 16,
+          overflow: 'hidden',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
+        }}>
+          <img 
+            src="/frituur.jpg"
+            alt="Frituur met verse friet"
+            style={{ width: '100%', height: 'auto', display: 'block', maxHeight: 350, objectFit: 'cover' }}
+          />
+        </div>
+
+        {/* Live Demo Call Button - UNDER the image */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+          {!isActive ? (
+            <>
+              <div style={{
+                width: 140,
+                height: 140,
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, #2d1f42 0%, #1a1025 70%)',
+                border: '1px solid rgba(139, 92, 246, 0.5)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 0 60px rgba(139, 92, 246, 0.3)',
+              }}>
+                <button 
+                  onClick={startCall}
+                  style={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: '50%',
+                    background: callStatus === 'error' ? '#ef4444' : '#22c55e',
+                    border: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 0 30px rgba(34, 197, 94, 0.5)',
+                    animation: 'breathe 2s ease-in-out infinite',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <Phone size={32} style={{ color: 'white' }} />
+                </button>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ color: '#f97316', fontSize: 16, fontWeight: 600, margin: '0 0 8px 0' }}>
+                  Probeer het nu - Bel onze AI
+                </p>
+                <p style={{ color: '#9ca3af', fontSize: 14, margin: 0 }}>
+                  Klik en maak een bestelling bij Frituur De Schans
+                </p>
+              </div>
+              {errorMessage && (
+                <p style={{ color: '#ef4444', fontSize: 13 }}>{errorMessage}</p>
+              )}
+            </>
+          ) : (
+            <>
+              <div style={{ position: 'relative' }}>
+                <button 
+                  onClick={endCall}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: '#ef4444',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: 100,
+                    width: 80,
+                    height: 80,
+                    cursor: 'pointer',
+                    boxShadow: '0 0 40px rgba(239, 68, 68, 0.4)',
+                    animation: isSpeaking ? 'pulse 1.5s infinite' : 'none',
+                  }}
+                >
+                  <PhoneOff size={32} />
+                </button>
+                {callStatus === 'connecting' && (
+                  <div style={{
+                    position: 'absolute',
+                    inset: -8,
+                    border: '3px solid #22c55e',
+                    borderTopColor: 'transparent',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite',
+                  }} />
+                )}
+              </div>
+              <p style={{ color: '#9ca3af', fontSize: 15, fontWeight: 500 }}>
+                {callStatus === 'connecting' ? 'Verbinden met Frituur De Schans...' : 
+                 isSpeaking ? 'Medewerker spreekt...' : 'Spreek uw bestelling in...'}
+              </p>
+            </>
+          )}
         </div>
       </div>
     </section>
