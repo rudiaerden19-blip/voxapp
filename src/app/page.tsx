@@ -31,6 +31,8 @@ import {
   RefreshCw,
   PhoneOff,
   ShoppingBag,
+  Globe,
+  MapPin,
 } from 'lucide-react';
 
 /* ============================================
@@ -485,6 +487,7 @@ function Navigation() {
               <a href="#features" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>Functies</a>
               <a href="#how-it-works" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>Hoe het werkt</a>
               <a href="#pricing" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>Prijzen</a>
+              <a href="#contact" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>Contact</a>
             </div>
 
             <div style={{ display: 'none', alignItems: 'center', gap: 16 }} className="desktop-nav">
@@ -530,6 +533,7 @@ function Navigation() {
           <a href="#features" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Functies</a>
           <a href="#how-it-works" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Hoe het werkt</a>
           <a href="#pricing" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Prijzen</a>
+          <a href="#contact" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Contact</a>
           <div style={{ marginTop: 24 }}>
             <a href="/register" style={{
               display: 'flex',
@@ -2709,6 +2713,113 @@ function CTASection() {
 }
 
 /* ============================================
+   CONTACT SECTION
+============================================ */
+function ContactSection() {
+  return (
+    <section id="contact" style={{ background: '#0a0710', padding: '100px 0' }}>
+      <div style={{ maxWidth: 800, margin: '0 auto', padding: '0 24px', textAlign: 'center' }}>
+        <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, letterSpacing: 1, marginBottom: 16 }}>
+          CONTACT
+        </p>
+        <h2 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 700, color: 'white', marginBottom: 20 }}>
+          Neem <span style={{ color: '#f97316' }}>contact</span> met ons op
+        </h2>
+        <p style={{ fontSize: 18, color: '#9ca3af', marginBottom: 48, lineHeight: 1.7 }}>
+          Heeft u vragen over VoxApp? Wij helpen u graag verder.
+        </p>
+
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
+          gap: 32,
+          marginBottom: 48 
+        }}>
+          {/* Email */}
+          <div style={{
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: 16,
+            padding: 32,
+          }}>
+            <div style={{
+              width: 56,
+              height: 56,
+              borderRadius: 12,
+              background: 'rgba(249, 115, 22, 0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px',
+            }}>
+              <Send size={24} color="#f97316" />
+            </div>
+            <h3 style={{ color: 'white', fontSize: 18, fontWeight: 600, marginBottom: 8 }}>E-mail</h3>
+            <a href="mailto:info@vysionhoreca.com" style={{ color: '#f97316', textDecoration: 'none', fontSize: 16 }}>
+              info@vysionhoreca.com
+            </a>
+          </div>
+
+          {/* Website */}
+          <div style={{
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: 16,
+            padding: 32,
+          }}>
+            <div style={{
+              width: 56,
+              height: 56,
+              borderRadius: 12,
+              background: 'rgba(249, 115, 22, 0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px',
+            }}>
+              <Globe size={24} color="#f97316" />
+            </div>
+            <h3 style={{ color: 'white', fontSize: 18, fontWeight: 600, marginBottom: 8 }}>Website</h3>
+            <a href="https://voxapp.tech" target="_blank" rel="noopener noreferrer" style={{ color: '#f97316', textDecoration: 'none', fontSize: 16 }}>
+              voxapp.tech
+            </a>
+          </div>
+
+          {/* Locatie */}
+          <div style={{
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: 16,
+            padding: 32,
+          }}>
+            <div style={{
+              width: 56,
+              height: 56,
+              borderRadius: 12,
+              background: 'rgba(249, 115, 22, 0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px',
+            }}>
+              <MapPin size={24} color="#f97316" />
+            </div>
+            <h3 style={{ color: 'white', fontSize: 18, fontWeight: 600, marginBottom: 8 }}>Locatie</h3>
+            <p style={{ color: '#9ca3af', fontSize: 16 }}>
+              België
+            </p>
+          </div>
+        </div>
+
+        <p style={{ color: '#6b7280', fontSize: 14 }}>
+          Of gebruik de knop "Praat met ons team" om direct met onze slimme assistent te spreken.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================
    FOOTER
 ============================================ */
 function Footer() {
@@ -2805,6 +2916,7 @@ export default function Home() {
       <FAQSection />
       <TestimonialsSection />
       <CTASection />
+      <ContactSection />
       <Footer />
       <DemoModal isOpen={demoOpen} onClose={() => setDemoOpen(false)} demoType={demoType} />
     </main>
