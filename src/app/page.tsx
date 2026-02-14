@@ -1975,6 +1975,88 @@ function HowItWorksSection() {
 }
 
 /* ============================================
+   STATS SECTION - Animated Counters
+============================================ */
+function StatsSection() {
+  const [isVisible, setIsVisible] = useState(false);
+  const [counts, setCounts] = useState({ revenue: 0, clients: 0, uptime: 0 });
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !isVisible) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.3 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [isVisible]);
+
+  useEffect(() => {
+    if (isVisible) {
+      const duration = 2000;
+      const steps = 60;
+      const interval = duration / steps;
+      
+      let step = 0;
+      const timer = setInterval(() => {
+        step++;
+        const progress = step / steps;
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        
+        setCounts({
+          revenue: Math.round(2.5 * easeOut * 10) / 10,
+          clients: Math.round(500 * easeOut),
+          uptime: Math.round(99.9 * easeOut * 10) / 10,
+        });
+        
+        if (step >= steps) clearInterval(timer);
+      }, interval);
+      
+      return () => clearInterval(timer);
+    }
+  }, [isVisible]);
+
+  const stats = [
+    { value: `€${counts.revenue}M+`, label: 'Verwerkt per maand' },
+    { value: `${counts.clients}+`, label: 'Actieve horecazaken' },
+    { value: `${counts.uptime}%`, label: 'Uptime garantie' },
+    { value: '24/7', label: 'Support beschikbaar' },
+  ];
+
+  return (
+    <section ref={sectionRef} style={{ background: '#f5f5f5', padding: '60px 0' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 40, textAlign: 'center' }}>
+          {stats.map((stat, i) => (
+            <div key={i}>
+              <p style={{ 
+                fontSize: 'clamp(32px, 5vw, 48px)', 
+                fontWeight: 700, 
+                color: '#1a1a2e', 
+                margin: '0 0 8px 0',
+              }}>
+                {stat.value}
+              </p>
+              <p style={{ fontSize: 14, color: '#6b7280', margin: 0 }}>
+                {stat.label}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================
    PRICING SECTION
 ============================================ */
 function PricingSection() {
@@ -2281,6 +2363,7 @@ export default function Home() {
       <AutomationSection />
       <TryLiveSection />
       <HowItWorksSection />
+      <StatsSection />
       <PricingSection />
       <FAQSection />
       <CTASection />
