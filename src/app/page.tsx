@@ -2805,7 +2805,9 @@ function ContactSection() {
               <MapPin size={24} color="#f97316" />
             </div>
             <h3 style={{ color: 'white', fontSize: 18, fontWeight: 600, marginBottom: 8 }}>Locatie</h3>
-            <p style={{ color: '#9ca3af', fontSize: 16 }}>
+            <p style={{ color: '#9ca3af', fontSize: 16, lineHeight: 1.6 }}>
+              Siberiëstraat 24<br />
+              3900 Pelt<br />
               België
             </p>
           </div>
