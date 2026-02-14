@@ -588,7 +588,7 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
       setErrorMessage('');
       await navigator.mediaDevices.getUserMedia({ audio: true });
       await conversation.startSession({
-        agentId: 'agent_01khcaeveffx7tbayp097p54kh',
+        agentId: 'agent_4801khcaeveffx7tbayp097p54kh',
         connectionType: 'webrtc',
       });
     } catch (error) {
