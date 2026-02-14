@@ -33,7 +33,6 @@ import {
   RefreshCw,
   PhoneOff,
   ShoppingBag,
-  Globe,
   MapPin,
 } from 'lucide-react';
 
