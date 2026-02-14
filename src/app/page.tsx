@@ -1663,7 +1663,7 @@ function AutomationSection() {
 }
 
 /* ============================================
-   TRY LIVE SECTION - Test the AI receptionist
+   TRY LIVE SECTION - Test the receptionist
 ============================================ */
 function TryLiveSection() {
   const [callStatus, setCallStatus] = useState<'idle' | 'connecting' | 'connected' | 'ended' | 'error'>('idle');
@@ -1732,7 +1732,7 @@ function TryLiveSection() {
           Bel nu met Kapsalon Belle
         </h2>
         <p style={{ fontSize: 18, color: '#9ca3af', lineHeight: 1.7, marginBottom: 48, maxWidth: 600, margin: '0 auto 48px' }}>
-          Maak een afspraak, vraag naar prijzen, openingsuren of een specifieke medewerker. Onze AI receptie helpt u verder.
+          Maak een afspraak, vraag naar prijzen, openingsuren of een specifieke medewerker. Onze receptie helpt u verder.
         </p>
 
         {/* Call Button */}
@@ -2319,7 +2319,7 @@ function TestimonialsSection() {
       role: 'Operations Manager, HealthPlus',
       initials: 'SJ',
       color: '#3b82f6',
-      text: '"Het team van VoxApp heeft een perfect passend AI-systeem voor ons gebouwd. Volledig afgestemd op onze werkwijze. Nu besparen we 30+ uur per week."',
+      text: '"Het team van VoxApp heeft een perfect passend systeem voor ons gebouwd. Volledig afgestemd op onze werkwijze. Nu besparen we 30+ uur per week."',
     },
     {
       name: 'Dr. Peter Hendriks',
