@@ -1236,6 +1236,274 @@ function KassaSection() {
 }
 
 /* ============================================
+   ROI CALCULATOR SECTIE
+============================================ */
+function ROICalculatorSection() {
+  const [gesprekkenPerMaand, setGesprekkenPerMaand] = useState(500);
+  const [gespreksduur, setGespreksduur] = useState(3);
+  const [maandsalaris, setMaandsalaris] = useState(2500);
+  const [aantalFTE, setAantalFTE] = useState(1);
+
+  // Berekeningen
+  const totaleMaandMinuten = gesprekkenPerMaand * gespreksduur;
+  
+  // VoxApp kosten (gebaseerd op minuten)
+  let voxAppPlan = 'Starter';
+  let voxAppKostenPerMaand = 99;
+  let inclusieveMinuten = 300;
+  let extraMinuutPrijs = 0.40;
+  
+  if (totaleMaandMinuten > 1500) {
+    voxAppPlan = 'Business';
+    voxAppKostenPerMaand = 249;
+    inclusieveMinuten = 1500;
+    extraMinuutPrijs = 0.30;
+  } else if (totaleMaandMinuten > 750) {
+    voxAppPlan = 'Business';
+    voxAppKostenPerMaand = 249;
+    inclusieveMinuten = 1500;
+    extraMinuutPrijs = 0.30;
+  } else if (totaleMaandMinuten > 300) {
+    voxAppPlan = 'Pro';
+    voxAppKostenPerMaand = 149;
+    inclusieveMinuten = 750;
+    extraMinuutPrijs = 0.35;
+  }
+  
+  const extraMinuten = Math.max(0, totaleMaandMinuten - inclusieveMinuten);
+  const extraKosten = extraMinuten * extraMinuutPrijs;
+  const totaalVoxAppPerMaand = voxAppKostenPerMaand + extraKosten;
+  const totaalVoxAppPerJaar = totaalVoxAppPerMaand * 12;
+
+  // Huidige kosten (personeel)
+  const werkgeverslasten = maandsalaris * 0.30; // 30% extra
+  const vakantiegeld = maandsalaris * 0.08; // 8%
+  const totaleSalarisKosten = (maandsalaris + werkgeverslasten + vakantiegeld) * aantalFTE;
+  const jaarlijksePersoneelskosten = totaleSalarisKosten * 12;
+  
+  // Extra kosten
+  const werkplekKosten = 500 * aantalFTE * 12; // €500/maand per persoon
+  const trainingKosten = 2000 * aantalFTE; // €2000/jaar
+  const wervingKosten = aantalFTE > 0 ? 3500 : 0; // Eenmalig
+  const gemistOproepenKosten = gesprekkenPerMaand * 0.20 * 25 * 12; // 20% gemist, €25 per gemiste klant
+  const ziekteKosten = jaarlijksePersoneelskosten * 0.05; // 5% ziekte
+  
+  const totaleHuidigeKosten = jaarlijksePersoneelskosten + werkplekKosten + trainingKosten + gemistOproepenKosten + ziekteKosten;
+  
+  // Besparing
+  const jaarlijkseBesparing = totaleHuidigeKosten - totaalVoxAppPerJaar;
+  const maandelijkseBesparing = jaarlijkseBesparing / 12;
+  const roi = totaleHuidigeKosten > 0 ? ((jaarlijkseBesparing / totaleHuidigeKosten) * 100) : 0;
+  const terugverdientijd = jaarlijkseBesparing > 0 ? (totaalVoxAppPerJaar / jaarlijkseBesparing * 12) : 0;
+
+  return (
+    <section style={{ background: '#0f0a14', padding: '80px 0' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: 60 }}>
+          <h2 style={{ fontSize: 'clamp(28px, 5vw, 48px)', fontWeight: 700, color: 'white', marginBottom: 16 }}>
+            Bereken je <span style={{ color: '#22c55e' }}>ROI</span> met VoxApp
+          </h2>
+          <p style={{ fontSize: 16, color: '#9ca3af', maxWidth: 600, margin: '0 auto' }}>
+            Ontdek hoeveel je kunt besparen door over te stappen naar een slimme receptie.
+            Realistische berekening op basis van werkelijke kosten.
+          </p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 40 }}>
+          {/* Left - Sliders */}
+          <div style={{ background: '#1a1025', borderRadius: 16, padding: 32 }}>
+            <h3 style={{ color: 'white', fontSize: 18, fontWeight: 600, marginBottom: 32, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Settings size={20} style={{ color: '#9ca3af' }} />
+              Huidige Situatie
+            </h3>
+
+            {/* Aantal gesprekken */}
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+                <label style={{ color: '#9ca3af', fontSize: 14 }}>Aantal gesprekken per maand</label>
+                <span style={{ color: 'white', fontWeight: 600 }}>{gesprekkenPerMaand} gesprekken</span>
+              </div>
+              <input 
+                type="range" 
+                min="50" 
+                max="2000" 
+                step="50"
+                value={gesprekkenPerMaand}
+                onChange={(e) => setGesprekkenPerMaand(Number(e.target.value))}
+                style={{ width: '100%', accentColor: '#8b5cf6' }}
+              />
+            </div>
+
+            {/* Gespreksduur */}
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+                <label style={{ color: '#9ca3af', fontSize: 14 }}>Gemiddelde gespreksduur (min)</label>
+                <span style={{ color: 'white', fontWeight: 600 }}>{gespreksduur} minuten</span>
+              </div>
+              <input 
+                type="range" 
+                min="1" 
+                max="10" 
+                step="1"
+                value={gespreksduur}
+                onChange={(e) => setGespreksduur(Number(e.target.value))}
+                style={{ width: '100%', accentColor: '#8b5cf6' }}
+              />
+            </div>
+
+            {/* Maandsalaris */}
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+                <label style={{ color: '#9ca3af', fontSize: 14 }}>Bruto maandsalaris receptionist(e)</label>
+                <span style={{ color: 'white', fontWeight: 600 }}>€{maandsalaris.toLocaleString()}</span>
+              </div>
+              <input 
+                type="range" 
+                min="1500" 
+                max="4000" 
+                step="100"
+                value={maandsalaris}
+                onChange={(e) => setMaandsalaris(Number(e.target.value))}
+                style={{ width: '100%', accentColor: '#8b5cf6' }}
+              />
+            </div>
+
+            {/* Aantal FTE */}
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+                <label style={{ color: '#9ca3af', fontSize: 14 }}>Aantal FTE receptionisten</label>
+                <span style={{ color: 'white', fontWeight: 600 }}>{aantalFTE}</span>
+              </div>
+              <input 
+                type="range" 
+                min="0" 
+                max="5" 
+                step="1"
+                value={aantalFTE}
+                onChange={(e) => setAantalFTE(Number(e.target.value))}
+                style={{ width: '100%', accentColor: '#8b5cf6' }}
+              />
+            </div>
+
+            {/* Kostencomponenten */}
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 24, marginTop: 8 }}>
+              <h4 style={{ color: 'white', fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Kostencomponenten</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {[
+                  { label: 'Werkgeverslasten', value: '+30%', color: '#8b5cf6' },
+                  { label: 'Vakantiegeld', value: '8%', color: '#8b5cf6' },
+                  { label: 'Werkplek & Faciliteiten', value: '€500/mnd', color: '#8b5cf6' },
+                  { label: 'Training & Ontwikkeling', value: '€2.000/jr', color: '#8b5cf6' },
+                  { label: 'Gemiste Oproepen', value: '20%', color: '#8b5cf6' },
+                  { label: 'Vervanging bij Ziekte', value: '5%', color: '#8b5cf6' },
+                ].map((item, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ width: 16, height: 16, borderRadius: 4, background: item.color }} />
+                      <span style={{ color: '#9ca3af', fontSize: 13 }}>{item.label}</span>
+                    </div>
+                    <span style={{ color: item.color, fontSize: 13, fontWeight: 500 }}>{item.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right - Results */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            {/* Besparing Card */}
+            <div style={{ background: '#1a1025', borderRadius: 16, padding: 32, border: '1px solid rgba(34, 197, 94, 0.3)' }}>
+              <p style={{ color: '#22c55e', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
+                Directe Jaarlijkse Besparing
+              </p>
+              <p style={{ fontSize: 'clamp(36px, 6vw, 56px)', fontWeight: 700, color: '#22c55e', margin: '0 0 8px 0' }}>
+                €{Math.max(0, Math.round(jaarlijkseBesparing)).toLocaleString()}
+              </p>
+              <p style={{ color: '#9ca3af', fontSize: 14 }}>
+                Dat is <span style={{ color: '#22c55e', fontWeight: 600 }}>€{Math.max(0, Math.round(maandelijkseBesparing)).toLocaleString()}</span> per maand
+              </p>
+
+              {/* ROI & Terugverdientijd */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginTop: 24, paddingTop: 24, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                <div>
+                  <p style={{ color: '#9ca3af', fontSize: 11, textTransform: 'uppercase', marginBottom: 4 }}>ROI</p>
+                  <p style={{ color: '#22c55e', fontSize: 28, fontWeight: 700, margin: 0 }}>{Math.round(roi)}%</p>
+                </div>
+                <div>
+                  <p style={{ color: '#9ca3af', fontSize: 11, textTransform: 'uppercase', marginBottom: 4 }}>Terugverdientijd</p>
+                  <p style={{ color: '#8b5cf6', fontSize: 28, fontWeight: 700, margin: 0 }}>{terugverdientijd.toFixed(1)} mnd</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Kosten Vergelijking */}
+            <div style={{ background: '#1a1025', borderRadius: 16, padding: 32 }}>
+              <p style={{ color: '#8b5cf6', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 20 }}>
+                Kosten Vergelijking (per jaar)
+              </p>
+              
+              {/* Huidige Situatie */}
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <span style={{ color: '#9ca3af', fontSize: 14 }}>Huidige Situatie</span>
+                  <span style={{ color: '#ef4444', fontSize: 16, fontWeight: 600 }}>€{Math.round(totaleHuidigeKosten).toLocaleString()}</span>
+                </div>
+                <div style={{ background: 'rgba(239, 68, 68, 0.2)', borderRadius: 4, height: 8 }}>
+                  <div style={{ background: '#ef4444', borderRadius: 4, height: 8, width: '100%' }} />
+                </div>
+              </div>
+
+              {/* Met VoxApp */}
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <span style={{ color: '#9ca3af', fontSize: 14 }}>Met VoxApp ({voxAppPlan})</span>
+                  <span style={{ color: '#22c55e', fontSize: 16, fontWeight: 600 }}>€{Math.round(totaalVoxAppPerJaar).toLocaleString()}</span>
+                </div>
+                <div style={{ background: 'rgba(34, 197, 94, 0.2)', borderRadius: 4, height: 8 }}>
+                  <div style={{ 
+                    background: '#22c55e', 
+                    borderRadius: 4, 
+                    height: 8, 
+                    width: `${Math.min(100, (totaalVoxAppPerJaar / totaleHuidigeKosten) * 100)}%` 
+                  }} />
+                </div>
+              </div>
+
+              <p style={{ color: '#6b7280', fontSize: 11, margin: 0 }}>
+                * Gebaseerd op {voxAppPlan} pakket incl. BTW
+              </p>
+            </div>
+
+            {/* Extra Waarde */}
+            <div style={{ background: '#1a1025', borderRadius: 16, padding: 24 }}>
+              <p style={{ color: '#22c55e', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Check size={16} />
+                Extra Waarde
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#9ca3af', fontSize: 13 }}>24/7 Bereikbaarheid</span>
+                  <span style={{ color: 'white', fontSize: 13 }}>€1.200</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#9ca3af', fontSize: 13 }}>Geen Vakantieplanning</span>
+                  <span style={{ color: 'white', fontSize: 13 }}>€1.500</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                  <span style={{ color: 'white', fontSize: 13, fontWeight: 600 }}>Totale Extra Waarde:</span>
+                  <span style={{ color: '#22c55e', fontSize: 13, fontWeight: 600 }}>€2.700/jr</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================
    FEATURE SECTION 3 - Outbound Calls
 ============================================ */
 function OutboundSection() {
@@ -2083,6 +2351,7 @@ export default function Home() {
       <HeroSection onOpenDemo={openBelleDemo} />
       <FrituurSection />
       <KassaSection />
+      <ROICalculatorSection />
       <InboundSection onOpenDemo={openGarageDemo} />
       <RestaurantSection onOpenDemo={openRestaurantDemo} />
       <OutboundSection />
