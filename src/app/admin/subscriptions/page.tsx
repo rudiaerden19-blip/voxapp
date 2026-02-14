@@ -8,11 +8,11 @@ import { CreditCard, TrendingUp, Users, Calendar } from 'lucide-react';
 interface Subscription {
   id: string;
   name: string;
-  email: string;
-  subscription_status: string;
-  subscription_plan: string;
+  email?: string;
+  subscription_status?: string;
+  subscription_plan?: string;
   created_at: string;
-  trial_ends_at: string | null;
+  trial_ends_at?: string | null;
 }
 
 export default function SubscriptionsPage() {
@@ -31,20 +31,22 @@ export default function SubscriptionsPage() {
     const supabase = createClient();
     const { data } = await supabase
       .from('businesses')
-      .select('id, name, email, subscription_status, subscription_plan, created_at, trial_ends_at')
+      .select('*')
       .order('created_at', { ascending: false });
     
-    if (data) {
-      setSubscriptions(data as Subscription[]);
+    const businesses = (data || []) as Subscription[];
+    
+    if (businesses.length > 0) {
+      setSubscriptions(businesses);
       
-      const active = data.filter(s => s.subscription_status === 'active');
-      const trial = data.filter(s => s.subscription_status === 'trial');
-      const cancelled = data.filter(s => s.subscription_status === 'cancelled');
+      const active = businesses.filter(s => s.subscription_status === 'active');
+      const trial = businesses.filter(s => s.subscription_status === 'trial');
+      const cancelled = businesses.filter(s => s.subscription_status === 'cancelled');
       
       // Calculate MRR based on plans
       let mrr = 0;
       active.forEach(s => {
-        switch (s.subscription_plan) {
+        switch (s.subscription_plan || 'starter') {
           case 'starter': mrr += 99; break;
           case 'professional': mrr += 199; break;
           case 'business': mrr += 399; break;
