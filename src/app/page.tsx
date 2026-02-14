@@ -567,10 +567,10 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
     <section style={{
       background: 'linear-gradient(180deg, #0f0a14 0%, #1a1025 100%)',
       paddingTop: 120,
-      paddingBottom: 80,
+      paddingBottom: 200,
       minHeight: '100vh',
       position: 'relative',
-      overflow: 'hidden',
+      overflow: 'visible',
     }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         {/* Badge */}
@@ -700,12 +700,13 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
                   {[0, 1, 2, 3, 4, 5, 6].map((i) => (
                     <div
                       key={i}
-                      className="audio-bar"
                       style={{
                         width: 6,
+                        height: 30,
                         borderRadius: 3,
                         background: `linear-gradient(180deg, #8b5cf6 0%, #ec4899 100%)`,
-                        animationDelay: `${i * 0.15}s`,
+                        animation: 'audioBar 0.8s ease-in-out infinite',
+                        animationDelay: `${i * 0.12}s`,
                       }}
                     />
                   ))}
