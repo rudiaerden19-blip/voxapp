@@ -2753,6 +2753,22 @@ function CTASection() {
   const [showSupport, setShowSupport] = useState(false);
   const [supportStatus, setSupportStatus] = useState<'idle' | 'connecting' | 'connected' | 'error'>('idle');
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [selectedSupportLang, setSelectedSupportLang] = useState<'nl' | 'en' | 'fr' | 'de'>('nl');
+
+  const supportLanguages = [
+    { code: 'nl' as const, flag: '🇳🇱', label: 'NL' },
+    { code: 'en' as const, flag: '🇬🇧', label: 'EN' },
+    { code: 'fr' as const, flag: '🇫🇷', label: 'FR' },
+    { code: 'de' as const, flag: '🇩🇪', label: 'DE' },
+  ];
+
+  // VoxApp Support agent IDs per language
+  const supportAgents: Record<string, string> = {
+    nl: 'agent_8201khegn801frdb3hvebx2rh5fr',
+    en: 'agent_2901khexjstrfzzb4bdcqa3n7fbe',
+    fr: 'agent_8801khexnv29eh6s5n44cdv07rzy',
+    de: 'agent_3001khexq046f1cbz1dyswbwkhye',
+  };
   
   const supportConversation = useConversation({
     onConnect: () => setSupportStatus('connected'),
@@ -2768,9 +2784,9 @@ function CTASection() {
     try {
       setSupportStatus('connecting');
       await navigator.mediaDevices.getUserMedia({ audio: true });
-      // VoxApp Support Agent - Lisa
+      // VoxApp Support Agent - use selected language
       await supportConversation.startSession({
-        agentId: 'agent_8201khegn801frdb3hvebx2rh5fr',
+        agentId: supportAgents[selectedSupportLang],
         connectionType: 'webrtc',
       });
     } catch (error) {
@@ -2835,6 +2851,31 @@ function CTASection() {
               <Headphones size={18} />
               {t('cta.talkToTeam')}
             </button>
+          </div>
+          
+          {/* Language selector for support */}
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 16 }}>
+            {supportLanguages.map((lang) => (
+              <button
+                key={lang.code}
+                onClick={() => setSelectedSupportLang(lang.code)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '8px 12px',
+                  borderRadius: 6,
+                  border: selectedSupportLang === lang.code ? '2px solid #f97316' : '1px solid #d1d5db',
+                  background: selectedSupportLang === lang.code ? '#fff7ed' : 'white',
+                  cursor: 'pointer',
+                  fontSize: 13,
+                  fontWeight: 500,
+                }}
+              >
+                <span style={{ fontSize: 18 }}>{lang.flag}</span>
+                {lang.label}
+              </button>
+            ))}
           </div>
         </div>
       </section>
