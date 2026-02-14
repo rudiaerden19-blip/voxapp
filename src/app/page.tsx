@@ -972,6 +972,7 @@ function InboundSection({ onOpenDemo }: { onOpenDemo: () => void }) {
    FEATURE SECTION 2 - Restaurant Reservations
 ============================================ */
 function RestaurantSection({ onOpenDemo }: { onOpenDemo: () => void }) {
+  const { t } = useLanguage();
   return (
     <section style={{ background: '#f5f5f5', padding: '200px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
@@ -981,7 +982,7 @@ function RestaurantSection({ onOpenDemo }: { onOpenDemo: () => void }) {
             <div style={{ borderRadius: 20, overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
               <img 
                 src="/restaurant.png"
-                alt="Restaurant interieur"
+                alt={t('restaurant.restaurantInterior')}
                 style={{ width: '100%', height: 'auto', display: 'block', maxHeight: 500, objectFit: 'cover' }}
               />
             </div>
@@ -990,14 +991,13 @@ function RestaurantSection({ onOpenDemo }: { onOpenDemo: () => void }) {
           {/* Right - Text */}
           <div>
             <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
-              Restaurant Reserveringen
+              {t('restaurant.badge')}
             </p>
             <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 700, color: '#1a1a2e', lineHeight: 1.2, marginBottom: 20 }}>
-              Mis nooit meer een reservering.
+              {t('restaurant.title')}
             </h2>
             <p style={{ fontSize: 16, color: '#6b7280', lineHeight: 1.7, marginBottom: 32 }}>
-              Uw receptionist neemt reserveringen aan, bevestigt beschikbaarheid en stuurt automatisch bevestigingen — 
-              ook buiten de openingsuren.
+              {t('restaurant.subtitle')}
             </p>
 
             {/* CTA Buttons */}
@@ -1015,7 +1015,7 @@ function RestaurantSection({ onOpenDemo }: { onOpenDemo: () => void }) {
                 textDecoration: 'none',
               }}>
                 <Calendar size={16} />
-                Start gratis
+                {t('inbound.startFree')}
               </a>
               <button onClick={onOpenDemo} style={{
                 display: 'inline-flex',
@@ -1031,21 +1031,21 @@ function RestaurantSection({ onOpenDemo }: { onOpenDemo: () => void }) {
                 cursor: 'pointer',
               }}>
                 <PhoneCall size={16} />
-                Luister Demo Gesprek
+                {t('inbound.listenDemo')}
               </button>
             </div>
 
             {/* Feature list */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {[
-                { icon: MessageSquare, text: 'Neem reserveringen aan 24/7' },
-                { icon: Calendar, text: 'Check beschikbaarheid realtime' },
-                { icon: Bell, text: 'Stuur automatische bevestigingen' },
-                { icon: Users, text: 'Beheer groepsreserveringen' },
+                { icon: MessageSquare, key: 'feature1' },
+                { icon: Calendar, key: 'feature2' },
+                { icon: Bell, key: 'feature3' },
+                { icon: Users, key: 'feature4' },
               ].map((item, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <item.icon size={18} style={{ color: '#6b7280' }} />
-                  <span style={{ fontSize: 15, color: '#1a1a2e' }}>{item.text}</span>
+                  <span style={{ fontSize: 15, color: '#1a1a2e' }}>{t(`restaurant.${item.key}`)}</span>
                 </div>
               ))}
             </div>
@@ -1060,6 +1060,7 @@ function RestaurantSection({ onOpenDemo }: { onOpenDemo: () => void }) {
    FEATURE SECTION - Frituur Bestellingen
 ============================================ */
 function FrituurSection() {
+  const { t } = useLanguage();
   const [callStatus, setCallStatus] = useState<'idle' | 'connecting' | 'connected' | 'ended' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -1069,7 +1070,7 @@ function FrituurSection() {
     onDisconnect: () => setCallStatus('idle'),
     onError: (error) => {
       console.error('Conversation error:', error);
-      setErrorMessage('Er ging iets mis. Probeer het opnieuw.');
+      setErrorMessage(t('frituur.errorMessage'));
       setCallStatus('error');
     },
     onModeChange: ({ mode }) => setIsSpeaking(mode === 'speaking'),
@@ -1087,7 +1088,7 @@ function FrituurSection() {
       });
     } catch (error) {
       console.error('Failed to start call:', error);
-      setErrorMessage('Kon geen verbinding maken. Controleer je microfoon.');
+      setErrorMessage(t('frituur.micError'));
       setCallStatus('error');
     }
   };
@@ -1113,7 +1114,7 @@ function FrituurSection() {
             <div style={{ borderRadius: 20, overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
               <img 
                 src="/frituur.jpg"
-                alt="Frituur met verse friet"
+                alt={t('frituur.frituurImage')}
                 style={{ width: '100%', height: 'auto', display: 'block', maxHeight: 500, objectFit: 'cover' }}
               />
             </div>
@@ -1122,14 +1123,13 @@ function FrituurSection() {
           {/* Right - Text */}
           <div>
             <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
-              Frituren & Afhaalzaken
+              {t('frituur.badge')}
             </p>
             <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 700, color: '#1a1a2e', lineHeight: 1.2, marginBottom: 20 }}>
-              Bestellingen opnemen via spraak.
+              {t('frituur.title')}
             </h2>
             <p style={{ fontSize: 16, color: '#6b7280', lineHeight: 1.7, marginBottom: 32 }}>
-Klanten bellen of spreken hun bestelling in. De receptie noteert alles correct, 
-            berekent de prijs en geeft een afhaaltijd — zonder wachtrij.
+              {t('frituur.subtitle')}
             </p>
 
             {/* Live Call Button */}
@@ -1156,7 +1156,7 @@ Klanten bellen of spreken hun bestelling in. De receptie noteert alles correct,
                     <Phone size={32} />
                   </button>
                   <p style={{ color: '#f97316', fontSize: 14, fontWeight: 500 }}>
-                    Klik en bestel een demo bestelling bij Frituur De Schans
+                    {t('frituur.clickToOrder')}
                   </p>
                   {errorMessage && (
                     <p style={{ color: '#ef4444', fontSize: 13 }}>{errorMessage}</p>
@@ -1196,8 +1196,8 @@ Klanten bellen of spreken hun bestelling in. De receptie noteert alles correct,
                     )}
                   </div>
                   <p style={{ color: '#1a1a2e', fontSize: 14, fontWeight: 500 }}>
-                    {callStatus === 'connecting' ? 'Verbinden met Frituur De Schans...' : 
-                     isSpeaking ? 'Medewerker spreekt...' : 'Spreek uw bestelling in...'}
+                    {callStatus === 'connecting' ? t('frituur.connecting') : 
+                     isSpeaking ? t('frituur.staffSpeaking') : t('frituur.speakOrder')}
                   </p>
                 </>
               )}
@@ -1206,14 +1206,14 @@ Klanten bellen of spreken hun bestelling in. De receptie noteert alles correct,
             {/* Feature list */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {[
-                { icon: MessageSquare, text: 'Neemt bestellingen aan via telefoon' },
-                { icon: Clock, text: 'Berekent automatisch afhaaltijd' },
-                { icon: Check, text: 'Bevestigt bestelling + totaalprijs' },
-                { icon: Bell, text: 'SMS bevestiging naar klant' },
+                { icon: MessageSquare, key: 'feature1' },
+                { icon: Clock, key: 'feature2' },
+                { icon: Check, key: 'feature3' },
+                { icon: Bell, key: 'feature4' },
               ].map((item, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <item.icon size={18} style={{ color: '#6b7280' }} />
-                  <span style={{ fontSize: 15, color: '#1a1a2e' }}>{item.text}</span>
+                  <span style={{ fontSize: 15, color: '#1a1a2e' }}>{t(`frituur.${item.key}`)}</span>
                 </div>
               ))}
             </div>
