@@ -130,12 +130,12 @@ export default function AISettingsPage() {
 
     const { data: businessData } = await supabase
       .from('businesses')
-      .select('*')
+      .select('id, user_id, name, type, description, phone, email, website, street, city, postal_code, country, opening_hours, voice_id, welcome_message, agent_id, subscription_status, subscription_plan, trial_ends_at, created_at, updated_at')
       .eq('user_id', user.id)
       .single();
 
     if (businessData) {
-      const biz = businessData as Business;
+      const biz = businessData as unknown as Business;
       setBusiness(biz);
       
       // Load saved data from database
