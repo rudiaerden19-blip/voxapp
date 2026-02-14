@@ -568,187 +568,208 @@ function Navigation() {
 ============================================ */
 function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
   return (
-    <section style={{
-      background: 'linear-gradient(180deg, #0f0a14 0%, #1a1025 100%)',
-      paddingTop: 120,
-      paddingBottom: 350,
-      minHeight: '100vh',
-      position: 'relative',
-      overflow: 'visible',
-    }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
-        {/* Badge */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 32 }}>
-          <Phone size={16} style={{ color: '#f97316' }} />
-          <span style={{ color: '#9ca3af', fontSize: 14 }}>Slimme Receptionist voor Groeiende Bedrijven</span>
-        </div>
+    <>
+      <section style={{
+        background: 'linear-gradient(180deg, #0f0a14 0%, #1a1025 100%)',
+        paddingTop: 100,
+        paddingBottom: 60,
+        minHeight: '100vh',
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px' }}>
+          {/* Badge */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
+            <Phone size={16} style={{ color: '#f97316' }} />
+            <span style={{ color: '#9ca3af', fontSize: 13 }}>Slimme Receptionist voor Groeiende Bedrijven</span>
+          </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 60, alignItems: 'center' }}>
-          {/* Left content */}
-          <div style={{ maxWidth: 600 }}>
-            <h1 style={{ 
-              fontSize: 'clamp(36px, 5vw, 52px)', 
-              fontWeight: 700, 
-              lineHeight: 1.15, 
-              color: 'white',
-              marginBottom: 24,
-            }}>
-              Mis nooit meer een oproep.<br />
-              Boek meer afspraken.<br />
-              <span style={{ color: '#f97316' }}>Bespaar tijd.</span>
-            </h1>
-
-            <p style={{ fontSize: 18, color: '#9ca3af', lineHeight: 1.7, marginBottom: 32 }}>
-              VoxApp beheert uw oproepen, boekt afspraken en beantwoordt vragen — zodat u kunt focussen op uw werk.
-            </p>
-
-            {/* CTA Button */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 48 }}>
-              <a href="/register" style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                background: '#f97316',
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 40, alignItems: 'center' }}>
+            {/* Left content */}
+            <div>
+              <h1 style={{ 
+                fontSize: 'clamp(28px, 7vw, 52px)', 
+                fontWeight: 700, 
+                lineHeight: 1.15, 
                 color: 'white',
-                padding: '16px 28px',
-                borderRadius: 8,
-                fontSize: 16,
-                fontWeight: 600,
-                textDecoration: 'none',
+                marginBottom: 20,
               }}>
-                <Calendar size={18} />
-                Start gratis proefperiode
-              </a>
+                Mis nooit meer een oproep.<br />
+                Boek meer afspraken.<br />
+                <span style={{ color: '#f97316' }}>Bespaar tijd.</span>
+              </h1>
+
+              <p style={{ fontSize: 16, color: '#9ca3af', lineHeight: 1.7, marginBottom: 24 }}>
+                VoxApp beheert uw oproepen, boekt afspraken en beantwoordt vragen — zodat u kunt focussen op uw werk.
+              </p>
+
+              {/* CTA Button */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 32 }}>
+                <a href="/register" style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  background: '#f97316',
+                  color: 'white',
+                  padding: '14px 24px',
+                  borderRadius: 8,
+                  fontSize: 15,
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                }}>
+                  <Calendar size={18} />
+                  Start gratis proefperiode
+                </a>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Hero Image with Floating Elements */}
-        <div style={{ position: 'relative', marginTop: 40 }}>
-          <div style={{ 
-            position: 'relative',
-            maxWidth: 900,
-            margin: '0 auto',
-          }}>
-            {/* Main Image */}
-            <div style={{
-              borderRadius: 24,
-              overflow: 'hidden',
-              boxShadow: '0 40px 80px rgba(0,0,0,0.4)',
-              maxWidth: 600,
+          {/* Hero Image with Floating Elements */}
+          <div style={{ position: 'relative', marginTop: 24 }}>
+            <div style={{ 
+              position: 'relative',
+              maxWidth: 900,
               margin: '0 auto',
             }}>
-              <img 
-                src="/frituur.jpg"
-                alt="Frituur met verse friet"
-                style={{ width: '100%', height: 'auto', display: 'block', maxHeight: 500, objectFit: 'cover' }}
-              />
-            </div>
-
-            {/* Floating Chat Bubble - Top Right */}
-            <div style={{
-              position: 'absolute',
-              top: 40,
-              right: -20,
-              background: 'white',
-              borderRadius: 16,
-              padding: 16,
-              boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
-              maxWidth: 280,
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e' }} />
-                <span style={{ fontSize: 12, color: '#6b7280' }}>VoxApp Bestelling</span>
-              </div>
-              <p style={{ fontSize: 14, color: '#1a1a2e', margin: 0 }}>
-                &quot;Goedendag, Frituur De Schans. Wilt u een bestelling doorgeven?&quot;
-              </p>
-            </div>
-
-            {/* Action Badges - Right Side */}
-            <div style={{ position: 'absolute', top: 160, right: -30, display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {[
-                { icon: Check, text: 'Bestelling Opgenomen', color: '#22c55e' },
-                { icon: Clock, text: 'Afhaaltijd Berekend', color: '#f97316' },
-                { icon: Send, text: 'SMS Verstuurd', color: '#3b82f6' },
-              ].map((badge, i) => (
-                <div key={i} style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  background: 'white',
-                  borderRadius: 8,
-                  padding: '10px 16px',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                }}>
-                  <badge.icon size={16} style={{ color: badge.color }} />
-                  <span style={{ fontSize: 13, fontWeight: 500, color: '#1a1a2e' }}>{badge.text}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Breathing Circle with Phone Button - Bottom Left Corner of Image */}
-            <div style={{
-              position: 'absolute',
-              bottom: -100,
-              left: 20,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 12,
-            }}>
+              {/* Main Image */}
               <div style={{
-                width: 180,
-                height: 180,
+                borderRadius: 16,
+                overflow: 'hidden',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
+              }}>
+                <img 
+                  src="/frituur.jpg"
+                  alt="Frituur met verse friet"
+                  style={{ width: '100%', height: 'auto', display: 'block', maxHeight: 400, objectFit: 'cover' }}
+                />
+              </div>
+
+              {/* Floating Chat Bubble - Hidden on mobile, visible on desktop */}
+              <div className="hero-float-chat" style={{
+                position: 'absolute',
+                top: 20,
+                right: 10,
+                background: 'white',
+                borderRadius: 12,
+                padding: 12,
+                boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+                maxWidth: 220,
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }} />
+                  <span style={{ fontSize: 11, color: '#6b7280' }}>VoxApp Bestelling</span>
+                </div>
+                <p style={{ fontSize: 12, color: '#1a1a2e', margin: 0, lineHeight: 1.4 }}>
+                  &quot;Goedendag, Frituur De Schans. Wilt u een bestelling doorgeven?&quot;
+                </p>
+              </div>
+
+              {/* Action Badges - Hidden on mobile */}
+              <div className="hero-float-badges" style={{ position: 'absolute', top: 120, right: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {[
+                  { icon: Check, text: 'Bestelling Opgenomen', color: '#22c55e' },
+                  { icon: Clock, text: 'Afhaaltijd Berekend', color: '#f97316' },
+                  { icon: Send, text: 'SMS Verstuurd', color: '#3b82f6' },
+                ].map((badge, i) => (
+                  <div key={i} style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    background: 'white',
+                    borderRadius: 6,
+                    padding: '8px 12px',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                  }}>
+                    <badge.icon size={14} style={{ color: badge.color }} />
+                    <span style={{ fontSize: 11, fontWeight: 500, color: '#1a1a2e' }}>{badge.text}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Breathing Circle - Centered below image on mobile */}
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 16,
+            marginTop: 40,
+            paddingBottom: 20,
+          }}>
+            <div style={{
+              width: 140,
+              height: 140,
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, #2d1f42 0%, #1a1025 70%)',
+              border: '1px solid rgba(139, 92, 246, 0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 0 60px rgba(139, 92, 246, 0.3)',
+            }}>
+              {/* Breathing Green Phone Button */}
+              <a href="#frituur-demo" style={{
+                width: 70,
+                height: 70,
                 borderRadius: '50%',
-                background: 'radial-gradient(circle, #2d1f42 0%, #1a1025 70%)',
-                border: '1px solid rgba(139, 92, 246, 0.5)',
+                background: '#22c55e',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 0 60px rgba(139, 92, 246, 0.3)',
+                boxShadow: '0 0 30px rgba(34, 197, 94, 0.5)',
+                animation: 'breathe 2s ease-in-out infinite',
+                cursor: 'pointer',
+                textDecoration: 'none',
               }}>
-                {/* Breathing Green Phone Button */}
-                <div style={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: '50%',
-                  background: '#22c55e',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: '0 0 30px rgba(34, 197, 94, 0.5)',
-                  animation: 'breathe 2s ease-in-out infinite',
-                  cursor: 'pointer',
-                }}>
-                  <Phone size={32} style={{ color: 'white' }} />
-                </div>
-              </div>
-              {/* Call to action text */}
-              <div style={{ textAlign: 'center', maxWidth: 200 }}>
-                <p style={{ 
-                  color: '#f97316', 
-                  fontSize: 14, 
-                  fontWeight: 600, 
-                  margin: '0 0 8px 0',
-                }}>
-                  Probeer het nu
-                </p>
-                <p style={{ 
-                  color: '#9ca3af', 
-                  fontSize: 12, 
-                  margin: 0,
-                  lineHeight: 1.5,
-                }}>
-                  Open de site op uw smartphone, druk op de knop en maak een demo bestelling
-                </p>
-              </div>
+                <Phone size={28} style={{ color: 'white' }} />
+              </a>
             </div>
-
+            {/* Call to action text */}
+            <div style={{ textAlign: 'center', maxWidth: 280, padding: '0 20px' }}>
+              <p style={{ 
+                color: '#f97316', 
+                fontSize: 15, 
+                fontWeight: 600, 
+                margin: '0 0 8px 0',
+              }}>
+                Probeer het nu
+              </p>
+              <p style={{ 
+                color: '#9ca3af', 
+                fontSize: 13, 
+                margin: 0,
+                lineHeight: 1.5,
+              }}>
+                Scroll naar beneden en maak een demo bestelling bij onze AI frituur
+              </p>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      {/* Responsive styles for Hero */}
+      <style>{`
+        @media (max-width: 768px) {
+          .hero-float-chat,
+          .hero-float-badges {
+            display: none !important;
+          }
+        }
+        @media (min-width: 769px) {
+          .hero-float-chat {
+            right: -20px !important;
+            top: 40px !important;
+            maxWidth: 280px !important;
+            padding: 16px !important;
+          }
+          .hero-float-badges {
+            right: -30px !important;
+            top: 160px !important;
+          }
+        }
+      `}</style>
+    </>
   );
 }
 
@@ -757,7 +778,7 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
 ============================================ */
 function InboundSection({ onOpenDemo }: { onOpenDemo: () => void }) {
   return (
-    <section id="features" style={{ background: '#e3e3e3', padding: '200px 0' }}>
+    <section id="features" style={{ background: '#e3e3e3', padding: '80px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))', gap: 60, alignItems: 'center' }}>
           {/* Left - Text */}
@@ -845,7 +866,7 @@ function InboundSection({ onOpenDemo }: { onOpenDemo: () => void }) {
 ============================================ */
 function RestaurantSection({ onOpenDemo }: { onOpenDemo: () => void }) {
   return (
-    <section style={{ background: '#f5f5f5', padding: '200px 0' }}>
+    <section style={{ background: '#f5f5f5', padding: '80px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))', gap: 60, alignItems: 'center' }}>
           {/* Left - Image */}
@@ -977,7 +998,7 @@ function FrituurSection() {
   const isActive = callStatus === 'connecting' || callStatus === 'connected';
 
   return (
-    <section style={{ background: '#1a1a2e', padding: '120px 0' }}>
+    <section id="frituur-demo" style={{ background: '#1a1a2e', padding: '80px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: 60 }}>
@@ -997,41 +1018,39 @@ function FrituurSection() {
         <div style={{ position: 'relative', maxWidth: 900, margin: '0 auto' }}>
           {/* Main Image */}
           <div style={{
-            borderRadius: 24,
+            borderRadius: 16,
             overflow: 'hidden',
-            boxShadow: '0 40px 80px rgba(0,0,0,0.4)',
-            maxWidth: 600,
-            margin: '0 auto',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
           }}>
             <img 
               src="/frituur.jpg"
               alt="Frituur met verse friet"
-              style={{ width: '100%', height: 'auto', display: 'block', maxHeight: 450, objectFit: 'cover' }}
+              style={{ width: '100%', height: 'auto', display: 'block', maxHeight: 350, objectFit: 'cover' }}
             />
           </div>
 
-          {/* Floating Chat Bubble - Top Right */}
-          <div style={{
+          {/* Floating Chat Bubble - Hidden on mobile */}
+          <div className="frituur-float-chat" style={{
             position: 'absolute',
-            top: 40,
-            right: -20,
+            top: 20,
+            right: 10,
             background: 'white',
-            borderRadius: 16,
-            padding: 16,
+            borderRadius: 12,
+            padding: 12,
             boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
-            maxWidth: 280,
+            maxWidth: 220,
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e' }} />
-              <span style={{ fontSize: 12, color: '#6b7280' }}>VoxApp Bestelling</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }} />
+              <span style={{ fontSize: 11, color: '#6b7280' }}>VoxApp Bestelling</span>
             </div>
-            <p style={{ fontSize: 14, color: '#1a1a2e', margin: 0 }}>
+            <p style={{ fontSize: 12, color: '#1a1a2e', margin: 0, lineHeight: 1.4 }}>
               &quot;Goedendag, Frituur De Schans. Wilt u een bestelling doorgeven?&quot;
             </p>
           </div>
 
-          {/* Action Badges - Right Side */}
-          <div style={{ position: 'absolute', top: 160, right: -30, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* Action Badges - Hidden on mobile */}
+          <div className="frituur-float-badges" style={{ position: 'absolute', top: 100, right: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {[
               { icon: Check, text: 'Bestelling Opgenomen', color: '#22c55e' },
               { icon: Clock, text: 'Afhaaltijd Berekend', color: '#f97316' },
@@ -1040,21 +1059,31 @@ function FrituurSection() {
               <div key={i} style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 10,
+                gap: 8,
                 background: 'white',
-                borderRadius: 8,
-                padding: '10px 16px',
+                borderRadius: 6,
+                padding: '8px 12px',
                 boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
               }}>
-                <badge.icon size={16} style={{ color: badge.color }} />
-                <span style={{ fontSize: 13, fontWeight: 500, color: '#1a1a2e' }}>{badge.text}</span>
+                <badge.icon size={14} style={{ color: badge.color }} />
+                <span style={{ fontSize: 11, fontWeight: 500, color: '#1a1a2e' }}>{badge.text}</span>
               </div>
             ))}
           </div>
+
+          {/* Mobile responsive styles */}
+          <style>{`
+            @media (max-width: 768px) {
+              .frituur-float-chat,
+              .frituur-float-badges {
+                display: none !important;
+              }
+            }
+          `}</style>
         </div>
 
         {/* Call Button */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, marginTop: 60 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, marginTop: 40, padding: '0 20px' }}>
           {!isActive ? (
             <>
               <button 
@@ -1067,18 +1096,17 @@ function FrituurSection() {
                   color: 'white',
                   border: 'none',
                   borderRadius: 100,
-                  width: 100,
-                  height: 100,
+                  width: 90,
+                  height: 90,
                   cursor: 'pointer',
                   boxShadow: `0 0 40px ${callStatus === 'error' ? 'rgba(239, 68, 68, 0.4)' : 'rgba(34, 197, 94, 0.4)'}`,
                   transition: 'all 0.3s ease',
+                  animation: 'breathe 2s ease-in-out infinite',
                 }}
-                onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
               >
-                <Phone size={40} />
+                <Phone size={36} />
               </button>
-              <p style={{ color: '#9ca3af', fontSize: 14 }}>
+              <p style={{ color: '#9ca3af', fontSize: 14, textAlign: 'center' }}>
                 Klik om te bestellen bij Frituur De Schans
               </p>
               {errorMessage && (
@@ -1135,7 +1163,7 @@ function FrituurSection() {
 ============================================ */
 function OutboundSection() {
   return (
-    <section style={{ background: '#e3e3e3', padding: '200px 0' }}>
+    <section style={{ background: '#e3e3e3', padding: '80px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))', gap: 60, alignItems: 'center' }}>
           {/* Left - Professional Calendar - Hidden on mobile */}
@@ -1301,7 +1329,7 @@ function OutboundSection() {
 ============================================ */
 function AutomationSection() {
   return (
-    <section style={{ background: '#e3e3e3', padding: '200px 0' }}>
+    <section style={{ background: '#e3e3e3', padding: '80px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))', gap: 60, alignItems: 'center' }}>
           {/* Left - Text */}
@@ -1615,7 +1643,7 @@ function HowItWorksSection() {
   ];
 
   return (
-    <section id="how-it-works" style={{ background: '#0f0a14', padding: '200px 0' }}>
+    <section id="how-it-works" style={{ background: '#0f0a14', padding: '80px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: 64 }}>
           <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
@@ -1716,7 +1744,7 @@ function PricingSection() {
   ];
 
   return (
-    <section id="pricing" style={{ background: '#e3e3e3', padding: '200px 0' }}>
+    <section id="pricing" style={{ background: '#e3e3e3', padding: '80px 0' }}>
       <div style={{ maxWidth: 1000, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: 64 }}>
           <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
@@ -1820,7 +1848,7 @@ function FAQSection() {
   ];
 
   return (
-    <section style={{ background: '#1a1025', padding: '200px 0' }}>
+    <section style={{ background: '#1a1025', padding: '80px 0' }}>
       <div style={{ maxWidth: 700, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>FAQ</p>
@@ -1855,7 +1883,7 @@ function FAQSection() {
 ============================================ */
 function CTASection() {
   return (
-    <section style={{ background: '#e3e3e3', padding: '200px 0' }}>
+    <section style={{ background: '#e3e3e3', padding: '80px 0' }}>
       <div style={{ maxWidth: 700, margin: '0 auto', padding: '0 24px', textAlign: 'center' }}>
         <h2 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 700, color: '#1a1a2e', marginBottom: 20 }}>
           Klaar om nooit meer een <span style={{ color: '#f97316' }}>oproep te missen?</span>
@@ -1974,6 +2002,42 @@ export default function Home() {
   
   return (
     <main>
+      {/* Global Styles */}
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+        @keyframes breathe {
+          0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(34, 197, 94, 0.5); }
+          50% { transform: scale(1.08); box-shadow: 0 0 50px rgba(34, 197, 94, 0.8); }
+        }
+        @keyframes audioBar {
+          0%, 100% { height: 8px; }
+          50% { height: 24px; }
+        }
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
+        }
+        
+        /* Mobile-first responsive utilities */
+        @media (max-width: 768px) {
+          .hidden-mobile {
+            display: none !important;
+          }
+        }
+        @media (min-width: 769px) {
+          .hidden-desktop {
+            display: none !important;
+          }
+        }
+      `}</style>
+      
       <Navigation />
       <HeroSection onOpenDemo={openBelleDemo} />
       <InboundSection onOpenDemo={openGarageDemo} />
