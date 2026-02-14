@@ -3043,7 +3043,7 @@ function Footer() {
           <div>
             <h4 style={{ fontWeight: 600, color: 'white', marginBottom: 16 }}>Bedrijf</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <a href="#hero" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>Over ons</a>
+              <a href="/over-ons" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>Over ons</a>
               <a href="#contact" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>Contact</a>
             </div>
           </div>
