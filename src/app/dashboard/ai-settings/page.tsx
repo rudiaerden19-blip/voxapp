@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import DashboardLayout from '@/components/DashboardLayout';
+import { useLanguage } from '@/lib/LanguageContext';
 import { Phone, Mic, Globe, Save, Check, Play, Volume2, Sparkles, MapPin, Clock, Euro, HelpCircle, Plus, Trash2 } from 'lucide-react';
 
 interface Business {
@@ -82,6 +83,7 @@ const brancheTemplates: Record<string, { greeting: string; capabilities: string;
 };
 
 export default function AISettingsPage() {
+  const { t, language } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -316,8 +318,8 @@ export default function AISettingsPage() {
   return (
     <DashboardLayout>
       <div style={{ marginBottom: 32 }}>
-        <h1 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Receptie Instellingen</h1>
-        <p style={{ color: '#9ca3af', fontSize: 16 }}>Configureer je telefonische receptie</p>
+        <h1 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>{t('aiSettings.title')}</h1>
+        <p style={{ color: '#9ca3af', fontSize: 16 }}>{t('aiSettings.subtitle')}</p>
       </div>
 
       <form onSubmit={handleSubmit}>

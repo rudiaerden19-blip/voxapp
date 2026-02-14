@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/lib/LanguageContext';
 import { Building2, Briefcase, Users, Phone, ChevronRight, Check, Plus, X, Sparkles } from 'lucide-react';
 
 interface Step {
@@ -37,6 +38,7 @@ const voiceOptions = [
 ];
 
 export default function OnboardingPage() {
+  const { t, language } = useLanguage();
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(true);

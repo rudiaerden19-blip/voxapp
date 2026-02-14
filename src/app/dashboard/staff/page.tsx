@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import DashboardLayout from '@/components/DashboardLayout';
+import { useLanguage } from '@/lib/LanguageContext';
 import { Plus, Pencil, Trash2, X, User, Mail, Phone, Check, Users } from 'lucide-react';
 
 interface WorkingHours {
@@ -34,6 +35,7 @@ const dayLabels: Record<string, string> = {
 };
 
 export default function StaffPage() {
+  const { t, language } = useLanguage();
   const [staff, setStaff] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
   const [businessId, setBusinessId] = useState<string | null>(null);
@@ -150,23 +152,23 @@ export default function StaffPage() {
     <DashboardLayout>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32, flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <h1 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Medewerkers</h1>
-          <p style={{ color: '#9ca3af', fontSize: 16 }}>Beheer je teamleden en hun werkuren</p>
+          <h1 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>{t('staff.title')}</h1>
+          <p style={{ color: '#9ca3af', fontSize: 16 }}>{t('staff.subtitle')}</p>
         </div>
         <button onClick={openCreateModal} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f97316', color: 'white', border: 'none', borderRadius: 8, padding: '12px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-          <Plus size={18} /> Nieuwe medewerker
+          <Plus size={18} /> {t('staff.addStaff')}
         </button>
       </div>
 
       <div style={{ background: '#16161f', borderRadius: 16, border: '1px solid #2a2a35', overflow: 'hidden' }}>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>Laden...</div>
+          <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>{t('dashboard.loading')}</div>
         ) : staff.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>
             <Users size={48} style={{ marginBottom: 16, opacity: 0.5 }} />
-            <p style={{ marginBottom: 16 }}>Nog geen medewerkers toegevoegd</p>
+            <p style={{ marginBottom: 16 }}>{t('staff.noStaff')}</p>
             <button onClick={openCreateModal} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#f97316', color: 'white', border: 'none', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>
-              <Plus size={16} /> Voeg je eerste medewerker toe
+              <Plus size={16} /> {t('staff.addFirstStaff')}
             </button>
           </div>
         ) : (
@@ -178,7 +180,7 @@ export default function StaffPage() {
                     <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(249, 115, 22, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f97316' }}><User size={20} /></div>
                     <div>
                       <p style={{ color: 'white', fontWeight: 600, marginBottom: 4 }}>{member.name}</p>
-                      <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 500, background: member.is_active ? 'rgba(34, 197, 94, 0.15)' : 'rgba(107, 114, 128, 0.15)', color: member.is_active ? '#22c55e' : '#6b7280' }}>{member.is_active ? 'Actief' : 'Inactief'}</span>
+                      <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 500, background: member.is_active ? 'rgba(34, 197, 94, 0.15)' : 'rgba(107, 114, 128, 0.15)', color: member.is_active ? '#22c55e' : '#6b7280' }}>{member.is_active ? t('common.active') : t('common.inactive')}</span>
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 8 }}>

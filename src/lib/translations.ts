@@ -235,6 +235,15 @@ export const translations = {
     checkingAvailability: { nl: 'Even kijken... Woensdag om 14:00 is beschikbaar. Past dat?', en: 'Let me check... Wednesday at 2 PM is available. Does that work?', fr: 'Laissez-moi vérifier... Mercredi à 14h est disponible. Cela vous convient?', de: 'Moment... Mittwoch um 14 Uhr ist verfügbar. Passt das?' },
     perfect: { nl: 'Perfect, dat past!', en: 'Perfect, that works!', fr: 'Parfait, ça me va!', de: 'Perfekt, das passt!' },
     confirmed: { nl: 'Uw afspraak is bevestigd. U ontvangt een SMS-bevestiging.', en: 'Your appointment is confirmed. You will receive an SMS confirmation.', fr: 'Votre rendez-vous est confirmé. Vous recevrez une confirmation par SMS.', de: 'Ihr Termin ist bestätigt. Sie erhalten eine SMS-Bestätigung.' },
+    // Dashboard appointments
+    title: { nl: 'Afspraken', en: 'Appointments', fr: 'Rendez-vous', de: 'Termine' },
+    pageSubtitle: { nl: 'Bekijk en beheer alle afspraken.', en: 'View and manage all appointments.', fr: 'Consultez et gérez tous les rendez-vous.', de: 'Sehen und verwalten Sie alle Termine.' },
+    noAppointments: { nl: 'Geen afspraken gevonden', en: 'No appointments found', fr: 'Aucun rendez-vous trouvé', de: 'Keine Termine gefunden' },
+    customer: { nl: 'Klant', en: 'Customer', fr: 'Client', de: 'Kunde' },
+    service: { nl: 'Dienst', en: 'Service', fr: 'Service', de: 'Dienst' },
+    date: { nl: 'Datum', en: 'Date', fr: 'Date', de: 'Datum' },
+    time: { nl: 'Tijd', en: 'Time', fr: 'Heure', de: 'Zeit' },
+    status: { nl: 'Status', en: 'Status', fr: 'Statut', de: 'Status' },
   },
 
   // Kassa Section
@@ -519,6 +528,177 @@ export const translations = {
       title: { nl: '11. Contact', en: '11. Contact', fr: '11. Contact', de: '11. Kontakt' },
       content: { nl: 'Voor vragen over deze voorwaarden kunt u contact opnemen via:', en: 'For questions about these terms, please contact us at:', fr: 'Pour toute question concernant ces conditions, veuillez nous contacter à:', de: 'Bei Fragen zu diesen Bedingungen kontaktieren Sie uns bitte unter:' },
     },
+  },
+
+  // Dashboard
+  dashboard: {
+    title: { nl: 'Dashboard', en: 'Dashboard', fr: 'Tableau de bord', de: 'Dashboard' },
+    welcomeBack: { nl: 'Welkom terug!', en: 'Welcome back!', fr: 'Bienvenue!', de: 'Willkommen zurück!' },
+    overview: { nl: 'Hier is een overzicht van je bedrijf vandaag.', en: 'Here is an overview of your business today.', fr: 'Voici un aperçu de votre entreprise aujourd\'hui.', de: 'Hier ist eine Übersicht Ihres Unternehmens heute.' },
+    loading: { nl: 'Laden...', en: 'Loading...', fr: 'Chargement...', de: 'Laden...' },
+    appointmentsToday: { nl: 'Afspraken vandaag', en: 'Appointments today', fr: 'Rendez-vous aujourd\'hui', de: 'Termine heute' },
+    conversationsToday: { nl: 'Gesprekken vandaag', en: 'Conversations today', fr: 'Conversations aujourd\'hui', de: 'Gespräche heute' },
+    missedCalls: { nl: 'Gemiste oproepen', en: 'Missed calls', fr: 'Appels manqués', de: 'Verpasste Anrufe' },
+    thisMonth: { nl: 'Deze maand', en: 'This month', fr: 'Ce mois-ci', de: 'Diesen Monat' },
+    newAppointment: { nl: 'Nieuwe afspraak', en: 'New appointment', fr: 'Nouveau rendez-vous', de: 'Neuer Termin' },
+    noAppointmentsToday: { nl: 'Geen afspraken voor vandaag', en: 'No appointments for today', fr: 'Pas de rendez-vous pour aujourd\'hui', de: 'Keine Termine für heute' },
+    appointment: { nl: 'Afspraak', en: 'Appointment', fr: 'Rendez-vous', de: 'Termin' },
+    status: {
+      confirmed: { nl: 'Bevestigd', en: 'Confirmed', fr: 'Confirmé', de: 'Bestätigt' },
+      scheduled: { nl: 'Gepland', en: 'Scheduled', fr: 'Planifié', de: 'Geplant' },
+      completed: { nl: 'Voltooid', en: 'Completed', fr: 'Terminé', de: 'Abgeschlossen' },
+      cancelled: { nl: 'Geannuleerd', en: 'Cancelled', fr: 'Annulé', de: 'Storniert' },
+      noShow: { nl: 'No-show', en: 'No-show', fr: 'Absent', de: 'Nicht erschienen' },
+    },
+    nav: {
+      dashboard: { nl: 'Dashboard', en: 'Dashboard', fr: 'Tableau de bord', de: 'Dashboard' },
+      appointments: { nl: 'Afspraken', en: 'Appointments', fr: 'Rendez-vous', de: 'Termine' },
+      services: { nl: 'Diensten', en: 'Services', fr: 'Services', de: 'Dienste' },
+      staff: { nl: 'Medewerkers', en: 'Staff', fr: 'Personnel', de: 'Mitarbeiter' },
+      conversations: { nl: 'Gesprekken', en: 'Conversations', fr: 'Conversations', de: 'Gespräche' },
+      reception: { nl: 'Receptie', en: 'Reception', fr: 'Réception', de: 'Rezeption' },
+      settings: { nl: 'Instellingen', en: 'Settings', fr: 'Paramètres', de: 'Einstellungen' },
+      logout: { nl: 'Uitloggen', en: 'Log out', fr: 'Déconnexion', de: 'Abmelden' },
+    },
+    trialDaysRemaining: { nl: 'dagen over', en: 'days remaining', fr: 'jours restants', de: 'Tage verbleibend' },
+    activeSubscription: { nl: 'Actief abonnement', en: 'Active subscription', fr: 'Abonnement actif', de: 'Aktives Abonnement' },
+    trialPeriod: { nl: 'Proefperiode', en: 'Trial period', fr: 'Période d\'essai', de: 'Testzeitraum' },
+  },
+
+  // Auth pages
+  auth: {
+    login: { nl: 'Inloggen', en: 'Log in', fr: 'Connexion', de: 'Anmelden' },
+    loginTitle: { nl: 'Log in op je account', en: 'Log in to your account', fr: 'Connectez-vous à votre compte', de: 'Melden Sie sich bei Ihrem Konto an' },
+    email: { nl: 'E-mailadres', en: 'Email address', fr: 'Adresse e-mail', de: 'E-Mail-Adresse' },
+    password: { nl: 'Wachtwoord', en: 'Password', fr: 'Mot de passe', de: 'Passwort' },
+    loggingIn: { nl: 'Bezig...', en: 'Logging in...', fr: 'Connexion...', de: 'Anmeldung...' },
+    noAccount: { nl: 'Nog geen account?', en: 'No account yet?', fr: 'Pas encore de compte?', de: 'Noch kein Konto?' },
+    registerFree: { nl: 'Registreer gratis', en: 'Register for free', fr: 'S\'inscrire gratuitement', de: 'Kostenlos registrieren' },
+    somethingWentWrong: { nl: 'Er ging iets mis. Probeer het opnieuw.', en: 'Something went wrong. Please try again.', fr: 'Une erreur s\'est produite. Veuillez réessayer.', de: 'Etwas ist schief gelaufen. Bitte versuchen Sie es erneut.' },
+    register: { nl: 'Registreren', en: 'Register', fr: 'S\'inscrire', de: 'Registrieren' },
+    startTrial: { nl: 'Start je gratis proefperiode van 7 dagen', en: 'Start your free 7-day trial', fr: 'Commencez votre essai gratuit de 7 jours', de: 'Starten Sie Ihre kostenlose 7-tägige Testphase' },
+    aboutBusiness: { nl: 'Over je bedrijf', en: 'About your business', fr: 'À propos de votre entreprise', de: 'Über Ihr Unternehmen' },
+    businessName: { nl: 'Bedrijfsnaam', en: 'Business name', fr: 'Nom de l\'entreprise', de: 'Firmenname' },
+    businessType: { nl: 'Type bedrijf', en: 'Business type', fr: 'Type d\'entreprise', de: 'Unternehmenstyp' },
+    phoneNumber: { nl: 'Telefoonnummer', en: 'Phone number', fr: 'Numéro de téléphone', de: 'Telefonnummer' },
+    selectType: { nl: 'Selecteer type...', en: 'Select type...', fr: 'Sélectionnez le type...', de: 'Typ auswählen...' },
+    next: { nl: 'Volgende', en: 'Next', fr: 'Suivant', de: 'Weiter' },
+    back: { nl: 'Terug', en: 'Back', fr: 'Retour', de: 'Zurück' },
+    yourAccount: { nl: 'Je account', en: 'Your account', fr: 'Votre compte', de: 'Ihr Konto' },
+    minChars: { nl: 'Minimaal 6 karakters', en: 'Minimum 6 characters', fr: 'Minimum 6 caractères', de: 'Mindestens 6 Zeichen' },
+    creatingAccount: { nl: 'Account aanmaken...', en: 'Creating account...', fr: 'Création du compte...', de: 'Konto erstellen...' },
+    startFreeTrial: { nl: 'Start gratis proefperiode', en: 'Start free trial', fr: 'Commencer l\'essai gratuit', de: 'Kostenlose Testphase starten' },
+    alreadyAccount: { nl: 'Al een account?', en: 'Already have an account?', fr: 'Vous avez déjà un compte?', de: 'Bereits ein Konto?' },
+    businessTypes: {
+      salon: { nl: 'Kapsalon / Schoonheidssalon', en: 'Hair salon / Beauty salon', fr: 'Salon de coiffure / Institut de beauté', de: 'Friseursalon / Schönheitssalon' },
+      garage: { nl: 'Garage / Autoservice', en: 'Garage / Car service', fr: 'Garage / Service automobile', de: 'Werkstatt / Autoservice' },
+      restaurant: { nl: 'Restaurant / Café', en: 'Restaurant / Café', fr: 'Restaurant / Café', de: 'Restaurant / Café' },
+      takeaway: { nl: 'Frituur / Takeaway', en: 'Snack bar / Takeaway', fr: 'Friterie / À emporter', de: 'Imbiss / Takeaway' },
+      doctor: { nl: 'Huisarts / Dokter', en: 'General practitioner / Doctor', fr: 'Médecin généraliste', de: 'Hausarzt / Arzt' },
+      dentist: { nl: 'Tandarts', en: 'Dentist', fr: 'Dentiste', de: 'Zahnarzt' },
+      physio: { nl: 'Kinesist / Fysiotherapeut', en: 'Physiotherapist', fr: 'Kinésithérapeute', de: 'Physiotherapeut' },
+      other: { nl: 'Andere', en: 'Other', fr: 'Autre', de: 'Andere' },
+    },
+  },
+
+  // Common
+  common: {
+    save: { nl: 'Opslaan', en: 'Save', fr: 'Enregistrer', de: 'Speichern' },
+    cancel: { nl: 'Annuleren', en: 'Cancel', fr: 'Annuler', de: 'Abbrechen' },
+    delete: { nl: 'Verwijderen', en: 'Delete', fr: 'Supprimer', de: 'Löschen' },
+    edit: { nl: 'Bewerken', en: 'Edit', fr: 'Modifier', de: 'Bearbeiten' },
+    add: { nl: 'Toevoegen', en: 'Add', fr: 'Ajouter', de: 'Hinzufügen' },
+    close: { nl: 'Sluiten', en: 'Close', fr: 'Fermer', de: 'Schließen' },
+    confirm: { nl: 'Bevestigen', en: 'Confirm', fr: 'Confirmer', de: 'Bestätigen' },
+    search: { nl: 'Zoeken', en: 'Search', fr: 'Rechercher', de: 'Suchen' },
+    filter: { nl: 'Filteren', en: 'Filter', fr: 'Filtrer', de: 'Filtern' },
+    actions: { nl: 'Acties', en: 'Actions', fr: 'Actions', de: 'Aktionen' },
+    name: { nl: 'Naam', en: 'Name', fr: 'Nom', de: 'Name' },
+    phone: { nl: 'Telefoon', en: 'Phone', fr: 'Téléphone', de: 'Telefon' },
+    minutes: { nl: 'minuten', en: 'minutes', fr: 'minutes', de: 'Minuten' },
+    hours: { nl: 'uur', en: 'hours', fr: 'heures', de: 'Stunden' },
+    days: { nl: 'dagen', en: 'days', fr: 'jours', de: 'Tage' },
+    yes: { nl: 'Ja', en: 'Yes', fr: 'Oui', de: 'Ja' },
+    no: { nl: 'Nee', en: 'No', fr: 'Non', de: 'Nein' },
+    active: { nl: 'Actief', en: 'Active', fr: 'Actif', de: 'Aktiv' },
+    inactive: { nl: 'Inactief', en: 'Inactive', fr: 'Inactif', de: 'Inaktiv' },
+  },
+
+  // Services page
+  services: {
+    title: { nl: 'Diensten', en: 'Services', fr: 'Services', de: 'Dienste' },
+    subtitle: { nl: 'Beheer de diensten die je aanbiedt.', en: 'Manage the services you offer.', fr: 'Gérez les services que vous proposez.', de: 'Verwalten Sie die Dienste, die Sie anbieten.' },
+    addService: { nl: 'Dienst toevoegen', en: 'Add service', fr: 'Ajouter un service', de: 'Dienst hinzufügen' },
+    noServices: { nl: 'Nog geen diensten', en: 'No services yet', fr: 'Pas encore de services', de: 'Noch keine Dienste' },
+    addFirstService: { nl: 'Voeg je eerste dienst toe', en: 'Add your first service', fr: 'Ajoutez votre premier service', de: 'Fügen Sie Ihren ersten Dienst hinzu' },
+    serviceName: { nl: 'Naam dienst', en: 'Service name', fr: 'Nom du service', de: 'Dienstname' },
+    duration: { nl: 'Duur', en: 'Duration', fr: 'Durée', de: 'Dauer' },
+    price: { nl: 'Prijs', en: 'Price', fr: 'Prix', de: 'Preis' },
+    description: { nl: 'Beschrijving', en: 'Description', fr: 'Description', de: 'Beschreibung' },
+  },
+
+  // Staff page
+  staff: {
+    title: { nl: 'Medewerkers', en: 'Staff', fr: 'Personnel', de: 'Mitarbeiter' },
+    subtitle: { nl: 'Beheer je team en hun beschikbaarheid.', en: 'Manage your team and their availability.', fr: 'Gérez votre équipe et leur disponibilité.', de: 'Verwalten Sie Ihr Team und deren Verfügbarkeit.' },
+    addStaff: { nl: 'Medewerker toevoegen', en: 'Add staff member', fr: 'Ajouter un employé', de: 'Mitarbeiter hinzufügen' },
+    noStaff: { nl: 'Nog geen medewerkers', en: 'No staff members yet', fr: 'Pas encore d\'employés', de: 'Noch keine Mitarbeiter' },
+    addFirstStaff: { nl: 'Voeg je eerste medewerker toe', en: 'Add your first staff member', fr: 'Ajoutez votre premier employé', de: 'Fügen Sie Ihren ersten Mitarbeiter hinzu' },
+    staffName: { nl: 'Naam medewerker', en: 'Staff name', fr: 'Nom de l\'employé', de: 'Mitarbeitername' },
+    role: { nl: 'Functie', en: 'Role', fr: 'Fonction', de: 'Position' },
+    workingHours: { nl: 'Werkuren', en: 'Working hours', fr: 'Heures de travail', de: 'Arbeitszeiten' },
+  },
+
+  // Conversations page
+  conversations: {
+    title: { nl: 'Gesprekken', en: 'Conversations', fr: 'Conversations', de: 'Gespräche' },
+    subtitle: { nl: 'Bekijk alle telefoongesprekken.', en: 'View all phone conversations.', fr: 'Consultez toutes les conversations téléphoniques.', de: 'Sehen Sie alle Telefongespräche.' },
+    noConversations: { nl: 'Nog geen gesprekken', en: 'No conversations yet', fr: 'Pas encore de conversations', de: 'Noch keine Gespräche' },
+    noConversationsHint: { nl: 'Zodra de receptie actief is, verschijnen gesprekken hier.', en: 'Once the reception is active, conversations will appear here.', fr: 'Une fois la réception active, les conversations apparaîtront ici.', de: 'Sobald die Rezeption aktiv ist, erscheinen hier Gespräche.' },
+    duration: { nl: 'Duur', en: 'Duration', fr: 'Durée', de: 'Dauer' },
+    caller: { nl: 'Beller', en: 'Caller', fr: 'Appelant', de: 'Anrufer' },
+    outcome: { nl: 'Resultaat', en: 'Outcome', fr: 'Résultat', de: 'Ergebnis' },
+  },
+
+  // AI Settings page
+  aiSettings: {
+    title: { nl: 'Receptie Instellingen', en: 'Reception Settings', fr: 'Paramètres de réception', de: 'Rezeptionseinstellungen' },
+    subtitle: { nl: 'Configureer je virtuele receptionist.', en: 'Configure your virtual receptionist.', fr: 'Configurez votre réceptionniste virtuel.', de: 'Konfigurieren Sie Ihren virtuellen Rezeptionisten.' },
+    welcomeMessage: { nl: 'Welkomstbericht', en: 'Welcome message', fr: 'Message d\'accueil', de: 'Willkommensnachricht' },
+    voice: { nl: 'Stem', en: 'Voice', fr: 'Voix', de: 'Stimme' },
+    language: { nl: 'Taal', en: 'Language', fr: 'Langue', de: 'Sprache' },
+    businessHours: { nl: 'Openingsuren', en: 'Business hours', fr: 'Heures d\'ouverture', de: 'Öffnungszeiten' },
+    testCall: { nl: 'Test gesprek', en: 'Test call', fr: 'Appel test', de: 'Testanruf' },
+  },
+
+  // Settings page
+  settings: {
+    title: { nl: 'Instellingen', en: 'Settings', fr: 'Paramètres', de: 'Einstellungen' },
+    subtitle: { nl: 'Beheer je account en bedrijfsinstellingen.', en: 'Manage your account and business settings.', fr: 'Gérez votre compte et les paramètres de l\'entreprise.', de: 'Verwalten Sie Ihre Konto- und Unternehmenseinstellungen.' },
+    businessInfo: { nl: 'Bedrijfsinformatie', en: 'Business information', fr: 'Informations sur l\'entreprise', de: 'Unternehmensinformationen' },
+    account: { nl: 'Account', en: 'Account', fr: 'Compte', de: 'Konto' },
+    subscription: { nl: 'Abonnement', en: 'Subscription', fr: 'Abonnement', de: 'Abonnement' },
+    notifications: { nl: 'Notificaties', en: 'Notifications', fr: 'Notifications', de: 'Benachrichtigungen' },
+  },
+
+  // Onboarding
+  onboarding: {
+    title: { nl: 'Welkom bij VoxApp!', en: 'Welcome to VoxApp!', fr: 'Bienvenue chez VoxApp!', de: 'Willkommen bei VoxApp!' },
+    subtitle: { nl: 'Laten we je receptie instellen.', en: 'Let\'s set up your reception.', fr: 'Configurons votre réception.', de: 'Lassen Sie uns Ihre Rezeption einrichten.' },
+    step1: { nl: 'Bedrijfsgegevens', en: 'Business details', fr: 'Détails de l\'entreprise', de: 'Unternehmensdetails' },
+    step2: { nl: 'Diensten', en: 'Services', fr: 'Services', de: 'Dienste' },
+    step3: { nl: 'Openingsuren', en: 'Opening hours', fr: 'Heures d\'ouverture', de: 'Öffnungszeiten' },
+    step4: { nl: 'Stem kiezen', en: 'Choose voice', fr: 'Choisir une voix', de: 'Stimme wählen' },
+    complete: { nl: 'Voltooien', en: 'Complete', fr: 'Terminer', de: 'Abschließen' },
+    skip: { nl: 'Overslaan', en: 'Skip', fr: 'Passer', de: 'Überspringen' },
+  },
+
+  // Admin
+  admin: {
+    title: { nl: 'Beheerder Dashboard', en: 'Admin Dashboard', fr: 'Tableau de bord administrateur', de: 'Admin-Dashboard' },
+    tenants: { nl: 'Tenants', en: 'Tenants', fr: 'Locataires', de: 'Mandanten' },
+    subscriptions: { nl: 'Abonnementen', en: 'Subscriptions', fr: 'Abonnements', de: 'Abonnements' },
+    settings: { nl: 'Instellingen', en: 'Settings', fr: 'Paramètres', de: 'Einstellungen' },
   },
 };
 

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import DashboardLayout from '@/components/DashboardLayout';
+import { useLanguage } from '@/lib/LanguageContext';
 import { Plus, Pencil, Trash2, X, Clock, Euro, Briefcase, Check } from 'lucide-react';
 
 interface Service {
@@ -15,6 +16,7 @@ interface Service {
 }
 
 export default function ServicesPage() {
+  const { t, language } = useLanguage();
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [businessId, setBusinessId] = useState<string | null>(null);
@@ -122,23 +124,23 @@ export default function ServicesPage() {
     <DashboardLayout>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32, flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <h1 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Diensten</h1>
-          <p style={{ color: '#9ca3af', fontSize: 16 }}>Beheer de diensten die je aanbiedt</p>
+          <h1 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>{t('services.title')}</h1>
+          <p style={{ color: '#9ca3af', fontSize: 16 }}>{t('services.subtitle')}</p>
         </div>
         <button onClick={openCreateModal} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f97316', color: 'white', border: 'none', borderRadius: 8, padding: '12px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-          <Plus size={18} /> Nieuwe dienst
+          <Plus size={18} /> {t('services.addService')}
         </button>
       </div>
 
       <div style={{ background: '#16161f', borderRadius: 16, border: '1px solid #2a2a35', overflow: 'hidden' }}>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>Laden...</div>
+          <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>{t('dashboard.loading')}</div>
         ) : services.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>
             <Briefcase size={48} style={{ marginBottom: 16, opacity: 0.5 }} />
-            <p style={{ marginBottom: 16 }}>Nog geen diensten toegevoegd</p>
+            <p style={{ marginBottom: 16 }}>{t('services.noServices')}</p>
             <button onClick={openCreateModal} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#f97316', color: 'white', border: 'none', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>
-              <Plus size={16} /> Voeg je eerste dienst toe
+              <Plus size={16} /> {t('services.addFirstService')}
             </button>
           </div>
         ) : (
@@ -152,7 +154,7 @@ export default function ServicesPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
                   <span style={{ color: '#9ca3af', fontSize: 14 }}><Clock size={14} style={{ marginRight: 4 }} />{formatDuration(service.duration_minutes)}</span>
                   <span style={{ color: '#9ca3af', fontSize: 14 }}>{formatPrice(service.price)}</span>
-                  <span style={{ padding: '4px 8px', borderRadius: 4, fontSize: 12, fontWeight: 500, background: service.is_active ? 'rgba(34, 197, 94, 0.15)' : 'rgba(107, 114, 128, 0.15)', color: service.is_active ? '#22c55e' : '#6b7280' }}>{service.is_active ? 'Actief' : 'Inactief'}</span>
+                  <span style={{ padding: '4px 8px', borderRadius: 4, fontSize: 12, fontWeight: 500, background: service.is_active ? 'rgba(34, 197, 94, 0.15)' : 'rgba(107, 114, 128, 0.15)', color: service.is_active ? '#22c55e' : '#6b7280' }}>{service.is_active ? t('common.active') : t('common.inactive')}</span>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button onClick={() => openEditModal(service)} style={{ background: 'rgba(249, 115, 22, 0.15)', border: 'none', borderRadius: 6, padding: 8, color: '#f97316', cursor: 'pointer' }}><Pencil size={16} /></button>
                     <button onClick={() => setDeleteConfirm(service.id)} style={{ background: 'rgba(239, 68, 68, 0.15)', border: 'none', borderRadius: 6, padding: 8, color: '#ef4444', cursor: 'pointer' }}><Trash2 size={16} /></button>

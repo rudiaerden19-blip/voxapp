@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import DashboardLayout from '@/components/DashboardLayout';
+import { useLanguage } from '@/lib/LanguageContext';
 import { MessageSquare, Phone, Clock, X, FileText, Calendar } from 'lucide-react';
 
 interface Conversation {
@@ -17,6 +18,7 @@ interface Conversation {
 }
 
 export default function ConversationsPage() {
+  const { t, language } = useLanguage();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
@@ -71,18 +73,18 @@ export default function ConversationsPage() {
   return (
     <DashboardLayout>
       <div style={{ marginBottom: 32 }}>
-        <h1 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Gesprekken</h1>
-        <p style={{ color: '#9ca3af', fontSize: 16 }}>Bekijk alle AI gesprekken met klanten</p>
+        <h1 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>{t('conversations.title')}</h1>
+        <p style={{ color: '#9ca3af', fontSize: 16 }}>{t('conversations.subtitle')}</p>
       </div>
 
       <div style={{ background: '#16161f', borderRadius: 16, border: '1px solid #2a2a35', overflow: 'hidden' }}>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>Laden...</div>
+          <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>{t('dashboard.loading')}</div>
         ) : conversations.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>
             <MessageSquare size={48} style={{ marginBottom: 16, opacity: 0.5 }} />
-            <p style={{ marginBottom: 8 }}>Nog geen gesprekken</p>
-            <p style={{ fontSize: 14 }}>Zodra de AI receptionist actief is, verschijnen gesprekken hier.</p>
+            <p style={{ marginBottom: 8 }}>{t('conversations.noConversations')}</p>
+            <p style={{ fontSize: 14 }}>{t('conversations.noConversationsHint')}</p>
           </div>
         ) : (
           <div>

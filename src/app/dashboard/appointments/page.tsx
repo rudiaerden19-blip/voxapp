@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import DashboardLayout from '@/components/DashboardLayout';
+import { useLanguage } from '@/lib/LanguageContext';
 import { Plus, ChevronLeft, ChevronRight, X, Clock, User, Check, Trash2 } from 'lucide-react';
 
 interface Service {
@@ -38,6 +39,7 @@ const statusOptions = [
 ];
 
 export default function AppointmentsPage() {
+  const { t, language } = useLanguage();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
@@ -238,11 +240,11 @@ export default function AppointmentsPage() {
     <DashboardLayout>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32, flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <h1 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Afspraken</h1>
-          <p style={{ color: '#9ca3af', fontSize: 16 }}>Beheer je agenda en afspraken</p>
+          <h1 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>{t('appointments.title')}</h1>
+          <p style={{ color: '#9ca3af', fontSize: 16 }}>{t('appointments.pageSubtitle')}</p>
         </div>
         <button onClick={() => openCreateModal()} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f97316', color: 'white', border: 'none', borderRadius: 8, padding: '12px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-          <Plus size={18} /> Nieuwe afspraak
+          <Plus size={18} /> {t('dashboard.newAppointment')}
         </button>
       </div>
 
@@ -272,7 +274,7 @@ export default function AppointmentsPage() {
 
         {/* Calendar grid */}
         {loading ? (
-          <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>Laden...</div>
+          <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>{t('dashboard.loading')}</div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
             {getDaysInMonth().map((date, index) => {

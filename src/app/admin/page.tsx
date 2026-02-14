@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/lib/LanguageContext';
 import { LogOut, Plus, Monitor, RotateCcw, Eye, Ban, Check, Trash2, Phone, Users, CreditCard, AlertTriangle, Shield, Lock } from 'lucide-react';
 
 // Admin credentials - alleen jij hebt toegang
@@ -28,6 +29,7 @@ interface Tenant {
 }
 
 export default function AdminDashboard() {
+  const { t, language } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [tenants, setTenants] = useState<Tenant[]>([]);

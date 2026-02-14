@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Phone, Calendar, Users, Settings, LogOut, TrendingUp, MessageSquare, Menu, X, Briefcase } from 'lucide-react';
+import { Phone, Calendar, Users, Settings, LogOut, TrendingUp, MessageSquare, Menu, X, Briefcase, Globe, ChevronDown } from 'lucide-react';
+import { useLanguage, Language } from '@/lib/LanguageContext';
 
 interface Business {
   id: string;
@@ -15,19 +16,28 @@ interface Business {
 }
 
 const navItems = [
-  { href: '/dashboard', icon: TrendingUp, label: 'Dashboard' },
-  { href: '/dashboard/appointments', icon: Calendar, label: 'Afspraken' },
-  { href: '/dashboard/services', icon: Briefcase, label: 'Diensten' },
-  { href: '/dashboard/staff', icon: Users, label: 'Medewerkers' },
-  { href: '/dashboard/conversations', icon: MessageSquare, label: 'Gesprekken' },
-  { href: '/dashboard/ai-settings', icon: Phone, label: 'Receptie' },
-  { href: '/dashboard/settings', icon: Settings, label: 'Instellingen' },
+  { href: '/dashboard', icon: TrendingUp, labelKey: 'dashboard.nav.dashboard' },
+  { href: '/dashboard/appointments', icon: Calendar, labelKey: 'dashboard.nav.appointments' },
+  { href: '/dashboard/services', icon: Briefcase, labelKey: 'dashboard.nav.services' },
+  { href: '/dashboard/staff', icon: Users, labelKey: 'dashboard.nav.staff' },
+  { href: '/dashboard/conversations', icon: MessageSquare, labelKey: 'dashboard.nav.conversations' },
+  { href: '/dashboard/ai-settings', icon: Phone, labelKey: 'dashboard.nav.reception' },
+  { href: '/dashboard/settings', icon: Settings, labelKey: 'dashboard.nav.settings' },
+];
+
+const languages: { code: Language; label: string; flag: string }[] = [
+  { code: 'nl', label: 'Nederlands', flag: '🇳🇱' },
+  { code: 'en', label: 'English', flag: '🇬🇧' },
+  { code: 'fr', label: 'Français', flag: '🇫🇷' },
+  { code: 'de', label: 'Deutsch', flag: '🇩🇪' },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const { t, language, setLanguage } = useLanguage();
   const [business, setBusiness] = useState<Business | null>(null);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -58,10 +68,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const isActive = (href: string) => href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(href);
 
+  const currentLang = languages.find(l => l.code === language) || languages[0];
+
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', background: '#0a0a0f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ color: '#9ca3af' }}>Laden...</div>
+        <div style={{ color: '#9ca3af' }}>{t('dashboard.loading')}</div>
       </div>
     );
   }
@@ -83,8 +95,49 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div style={{ background: '#0a0a0f', borderRadius: 8, padding: 12, marginBottom: 24 }}>
           <p style={{ color: 'white', fontWeight: 600, fontSize: 14 }}>{business?.name}</p>
           <p style={{ color: '#6b7280', fontSize: 12, marginTop: 4 }}>
-            {business?.subscription_status === 'trial' ? `Proefperiode: ${getDaysRemaining()} dagen over` : 'Actief abonnement'}
+            {business?.subscription_status === 'trial' 
+              ? `${t('dashboard.trialPeriod')}: ${getDaysRemaining()} ${t('dashboard.trialDaysRemaining')}` 
+              : t('dashboard.activeSubscription')}
           </p>
+        </div>
+
+        {/* Language Selector */}
+        <div style={{ position: 'relative', marginBottom: 16 }}>
+          <button
+            onClick={() => setLangDropdownOpen(!langDropdownOpen)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px',
+              background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8,
+              color: 'white', fontSize: 13, cursor: 'pointer', width: '100%',
+            }}
+          >
+            <Globe size={16} color="#f97316" />
+            <span>{currentLang.flag} {currentLang.label}</span>
+            <ChevronDown size={14} style={{ marginLeft: 'auto', transform: langDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+          </button>
+          {langDropdownOpen && (
+            <div style={{
+              position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4,
+              background: '#16161f', border: '1px solid #2a2a35', borderRadius: 8,
+              overflow: 'hidden', zIndex: 100,
+            }}>
+              {languages.map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => { setLanguage(lang.code); setLangDropdownOpen(false); }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px',
+                    background: language === lang.code ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
+                    border: 'none', color: language === lang.code ? '#f97316' : '#9ca3af',
+                    fontSize: 13, cursor: 'pointer', width: '100%', textAlign: 'left',
+                  }}
+                >
+                  <span>{lang.flag}</span>
+                  <span>{lang.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <nav style={{ flex: 1 }}>
@@ -96,7 +149,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               fontSize: 14, fontWeight: isActive(item.href) ? 600 : 400, cursor: 'pointer',
               width: '100%', textAlign: 'left', marginBottom: 4, textDecoration: 'none',
             }}>
-              <item.icon size={18} />{item.label}
+              <item.icon size={18} />{t(item.labelKey)}
             </Link>
           ))}
         </nav>
@@ -105,7 +158,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: 'transparent',
           border: 'none', borderRadius: 8, color: '#9ca3af', fontSize: 14, cursor: 'pointer', width: '100%', textAlign: 'left',
         }}>
-          <LogOut size={18} />Uitloggen
+          <LogOut size={18} />{t('dashboard.nav.logout')}
         </button>
       </aside>
 

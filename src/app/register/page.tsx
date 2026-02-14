@@ -4,8 +4,20 @@ import { useState } from 'react';
 import { createClient } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useLanguage, Language } from '@/lib/LanguageContext';
+import { Globe, ChevronDown } from 'lucide-react';
+
+const languages: { code: Language; label: string; flag: string }[] = [
+  { code: 'nl', label: 'NL', flag: '🇳🇱' },
+  { code: 'en', label: 'EN', flag: '🇬🇧' },
+  { code: 'fr', label: 'FR', flag: '🇫🇷' },
+  { code: 'de', label: 'DE', flag: '🇩🇪' },
+];
+
+const businessTypeKeys = ['salon', 'garage', 'restaurant', 'takeaway', 'doctor', 'dentist', 'physio', 'other'] as const;
 
 export default function RegisterPage() {
+  const { t, language, setLanguage } = useLanguage();
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -14,18 +26,8 @@ export default function RegisterPage() {
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const router = useRouter();
-
-  const businessTypes = [
-    { value: 'salon', label: 'Kapsalon / Schoonheidssalon' },
-    { value: 'garage', label: 'Garage / Autoservice' },
-    { value: 'restaurant', label: 'Restaurant / Café' },
-    { value: 'takeaway', label: 'Frituur / Takeaway' },
-    { value: 'doctor', label: 'Huisarts / Dokter' },
-    { value: 'dentist', label: 'Tandarts' },
-    { value: 'physio', label: 'Kinesist / Fysiotherapeut' },
-    { value: 'other', label: 'Andere' },
-  ];
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,18 +64,20 @@ export default function RegisterPage() {
 
         if (businessError) {
           console.error('Business creation error:', businessError);
-          setError('Account aangemaakt maar bedrijf kon niet worden opgeslagen. Neem contact op.');
+          setError(t('auth.somethingWentWrong'));
         } else {
           router.push('/dashboard/onboarding');
         }
       }
     } catch (err: any) {
       console.error('Registration error:', err);
-      setError(err?.message || 'Er ging iets mis. Probeer het opnieuw.');
+      setError(err?.message || t('auth.somethingWentWrong'));
     } finally {
       setLoading(false);
     }
   };
+
+  const currentLang = languages.find(l => l.code === language) || languages[0];
 
   return (
     <div style={{
@@ -83,7 +87,49 @@ export default function RegisterPage() {
       alignItems: 'center',
       justifyContent: 'center',
       padding: 24,
+      position: 'relative',
     }}>
+      {/* Language Selector */}
+      <div style={{ position: 'absolute', top: 24, right: 24 }}>
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => setLangDropdownOpen(!langDropdownOpen)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px',
+              background: '#16161f', border: '1px solid #2a2a35', borderRadius: 8,
+              color: 'white', fontSize: 13, cursor: 'pointer',
+            }}
+          >
+            <Globe size={14} color="#f97316" />
+            <span>{currentLang.flag} {currentLang.label}</span>
+            <ChevronDown size={12} style={{ transform: langDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+          </button>
+          {langDropdownOpen && (
+            <div style={{
+              position: 'absolute', top: '100%', right: 0, marginTop: 4, minWidth: 100,
+              background: '#16161f', border: '1px solid #2a2a35', borderRadius: 8,
+              overflow: 'hidden', zIndex: 100,
+            }}>
+              {languages.map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => { setLanguage(lang.code); setLangDropdownOpen(false); }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px',
+                    background: language === lang.code ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
+                    border: 'none', color: language === lang.code ? '#f97316' : '#9ca3af',
+                    fontSize: 13, cursor: 'pointer', width: '100%', textAlign: 'left',
+                  }}
+                >
+                  <span>{lang.flag}</span>
+                  <span>{lang.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       <div style={{
         width: '100%',
         maxWidth: 480,
@@ -101,7 +147,7 @@ export default function RegisterPage() {
             </span>
           </Link>
           <p style={{ color: '#9ca3af', marginTop: 8, fontSize: 14 }}>
-            Start je gratis proefperiode van 7 dagen
+            {t('auth.startTrial')}
           </p>
         </div>
 
@@ -125,12 +171,12 @@ export default function RegisterPage() {
           {step === 1 && (
             <>
               <h2 style={{ color: 'white', fontSize: 20, fontWeight: 600, marginBottom: 24 }}>
-                Over je bedrijf
+                {t('auth.aboutBusiness')}
               </h2>
 
               <div style={{ marginBottom: 20 }}>
                 <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>
-                  Bedrijfsnaam
+                  {t('auth.businessName')}
                 </label>
                 <input
                   type="text"
@@ -153,7 +199,7 @@ export default function RegisterPage() {
 
               <div style={{ marginBottom: 20 }}>
                 <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>
-                  Type bedrijf
+                  {t('auth.businessType')}
                 </label>
                 <select
                   value={businessType}
@@ -170,10 +216,10 @@ export default function RegisterPage() {
                     outline: 'none',
                   }}
                 >
-                  <option value="">Selecteer type...</option>
-                  {businessTypes.map((type) => (
-                    <option key={type.value} value={type.value}>
-                      {type.label}
+                  <option value="">{t('auth.selectType')}</option>
+                  {businessTypeKeys.map((key) => (
+                    <option key={key} value={key}>
+                      {t(`auth.businessTypes.${key}`)}
                     </option>
                   ))}
                 </select>
@@ -181,7 +227,7 @@ export default function RegisterPage() {
 
               <div style={{ marginBottom: 24 }}>
                 <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>
-                  Telefoonnummer
+                  {t('auth.phoneNumber')}
                 </label>
                 <input
                   type="tel"
@@ -217,7 +263,7 @@ export default function RegisterPage() {
                   cursor: (!businessName || !businessType) ? 'not-allowed' : 'pointer',
                 }}
               >
-                Volgende
+                {t('auth.next')}
               </button>
             </>
           )}
@@ -225,12 +271,12 @@ export default function RegisterPage() {
           {step === 2 && (
             <>
               <h2 style={{ color: 'white', fontSize: 20, fontWeight: 600, marginBottom: 24 }}>
-                Je account
+                {t('auth.yourAccount')}
               </h2>
 
               <div style={{ marginBottom: 20 }}>
                 <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>
-                  E-mailadres
+                  {t('auth.email')}
                 </label>
                 <input
                   type="email"
@@ -253,7 +299,7 @@ export default function RegisterPage() {
 
               <div style={{ marginBottom: 24 }}>
                 <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>
-                  Wachtwoord
+                  {t('auth.password')}
                 </label>
                 <input
                   type="password"
@@ -271,7 +317,7 @@ export default function RegisterPage() {
                     fontSize: 16,
                     outline: 'none',
                   }}
-                  placeholder="Minimaal 6 karakters"
+                  placeholder={t('auth.minChars')}
                 />
               </div>
 
@@ -304,7 +350,7 @@ export default function RegisterPage() {
                     cursor: 'pointer',
                   }}
                 >
-                  Terug
+                  {t('auth.back')}
                 </button>
                 <button
                   type="submit"
@@ -321,7 +367,7 @@ export default function RegisterPage() {
                     cursor: loading ? 'not-allowed' : 'pointer',
                   }}
                 >
-                  {loading ? 'Account aanmaken...' : 'Start gratis proefperiode'}
+                  {loading ? t('auth.creatingAccount') : t('auth.startFreeTrial')}
                 </button>
               </div>
             </>
@@ -330,9 +376,9 @@ export default function RegisterPage() {
 
         {/* Login link */}
         <p style={{ textAlign: 'center', marginTop: 24, color: '#9ca3af', fontSize: 14 }}>
-          Al een account?{' '}
+          {t('auth.alreadyAccount')}{' '}
           <Link href="/login" style={{ color: '#f97316', textDecoration: 'none' }}>
-            Log in
+            {t('auth.login')}
           </Link>
         </p>
       </div>

@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import DashboardLayout from '@/components/DashboardLayout';
+import { useLanguage } from '@/lib/LanguageContext';
 import { Save, Building2, Clock, Phone, Mail, MapPin, Check, CreditCard, ExternalLink } from 'lucide-react';
 
 interface OpeningHours {
@@ -50,6 +51,7 @@ const businessTypes = [
 ];
 
 function SettingsContent() {
+  const { t, language } = useLanguage();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -221,7 +223,7 @@ function SettingsContent() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>Laden...</div>
+        <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>{t('dashboard.loading')}</div>
       </DashboardLayout>
     );
   }
@@ -231,8 +233,8 @@ function SettingsContent() {
   return (
     <DashboardLayout>
       <div style={{ marginBottom: 32 }}>
-        <h1 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Instellingen</h1>
-        <p style={{ color: '#9ca3af', fontSize: 16 }}>Beheer je bedrijfsgegevens en abonnement</p>
+        <h1 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>{t('settings.title')}</h1>
+        <p style={{ color: '#9ca3af', fontSize: 16 }}>{t('settings.subtitle')}</p>
       </div>
 
       {/* Subscription Section */}

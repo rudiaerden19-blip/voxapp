@@ -4,12 +4,23 @@ import { useState } from 'react';
 import { createClient } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useLanguage, Language } from '@/lib/LanguageContext';
+import { Globe, ChevronDown } from 'lucide-react';
+
+const languages: { code: Language; label: string; flag: string }[] = [
+  { code: 'nl', label: 'NL', flag: '🇳🇱' },
+  { code: 'en', label: 'EN', flag: '🇬🇧' },
+  { code: 'fr', label: 'FR', flag: '🇫🇷' },
+  { code: 'de', label: 'DE', flag: '🇩🇪' },
+];
 
 export default function LoginPage() {
+  const { t, language, setLanguage } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -30,11 +41,13 @@ export default function LoginPage() {
         router.push('/dashboard');
       }
     } catch (err) {
-      setError('Er ging iets mis. Probeer het opnieuw.');
+      setError(t('auth.somethingWentWrong'));
     } finally {
       setLoading(false);
     }
   };
+
+  const currentLang = languages.find(l => l.code === language) || languages[0];
 
   return (
     <div style={{
@@ -44,7 +57,49 @@ export default function LoginPage() {
       alignItems: 'center',
       justifyContent: 'center',
       padding: 24,
+      position: 'relative',
     }}>
+      {/* Language Selector */}
+      <div style={{ position: 'absolute', top: 24, right: 24 }}>
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => setLangDropdownOpen(!langDropdownOpen)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px',
+              background: '#16161f', border: '1px solid #2a2a35', borderRadius: 8,
+              color: 'white', fontSize: 13, cursor: 'pointer',
+            }}
+          >
+            <Globe size={14} color="#f97316" />
+            <span>{currentLang.flag} {currentLang.label}</span>
+            <ChevronDown size={12} style={{ transform: langDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+          </button>
+          {langDropdownOpen && (
+            <div style={{
+              position: 'absolute', top: '100%', right: 0, marginTop: 4, minWidth: 100,
+              background: '#16161f', border: '1px solid #2a2a35', borderRadius: 8,
+              overflow: 'hidden', zIndex: 100,
+            }}>
+              {languages.map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => { setLanguage(lang.code); setLangDropdownOpen(false); }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px',
+                    background: language === lang.code ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
+                    border: 'none', color: language === lang.code ? '#f97316' : '#9ca3af',
+                    fontSize: 13, cursor: 'pointer', width: '100%', textAlign: 'left',
+                  }}
+                >
+                  <span>{lang.flag}</span>
+                  <span>{lang.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       <div style={{
         width: '100%',
         maxWidth: 400,
@@ -62,7 +117,7 @@ export default function LoginPage() {
             </span>
           </Link>
           <p style={{ color: '#9ca3af', marginTop: 8, fontSize: 14 }}>
-            Log in op je account
+            {t('auth.loginTitle')}
           </p>
         </div>
 
@@ -70,7 +125,7 @@ export default function LoginPage() {
         <form onSubmit={handleLogin}>
           <div style={{ marginBottom: 20 }}>
             <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>
-              E-mailadres
+              {t('auth.email')}
             </label>
             <input
               type="email"
@@ -93,7 +148,7 @@ export default function LoginPage() {
 
           <div style={{ marginBottom: 24 }}>
             <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>
-              Wachtwoord
+              {t('auth.password')}
             </label>
             <input
               type="password"
@@ -143,15 +198,15 @@ export default function LoginPage() {
               cursor: loading ? 'not-allowed' : 'pointer',
             }}
           >
-            {loading ? 'Bezig...' : 'Inloggen'}
+            {loading ? t('auth.loggingIn') : t('auth.login')}
           </button>
         </form>
 
         {/* Register link */}
         <p style={{ textAlign: 'center', marginTop: 24, color: '#9ca3af', fontSize: 14 }}>
-          Nog geen account?{' '}
+          {t('auth.noAccount')}{' '}
           <Link href="/register" style={{ color: '#f97316', textDecoration: 'none' }}>
-            Registreer gratis
+            {t('auth.registerFree')}
           </Link>
         </p>
       </div>
