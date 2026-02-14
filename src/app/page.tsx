@@ -894,14 +894,6 @@ function ForWhoSection() {
 ============================================ */
 function InboundSection({ onOpenDemo }: { onOpenDemo: () => void }) {
   const { t } = useLanguage();
-  const [selectedDemoLang, setSelectedDemoLang] = useState<'nl' | 'en' | 'fr' | 'de'>('nl');
-
-  const demoLanguages = [
-    { code: 'nl' as const, flag: '🇳🇱', label: 'NL' },
-    { code: 'en' as const, flag: '🇬🇧', label: 'EN' },
-    { code: 'fr' as const, flag: '🇫🇷', label: 'FR' },
-    { code: 'de' as const, flag: '🇩🇪', label: 'DE' },
-  ];
 
   return (
     <section id="features" style={{ background: '#e3e3e3', padding: '200px 0' }}>
@@ -953,32 +945,6 @@ function InboundSection({ onOpenDemo }: { onOpenDemo: () => void }) {
                 {t('inbound.listenDemo')}
               </button>
             </div>
-            {/* Language selector for demo */}
-            <div style={{ display: 'flex', gap: 8, marginBottom: 32 }}>
-              {demoLanguages.map((lang) => (
-                <button
-                  key={lang.code}
-                  onClick={() => setSelectedDemoLang(lang.code)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4,
-                    padding: '6px 10px',
-                    borderRadius: 6,
-                    border: selectedDemoLang === lang.code ? '2px solid #f97316' : '2px solid #e5e7eb',
-                    background: selectedDemoLang === lang.code ? '#fff7ed' : 'white',
-                    cursor: 'pointer',
-                    fontSize: 13,
-                    fontWeight: selectedDemoLang === lang.code ? 600 : 400,
-                    color: selectedDemoLang === lang.code ? '#f97316' : '#6b7280',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  <span style={{ fontSize: 16 }}>{lang.flag}</span>
-                  <span>{lang.label}</span>
-                </button>
-              ))}
-            </div>
 
             {/* Feature list */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -1017,14 +983,6 @@ function InboundSection({ onOpenDemo }: { onOpenDemo: () => void }) {
 ============================================ */
 function RestaurantSection({ onOpenDemo }: { onOpenDemo: () => void }) {
   const { t } = useLanguage();
-  const [selectedDemoLang, setSelectedDemoLang] = useState<'nl' | 'en' | 'fr' | 'de'>('nl');
-
-  const demoLanguages = [
-    { code: 'nl' as const, flag: '🇳🇱', label: 'NL' },
-    { code: 'en' as const, flag: '🇬🇧', label: 'EN' },
-    { code: 'fr' as const, flag: '🇫🇷', label: 'FR' },
-    { code: 'de' as const, flag: '🇩🇪', label: 'DE' },
-  ];
 
   return (
     <section style={{ background: '#f5f5f5', padding: '200px 0' }}>
@@ -1086,32 +1044,6 @@ function RestaurantSection({ onOpenDemo }: { onOpenDemo: () => void }) {
                 <PhoneCall size={16} />
                 {t('inbound.listenDemo')}
               </button>
-            </div>
-            {/* Language selector for demo */}
-            <div style={{ display: 'flex', gap: 8, marginBottom: 32 }}>
-              {demoLanguages.map((lang) => (
-                <button
-                  key={lang.code}
-                  onClick={() => setSelectedDemoLang(lang.code)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4,
-                    padding: '6px 10px',
-                    borderRadius: 6,
-                    border: selectedDemoLang === lang.code ? '2px solid #f97316' : '2px solid #e5e7eb',
-                    background: selectedDemoLang === lang.code ? '#fff7ed' : 'white',
-                    cursor: 'pointer',
-                    fontSize: 13,
-                    fontWeight: selectedDemoLang === lang.code ? 600 : 400,
-                    color: selectedDemoLang === lang.code ? '#f97316' : '#6b7280',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  <span style={{ fontSize: 16 }}>{lang.flag}</span>
-                  <span>{lang.label}</span>
-                </button>
-              ))}
             </div>
 
             {/* Feature list */}
