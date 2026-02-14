@@ -183,63 +183,68 @@ function DemoModal({ isOpen, onClose, demoType = 'belle' }: { isOpen: boolean; o
       alignItems: 'center',
       justifyContent: 'center',
       zIndex: 1000,
-      padding: 20,
+      padding: 16,
+      overflowY: 'auto',
     }}>
       <div style={{
         background: 'white',
-        borderRadius: 24,
+        borderRadius: 20,
         padding: 0,
-        maxWidth: 480,
+        maxWidth: 420,
         width: '100%',
         position: 'relative',
         overflow: 'hidden',
+        maxHeight: 'calc(100vh - 32px)',
+        display: 'flex',
+        flexDirection: 'column',
       }}>
-        {/* Close button */}
+        {/* Close button - fixed at top */}
         <button 
           onClick={onClose}
           style={{
             position: 'absolute',
-            top: 16,
-            right: 16,
-            background: 'rgba(255,255,255,0.9)',
+            top: 12,
+            right: 12,
+            background: '#1a1a2e',
             border: 'none',
             borderRadius: '50%',
-            width: 36,
-            height: 36,
+            width: 40,
+            height: 40,
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: 20,
-            zIndex: 10,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            fontSize: 24,
+            color: 'white',
+            zIndex: 20,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
           }}
         >
           ×
         </button>
 
         {/* Header */}
-        <div style={{ padding: '32px 32px 24px', textAlign: 'center', background: '#fafafa' }}>
+        <div style={{ padding: '20px 20px 16px', textAlign: 'center', background: '#fafafa', flexShrink: 0 }}>
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 8,
+            gap: 6,
             background: 'white',
-            padding: '8px 16px',
-            borderRadius: 20,
-            marginBottom: 20,
+            padding: '6px 12px',
+            borderRadius: 16,
+            marginBottom: 12,
             boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
           }}>
             <div style={{ 
-              width: 8, 
-              height: 8, 
+              width: 6, 
+              height: 6, 
               background: isPlaying ? '#22c55e' : '#9ca3af', 
               borderRadius: '50%',
               animation: isPlaying ? 'pulse 1.5s infinite' : 'none',
             }} />
-            <span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>{t('demoModal.liveDemo')}</span>
+            <span style={{ fontSize: 12, color: '#374151', fontWeight: 500 }}>{t('demoModal.liveDemo')}</span>
           </div>
-          <p style={{ color: '#6b7280', fontSize: 15, lineHeight: 1.6, margin: 0 }}>
+          <p style={{ color: '#6b7280', fontSize: 13, lineHeight: 1.5, margin: 0 }}>
             {t('demoModal.listenDescription')}
           </p>
         </div>
@@ -247,27 +252,28 @@ function DemoModal({ isOpen, onClose, demoType = 'belle' }: { isOpen: boolean; o
         {/* Audio Visualizer */}
         <div style={{ 
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          padding: '40px 32px',
+          padding: '24px 20px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
+          flexShrink: 0,
         }}>
           {/* Spinning audio indicator */}
           <div style={{
-            width: 120,
-            height: 120,
+            width: 80,
+            height: 80,
             borderRadius: '50%',
             background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            marginBottom: 24,
+            marginBottom: 16,
             animation: isPlaying ? 'spin 3s linear infinite' : 'none',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
           }}>
             <div style={{
-              width: 80,
-              height: 80,
+              width: 56,
+              height: 56,
               borderRadius: '50%',
               background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)',
               display: 'flex',
@@ -275,21 +281,21 @@ function DemoModal({ isOpen, onClose, demoType = 'belle' }: { isOpen: boolean; o
               justifyContent: 'center',
             }}>
               {isPlaying ? (
-                <Mic size={32} style={{ color: 'white' }} />
+                <Mic size={24} style={{ color: 'white' }} />
               ) : (
-                <Phone size={32} style={{ color: 'white' }} />
+                <Phone size={24} style={{ color: 'white' }} />
               )}
             </div>
           </div>
 
           {/* Audio bars */}
-          <div style={{ display: 'flex', gap: 4, height: 32, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 3, height: 24, alignItems: 'center' }}>
             {[...Array(14)].map((_, i) => (
               <div
                 key={i}
                 style={{
-                  width: 6,
-                  height: isPlaying ? `${Math.random() * 24 + 8}px` : '8px',
+                  width: 5,
+                  height: isPlaying ? `${Math.random() * 18 + 6}px` : '6px',
                   background: 'rgba(255,255,255,0.6)',
                   borderRadius: 3,
                   transition: 'height 0.15s ease',
@@ -302,11 +308,12 @@ function DemoModal({ isOpen, onClose, demoType = 'belle' }: { isOpen: boolean; o
 
         {/* Transcript area */}
         <div style={{
-          padding: '24px 32px',
-          minHeight: 180,
-          maxHeight: 220,
+          padding: '16px 20px',
+          minHeight: 120,
+          maxHeight: 160,
           overflowY: 'auto',
           background: 'white',
+          flex: 1,
         }}>
           {!isPlaying && currentLine === 0 ? (
             <div style={{ textAlign: 'center', color: '#9ca3af', fontSize: 14, paddingTop: 20 }}>
@@ -369,7 +376,7 @@ function DemoModal({ isOpen, onClose, demoType = 'belle' }: { isOpen: boolean; o
         </div>
 
         {/* Button */}
-        <div style={{ padding: '0 32px 32px', background: 'white' }}>
+        <div style={{ padding: '0 20px 16px', background: 'white', flexShrink: 0 }}>
           {!isPlaying && !isComplete ? (
             <button 
               onClick={handlePlay}
@@ -378,14 +385,14 @@ function DemoModal({ isOpen, onClose, demoType = 'belle' }: { isOpen: boolean; o
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 10,
+                gap: 8,
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 color: 'white',
                 border: 'none',
-                borderRadius: 12,
-                padding: '16px 32px',
+                borderRadius: 10,
+                padding: '12px 24px',
                 cursor: 'pointer',
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: 600,
                 boxShadow: '0 4px 14px rgba(102, 126, 234, 0.4)',
               }}
@@ -400,26 +407,26 @@ function DemoModal({ isOpen, onClose, demoType = 'belle' }: { isOpen: boolean; o
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 10,
+                gap: 8,
                 background: '#f3f4f6',
                 color: '#374151',
                 border: 'none',
-                borderRadius: 12,
-                padding: '16px 32px',
+                borderRadius: 10,
+                padding: '12px 24px',
                 cursor: 'pointer',
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: 600,
               }}
             >
-              <RefreshCw size={18} />
+              <RefreshCw size={16} />
               {t('demoModal.playAgain')}
             </button>
           ) : (
             <div style={{ 
               textAlign: 'center', 
               color: '#9ca3af', 
-              fontSize: 13,
-              padding: '8px 0',
+              fontSize: 12,
+              padding: '4px 0',
             }}>
               {t('demoModal.callInProgress')}
             </div>
@@ -428,12 +435,13 @@ function DemoModal({ isOpen, onClose, demoType = 'belle' }: { isOpen: boolean; o
 
         {/* Footer note */}
         <div style={{ 
-          padding: '16px 32px', 
+          padding: '12px 20px', 
           background: '#fafafa', 
           textAlign: 'center',
           borderTop: '1px solid #f3f4f6',
+          flexShrink: 0,
         }}>
-          <p style={{ fontSize: 12, color: '#9ca3af', margin: 0 }}>
+          <p style={{ fontSize: 11, color: '#9ca3af', margin: 0 }}>
             {t('demoModal.simulationNote')}
           </p>
         </div>
