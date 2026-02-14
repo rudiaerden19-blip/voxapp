@@ -108,13 +108,18 @@ export default function OverOnsPage() {
               <p style={{ color: '#9ca3af', lineHeight: 1.8, marginBottom: 20 }}>
                 In 2013 richtte Rudi Aerden Vysion op met een duidelijke visie: technologie 
                 toegankelijk maken voor elk bedrijf, ongeacht grootte of budget. Wat begon als 
-                een klein softwarebedrijf in België is uitgegroeid tot een internationale 
-                technologie groep met klanten wereldwijd.
+                een klein softwarebedrijf in België is ondertussen uitgegroeid tot een bedrijf 
+                dat maatwerk software ontwikkelt voor KMO&apos;s, zelfstandigen en overheden.
               </p>
-              <p style={{ color: '#9ca3af', lineHeight: 1.8 }}>
+              <p style={{ color: '#9ca3af', lineHeight: 1.8, marginBottom: 20 }}>
                 &ldquo;Ons doel is simpel: bedrijven helpen groeien door slimme technologie. 
                 Met VoxApp brengen we die visie naar de telefoonlijn van elk bedrijf.&rdquo;
               </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 16 }}>
+                <a href="https://voxapp.tech" style={{ color: '#f97316', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>voxapp.tech</a>
+                <a href="https://www.vysionhoreca.com" style={{ color: '#f97316', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>vysionhoreca.com</a>
+                <a href="https://www.vysionapps.io" style={{ color: '#f97316', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>vysionapps.io</a>
+              </div>
             </div>
             <div style={{ 
               background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
