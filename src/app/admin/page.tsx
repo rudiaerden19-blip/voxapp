@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
-import { LogOut, Plus, Monitor, RotateCcw, Eye, Ban, Check, Trash2, Phone, Users, CreditCard, AlertTriangle } from 'lucide-react';
+import { LogOut, Plus, Monitor, RotateCcw, Eye, Ban, Check, Trash2, Phone, Users, CreditCard, AlertTriangle, Shield, Lock } from 'lucide-react';
 
-const ADMIN_EMAIL = 'rudi.aerden@hotmail.com';
+// Admin credentials - alleen jij hebt toegang
+const ADMIN_EMAIL = 'admin@voxapp.tech';
+const ADMIN_PASSWORD = 'VoxAdmin2024!';
 
 interface Tenant {
   id: string;
@@ -18,11 +20,9 @@ interface Tenant {
   blocked?: boolean;
   created_at: string;
   trial_ends_at?: string;
-  // Modules
   has_kassa?: boolean;
   has_app?: boolean;
   has_website?: boolean;
-  // Stats
   total_calls?: number;
   total_appointments?: number;
 }
@@ -31,29 +31,24 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [tenants, setTenants] = useState<Tenant[]>([]);
-  const [adminName, setAdminName] = useState('');
+  const [adminEmail, setAdminEmail] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
   const router = useRouter();
 
-  useEffect(() => { checkAdminAndLoad(); }, []);
+  useEffect(() => { 
+    // Check if admin session exists
+    const adminSession = localStorage.getItem('voxapp_admin_session');
+    if (adminSession === 'true') {
+      setIsAdmin(true);
+      loadTenants();
+    } else {
+      setLoading(false);
+    }
+  }, []);
 
-  const checkAdminAndLoad = async () => {
+  const loadTenants = async () => {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      router.push('/login');
-      return;
-    }
-
-    if (user.email !== ADMIN_EMAIL) {
-      router.push('/dashboard');
-      return;
-    }
-
-    setAdminName(user.email.split('@')[0]);
-    setIsAdmin(true);
-
-    // Load tenants
     const { data } = await supabase
       .from('businesses')
       .select('*')
@@ -63,10 +58,24 @@ export default function AdminDashboard() {
     setLoading(false);
   };
 
-  const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push('/login');
+  const handleAdminLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError('');
+    
+    if (adminEmail === ADMIN_EMAIL && adminPassword === ADMIN_PASSWORD) {
+      localStorage.setItem('voxapp_admin_session', 'true');
+      setIsAdmin(true);
+      loadTenants();
+    } else {
+      setLoginError('Ongeldige admin credentials');
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('voxapp_admin_session');
+    setIsAdmin(false);
+    setAdminEmail('');
+    setAdminPassword('');
   };
 
   const toggleBlock = async (tenant: Tenant) => {
@@ -112,18 +121,65 @@ export default function AdminDashboard() {
     }
   };
 
-  if (loading) {
+  // Admin Login Screen
+  if (!isAdmin) {
     return (
-      <div style={{ minHeight: '100vh', background: '#0f1729', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ color: '#9ca3af' }}>Laden...</p>
+      <div style={{ minHeight: '100vh', background: '#0f1729', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+        <div style={{ width: '100%', maxWidth: 400, background: '#1e293b', borderRadius: 16, padding: 40, border: '1px solid #334155' }}>
+          <div style={{ textAlign: 'center', marginBottom: 32 }}>
+            <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <Shield size={32} color="white" />
+            </div>
+            <h1 style={{ color: 'white', fontSize: 24, fontWeight: 700, margin: 0 }}>Admin Panel</h1>
+            <p style={{ color: '#9ca3af', fontSize: 14, marginTop: 8 }}>Alleen voor eigenaar</p>
+          </div>
+
+          <form onSubmit={handleAdminLogin}>
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Admin Email</label>
+              <input
+                type="email"
+                value={adminEmail}
+                onChange={(e) => setAdminEmail(e.target.value)}
+                style={{ width: '100%', padding: '12px 16px', background: '#0f1729', border: '1px solid #334155', borderRadius: 8, color: 'white', fontSize: 16 }}
+                placeholder="admin@voxapp.tech"
+                required
+              />
+            </div>
+            <div style={{ marginBottom: 24 }}>
+              <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Wachtwoord</label>
+              <input
+                type="password"
+                value={adminPassword}
+                onChange={(e) => setAdminPassword(e.target.value)}
+                style={{ width: '100%', padding: '12px 16px', background: '#0f1729', border: '1px solid #334155', borderRadius: 8, color: 'white', fontSize: 16 }}
+                placeholder="••••••••"
+                required
+              />
+            </div>
+
+            {loginError && (
+              <div style={{ background: '#ef444420', border: '1px solid #ef4444', borderRadius: 8, padding: 12, marginBottom: 16, color: '#ef4444', fontSize: 14 }}>
+                {loginError}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              style={{ width: '100%', padding: '14px 24px', background: '#ef4444', border: 'none', borderRadius: 8, color: 'white', fontSize: 16, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+            >
+              <Lock size={18} /> Inloggen als Admin
+            </button>
+          </form>
+        </div>
       </div>
     );
   }
 
-  if (!isAdmin) {
+  if (loading) {
     return (
       <div style={{ minHeight: '100vh', background: '#0f1729', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ color: '#ef4444' }}>Geen toegang</p>
+        <p style={{ color: '#9ca3af' }}>Laden...</p>
       </div>
     );
   }
@@ -133,28 +189,20 @@ export default function AdminDashboard() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Users size={24} color="white" />
+          <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Shield size={24} color="white" />
           </div>
           <div>
             <h1 style={{ color: 'white', fontSize: 24, fontWeight: 700, margin: 0 }}>VoxApp Admin Panel</h1>
-            <p style={{ color: '#9ca3af', fontSize: 14, margin: 0 }}>Welkom, {adminName}!</p>
+            <p style={{ color: '#9ca3af', fontSize: 14, margin: 0 }}>Eigenaar Dashboard</p>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 12 }}>
-          <button 
-            onClick={() => router.push('/dashboard')}
-            style={{ padding: '10px 20px', background: '#1e293b', border: '1px solid #334155', borderRadius: 8, color: 'white', cursor: 'pointer', fontSize: 14 }}
-          >
-            Dashboard
-          </button>
-          <button 
-            onClick={handleLogout}
-            style={{ padding: '10px 20px', background: '#1e293b', border: '1px solid #334155', borderRadius: 8, color: 'white', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}
-          >
-            <LogOut size={16} /> Uitloggen
-          </button>
-        </div>
+        <button 
+          onClick={handleLogout}
+          style={{ padding: '10px 20px', background: '#1e293b', border: '1px solid #334155', borderRadius: 8, color: 'white', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}
+        >
+          <LogOut size={16} /> Uitloggen
+        </button>
       </div>
 
       {/* Stats Cards */}
@@ -182,7 +230,7 @@ export default function AdminDashboard() {
         <div style={{ padding: '16px 20px', borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 style={{ color: 'white', fontSize: 18, fontWeight: 600, margin: 0 }}>Alle Tenants</h2>
           <button style={{ padding: '8px 16px', background: '#22c55e', border: 'none', borderRadius: 6, color: 'white', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Plus size={16} /> Nieuwe Onboard Tenant
+            <Plus size={16} /> Nieuwe Tenant
           </button>
         </div>
 
@@ -194,16 +242,14 @@ export default function AdminDashboard() {
                 <th style={{ textAlign: 'left', padding: '14px 16px', color: '#9ca3af', fontSize: 13, fontWeight: 500 }}>Contact</th>
                 <th style={{ textAlign: 'left', padding: '14px 16px', color: '#9ca3af', fontSize: 13, fontWeight: 500 }}>Plan</th>
                 <th style={{ textAlign: 'left', padding: '14px 16px', color: '#9ca3af', fontSize: 13, fontWeight: 500 }}>Status</th>
-                <th style={{ textAlign: 'left', padding: '14px 16px', color: '#9ca3af', fontSize: 13, fontWeight: 500 }}>Stats</th>
                 <th style={{ textAlign: 'left', padding: '14px 16px', color: '#9ca3af', fontSize: 13, fontWeight: 500 }}>Aangemaakt</th>
-                <th style={{ textAlign: 'left', padding: '14px 16px', color: '#9ca3af', fontSize: 13, fontWeight: 500 }}>Module</th>
                 <th style={{ textAlign: 'right', padding: '14px 16px', color: '#9ca3af', fontSize: 13, fontWeight: 500 }}>Acties</th>
               </tr>
             </thead>
             <tbody>
               {tenants.length === 0 ? (
                 <tr>
-                  <td colSpan={8} style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>Geen tenants gevonden</td>
+                  <td colSpan={6} style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>Geen tenants gevonden</td>
                 </tr>
               ) : (
                 tenants.map((tenant) => {
@@ -229,37 +275,11 @@ export default function AdminDashboard() {
                           {status.label}
                         </span>
                       </td>
-                      <td style={{ padding: '14px 16px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <Phone size={14} style={{ color: '#6b7280' }} />
-                            <span style={{ color: 'white', fontSize: 13 }}>{tenant.total_calls || 0}</span>
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <Users size={14} style={{ color: '#6b7280' }} />
-                            <span style={{ color: 'white', fontSize: 13 }}>{tenant.total_appointments || 0}</span>
-                          </div>
-                        </div>
-                      </td>
                       <td style={{ padding: '14px 16px', color: '#9ca3af', fontSize: 13 }}>
                         {formatDate(tenant.created_at)}
                       </td>
                       <td style={{ padding: '14px 16px' }}>
-                        <div style={{ display: 'flex', gap: 6 }}>
-                          <span style={{ background: '#3b82f6', color: 'white', padding: '3px 8px', borderRadius: 4, fontSize: 10, fontWeight: 600 }}>Receptie</span>
-                          {tenant.has_kassa && <span style={{ background: '#8b5cf6', color: 'white', padding: '3px 8px', borderRadius: 4, fontSize: 10, fontWeight: 600 }}>Kassa</span>}
-                          {tenant.has_app && <span style={{ background: '#ec4899', color: 'white', padding: '3px 8px', borderRadius: 4, fontSize: 10, fontWeight: 600 }}>App</span>}
-                        </div>
-                      </td>
-                      <td style={{ padding: '14px 16px' }}>
                         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                          <button
-                            onClick={() => router.push(`/admin/tenant/${tenant.id}`)}
-                            style={{ padding: 8, background: '#3b82f620', border: 'none', borderRadius: 6, color: '#3b82f6', cursor: 'pointer' }}
-                            title="Bekijken"
-                          >
-                            <Eye size={16} />
-                          </button>
                           <button
                             onClick={() => toggleBlock(tenant)}
                             style={{ padding: 8, background: tenant.blocked ? '#22c55e20' : '#f9731620', border: 'none', borderRadius: 6, color: tenant.blocked ? '#22c55e' : '#f97316', cursor: 'pointer' }}
@@ -294,7 +314,7 @@ export default function AdminDashboard() {
             </div>
             <div>
               <p style={{ color: 'white', fontWeight: 600, margin: 0 }}>Nieuwe Tenant</p>
-              <p style={{ color: '#6b7280', fontSize: 13, margin: 0 }}>Voeg een nieuwe klant toe</p>
+              <p style={{ color: '#6b7280', fontSize: 13, margin: 0 }}>Voeg nieuwe klant toe</p>
             </div>
           </div>
         </div>
