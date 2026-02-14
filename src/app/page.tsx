@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { useConversation } from '@elevenlabs/react';
+import { useLanguage, Language } from '@/lib/LanguageContext';
 
 // Force scroll to top on page load/refresh
 if (typeof window !== 'undefined') {
@@ -465,16 +466,16 @@ function DemoModal({ isOpen, onClose, demoType = 'belle' }: { isOpen: boolean; o
 ============================================ */
 function LanguageSelector() {
   const [isOpen, setIsOpen] = useState(false);
-  const [currentLang, setCurrentLang] = useState('nl');
+  const { language, setLanguage } = useLanguage();
   
-  const languages = [
+  const languages: { code: Language; name: string; flag: string }[] = [
     { code: 'nl', name: 'Nederlands', flag: '🇳🇱' },
     { code: 'en', name: 'English', flag: '🇬🇧' },
     { code: 'fr', name: 'Français', flag: '🇫🇷' },
     { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
   ];
   
-  const current = languages.find(l => l.code === currentLang) || languages[0];
+  const current = languages.find(l => l.code === language) || languages[0];
   
   return (
     <div style={{ position: 'relative' }}>
@@ -520,9 +521,8 @@ function LanguageSelector() {
               <button
                 key={lang.code}
                 onClick={() => {
-                  setCurrentLang(lang.code);
+                  setLanguage(lang.code);
                   setIsOpen(false);
-                  // TODO: Implement actual language switching
                 }}
                 style={{
                   display: 'flex',
@@ -530,7 +530,7 @@ function LanguageSelector() {
                   gap: 10,
                   width: '100%',
                   padding: '10px 12px',
-                  background: currentLang === lang.code ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
+                  background: language === lang.code ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
                   border: 'none',
                   borderRadius: 8,
                   color: 'white',
@@ -541,7 +541,7 @@ function LanguageSelector() {
               >
                 <span style={{ fontSize: 20 }}>{lang.flag}</span>
                 <span>{lang.name}</span>
-                {currentLang === lang.code && (
+                {language === lang.code && (
                   <Check size={16} color="#f97316" style={{ marginLeft: 'auto' }} />
                 )}
               </button>
@@ -558,6 +558,7 @@ function LanguageSelector() {
 ============================================ */
 function Navigation() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { t } = useLanguage();
 
   return (
     <>
@@ -578,16 +579,16 @@ function Navigation() {
             </a>
 
             <div style={{ display: 'none', alignItems: 'center', gap: 32 }} className="desktop-nav">
-              <a href="#features" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>Functies</a>
-              <a href="#how-it-works" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>Hoe het werkt</a>
-              <a href="#pricing" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>Prijzen</a>
-              <a href="#contact" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>Contact</a>
-              <a href="/over-ons" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>Over ons</a>
+              <a href="#features" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>{t('nav.features')}</a>
+              <a href="#how-it-works" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>{t('nav.howItWorks')}</a>
+              <a href="#pricing" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>{t('nav.pricing')}</a>
+              <a href="#contact" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>{t('nav.contact')}</a>
+              <a href="/over-ons" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>{t('nav.aboutUs')}</a>
             </div>
 
             <div style={{ display: 'none', alignItems: 'center', gap: 16 }} className="desktop-nav">
               <LanguageSelector />
-              <a href="/login" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>Inloggen</a>
+              <a href="/login" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>{t('nav.login')}</a>
               <a href="/register" style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -600,7 +601,7 @@ function Navigation() {
                 fontWeight: 600,
                 textDecoration: 'none',
               }}>
-                Gratis proberen
+                {t('nav.tryFree')}
               </a>
             </div>
 
@@ -626,11 +627,11 @@ function Navigation() {
           zIndex: 99,
           padding: 24,
         }}>
-          <a href="#features" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Functies</a>
-          <a href="#how-it-works" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Hoe het werkt</a>
-          <a href="#pricing" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Prijzen</a>
-          <a href="#contact" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Contact</a>
-          <a href="/over-ons" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Over ons</a>
+          <a href="#features" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>{t('nav.features')}</a>
+          <a href="#how-it-works" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>{t('nav.howItWorks')}</a>
+          <a href="#pricing" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>{t('nav.pricing')}</a>
+          <a href="#contact" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>{t('nav.contact')}</a>
+          <a href="/over-ons" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>{t('nav.aboutUs')}</a>
           <div style={{ padding: '16px 0', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
             <LanguageSelector />
           </div>
@@ -648,7 +649,7 @@ function Navigation() {
               fontWeight: 600,
               textDecoration: 'none',
             }}>
-              Gratis proberen <ArrowRight size={18} />
+              {t('nav.tryFree')} <ArrowRight size={18} />
             </a>
           </div>
         </div>
