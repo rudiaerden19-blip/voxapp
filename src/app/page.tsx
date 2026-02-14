@@ -1136,6 +1136,9 @@ function KassaSection() {
           <p style={{ fontSize: 16, color: '#9ca3af', lineHeight: 1.7, maxWidth: 600, margin: '0 auto' }}>
             Terwijl u friet bakt, verschijnt de bestelling op uw kassascherm én komt de bon uit de printer. Geen telefoon oppakken, geen fouten.
           </p>
+          <p style={{ fontSize: 15, color: '#f97316', fontWeight: 500, maxWidth: 600, margin: '16px auto 0' }}>
+            U kan de bestelling bevestigen of weigeren — de klant krijgt dan automatisch een SMS.
+          </p>
         </div>
 
         {/* Kassa Screen + Bon Printer */}
