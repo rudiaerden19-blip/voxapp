@@ -1212,55 +1212,53 @@ function FrituurSection() {
             </p>
 
             {/* Live Call Button */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 16, marginBottom: 32 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 12, marginBottom: 32 }}>
               {!isActive ? (
                 <>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-                    <button 
-                      onClick={startCall}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        background: callStatus === 'error' ? '#ef4444' : '#22c55e',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: 100,
-                        width: 80,
-                        height: 80,
-                        cursor: 'pointer',
-                        boxShadow: '0 0 30px rgba(34, 197, 94, 0.5)',
-                        animation: 'breathe 2s ease-in-out infinite',
-                      }}
-                    >
-                      <Phone size={32} />
-                    </button>
-                    {/* Language selector for demo */}
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      {demoLanguages.map((lang) => (
-                        <button
-                          key={lang.code}
-                          onClick={() => setSelectedDemoLang(lang.code)}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 4,
-                            padding: '8px 12px',
-                            borderRadius: 8,
-                            border: selectedDemoLang === lang.code ? '2px solid #f97316' : '2px solid #e5e7eb',
-                            background: selectedDemoLang === lang.code ? '#fff7ed' : 'white',
-                            cursor: 'pointer',
-                            fontSize: 14,
-                            fontWeight: selectedDemoLang === lang.code ? 600 : 400,
-                            color: selectedDemoLang === lang.code ? '#f97316' : '#6b7280',
-                            transition: 'all 0.2s',
-                          }}
-                        >
-                          <span style={{ fontSize: 18 }}>{lang.flag}</span>
-                          <span>{lang.label}</span>
-                        </button>
-                      ))}
-                    </div>
+                  <button 
+                    onClick={startCall}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: callStatus === 'error' ? '#ef4444' : '#22c55e',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: 100,
+                      width: 80,
+                      height: 80,
+                      cursor: 'pointer',
+                      boxShadow: '0 0 30px rgba(34, 197, 94, 0.5)',
+                      animation: 'breathe 2s ease-in-out infinite',
+                    }}
+                  >
+                    <Phone size={32} />
+                  </button>
+                  {/* Language selector for demo */}
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    {demoLanguages.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => setSelectedDemoLang(lang.code)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          padding: '6px 10px',
+                          borderRadius: 8,
+                          border: selectedDemoLang === lang.code ? '2px solid #f97316' : '1px solid #d1d5db',
+                          background: selectedDemoLang === lang.code ? '#fff7ed' : 'white',
+                          cursor: 'pointer',
+                          fontSize: 12,
+                          fontWeight: selectedDemoLang === lang.code ? 600 : 400,
+                          color: selectedDemoLang === lang.code ? '#f97316' : '#6b7280',
+                          transition: 'all 0.2s',
+                        }}
+                      >
+                        <span style={{ fontSize: 16 }}>{lang.flag}</span>
+                        <span>{lang.label}</span>
+                      </button>
+                    ))}
                   </div>
                   <p style={{ color: '#f97316', fontSize: 14, fontWeight: 500 }}>
                     {t('frituur.clickToOrder')}
