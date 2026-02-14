@@ -1228,23 +1228,24 @@ function FrituurSection() {
    KASSA SCHERM SECTIE - Bestelling Demo
 ============================================ */
 function KassaSection() {
+  const { t } = useLanguage();
   return (
     <section style={{ background: '#1a1a2e', padding: '80px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         {/* Header Text */}
         <div style={{ textAlign: 'center', marginBottom: 60 }}>
           <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
-            Automatisch Verwerkt
+            {t('kassa.badge')}
           </p>
           <h2 style={{ fontSize: 'clamp(24px, 4vw, 40px)', fontWeight: 700, color: 'white', lineHeight: 1.3, marginBottom: 20 }}>
-            De klant belt in, u werkt gewoon verder.<br />
-            <span style={{ color: '#f97316' }}>De bestelling komt automatisch binnen.</span>
+            {t('kassa.title1')}<br />
+            <span style={{ color: '#f97316' }}>{t('kassa.title2')}</span>
           </h2>
           <p style={{ fontSize: 16, color: '#9ca3af', lineHeight: 1.7, maxWidth: 600, margin: '0 auto' }}>
-            Terwijl u friet bakt, verschijnt de bestelling op uw kassascherm én komt de bon uit de printer. Geen telefoon oppakken, geen fouten.
+            {t('kassa.subtitle')}
           </p>
           <p style={{ fontSize: 15, color: '#f97316', fontWeight: 500, maxWidth: 600, margin: '16px auto 0' }}>
-            U kan de bestelling bevestigen of weigeren — de klant krijgt dan automatisch een SMS.
+            {t('kassa.smsInfo')}
           </p>
         </div>
 
@@ -1262,20 +1263,20 @@ function KassaSection() {
             {/* Screen Header */}
             <div style={{ background: '#f97316', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ color: 'white', fontWeight: 700, fontSize: 16 }}>Frituur De Schans</span>
-              <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12 }}>KASSA</span>
+              <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12 }}>{t('kassa.kassa')}</span>
             </div>
             
             {/* New Order Alert */}
             <div style={{ background: '#22c55e', padding: '10px 20px', display: 'flex', alignItems: 'center', gap: 10 }}>
               <Bell size={18} style={{ color: 'white' }} />
-              <span style={{ color: 'white', fontWeight: 600, fontSize: 14 }}>NIEUWE BESTELLING!</span>
+              <span style={{ color: 'white', fontWeight: 600, fontSize: 14 }}>{t('kassa.newOrder')}</span>
             </div>
 
             {/* Order Content */}
             <div style={{ padding: 20 }}>
               {/* Customer Info */}
               <div style={{ marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid #333' }}>
-                <p style={{ color: '#9ca3af', fontSize: 11, textTransform: 'uppercase', marginBottom: 6 }}>Klant</p>
+                <p style={{ color: '#9ca3af', fontSize: 11, textTransform: 'uppercase', marginBottom: 6 }}>{t('kassa.customer')}</p>
                 <p style={{ color: 'white', fontSize: 16, fontWeight: 600, margin: 0 }}>Jan Peeters</p>
                 <p style={{ color: '#9ca3af', fontSize: 14, margin: '4px 0 0 0' }}>Kerkstraat 42, 2000 Antwerpen</p>
                 <p style={{ color: '#9ca3af', fontSize: 14, margin: '2px 0 0 0' }}>0471 23 45 67</p>
@@ -1292,16 +1293,16 @@ function KassaSection() {
                   fontSize: 12, 
                   fontWeight: 600,
                 }}>
-                  LEVEREN
+                  {t('kassa.deliver')}
                 </div>
                 <div style={{ color: '#f97316', fontSize: 14, fontWeight: 600 }}>
-                  om 16:00
+                  {t('kassa.at')} 16:00
                 </div>
               </div>
 
               {/* Order Items */}
               <div style={{ marginBottom: 20 }}>
-                <p style={{ color: '#9ca3af', fontSize: 11, textTransform: 'uppercase', marginBottom: 10 }}>Bestelling</p>
+                <p style={{ color: '#9ca3af', fontSize: 11, textTransform: 'uppercase', marginBottom: 10 }}>{t('kassa.order')}</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', color: 'white' }}>
                     <span>1x Grote Friet + Mayonaise</span>
@@ -1327,7 +1328,7 @@ function KassaSection() {
                 justifyContent: 'space-between',
                 alignItems: 'center',
               }}>
-                <span style={{ color: '#9ca3af', fontSize: 14 }}>TOTAAL</span>
+                <span style={{ color: '#9ca3af', fontSize: 14 }}>{t('kassa.total')}</span>
                 <span style={{ color: '#22c55e', fontSize: 24, fontWeight: 700 }}>€9,00</span>
               </div>
             </div>
@@ -1356,7 +1357,7 @@ function KassaSection() {
                 <div style={{ width: '60%', height: 2, background: '#333' }} />
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ color: '#666', fontSize: 10, textTransform: 'uppercase' }}>Bon Printer</span>
+                <span style={{ color: '#666', fontSize: 10, textTransform: 'uppercase' }}>{t('kassa.bonPrinter')}</span>
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e', animation: 'pulse 1.5s infinite' }} />
               </div>
             </div>
@@ -1389,7 +1390,7 @@ function KassaSection() {
               </div>
 
               <div style={{ borderTop: '1px dashed #ccc', borderBottom: '1px dashed #ccc', padding: '12px 0', marginBottom: 12 }}>
-                <p style={{ fontSize: 10, color: '#666', margin: '0 0 4px 0' }}>Bestelling #1247</p>
+                <p style={{ fontSize: 10, color: '#666', margin: '0 0 4px 0' }}>{t('kassa.orderNr')}1247</p>
                 <p style={{ fontSize: 10, color: '#666', margin: 0 }}>14-02-2026 15:23</p>
               </div>
 
@@ -1416,13 +1417,13 @@ function KassaSection() {
 
               <div style={{ borderTop: '1px dashed #ccc', paddingTop: 12, marginTop: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, fontWeight: 700, color: '#1a1a2e' }}>
-                  <span>TOTAAL</span>
+                  <span>{t('kassa.total')}</span>
                   <span>€9,00</span>
                 </div>
               </div>
 
               <p style={{ textAlign: 'center', fontSize: 10, color: '#999', marginTop: 16, marginBottom: 0 }}>
-                Bedankt voor uw bestelling!
+                {t('kassa.thankYou')}
               </p>
             </div>
           </div>
