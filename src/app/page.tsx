@@ -447,6 +447,10 @@ function DemoModal({ isOpen, onClose, demoType = 'belle' }: { isOpen: boolean; o
           0%, 100% { height: 20px; }
           50% { height: 80px; }
         }
+        .audio-bar {
+          height: 20px;
+          animation: audioBar 0.8s ease-in-out infinite;
+        }
       `}</style>
     </div>
   );
@@ -636,17 +640,16 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
               boxShadow: '0 0 60px rgba(139, 92, 246, 0.2)',
             }}>
               {/* Animated Bars */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, height: 100 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, height: 120 }}>
                 {[0, 1, 2, 3, 4, 5, 6].map((i) => (
                   <div
                     key={i}
+                    className="audio-bar"
                     style={{
-                      width: 6,
-                      borderRadius: 3,
+                      width: 8,
+                      borderRadius: 4,
                       background: `linear-gradient(180deg, #8b5cf6 0%, #ec4899 100%)`,
-                      animation: `audioBar 1s ease-in-out infinite`,
-                      animationDelay: `${i * 0.1}s`,
-                      height: 40,
+                      animationDelay: `${i * 0.15}s`,
                     }}
                   />
                 ))}
