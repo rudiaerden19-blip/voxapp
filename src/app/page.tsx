@@ -1,7 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { useConversation } from '@elevenlabs/react';
+
+// Force scroll to top on page load/refresh
+if (typeof window !== 'undefined') {
+  window.history.scrollRestoration = 'manual';
+}
 import {
   Phone,
   Calendar,
@@ -2579,6 +2584,11 @@ function Footer() {
 export default function Home() {
   const [demoOpen, setDemoOpen] = useState(false);
   const [demoType, setDemoType] = useState<'belle' | 'garage' | 'restaurant'>('belle');
+
+  // Scroll to top on page load/refresh
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const openBelleDemo = () => {
     setDemoType('belle');
