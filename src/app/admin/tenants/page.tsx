@@ -18,6 +18,8 @@ interface Tenant {
   trial_ends_at?: string | null;
 }
 
+const ITEMS_PER_PAGE = 25;
+
 export default function TenantsPage() {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [filteredTenants, setFilteredTenants] = useState<Tenant[]>([]);
@@ -26,6 +28,12 @@ export default function TenantsPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredTenants.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedTenants = filteredTenants.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   useEffect(() => { loadTenants(); }, []);
 
@@ -48,6 +56,7 @@ export default function TenantsPage() {
     }
     
     setFilteredTenants(filtered);
+    setCurrentPage(1); // Reset to page 1 when filters change
   }, [tenants, searchQuery, statusFilter]);
 
   const loadTenants = async () => {
@@ -162,6 +171,14 @@ export default function TenantsPage() {
         ) : filteredTenants.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>Geen tenants gevonden</div>
         ) : (
+          <>
+          {/* Results count */}
+          <div style={{ padding: '12px 16px', borderBottom: '1px solid #2a2a35', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ color: '#9ca3af', fontSize: 14 }}>
+              {filteredTenants.length} tenant{filteredTenants.length !== 1 ? 's' : ''} gevonden
+              {filteredTenants.length > ITEMS_PER_PAGE && ` • Pagina ${currentPage} van ${totalPages}`}
+            </span>
+          </div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
@@ -174,7 +191,7 @@ export default function TenantsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredTenants.map((tenant) => {
+                {paginatedTenants.map((tenant) => {
                   const status = getStatusBadge(tenant);
                   return (
                     <tr key={tenant.id} style={{ borderTop: '1px solid #2a2a35' }}>
@@ -235,6 +252,63 @@ export default function TenantsPage() {
               </tbody>
             </table>
           </div>
+          
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div style={{ padding: '16px', borderTop: '1px solid #2a2a35', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8 }}>
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                style={{
+                  padding: '8px 16px', background: currentPage === 1 ? '#0a0a0f' : '#2a2a35',
+                  border: 'none', borderRadius: 6, color: currentPage === 1 ? '#6b7280' : 'white',
+                  cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontSize: 14,
+                }}
+              >
+                Vorige
+              </button>
+              
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum: number;
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    style={{
+                      padding: '8px 14px',
+                      background: currentPage === pageNum ? '#ef4444' : '#2a2a35',
+                      border: 'none', borderRadius: 6,
+                      color: 'white', cursor: 'pointer', fontSize: 14, fontWeight: currentPage === pageNum ? 600 : 400,
+                    }}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+              
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                style={{
+                  padding: '8px 16px', background: currentPage === totalPages ? '#0a0a0f' : '#2a2a35',
+                  border: 'none', borderRadius: 6, color: currentPage === totalPages ? '#6b7280' : 'white',
+                  cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', fontSize: 14,
+                }}
+              >
+                Volgende
+              </button>
+            </div>
+          )}
+          </>
         )}
       </div>
 
