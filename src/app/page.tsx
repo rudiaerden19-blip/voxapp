@@ -595,7 +595,7 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
             </p>
 
             {/* CTA Buttons */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 48 }}>
+            <div className="mobile-buttons" style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 48 }}>
               <a href="/register" style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -633,12 +633,13 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
               <img 
                 src="/hero-receptionist.png"
                 alt="Professionele receptionist"
+                className="hero-image"
                 style={{ width: '100%', height: 'auto', display: 'block', maxHeight: 500, objectFit: 'cover' }}
               />
             </div>
 
-            {/* Floating Chat Bubble - Top Right */}
-            <div style={{
+            {/* Floating Chat Bubble - Top Right - Hidden on mobile */}
+            <div className="hero-floating-chat" style={{
               position: 'absolute',
               top: 40,
               right: -20,
@@ -657,8 +658,8 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
               </p>
             </div>
 
-            {/* Action Badges - Right Side */}
-            <div style={{ position: 'absolute', top: 160, right: -30, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {/* Action Badges - Right Side - Hidden on mobile */}
+            <div className="hero-floating-badges" style={{ position: 'absolute', top: 160, right: -30, display: 'flex', flexDirection: 'column', gap: 12 }}>
               {[
                 { icon: Check, text: 'Receptionist Beantwoordt', color: '#22c55e' },
                 { icon: CalendarCheck, text: 'Afspraak Ingepland', color: '#f97316' },
@@ -728,7 +729,7 @@ function ForWhoSection() {
           </p>
         </div>
 
-        <div style={{ 
+        <div className="for-who-grid" style={{ 
           display: 'grid', 
           gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', 
           gap: 20,
@@ -1130,7 +1131,7 @@ function KassaSection() {
         </div>
 
         {/* Kassa Screen + Bon Printer */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 40, alignItems: 'start' }}>
+        <div className="kassa-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 40, alignItems: 'start' }}>
           
           {/* Kassa Scherm */}
           <div style={{
@@ -1351,7 +1352,7 @@ function ROICalculatorSection() {
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 40 }}>
+        <div className="roi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 40 }}>
           {/* Left - Sliders */}
           <div style={{ background: '#1a1025', borderRadius: 16, padding: 32 }}>
             <h3 style={{ color: 'white', fontSize: 18, fontWeight: 600, marginBottom: 32, display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -1511,7 +1512,7 @@ function OutboundSection() {
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))', gap: 60, alignItems: 'center' }}>
           {/* Left - Professional Calendar - Hidden on mobile */}
-          <div style={{ position: 'relative' }} className="hidden md:block">
+          <div className="calendar-desktop" style={{ position: 'relative' }}>
             <div style={{
               background: 'white',
               borderRadius: 20,
@@ -1819,6 +1820,7 @@ function TryLiveSection() {
             <>
               <button 
                 onClick={startCall}
+                className="call-button-large"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -2003,7 +2005,7 @@ function HowItWorksSection() {
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 24 }}>
+        <div className="how-it-works-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 24 }}>
           {steps.map((step) => (
             <div key={step.num} style={{
               background: '#1a1025',
@@ -2112,7 +2114,7 @@ function StatsSection() {
   return (
     <section ref={sectionRef} style={{ background: '#f5f5f5', padding: '60px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 40, textAlign: 'center' }}>
+        <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 40, textAlign: 'center' }}>
           {stats.map((stat, i) => (
             <div key={i}>
               <p style={{ 
@@ -2186,7 +2188,7 @@ function PricingSection() {
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
+        <div className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
           {plans.map((plan) => (
             <div key={plan.name} style={{
               background: '#ffffff',
@@ -2289,6 +2291,7 @@ function PartnersSection() {
       
       <div style={{ position: 'relative', width: '100%' }}>
         <div 
+          className="partners-slider"
           style={{ 
             display: 'flex', 
             gap: 60,
@@ -2415,7 +2418,7 @@ function TestimonialsSection() {
           Wat Onze Klanten Zeggen
         </h2>
         
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 30 }}>
+        <div className="testimonials-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 30 }}>
           {testimonials.map((t, i) => (
             <div 
               key={i}
