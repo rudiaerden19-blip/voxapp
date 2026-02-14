@@ -669,6 +669,7 @@ function Navigation() {
    HERO SECTION - Intavia Style
 ============================================ */
 function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
+  const { t } = useLanguage();
   return (
     <section id="hero" style={{
       background: 'linear-gradient(180deg, #0f0a14 0%, #1a1025 100%)',
@@ -682,7 +683,7 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
         {/* Badge */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 32 }}>
           <Phone size={16} style={{ color: '#f97316' }} />
-          <span style={{ color: '#9ca3af', fontSize: 14 }}>Slimme Receptie voor Groeiende Bedrijven</span>
+          <span style={{ color: '#9ca3af', fontSize: 14 }}>{t('hero.badge')}</span>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 60, alignItems: 'center' }}>
@@ -695,16 +696,16 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
               color: 'white',
               marginBottom: 24,
             }}>
-              Mis nooit een oproep.<br />
-              Boek meer afspraken.<br />
-              <span style={{ color: '#f97316' }}>Bespaar tijd.</span>
+              {t('hero.title1')}<br />
+              {t('hero.title2')}<br />
+              <span style={{ color: '#f97316' }}>{t('hero.title3')}</span>
             </h1>
 
             <p style={{ fontSize: 18, color: '#9ca3af', lineHeight: 1.7, marginBottom: 12 }}>
-              VoxApp beheert uw oproepen, boekt afspraken en beantwoordt vragen — zodat u kunt focussen op uw werk.
+              {t('hero.subtitle')}
             </p>
             <p style={{ fontSize: 16, color: '#f97316', fontWeight: 500, marginBottom: 32 }}>
-              Geen robotstemmen, maar uw eigen stem die spreekt.
+              {t('hero.tagline')}
             </p>
 
             {/* CTA Buttons */}
@@ -722,7 +723,7 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
                 textDecoration: 'none',
               }}>
                 <Calendar size={18} />
-                Start gratis proefperiode
+                {t('hero.cta')}
               </a>
             </div>
           </div>
@@ -745,7 +746,7 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
             }}>
               <img 
                 src="/hero-receptionist.png"
-                alt="Professionele receptionist"
+                alt={t('hero.professionalReceptionist')}
                 className="hero-image"
                 style={{ width: '100%', height: 'auto', display: 'block', maxHeight: 500, objectFit: 'cover' }}
               />
@@ -764,19 +765,19 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e' }} />
-                <span style={{ fontSize: 12, color: '#6b7280' }}>VoxApp Receptionist</span>
+                <span style={{ fontSize: 12, color: '#6b7280' }}>{t('hero.receptionist')}</span>
               </div>
               <p style={{ fontSize: 14, color: '#1a1a2e', margin: 0 }}>
-                &quot;Goedemiddag, Kapsalon Belle. Waarmee kan ik u helpen?&quot;
+                &quot;{t('hero.greeting')}&quot;
               </p>
             </div>
 
             {/* Action Badges - Right Side - Hidden on mobile */}
             <div className="hero-floating-badges" style={{ position: 'absolute', top: 160, right: -30, display: 'flex', flexDirection: 'column', gap: 12 }}>
               {[
-                { icon: Check, text: 'Receptionist Beantwoordt', color: '#22c55e' },
-                { icon: CalendarCheck, text: 'Afspraak Ingepland', color: '#f97316' },
-                { icon: Send, text: 'Bevestiging Verstuurd', color: '#3b82f6' },
+                { icon: Check, text: t('hero.receptionistAnswers'), color: '#22c55e' },
+                { icon: CalendarCheck, text: t('hero.appointmentScheduled'), color: '#f97316' },
+                { icon: Send, text: t('hero.confirmationSent'), color: '#3b82f6' },
               ].map((badge, i) => (
                 <div key={i} style={{
                   display: 'flex',
@@ -804,27 +805,28 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
    FOR WHO SECTION - Business Types Grid
 ============================================ */
 function ForWhoSection() {
+  const { t } = useLanguage();
   const businesses = [
-    { icon: '💇', name: 'Kapsalons' },
-    { icon: '👨‍⚕️', name: 'Dokterspraktijken' },
-    { icon: '🏥', name: 'Ziekenhuizen' },
-    { icon: '🏨', name: 'Hotels' },
-    { icon: '🍟', name: 'Frituren' },
-    { icon: '🥙', name: 'Kebabzaken' },
-    { icon: '🍕', name: 'Pizzeria\'s' },
-    { icon: '🍝', name: 'Restaurants' },
-    { icon: '🦷', name: 'Tandartsen' },
-    { icon: '👁️', name: 'Opticiens' },
-    { icon: '💆', name: 'Beautysalons' },
-    { icon: '🏋️', name: 'Fitnessstudio\'s' },
-    { icon: '🚗', name: 'Garages' },
-    { icon: '🏠', name: 'Immobiliënkantoren' },
-    { icon: '⚖️', name: 'Advocatenkantoren' },
-    { icon: '📊', name: 'Boekhoudkantoren' },
-    { icon: '🐕', name: 'Dierenklinieken' },
-    { icon: '💐', name: 'Bloemenwinkels' },
-    { icon: '🧹', name: 'Schoonmaakbedrijven' },
-    { icon: '🔧', name: 'Loodgieters' },
+    { icon: '💇', key: 'kapsalons' },
+    { icon: '👨‍⚕️', key: 'dokterspraktijken' },
+    { icon: '🏥', key: 'ziekenhuizen' },
+    { icon: '🏨', key: 'hotels' },
+    { icon: '🍟', key: 'frituren' },
+    { icon: '🥙', key: 'kebabzaken' },
+    { icon: '🍕', key: 'pizzerias' },
+    { icon: '🍝', key: 'restaurants' },
+    { icon: '🦷', key: 'tandartsen' },
+    { icon: '👁️', key: 'opticiens' },
+    { icon: '💆', key: 'beautysalons' },
+    { icon: '🏋️', key: 'fitnessstudios' },
+    { icon: '🚗', key: 'garages' },
+    { icon: '🏠', key: 'immobilienkantoren' },
+    { icon: '⚖️', key: 'advocatenkantoren' },
+    { icon: '📊', key: 'boekhoudkantoren' },
+    { icon: '🐕', key: 'dierenklinieken' },
+    { icon: '💐', key: 'bloemenwinkels' },
+    { icon: '🧹', key: 'schoonmaakbedrijven' },
+    { icon: '🔧', key: 'loodgieters' },
   ];
 
   return (
@@ -832,13 +834,13 @@ function ForWhoSection() {
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: 60 }}>
           <span style={{ color: '#f97316', fontSize: 14, fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase' }}>
-            Voor Wie
+            {t('forWho.badge')}
           </span>
           <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 700, color: '#1a1a2e', margin: '12px 0 16px 0' }}>
-            Perfect voor <span style={{ color: '#f97316' }}>elk bedrijf</span>
+            {t('forWho.title1')} <span style={{ color: '#f97316' }}>{t('forWho.title2')}</span>
           </h2>
           <p style={{ fontSize: 18, color: '#6b7280', maxWidth: 600, margin: '0 auto' }}>
-            VoxApp past zich aan elk type onderneming aan
+            {t('forWho.subtitle')}
           </p>
         </div>
 
@@ -869,7 +871,7 @@ function ForWhoSection() {
               }}
             >
               <span style={{ fontSize: 36, display: 'block', marginBottom: 12 }}>{b.icon}</span>
-              <p style={{ margin: 0, fontWeight: 600, color: '#1a1a2e', fontSize: 15 }}>{b.name}</p>
+              <p style={{ margin: 0, fontWeight: 600, color: '#1a1a2e', fontSize: 15 }}>{t(`forWho.businesses.${b.key}`)}</p>
             </div>
           ))}
         </div>
@@ -882,6 +884,7 @@ function ForWhoSection() {
    FEATURE SECTION 1 - Inbound Calls
 ============================================ */
 function InboundSection({ onOpenDemo }: { onOpenDemo: () => void }) {
+  const { t } = useLanguage();
   return (
     <section id="features" style={{ background: '#e3e3e3', padding: '200px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
@@ -889,14 +892,13 @@ function InboundSection({ onOpenDemo }: { onOpenDemo: () => void }) {
           {/* Left - Text */}
           <div>
             <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
-              Inkomende Oproepen
+              {t('inbound.badge')}
             </p>
             <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 700, color: '#1a1a2e', lineHeight: 1.2, marginBottom: 20 }}>
-              Lever de snelle, persoonlijke antwoorden die klanten verwachten.
+              {t('inbound.title')}
             </h2>
             <p style={{ fontSize: 16, color: '#6b7280', lineHeight: 1.7, marginBottom: 32 }}>
-              Elke oproep wordt snel en natuurlijk beantwoord. Klanten krijgen direct antwoord, 
-              makkelijke boekingen, en een vriendelijke ervaring die past bij uw merk.
+              {t('inbound.subtitle')}
             </p>
 
             {/* CTA Buttons */}
@@ -914,7 +916,7 @@ function InboundSection({ onOpenDemo }: { onOpenDemo: () => void }) {
                 textDecoration: 'none',
               }}>
                 <Calendar size={16} />
-                Start gratis
+                {t('inbound.startFree')}
               </a>
               <button onClick={onOpenDemo} style={{
                 display: 'inline-flex',
@@ -930,21 +932,21 @@ function InboundSection({ onOpenDemo }: { onOpenDemo: () => void }) {
                 cursor: 'pointer',
               }}>
                 <PhoneCall size={16} />
-                Luister Demo Gesprek
+                {t('inbound.listenDemo')}
               </button>
             </div>
 
             {/* Feature list */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {[
-                { icon: MessageSquare, text: 'Beantwoord klantvragen' },
-                { icon: Calendar, text: 'Beheer afspraakwijzigingen' },
-                { icon: PhoneCall, text: 'Route prioriteitsoproepen' },
-                { icon: Users, text: 'Vang nieuwe leads' },
+                { icon: MessageSquare, key: 'feature1' },
+                { icon: Calendar, key: 'feature2' },
+                { icon: PhoneCall, key: 'feature3' },
+                { icon: Users, key: 'feature4' },
               ].map((item, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <item.icon size={18} style={{ color: '#6b7280' }} />
-                  <span style={{ fontSize: 15, color: '#1a1a2e' }}>{item.text}</span>
+                  <span style={{ fontSize: 15, color: '#1a1a2e' }}>{t(`inbound.${item.key}`)}</span>
                 </div>
               ))}
             </div>
@@ -955,7 +957,7 @@ function InboundSection({ onOpenDemo }: { onOpenDemo: () => void }) {
             <div style={{ borderRadius: 20, overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
               <img 
                 src="/garage.png"
-                alt="Garage werkplaats"
+                alt={t('inbound.garageWorkshop')}
                 style={{ width: '100%', height: 'auto', display: 'block', maxHeight: 500, objectFit: 'cover' }}
               />
             </div>

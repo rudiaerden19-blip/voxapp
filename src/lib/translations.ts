@@ -15,21 +15,27 @@ export const translations = {
 
   // Hero Section
   hero: {
-    badge: { nl: 'Nu met 7 dagen gratis proefperiode', en: 'Now with 7 days free trial', fr: 'Maintenant avec 7 jours d\'essai gratuit', de: 'Jetzt mit 7 Tagen kostenloser Testphase' },
-    title1: { nl: 'Uw eigen', en: 'Your own', fr: 'Votre propre', de: 'Ihr eigener' },
-    titleHighlight: { nl: 'slimme receptionist', en: 'smart receptionist', fr: 'réceptionniste intelligent', de: 'smarter Rezeptionist' },
-    title2: { nl: 'aan de telefoon', en: 'on the phone', fr: 'au téléphone', de: 'am Telefon' },
-    subtitle: { nl: 'VoxApp beantwoordt uw telefoontjes 24/7, boekt afspraken automatisch in en beantwoordt veelgestelde vragen. Nooit meer een gemiste oproep.', en: 'VoxApp answers your calls 24/7, automatically books appointments and answers frequently asked questions. Never miss a call again.', fr: 'VoxApp répond à vos appels 24h/24 et 7j/7, prend automatiquement des rendez-vous et répond aux questions fréquentes. Plus jamais d\'appel manqué.', de: 'VoxApp beantwortet Ihre Anrufe rund um die Uhr, bucht automatisch Termine und beantwortet häufig gestellte Fragen. Nie wieder einen Anruf verpassen.' },
+    badge: { nl: 'Slimme Receptie voor Groeiende Bedrijven', en: 'Smart Reception for Growing Businesses', fr: 'Réception Intelligente pour Entreprises en Croissance', de: 'Smarte Rezeption für Wachsende Unternehmen' },
+    title1: { nl: 'Mis nooit een oproep.', en: 'Never miss a call.', fr: 'Ne manquez jamais un appel.', de: 'Verpassen Sie nie einen Anruf.' },
+    title2: { nl: 'Boek meer afspraken.', en: 'Book more appointments.', fr: 'Réservez plus de rendez-vous.', de: 'Buchen Sie mehr Termine.' },
+    title3: { nl: 'Bespaar tijd.', en: 'Save time.', fr: 'Gagnez du temps.', de: 'Sparen Sie Zeit.' },
+    subtitle: { nl: 'VoxApp beheert uw oproepen, boekt afspraken en beantwoordt vragen — zodat u kunt focussen op uw werk.', en: 'VoxApp manages your calls, books appointments and answers questions — so you can focus on your work.', fr: 'VoxApp gère vos appels, prend des rendez-vous et répond aux questions — pour que vous puissiez vous concentrer sur votre travail.', de: 'VoxApp verwaltet Ihre Anrufe, bucht Termine und beantwortet Fragen — damit Sie sich auf Ihre Arbeit konzentrieren können.' },
     tagline: { nl: 'Geen robotstemmen, maar uw eigen stem die spreekt.', en: 'No robot voices, but your own voice speaking.', fr: 'Pas de voix robotiques, mais votre propre voix qui parle.', de: 'Keine Roboterstimmen, sondern Ihre eigene Stimme.' },
     cta: { nl: 'Start gratis proefperiode', en: 'Start free trial', fr: 'Commencer l\'essai gratuit', de: 'Kostenlose Testphase starten' },
     tryDemo: { nl: 'Probeer demo', en: 'Try demo', fr: 'Essayer la démo', de: 'Demo testen' },
     kapper: { nl: 'Kapper', en: 'Hairdresser', fr: 'Coiffeur', de: 'Friseur' },
     frituur: { nl: 'Frituur', en: 'Snack bar', fr: 'Friterie', de: 'Imbiss' },
+    receptionist: { nl: 'VoxApp Receptionist', en: 'VoxApp Receptionist', fr: 'Réceptionniste VoxApp', de: 'VoxApp Rezeptionist' },
+    greeting: { nl: 'Goedemiddag, Kapsalon Belle. Waarmee kan ik u helpen?', en: 'Good afternoon, Salon Belle. How can I help you?', fr: 'Bonjour, Salon Belle. Comment puis-je vous aider?', de: 'Guten Tag, Salon Belle. Wie kann ich Ihnen helfen?' },
+    receptionistAnswers: { nl: 'Receptionist Beantwoordt', en: 'Receptionist Answers', fr: 'Réceptionniste Répond', de: 'Rezeptionist Antwortet' },
+    appointmentScheduled: { nl: 'Afspraak Ingepland', en: 'Appointment Scheduled', fr: 'Rendez-vous Planifié', de: 'Termin Geplant' },
+    confirmationSent: { nl: 'Bevestiging Verstuurd', en: 'Confirmation Sent', fr: 'Confirmation Envoyée', de: 'Bestätigung Gesendet' },
     stats: {
       calls: { nl: 'oproepen beantwoord', en: 'calls answered', fr: 'appels répondus', de: 'Anrufe beantwortet' },
       appointments: { nl: 'afspraken geboekt', en: 'appointments booked', fr: 'rendez-vous pris', de: 'Termine gebucht' },
       satisfaction: { nl: 'klanttevredenheid', en: 'customer satisfaction', fr: 'satisfaction client', de: 'Kundenzufriedenheit' },
     },
+    professionalReceptionist: { nl: 'Professionele receptionist', en: 'Professional receptionist', fr: 'Réceptionniste professionnelle', de: 'Professionelle Rezeptionistin' },
   },
 
   // Features Section
@@ -135,16 +141,111 @@ export const translations = {
     },
   },
 
-  // Sectors
-  sectors: {
-    title: { nl: 'Voor elke sector', en: 'For every sector', fr: 'Pour chaque secteur', de: 'Für jeden Sektor' },
-    subtitle: { nl: 'VoxApp past zich aan uw branche aan', en: 'VoxApp adapts to your industry', fr: 'VoxApp s\'adapte à votre secteur', de: 'VoxApp passt sich Ihrer Branche an' },
-    hairdresser: { nl: 'Kappers', en: 'Hairdressers', fr: 'Coiffeurs', de: 'Friseure' },
-    dentist: { nl: 'Tandartsen', en: 'Dentists', fr: 'Dentistes', de: 'Zahnärzte' },
-    garage: { nl: 'Garages', en: 'Garages', fr: 'Garages', de: 'Werkstätten' },
-    restaurant: { nl: 'Restaurants', en: 'Restaurants', fr: 'Restaurants', de: 'Restaurants' },
-    doctor: { nl: 'Huisartsen', en: 'Doctors', fr: 'Médecins', de: 'Ärzte' },
-    physio: { nl: 'Fysiotherapeuten', en: 'Physiotherapists', fr: 'Kinésithérapeutes', de: 'Physiotherapeuten' },
+  // Sectors / For Who Section
+  forWho: {
+    badge: { nl: 'Voor Wie', en: 'For Whom', fr: 'Pour Qui', de: 'Für Wen' },
+    title1: { nl: 'Perfect voor', en: 'Perfect for', fr: 'Parfait pour', de: 'Perfekt für' },
+    title2: { nl: 'elk bedrijf', en: 'every business', fr: 'chaque entreprise', de: 'jedes Unternehmen' },
+    subtitle: { nl: 'VoxApp past zich aan elk type onderneming aan', en: 'VoxApp adapts to every type of business', fr: 'VoxApp s\'adapte à tout type d\'entreprise', de: 'VoxApp passt sich jedem Unternehmenstyp an' },
+    businesses: {
+      kapsalons: { nl: 'Kapsalons', en: 'Hair Salons', fr: 'Salons de coiffure', de: 'Friseursalons' },
+      dokterspraktijken: { nl: 'Dokterspraktijken', en: 'Doctor\'s Offices', fr: 'Cabinets médicaux', de: 'Arztpraxen' },
+      ziekenhuizen: { nl: 'Ziekenhuizen', en: 'Hospitals', fr: 'Hôpitaux', de: 'Krankenhäuser' },
+      hotels: { nl: 'Hotels', en: 'Hotels', fr: 'Hôtels', de: 'Hotels' },
+      frituren: { nl: 'Frituren', en: 'Snack Bars', fr: 'Friteries', de: 'Imbissbuden' },
+      kebabzaken: { nl: 'Kebabzaken', en: 'Kebab Shops', fr: 'Kebabs', de: 'Kebab-Läden' },
+      pizzerias: { nl: 'Pizzeria\'s', en: 'Pizzerias', fr: 'Pizzerias', de: 'Pizzerien' },
+      restaurants: { nl: 'Restaurants', en: 'Restaurants', fr: 'Restaurants', de: 'Restaurants' },
+      tandartsen: { nl: 'Tandartsen', en: 'Dentists', fr: 'Dentistes', de: 'Zahnärzte' },
+      opticiens: { nl: 'Opticiens', en: 'Opticians', fr: 'Opticiens', de: 'Optiker' },
+      beautysalons: { nl: 'Beautysalons', en: 'Beauty Salons', fr: 'Salons de beauté', de: 'Schönheitssalons' },
+      fitnessstudios: { nl: 'Fitnessstudio\'s', en: 'Fitness Studios', fr: 'Salles de sport', de: 'Fitnessstudios' },
+      garages: { nl: 'Garages', en: 'Garages', fr: 'Garages', de: 'Werkstätten' },
+      immobilienkantoren: { nl: 'Immobiliënkantoren', en: 'Real Estate Offices', fr: 'Agences immobilières', de: 'Immobilienbüros' },
+      advocatenkantoren: { nl: 'Advocatenkantoren', en: 'Law Firms', fr: 'Cabinets d\'avocats', de: 'Anwaltskanzleien' },
+      boekhoudkantoren: { nl: 'Boekhoudkantoren', en: 'Accounting Firms', fr: 'Cabinets comptables', de: 'Buchhaltungsbüros' },
+      dierenklinieken: { nl: 'Dierenklinieken', en: 'Veterinary Clinics', fr: 'Cliniques vétérinaires', de: 'Tierkliniken' },
+      bloemenwinkels: { nl: 'Bloemenwinkels', en: 'Flower Shops', fr: 'Fleuristes', de: 'Blumenläden' },
+      schoonmaakbedrijven: { nl: 'Schoonmaakbedrijven', en: 'Cleaning Companies', fr: 'Entreprises de nettoyage', de: 'Reinigungsfirmen' },
+      loodgieters: { nl: 'Loodgieters', en: 'Plumbers', fr: 'Plombiers', de: 'Klempner' },
+    },
+  },
+
+  // Inbound Section
+  inbound: {
+    badge: { nl: 'Inkomende Oproepen', en: 'Incoming Calls', fr: 'Appels Entrants', de: 'Eingehende Anrufe' },
+    title: { nl: 'Lever de snelle, persoonlijke antwoorden die klanten verwachten.', en: 'Deliver the fast, personal answers customers expect.', fr: 'Offrez les réponses rapides et personnelles que les clients attendent.', de: 'Liefern Sie die schnellen, persönlichen Antworten, die Kunden erwarten.' },
+    subtitle: { nl: 'Elke oproep wordt snel en natuurlijk beantwoord. Klanten krijgen direct antwoord, makkelijke boekingen, en een vriendelijke ervaring die past bij uw merk.', en: 'Every call is answered quickly and naturally. Customers get immediate answers, easy bookings, and a friendly experience that fits your brand.', fr: 'Chaque appel est répondu rapidement et naturellement. Les clients obtiennent des réponses immédiates, des réservations faciles et une expérience conviviale qui correspond à votre marque.', de: 'Jeder Anruf wird schnell und natürlich beantwortet. Kunden erhalten sofortige Antworten, einfache Buchungen und ein freundliches Erlebnis, das zu Ihrer Marke passt.' },
+    startFree: { nl: 'Start gratis', en: 'Start free', fr: 'Commencer gratuitement', de: 'Kostenlos starten' },
+    listenDemo: { nl: 'Luister Demo Gesprek', en: 'Listen to Demo Call', fr: 'Écouter Démo Appel', de: 'Demo-Anruf anhören' },
+    feature1: { nl: 'Beantwoord klantvragen', en: 'Answer customer questions', fr: 'Répondre aux questions clients', de: 'Kundenfragen beantworten' },
+    feature2: { nl: 'Beheer afspraakwijzigingen', en: 'Manage appointment changes', fr: 'Gérer les modifications de rendez-vous', de: 'Terminänderungen verwalten' },
+    feature3: { nl: 'Route prioriteitsoproepen', en: 'Route priority calls', fr: 'Router les appels prioritaires', de: 'Prioritätsanrufe weiterleiten' },
+    feature4: { nl: 'Vang nieuwe leads', en: 'Capture new leads', fr: 'Capturer de nouveaux prospects', de: 'Neue Leads erfassen' },
+    garageWorkshop: { nl: 'Garage werkplaats', en: 'Garage workshop', fr: 'Atelier garage', de: 'Werkstatt' },
+  },
+
+  // Restaurant Section
+  restaurant: {
+    badge: { nl: 'Restaurant Reserveringen', en: 'Restaurant Reservations', fr: 'Réservations Restaurant', de: 'Restaurant-Reservierungen' },
+    title: { nl: 'Nooit meer een gemiste reservering.', en: 'Never miss a reservation again.', fr: 'Plus jamais de réservation manquée.', de: 'Nie wieder eine verpasste Reservierung.' },
+    subtitle: { nl: 'Uw receptionist neemt reserveringen aan, beheert wijzigingen en beantwoordt vragen over openingsuren en het menu — ook tijdens piekuren.', en: 'Your receptionist takes reservations, manages changes and answers questions about opening hours and the menu — even during peak hours.', fr: 'Votre réceptionniste prend les réservations, gère les modifications et répond aux questions sur les horaires et le menu — même aux heures de pointe.', de: 'Ihr Rezeptionist nimmt Reservierungen entgegen, verwaltet Änderungen und beantwortet Fragen zu Öffnungszeiten und Speisekarte — auch in Stoßzeiten.' },
+    tryDemo: { nl: 'Probeer Restaurant Demo', en: 'Try Restaurant Demo', fr: 'Essayer Démo Restaurant', de: 'Restaurant-Demo testen' },
+    feature1: { nl: 'Reserveringen beheren', en: 'Manage reservations', fr: 'Gérer les réservations', de: 'Reservierungen verwalten' },
+    feature2: { nl: 'Menu-informatie geven', en: 'Provide menu information', fr: 'Fournir des informations menu', de: 'Menüinformationen geben' },
+    feature3: { nl: 'Speciale wensen noteren', en: 'Note special requests', fr: 'Noter les demandes spéciales', de: 'Sonderwünsche notieren' },
+    feature4: { nl: 'Groepsreserveringen', en: 'Group reservations', fr: 'Réservations de groupe', de: 'Gruppenreservierungen' },
+    restaurantInterior: { nl: 'Restaurant interieur', en: 'Restaurant interior', fr: 'Intérieur restaurant', de: 'Restaurantinterieur' },
+  },
+
+  // Frituur Section  
+  frituur: {
+    badge: { nl: 'Frituur & Horeca', en: 'Snack Bar & Hospitality', fr: 'Friterie & Horeca', de: 'Imbiss & Gastronomie' },
+    title: { nl: 'Bestellingen direct op uw kassa.', en: 'Orders directly on your POS.', fr: 'Commandes directement sur votre caisse.', de: 'Bestellungen direkt auf Ihrer Kasse.' },
+    subtitle: { nl: 'Telefonische bestellingen verschijnen automatisch op uw kassascherm. Bevestig of weiger met één druk op de knop.', en: 'Phone orders appear automatically on your POS screen. Confirm or decline with one button press.', fr: 'Les commandes téléphoniques apparaissent automatiquement sur votre écran de caisse. Confirmez ou refusez en un clic.', de: 'Telefonbestellungen erscheinen automatisch auf Ihrem Kassenbildschirm. Bestätigen oder ablehnen mit einem Knopfdruck.' },
+    clickToOrder: { nl: 'Klik en bestel een demo bestelling bij Frituur De Schans', en: 'Click and place a demo order at Frituur De Schans', fr: 'Cliquez et passez une commande démo chez Frituur De Schans', de: 'Klicken und Demo-Bestellung bei Frituur De Schans aufgeben' },
+    smsInfo: { nl: 'U kan de bestelling bevestigen of weigeren — de klant krijgt dan automatisch een SMS.', en: 'You can confirm or decline the order — the customer automatically receives an SMS.', fr: 'Vous pouvez confirmer ou refuser la commande — le client reçoit automatiquement un SMS.', de: 'Sie können die Bestellung bestätigen oder ablehnen — der Kunde erhält automatisch eine SMS.' },
+    feature1: { nl: 'Directe kassa-integratie', en: 'Direct POS integration', fr: 'Intégration caisse directe', de: 'Direkte Kassenintegration' },
+    feature2: { nl: 'Automatisch printen', en: 'Automatic printing', fr: 'Impression automatique', de: 'Automatisches Drucken' },
+    feature3: { nl: 'SMS-updates voor klanten', en: 'SMS updates for customers', fr: 'Mises à jour SMS clients', de: 'SMS-Updates für Kunden' },
+    feature4: { nl: 'Piekuren opvangen', en: 'Handle peak hours', fr: 'Gérer les heures de pointe', de: 'Stoßzeiten bewältigen' },
+    newOrder: { nl: 'Nieuwe Bestelling', en: 'New Order', fr: 'Nouvelle Commande', de: 'Neue Bestellung' },
+    orderItems: { nl: '2x Friet Groot, 1x Stoofvleessaus, 3x Frikandel', en: '2x Large Fries, 1x Stew Sauce, 3x Frikandel', fr: '2x Grandes Frites, 1x Sauce Carbonade, 3x Fricadelle', de: '2x Große Pommes, 1x Gulaschsauce, 3x Frikandel' },
+    pickup: { nl: 'Afhalen om 18:30', en: 'Pickup at 6:30 PM', fr: 'Retrait à 18h30', de: 'Abholung um 18:30' },
+    confirm: { nl: 'Bevestig', en: 'Confirm', fr: 'Confirmer', de: 'Bestätigen' },
+    decline: { nl: 'Weiger', en: 'Decline', fr: 'Refuser', de: 'Ablehnen' },
+  },
+
+  // Appointments Section
+  appointments: {
+    badge: { nl: 'Afspraken Boeken', en: 'Book Appointments', fr: 'Prendre des rendez-vous', de: 'Termine buchen' },
+    title1: { nl: 'Automatisch', en: 'Automatically', fr: 'Automatiquement', de: 'Automatisch' },
+    title2: { nl: 'afspraken inplannen', en: 'schedule appointments', fr: 'planifier des rendez-vous', de: 'Termine planen' },
+    subtitle: { nl: 'Klanten kunnen direct een afspraak maken. VoxApp controleert uw agenda, vindt een geschikt moment en bevestigt de afspraak.', en: 'Customers can book an appointment directly. VoxApp checks your calendar, finds a suitable time and confirms the appointment.', fr: 'Les clients peuvent prendre rendez-vous directement. VoxApp vérifie votre agenda, trouve un moment approprié et confirme le rendez-vous.', de: 'Kunden können direkt einen Termin buchen. VoxApp prüft Ihren Kalender, findet einen passenden Zeitpunkt und bestätigt den Termin.' },
+    feature1: { nl: 'Agenda-integratie', en: 'Calendar integration', fr: 'Intégration calendrier', de: 'Kalenderintegration' },
+    feature2: { nl: 'Automatische bevestiging', en: 'Automatic confirmation', fr: 'Confirmation automatique', de: 'Automatische Bestätigung' },
+    feature3: { nl: 'Herinnering SMS', en: 'Reminder SMS', fr: 'SMS de rappel', de: 'Erinnerungs-SMS' },
+    bookAppointment: { nl: 'Ik wil een afspraak maken', en: 'I want to make an appointment', fr: 'Je voudrais prendre rendez-vous', de: 'Ich möchte einen Termin machen' },
+    checkingAvailability: { nl: 'Even kijken... Woensdag om 14:00 is beschikbaar. Past dat?', en: 'Let me check... Wednesday at 2 PM is available. Does that work?', fr: 'Laissez-moi vérifier... Mercredi à 14h est disponible. Cela vous convient?', de: 'Moment... Mittwoch um 14 Uhr ist verfügbar. Passt das?' },
+    perfect: { nl: 'Perfect, dat past!', en: 'Perfect, that works!', fr: 'Parfait, ça me va!', de: 'Perfekt, das passt!' },
+    confirmed: { nl: 'Uw afspraak is bevestigd. U ontvangt een SMS-bevestiging.', en: 'Your appointment is confirmed. You will receive an SMS confirmation.', fr: 'Votre rendez-vous est confirmé. Vous recevrez une confirmation par SMS.', de: 'Ihr Termin ist bestätigt. Sie erhalten eine SMS-Bestätigung.' },
+  },
+
+  // Kassa Section
+  kassa: {
+    badge: { nl: 'Horeca Integratie', en: 'Hospitality Integration', fr: 'Intégration Horeca', de: 'Gastronomie-Integration' },
+    title1: { nl: 'Bestellingen direct', en: 'Orders directly', fr: 'Commandes directement', de: 'Bestellungen direkt' },
+    title2: { nl: 'op uw kassa', en: 'on your POS', fr: 'sur votre caisse', de: 'auf Ihrer Kasse' },
+    subtitle: { nl: 'Voor frituren, pizzeria\'s en restaurants: telefonische bestellingen verschijnen automatisch op uw kassascherm en printer.', en: 'For snack bars, pizzerias and restaurants: phone orders appear automatically on your POS screen and printer.', fr: 'Pour les friteries, pizzerias et restaurants: les commandes téléphoniques apparaissent automatiquement sur votre écran de caisse et imprimante.', de: 'Für Imbisse, Pizzerien und Restaurants: Telefonbestellungen erscheinen automatisch auf Ihrem Kassenbildschirm und Drucker.' },
+    clickToOrder: { nl: 'Klik en bestel een demo bestelling bij Frituur De Schans', en: 'Click and place a demo order at Frituur De Schans', fr: 'Cliquez et passez une commande démo chez Frituur De Schans', de: 'Klicken und eine Demo-Bestellung bei Frituur De Schans aufgeben' },
+    smsInfo: { nl: 'U kan de bestelling bevestigen of weigeren — de klant krijgt dan automatisch een SMS.', en: 'You can confirm or decline the order — the customer will automatically receive an SMS.', fr: 'Vous pouvez confirmer ou refuser la commande — le client recevra automatiquement un SMS.', de: 'Sie können die Bestellung bestätigen oder ablehnen — der Kunde erhält automatisch eine SMS.' },
+    feature1: { nl: 'Directe kassa-integratie', en: 'Direct POS integration', fr: 'Intégration caisse directe', de: 'Direkte Kassenintegration' },
+    feature2: { nl: 'Automatisch printen', en: 'Automatic printing', fr: 'Impression automatique', de: 'Automatisches Drucken' },
+    feature3: { nl: 'SMS-updates voor klanten', en: 'SMS updates for customers', fr: 'Mises à jour SMS pour les clients', de: 'SMS-Updates für Kunden' },
+    newOrder: { nl: 'Nieuwe Bestelling', en: 'New Order', fr: 'Nouvelle Commande', de: 'Neue Bestellung' },
+    orderItems: { nl: '2x Friet Groot, 1x Stoofvleessaus, 3x Frikandel', en: '2x Large Fries, 1x Stew Sauce, 3x Frikandel', fr: '2x Grandes Frites, 1x Sauce Carbonade, 3x Fricadelle', de: '2x Große Pommes, 1x Gulaschsauce, 3x Frikandel' },
+    pickup: { nl: 'Afhalen om 18:30', en: 'Pickup at 6:30 PM', fr: 'Retrait à 18h30', de: 'Abholung um 18:30' },
+    confirm: { nl: 'Bevestig', en: 'Confirm', fr: 'Confirmer', de: 'Bestätigen' },
   },
 
   // FAQ
