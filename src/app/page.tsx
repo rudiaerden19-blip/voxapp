@@ -586,14 +586,29 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
     try {
       setCallStatus('connecting');
       setErrorMessage('');
-      await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // First request microphone permission
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (micError: unknown) {
+        console.error('Microphone error:', micError);
+        const errorMessage = micError instanceof Error ? micError.message : 'Unknown error';
+        if (errorMessage.includes('Permission denied') || errorMessage.includes('NotAllowedError')) {
+          setErrorMessage('Geef toestemming voor de microfoon om te bellen.');
+        } else {
+          setErrorMessage('Microfoon niet gevonden. Controleer je instellingen.');
+        }
+        setCallStatus('error');
+        return;
+      }
+      
+      // Then start the conversation
       await conversation.startSession({
         agentId: 'agent_4801khcaeveffx7tbayp097p54kh',
-        connectionType: 'webrtc',
       });
     } catch (error) {
       console.error('Failed to start call:', error);
-      setErrorMessage('Kon geen verbinding maken. Controleer je microfoon.');
+      setErrorMessage('Verbinding mislukt. Probeer opnieuw.');
       setCallStatus('error');
     }
   };
