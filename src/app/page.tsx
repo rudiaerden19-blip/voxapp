@@ -488,6 +488,7 @@ function Navigation() {
               <a href="#how-it-works" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>Hoe het werkt</a>
               <a href="#pricing" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>Prijzen</a>
               <a href="#contact" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>Contact</a>
+              <a href="/over-ons" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>Over ons</a>
             </div>
 
             <div style={{ display: 'none', alignItems: 'center', gap: 16 }} className="desktop-nav">
@@ -534,6 +535,7 @@ function Navigation() {
           <a href="#how-it-works" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Hoe het werkt</a>
           <a href="#pricing" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Prijzen</a>
           <a href="#contact" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Contact</a>
+          <a href="/over-ons" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Over ons</a>
           <div style={{ marginTop: 24 }}>
             <a href="/register" style={{
               display: 'flex',
