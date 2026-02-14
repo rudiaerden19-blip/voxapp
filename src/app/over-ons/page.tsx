@@ -132,7 +132,7 @@ export default function OverOnsPage() {
                   width: '100%', 
                   height: '100%', 
                   objectFit: 'cover',
-                  minHeight: 280
+                  minHeight: 380
                 }} 
               />
               <div style={{
