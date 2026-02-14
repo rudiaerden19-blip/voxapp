@@ -9,7 +9,16 @@ interface Business {
   id: string;
   name: string;
   type: string;
-  elevenlabs_agent_id: string | null;
+  phone: string | null;
+  email: string | null;
+  website: string | null;
+  street: string | null;
+  city: string | null;
+  postal_code: string | null;
+  opening_hours: Record<string, { open: string; close: string; closed: boolean }> | null;
+  voice_id: string | null;
+  welcome_message: string | null;
+  agent_id: string | null;
 }
 
 const voiceOptions = [
@@ -121,13 +130,54 @@ export default function AISettingsPage() {
       const biz = businessData as Business;
       setBusiness(biz);
       
-      // Load template based on business type
+      // Load saved data from database
       const template = brancheTemplates[biz.type] || brancheTemplates.other;
+      
+      // Map English day names from DB to Dutch day names in UI
+      const dayMapping: Record<string, string> = {
+        monday: 'maandag',
+        tuesday: 'dinsdag',
+        wednesday: 'woensdag',
+        thursday: 'donderdag',
+        friday: 'vrijdag',
+        saturday: 'zaterdag',
+        sunday: 'zondag',
+      };
+      
+      // Convert opening_hours from DB format (English) to UI format (Dutch)
+      let openingHours = config.opening_hours;
+      if (biz.opening_hours) {
+        openingHours = {};
+        for (const [engDay, dutchDay] of Object.entries(dayMapping)) {
+          const dbHours = biz.opening_hours[engDay];
+          if (dbHours) {
+            openingHours[dutchDay] = {
+              open: dbHours.open || '09:00',
+              close: dbHours.close || '18:00',
+              closed: dbHours.closed ?? false,
+            };
+          }
+        }
+      }
+      
       setConfig(prev => ({
         ...prev,
-        greeting: template.greeting.replace('{bedrijfsnaam}', biz.name),
+        // Load saved voice or default
+        voice_id: biz.voice_id || 'nl-BE-DenaNeural',
+        // Load greeting from DB or use template
+        greeting: biz.welcome_message || template.greeting.replace('{bedrijfsnaam}', biz.name),
         capabilities: template.capabilities,
         style: template.style,
+        // Load contact info
+        phone_display: biz.phone || '',
+        email: biz.email || '',
+        website: biz.website || '',
+        // Load address
+        address_street: biz.street || '',
+        address_postal: biz.postal_code || '',
+        address_city: biz.city || '',
+        // Load opening hours
+        opening_hours: openingHours,
       }));
     }
     setLoading(false);
@@ -152,13 +202,64 @@ export default function AISettingsPage() {
     setError('');
     setSaved(false);
 
-    // TODO: Save to database and configure Vapi/ElevenLabs
-    // For now, just simulate saving
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
-    setSaving(false);
+    try {
+      const supabase = createClient();
+      
+      // Map Dutch day names back to English for database
+      const dayMapping: Record<string, string> = {
+        maandag: 'monday',
+        dinsdag: 'tuesday',
+        woensdag: 'wednesday',
+        donderdag: 'thursday',
+        vrijdag: 'friday',
+        zaterdag: 'saturday',
+        zondag: 'sunday',
+      };
+      
+      // Convert opening_hours from UI format (Dutch) to DB format (English)
+      const dbOpeningHours: Record<string, { open: string; close: string; closed: boolean }> = {};
+      for (const [dutchDay, engDay] of Object.entries(dayMapping)) {
+        const uiHours = config.opening_hours[dutchDay];
+        if (uiHours) {
+          dbOpeningHours[engDay] = {
+            open: uiHours.open,
+            close: uiHours.close,
+            closed: uiHours.closed,
+          };
+        }
+      }
+      
+      // Update business in database
+      const { error: updateError } = await supabase
+        .from('businesses')
+        .update({
+          // Contact info
+          phone: config.phone_display || null,
+          email: config.email || null,
+          website: config.website || null,
+          // Address
+          street: config.address_street || null,
+          postal_code: config.address_postal || null,
+          city: config.address_city || null,
+          // AI settings
+          voice_id: config.voice_id,
+          welcome_message: config.greeting,
+          // Opening hours
+          opening_hours: dbOpeningHours,
+        })
+        .eq('id', business.id);
+      
+      if (updateError) {
+        throw new Error(updateError.message);
+      }
+      
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Opslaan mislukt');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const playVoiceSample = (voiceId: string) => {
