@@ -14,6 +14,16 @@ interface Stats {
   activeSubscriptions: number;
 }
 
+interface Business {
+  id: string;
+  name: string;
+  email: string;
+  type: string;
+  subscription_status: string;
+  created_at: string;
+  blocked?: boolean;
+}
+
 interface RecentTenant {
   id: string;
   name: string;
@@ -41,11 +51,12 @@ export default function AdminDashboard() {
     const supabase = createClient();
     
     // Haal alle businesses op
-    const { data: businesses } = await supabase.from('businesses').select('*').order('created_at', { ascending: false });
+    const { data } = await supabase.from('businesses').select('*').order('created_at', { ascending: false });
+    const businesses = (data || []) as Business[];
     
-    if (businesses) {
+    if (businesses.length > 0) {
       const active = businesses.filter(b => b.subscription_status === 'active' && !b.blocked);
-      const blocked = businesses.filter(b => b.blocked);
+      const blocked = businesses.filter(b => b.blocked === true);
       const trial = businesses.filter(b => b.subscription_status === 'trial');
       
       setStats({
