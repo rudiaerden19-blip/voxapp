@@ -2503,9 +2503,9 @@ function CTASection() {
     try {
       setSupportStatus('connecting');
       await navigator.mediaDevices.getUserMedia({ audio: true });
-      // VoxApp Support Agent - using same agent for now, replace with dedicated support agent ID later
+      // VoxApp Support Agent - Lisa
       await supportConversation.startSession({
-        agentId: 'agent_4801khcaeveffx7tbayp097p54kh',
+        agentId: 'agent_8201khegn801frdb3hvebx2rh5fr',
         connectionType: 'webrtc',
       });
     } catch (error) {
