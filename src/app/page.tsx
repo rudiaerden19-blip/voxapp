@@ -571,7 +571,7 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
     <section style={{
       background: 'linear-gradient(180deg, #0f0a14 0%, #1a1025 100%)',
       paddingTop: 120,
-      paddingBottom: 200,
+      paddingBottom: 350,
       minHeight: '100vh',
       position: 'relative',
       overflow: 'visible',
