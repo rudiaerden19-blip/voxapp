@@ -334,7 +334,9 @@ export const translations = {
 
   // Cookie Banner
   cookies: {
-    message: { nl: 'Wij gebruiken cookies om uw ervaring te verbeteren.', en: 'We use cookies to improve your experience.', fr: 'Nous utilisons des cookies pour améliorer votre expérience.', de: 'Wir verwenden Cookies, um Ihre Erfahrung zu verbessern.' },
+    title: { nl: 'Wij gebruiken cookies', en: 'We use cookies', fr: 'Nous utilisons des cookies', de: 'Wir verwenden Cookies' },
+    message: { nl: 'Wij gebruiken cookies om onze website te laten functioneren en uw ervaring te verbeteren. Door op "Accepteren" te klikken, gaat u akkoord met ons', en: 'We use cookies to make our website work and improve your experience. By clicking "Accept", you agree to our', fr: 'Nous utilisons des cookies pour faire fonctionner notre site et améliorer votre expérience. En cliquant sur "Accepter", vous acceptez notre', de: 'Wir verwenden Cookies, um unsere Website zum Laufen zu bringen und Ihre Erfahrung zu verbessern. Durch Klicken auf "Akzeptieren" stimmen Sie unserer' },
+    cookiePolicy: { nl: 'cookiebeleid', en: 'cookie policy', fr: 'politique de cookies', de: 'Cookie-Richtlinie' },
     accept: { nl: 'Accepteren', en: 'Accept', fr: 'Accepter', de: 'Akzeptieren' },
     decline: { nl: 'Weigeren', en: 'Decline', fr: 'Refuser', de: 'Ablehnen' },
   },
@@ -349,6 +351,15 @@ export const translations = {
     startCall: { nl: 'Start gesprek', en: 'Start call', fr: 'Démarrer l\'appel', de: 'Anruf starten' },
     endCall: { nl: 'Beëindig gesprek', en: 'End call', fr: 'Terminer l\'appel', de: 'Anruf beenden' },
     micPermission: { nl: 'Geef microfoon toegang om te starten', en: 'Allow microphone access to start', fr: 'Autorisez l\'accès au micro pour commencer', de: 'Erlauben Sie Mikrofonzugriff zum Starten' },
+    liveDemo: { nl: 'Live demo', en: 'Live demo', fr: 'Démo en direct', de: 'Live-Demo' },
+    listenDescription: { nl: 'Luister mee hoe VoxApp een afspraak boekt voor Kapsalon Belle', en: 'Listen to how VoxApp books an appointment for Salon Belle', fr: 'Écoutez comment VoxApp réserve un rendez-vous pour Salon Belle', de: 'Hören Sie, wie VoxApp einen Termin für Salon Belle bucht' },
+    clickToStart: { nl: 'Klik op de knop hieronder om het gesprek te starten', en: 'Click the button below to start the conversation', fr: 'Cliquez sur le bouton ci-dessous pour démarrer la conversation', de: 'Klicken Sie auf die Schaltfläche unten, um das Gespräch zu starten' },
+    receptionist: { nl: 'Receptionist', en: 'Receptionist', fr: 'Réceptionniste', de: 'Rezeptionist' },
+    customer: { nl: 'Klant', en: 'Customer', fr: 'Client', de: 'Kunde' },
+    startLiveDemo: { nl: 'Start live demo', en: 'Start live demo', fr: 'Démarrer la démo en direct', de: 'Live-Demo starten' },
+    playAgain: { nl: 'Opnieuw afspelen', en: 'Play again', fr: 'Rejouer', de: 'Erneut abspielen' },
+    callInProgress: { nl: 'Gesprek bezig...', en: 'Call in progress...', fr: 'Appel en cours...', de: 'Gespräch läuft...' },
+    simulationNote: { nl: 'Dit is een simulatie van hoe VoxApp uw telefoongesprekken afhandelt.', en: 'This is a simulation of how VoxApp handles your phone calls.', fr: 'Ceci est une simulation de la façon dont VoxApp gère vos appels téléphoniques.', de: 'Dies ist eine Simulation, wie VoxApp Ihre Telefonanrufe abwickelt.' },
   },
 
   // About Us Page
@@ -371,6 +382,29 @@ export const translations = {
     customCTA: { nl: 'Software volledig op maat?', en: 'Fully custom software?', fr: 'Logiciel entièrement sur mesure?', de: 'Vollständig maßgeschneiderte Software?' },
     customCTADesc: { nl: 'Heeft u een specifiek idee of behoefte die niet door standaard software wordt opgelost? Ons ervaren team van ontwikkelaars bouwt software volledig op maat van uw bedrijf. Van mobiele apps tot complexe bedrijfssystemen — wij maken het mogelijk.', en: 'Do you have a specific idea or need that standard software doesn\'t solve? Our experienced team of developers builds software completely tailored to your business. From mobile apps to complex business systems — we make it possible.', fr: 'Vous avez une idée ou un besoin spécifique que les logiciels standard ne résolvent pas? Notre équipe expérimentée de développeurs crée des logiciels entièrement adaptés à votre entreprise. Des applications mobiles aux systèmes d\'entreprise complexes — nous le rendons possible.', de: 'Haben Sie eine spezifische Idee oder einen Bedarf, den Standardsoftware nicht löst? Unser erfahrenes Entwicklerteam erstellt Software, die vollständig auf Ihr Unternehmen zugeschnitten ist. Von mobilen Apps bis hin zu komplexen Geschäftssystemen — wir machen es möglich.' },
     requestCall: { nl: 'Vraag een gratis gesprek aan', en: 'Request a free consultation', fr: 'Demandez une consultation gratuite', de: 'Fordern Sie ein kostenloses Gespräch an' },
+    voxappDesc: { nl: 'Onze slimme telefoniste voor KMO\'s. Beantwoordt oproepen 24/7, boekt afspraken automatisch en verhoogt uw klanttevredenheid. Beschikbaar in Nederlands, Frans en Engels.', en: 'Our smart receptionist for SMEs. Answers calls 24/7, books appointments automatically and increases your customer satisfaction. Available in Dutch, French and English.', fr: 'Notre réceptionniste intelligente pour les PME. Répond aux appels 24h/24, prend des rendez-vous automatiquement et augmente la satisfaction de vos clients. Disponible en néerlandais, français et anglais.', de: 'Unsere intelligente Rezeptionistin für KMU. Beantwortet Anrufe rund um die Uhr, bucht automatisch Termine und steigert Ihre Kundenzufriedenheit. Verfügbar in Niederländisch, Französisch und Englisch.' },
+    webApps: { nl: 'Web applicaties', en: 'Web applications', fr: 'Applications web', de: 'Web-Anwendungen' },
+    mobileApps: { nl: 'Mobiele apps', en: 'Mobile apps', fr: 'Applications mobiles', de: 'Mobile Apps' },
+    apiIntegrations: { nl: 'API integraties', en: 'API integrations', fr: 'Intégrations API', de: 'API-Integrationen' },
+    businessSoftware: { nl: 'Bedrijfssoftware', en: 'Business software', fr: 'Logiciel d\'entreprise', de: 'Unternehmenssoftware' },
+    ecommerce: { nl: 'E-commerce platforms', en: 'E-commerce platforms', fr: 'Plateformes e-commerce', de: 'E-Commerce-Plattformen' },
+    automation: { nl: 'Automatisering', en: 'Automation', fr: 'Automatisation', de: 'Automatisierung' },
+    globalTitle: { nl: 'Wereldwijd actief', en: 'Active worldwide', fr: 'Actif dans le monde entier', de: 'Weltweit aktiv' },
+    globalSubtitle: { nl: 'Vanuit ons hoofdkantoor in België bedienen wij klanten over de hele wereld. Onze software draait in meer dan 20 talen en wordt dagelijks gebruikt door honderdduizenden gebruikers.', en: 'From our headquarters in Belgium, we serve customers around the world. Our software runs in more than 20 languages and is used daily by hundreds of thousands of users.', fr: 'Depuis notre siège en Belgique, nous servons des clients du monde entier. Notre logiciel fonctionne dans plus de 20 langues et est utilisé quotidiennement par des centaines de milliers d\'utilisateurs.', de: 'Von unserem Hauptsitz in Belgien aus bedienen wir Kunden auf der ganzen Welt. Unsere Software läuft in mehr als 20 Sprachen und wird täglich von Hunderttausenden von Benutzern verwendet.' },
+    countries: {
+      belgium: { nl: 'België', en: 'Belgium', fr: 'Belgique', de: 'Belgien' },
+      netherlands: { nl: 'Nederland', en: 'Netherlands', fr: 'Pays-Bas', de: 'Niederlande' },
+      france: { nl: 'Frankrijk', en: 'France', fr: 'France', de: 'Frankreich' },
+      germany: { nl: 'Duitsland', en: 'Germany', fr: 'Allemagne', de: 'Deutschland' },
+      spain: { nl: 'Spanje', en: 'Spain', fr: 'Espagne', de: 'Spanien' },
+      italy: { nl: 'Italië', en: 'Italy', fr: 'Italie', de: 'Italien' },
+      uk: { nl: 'UK', en: 'UK', fr: 'Royaume-Uni', de: 'UK' },
+      usa: { nl: 'USA', en: 'USA', fr: 'États-Unis', de: 'USA' },
+    },
+    contactTitle: { nl: 'Neem contact op', en: 'Get in touch', fr: 'Contactez-nous', de: 'Kontaktieren Sie uns' },
+    contactSubtitle: { nl: 'Heeft u vragen of wilt u meer weten over onze diensten?', en: 'Do you have questions or would you like to know more about our services?', fr: 'Vous avez des questions ou souhaitez en savoir plus sur nos services?', de: 'Haben Sie Fragen oder möchten Sie mehr über unsere Dienstleistungen erfahren?' },
+    websitesLabel: { nl: 'Websites', en: 'Websites', fr: 'Sites web', de: 'Websites' },
+    addressLabel: { nl: 'Adres', en: 'Address', fr: 'Adresse', de: 'Adresse' },
     globalPresence: { nl: 'Wereldwijd actief', en: 'Active worldwide', fr: 'Actif dans le monde entier', de: 'Weltweit aktiv' },
     globalPresenceDesc: { nl: 'Vanuit ons hoofdkantoor in België bedienen wij klanten over de hele wereld. Onze software draait in meer dan 20 talen en wordt dagelijks gebruikt door honderdduizenden gebruikers.', en: 'From our headquarters in Belgium, we serve customers around the world. Our software runs in more than 20 languages and is used daily by hundreds of thousands of users.', fr: 'Depuis notre siège en Belgique, nous servons des clients du monde entier. Notre logiciel fonctionne dans plus de 20 langues et est utilisé quotidiennement par des centaines de milliers d\'utilisateurs.', de: 'Von unserem Hauptsitz in Belgien aus bedienen wir Kunden auf der ganzen Welt. Unsere Software läuft in mehr als 20 Sprachen und wird täglich von Hunderttausenden von Benutzern verwendet.' },
     haveQuestions: { nl: 'Heeft u vragen of wilt u meer weten over onze diensten?', en: 'Do you have questions or would you like to know more about our services?', fr: 'Vous avez des questions ou souhaitez en savoir plus sur nos services?', de: 'Haben Sie Fragen oder möchten Sie mehr über unsere Dienstleistungen erfahren?' },
@@ -380,12 +414,111 @@ export const translations = {
   privacy: {
     title: { nl: 'Privacybeleid', en: 'Privacy Policy', fr: 'Politique de confidentialité', de: 'Datenschutzrichtlinie' },
     lastUpdated: { nl: 'Laatst bijgewerkt: februari 2026', en: 'Last updated: February 2026', fr: 'Dernière mise à jour: février 2026', de: 'Zuletzt aktualisiert: Februar 2026' },
+    section1: {
+      title: { nl: '1. Inleiding', en: '1. Introduction', fr: '1. Introduction', de: '1. Einleitung' },
+      content: { nl: 'VoxApp, onderdeel van Vysion Horeca, respecteert uw privacy en zet zich in voor de bescherming van uw persoonsgegevens. Dit privacybeleid legt uit hoe wij uw gegevens verzamelen, gebruiken en beschermen wanneer u onze diensten gebruikt.', en: 'VoxApp, part of Vysion Horeca, respects your privacy and is committed to protecting your personal data. This privacy policy explains how we collect, use and protect your data when you use our services.', fr: 'VoxApp, qui fait partie de Vysion Horeca, respecte votre vie privée et s\'engage à protéger vos données personnelles. Cette politique de confidentialité explique comment nous collectons, utilisons et protégeons vos données lorsque vous utilisez nos services.', de: 'VoxApp, Teil von Vysion Horeca, respektiert Ihre Privatsphäre und ist dem Schutz Ihrer personenbezogenen Daten verpflichtet. Diese Datenschutzrichtlinie erklärt, wie wir Ihre Daten sammeln, verwenden und schützen, wenn Sie unsere Dienste nutzen.' },
+    },
+    section2: {
+      title: { nl: '2. Welke gegevens verzamelen wij?', en: '2. What data do we collect?', fr: '2. Quelles données collectons-nous?', de: '2. Welche Daten erheben wir?' },
+      intro: { nl: 'Wij verzamelen de volgende gegevens:', en: 'We collect the following data:', fr: 'Nous collectons les données suivantes:', de: 'Wir erheben folgende Daten:' },
+      item1: { nl: 'Bedrijfsgegevens (naam, adres, telefoonnummer, e-mail)', en: 'Business data (name, address, phone number, email)', fr: 'Données d\'entreprise (nom, adresse, numéro de téléphone, e-mail)', de: 'Unternehmensdaten (Name, Adresse, Telefonnummer, E-Mail)' },
+      item2: { nl: 'Accountgegevens (naam, e-mailadres, wachtwoord)', en: 'Account data (name, email address, password)', fr: 'Données de compte (nom, adresse e-mail, mot de passe)', de: 'Kontodaten (Name, E-Mail-Adresse, Passwort)' },
+      item3: { nl: 'Gespreksgegevens (transcripties van telefoongesprekken)', en: 'Call data (transcripts of phone calls)', fr: 'Données d\'appel (transcriptions d\'appels téléphoniques)', de: 'Anrufdaten (Transkripte von Telefongesprächen)' },
+      item4: { nl: 'Afspraakgegevens (datum, tijd, klantinformatie)', en: 'Appointment data (date, time, customer information)', fr: 'Données de rendez-vous (date, heure, informations client)', de: 'Termindaten (Datum, Uhrzeit, Kundeninformationen)' },
+      item5: { nl: 'Betalingsgegevens (via onze betalingspartner Stripe)', en: 'Payment data (via our payment partner Stripe)', fr: 'Données de paiement (via notre partenaire de paiement Stripe)', de: 'Zahlungsdaten (über unseren Zahlungspartner Stripe)' },
+    },
+    section3: {
+      title: { nl: '3. Waarvoor gebruiken wij uw gegevens?', en: '3. What do we use your data for?', fr: '3. À quoi utilisons-nous vos données?', de: '3. Wofür verwenden wir Ihre Daten?' },
+      item1: { nl: 'Het leveren en verbeteren van onze diensten', en: 'Providing and improving our services', fr: 'Fournir et améliorer nos services', de: 'Bereitstellung und Verbesserung unserer Dienste' },
+      item2: { nl: 'Het verwerken van telefoongesprekken en afspraken', en: 'Processing phone calls and appointments', fr: 'Traitement des appels téléphoniques et des rendez-vous', de: 'Verarbeitung von Telefongesprächen und Terminen' },
+      item3: { nl: 'Het versturen van SMS-bevestigingen naar uw klanten', en: 'Sending SMS confirmations to your customers', fr: 'Envoi de confirmations SMS à vos clients', de: 'Versenden von SMS-Bestätigungen an Ihre Kunden' },
+      item4: { nl: 'Facturatie en betalingsverwerking', en: 'Billing and payment processing', fr: 'Facturation et traitement des paiements', de: 'Rechnungsstellung und Zahlungsabwicklung' },
+      item5: { nl: 'Klantenondersteuning', en: 'Customer support', fr: 'Support client', de: 'Kundenbetreuung' },
+      item6: { nl: 'Het naleven van wettelijke verplichtingen', en: 'Compliance with legal obligations', fr: 'Respect des obligations légales', de: 'Einhaltung gesetzlicher Verpflichtungen' },
+    },
+    section4: {
+      title: { nl: '4. Gegevensbeveiliging', en: '4. Data Security', fr: '4. Sécurité des données', de: '4. Datensicherheit' },
+      content: { nl: 'Wij nemen passende technische en organisatorische maatregelen om uw gegevens te beschermen tegen ongeoorloofde toegang, verlies of misbruik. Alle gegevens worden versleuteld opgeslagen en onze servers bevinden zich binnen de Europese Unie.', en: 'We take appropriate technical and organizational measures to protect your data against unauthorized access, loss or misuse. All data is stored encrypted and our servers are located within the European Union.', fr: 'Nous prenons des mesures techniques et organisationnelles appropriées pour protéger vos données contre l\'accès non autorisé, la perte ou l\'utilisation abusive. Toutes les données sont stockées cryptées et nos serveurs sont situés dans l\'Union européenne.', de: 'Wir treffen angemessene technische und organisatorische Maßnahmen, um Ihre Daten vor unbefugtem Zugriff, Verlust oder Missbrauch zu schützen. Alle Daten werden verschlüsselt gespeichert und unsere Server befinden sich innerhalb der Europäischen Union.' },
+    },
+    section5: {
+      title: { nl: '5. Bewaartermijn', en: '5. Retention Period', fr: '5. Durée de conservation', de: '5. Aufbewahrungsfrist' },
+      content: { nl: 'Wij bewaren uw gegevens niet langer dan noodzakelijk voor de doeleinden waarvoor ze zijn verzameld. Gespreksopnames worden maximaal 90 dagen bewaard, tenzij u anders verzoekt.', en: 'We do not retain your data longer than necessary for the purposes for which they were collected. Call recordings are kept for a maximum of 90 days, unless you request otherwise.', fr: 'Nous ne conservons pas vos données plus longtemps que nécessaire pour les finalités pour lesquelles elles ont été collectées. Les enregistrements d\'appels sont conservés pendant un maximum de 90 jours, sauf demande contraire de votre part.', de: 'Wir bewahren Ihre Daten nicht länger auf, als es für die Zwecke, für die sie erhoben wurden, erforderlich ist. Anrufaufzeichnungen werden maximal 90 Tage aufbewahrt, sofern Sie nichts anderes verlangen.' },
+    },
+    section6: {
+      title: { nl: '6. Uw rechten', en: '6. Your Rights', fr: '6. Vos droits', de: '6. Ihre Rechte' },
+      intro: { nl: 'Onder de GDPR heeft u de volgende rechten:', en: 'Under the GDPR, you have the following rights:', fr: 'En vertu du RGPD, vous avez les droits suivants:', de: 'Nach der DSGVO haben Sie folgende Rechte:' },
+      item1: { nl: 'Recht op inzage in uw gegevens', en: 'Right to access your data', fr: 'Droit d\'accès à vos données', de: 'Recht auf Zugang zu Ihren Daten' },
+      item2: { nl: 'Recht op rectificatie van onjuiste gegevens', en: 'Right to rectification of inaccurate data', fr: 'Droit de rectification des données inexactes', de: 'Recht auf Berichtigung unrichtiger Daten' },
+      item3: { nl: 'Recht op verwijdering van uw gegevens', en: 'Right to erasure of your data', fr: 'Droit à l\'effacement de vos données', de: 'Recht auf Löschung Ihrer Daten' },
+      item4: { nl: 'Recht op beperking van de verwerking', en: 'Right to restriction of processing', fr: 'Droit à la limitation du traitement', de: 'Recht auf Einschränkung der Verarbeitung' },
+      item5: { nl: 'Recht op overdraagbaarheid van gegevens', en: 'Right to data portability', fr: 'Droit à la portabilité des données', de: 'Recht auf Datenübertragbarkeit' },
+      item6: { nl: 'Recht om bezwaar te maken tegen verwerking', en: 'Right to object to processing', fr: 'Droit d\'opposition au traitement', de: 'Recht auf Widerspruch gegen die Verarbeitung' },
+    },
+    section7: {
+      title: { nl: '7. Cookies', en: '7. Cookies', fr: '7. Cookies', de: '7. Cookies' },
+      content: { nl: 'Wij gebruiken cookies om onze website te laten functioneren en om uw ervaring te verbeteren. U kunt uw cookievoorkeuren aanpassen via de cookiebanner op onze website.', en: 'We use cookies to make our website work and to improve your experience. You can adjust your cookie preferences via the cookie banner on our website.', fr: 'Nous utilisons des cookies pour faire fonctionner notre site web et améliorer votre expérience. Vous pouvez ajuster vos préférences en matière de cookies via la bannière de cookies sur notre site web.', de: 'Wir verwenden Cookies, um unsere Website zum Laufen zu bringen und Ihre Erfahrung zu verbessern. Sie können Ihre Cookie-Einstellungen über das Cookie-Banner auf unserer Website anpassen.' },
+    },
+    section8: {
+      title: { nl: '8. Contact', en: '8. Contact', fr: '8. Contact', de: '8. Kontakt' },
+      content: { nl: 'Voor vragen over dit privacybeleid of om uw rechten uit te oefenen, kunt u contact opnemen via:', en: 'For questions about this privacy policy or to exercise your rights, please contact us at:', fr: 'Pour toute question concernant cette politique de confidentialité ou pour exercer vos droits, veuillez nous contacter à:', de: 'Bei Fragen zu dieser Datenschutzrichtlinie oder zur Ausübung Ihrer Rechte kontaktieren Sie uns bitte unter:' },
+    },
   },
 
   // Terms Page
   terms: {
     title: { nl: 'Algemene Voorwaarden', en: 'Terms and Conditions', fr: 'Conditions Générales', de: 'Allgemeine Geschäftsbedingungen' },
     lastUpdated: { nl: 'Laatst bijgewerkt: februari 2026', en: 'Last updated: February 2026', fr: 'Dernière mise à jour: février 2026', de: 'Zuletzt aktualisiert: Februar 2026' },
+    section1: {
+      title: { nl: '1. Definities', en: '1. Definitions', fr: '1. Définitions', de: '1. Definitionen' },
+      voxapp: { nl: 'De dienst aangeboden door Vysion Horeca, gevestigd in België.', en: 'The service offered by Vysion Horeca, based in Belgium.', fr: 'Le service offert par Vysion Horeca, basé en Belgique.', de: 'Der von Vysion Horeca angebotene Dienst mit Sitz in Belgien.' },
+      customerLabel: { nl: 'Klant', en: 'Customer', fr: 'Client', de: 'Kunde' },
+      customer: { nl: 'De natuurlijke of rechtspersoon die gebruik maakt van de diensten van VoxApp.', en: 'The natural or legal person using VoxApp services.', fr: 'La personne physique ou morale qui utilise les services de VoxApp.', de: 'Die natürliche oder juristische Person, die die Dienste von VoxApp nutzt.' },
+      servicesLabel: { nl: 'Diensten', en: 'Services', fr: 'Services', de: 'Dienste' },
+      services: { nl: 'De slimme receptionist en gerelateerde functionaliteiten aangeboden door VoxApp.', en: 'The smart receptionist and related functionalities offered by VoxApp.', fr: 'Le réceptionniste intelligent et les fonctionnalités connexes offertes par VoxApp.', de: 'Der intelligente Rezeptionist und verwandte Funktionalitäten, die von VoxApp angeboten werden.' },
+    },
+    section2: {
+      title: { nl: '2. Toepasselijkheid', en: '2. Applicability', fr: '2. Applicabilité', de: '2. Anwendbarkeit' },
+      content: { nl: 'Deze algemene voorwaarden zijn van toepassing op alle overeenkomsten tussen VoxApp en de Klant. Door gebruik te maken van onze diensten, gaat u akkoord met deze voorwaarden.', en: 'These terms and conditions apply to all agreements between VoxApp and the Customer. By using our services, you agree to these terms.', fr: 'Ces conditions générales s\'appliquent à tous les accords entre VoxApp et le Client. En utilisant nos services, vous acceptez ces conditions.', de: 'Diese Allgemeinen Geschäftsbedingungen gelten für alle Vereinbarungen zwischen VoxApp und dem Kunden. Durch die Nutzung unserer Dienste stimmen Sie diesen Bedingungen zu.' },
+    },
+    section3: {
+      title: { nl: '3. Dienstverlening', en: '3. Service Delivery', fr: '3. Prestation de services', de: '3. Dienstleistung' },
+      content: { nl: 'VoxApp biedt een slimme telefonische receptionist die telefoongesprekken beantwoordt, afspraken inboekt en veelgestelde vragen beantwoordt namens de Klant. Wij streven naar een uptime van 99.9%.', en: 'VoxApp offers a smart telephone receptionist that answers phone calls, books appointments and answers frequently asked questions on behalf of the Customer. We strive for 99.9% uptime.', fr: 'VoxApp offre un réceptionniste téléphonique intelligent qui répond aux appels téléphoniques, prend des rendez-vous et répond aux questions fréquentes au nom du Client. Nous visons une disponibilité de 99,9%.', de: 'VoxApp bietet einen intelligenten Telefonrezeptionisten, der Anrufe entgegennimmt, Termine bucht und häufig gestellte Fragen im Namen des Kunden beantwortet. Wir streben eine Verfügbarkeit von 99,9% an.' },
+    },
+    section4: {
+      title: { nl: '4. Abonnementen en Prijzen', en: '4. Subscriptions and Pricing', fr: '4. Abonnements et tarifs', de: '4. Abonnements und Preise' },
+      starter: { nl: '€99/maand - 300 minuten inbegrepen', en: '€99/month - 300 minutes included', fr: '99€/mois - 300 minutes incluses', de: '99€/Monat - 300 Minuten inklusive' },
+      pro: { nl: '€149/maand - 750 minuten inbegrepen', en: '€149/month - 750 minutes included', fr: '149€/mois - 750 minutes incluses', de: '149€/Monat - 750 Minuten inklusive' },
+      business: { nl: '€249/maand - 1500 minuten inbegrepen', en: '€249/month - 1500 minutes included', fr: '249€/mois - 1500 minutes incluses', de: '249€/Monat - 1500 Minuten inklusive' },
+      trial: { nl: 'De eerste 7 dagen zijn gratis. Daarna wordt het abonnement maandelijks gefactureerd. Extra minuten worden aan het einde van de maand in rekening gebracht.', en: 'The first 7 days are free. After that, the subscription is billed monthly. Extra minutes are charged at the end of the month.', fr: 'Les 7 premiers jours sont gratuits. Ensuite, l\'abonnement est facturé mensuellement. Les minutes supplémentaires sont facturées à la fin du mois.', de: 'Die ersten 7 Tage sind kostenlos. Danach wird das Abonnement monatlich abgerechnet. Zusätzliche Minuten werden am Ende des Monats berechnet.' },
+    },
+    section5: {
+      title: { nl: '5. Betaling', en: '5. Payment', fr: '5. Paiement', de: '5. Zahlung' },
+      content: { nl: 'Betaling geschiedt via automatische incasso of creditcard via onze betalingspartner Stripe. Facturen worden maandelijks verstuurd. Bij niet-tijdige betaling behouden wij ons het recht voor de dienstverlening op te schorten.', en: 'Payment is made by direct debit or credit card via our payment partner Stripe. Invoices are sent monthly. In case of late payment, we reserve the right to suspend the service.', fr: 'Le paiement s\'effectue par prélèvement automatique ou carte de crédit via notre partenaire de paiement Stripe. Les factures sont envoyées mensuellement. En cas de retard de paiement, nous nous réservons le droit de suspendre le service.', de: 'Die Zahlung erfolgt per Lastschrift oder Kreditkarte über unseren Zahlungspartner Stripe. Rechnungen werden monatlich verschickt. Bei verspäteter Zahlung behalten wir uns das Recht vor, den Dienst auszusetzen.' },
+    },
+    section6: {
+      title: { nl: '6. Opzegging', en: '6. Cancellation', fr: '6. Résiliation', de: '6. Kündigung' },
+      content: { nl: 'U kunt uw abonnement op elk moment opzeggen via uw dashboard. De opzegging gaat in aan het einde van de lopende facturatieperiode. Er is geen opzegtermijn en geen contractuele binding.', en: 'You can cancel your subscription at any time via your dashboard. Cancellation takes effect at the end of the current billing period. There is no notice period and no contractual commitment.', fr: 'Vous pouvez annuler votre abonnement à tout moment via votre tableau de bord. La résiliation prend effet à la fin de la période de facturation en cours. Il n\'y a pas de préavis et pas d\'engagement contractuel.', de: 'Sie können Ihr Abonnement jederzeit über Ihr Dashboard kündigen. Die Kündigung wird am Ende des aktuellen Abrechnungszeitraums wirksam. Es gibt keine Kündigungsfrist und keine vertragliche Bindung.' },
+    },
+    section7: {
+      title: { nl: '7. Aansprakelijkheid', en: '7. Liability', fr: '7. Responsabilité', de: '7. Haftung' },
+      content: { nl: 'VoxApp is niet aansprakelijk voor indirecte schade, gevolgschade of gederfde winst. Onze totale aansprakelijkheid is beperkt tot het bedrag dat de Klant in de afgelopen 12 maanden aan VoxApp heeft betaald.', en: 'VoxApp is not liable for indirect damage, consequential damage or lost profits. Our total liability is limited to the amount the Customer has paid to VoxApp in the past 12 months.', fr: 'VoxApp n\'est pas responsable des dommages indirects, des dommages consécutifs ou des pertes de profits. Notre responsabilité totale est limitée au montant que le Client a payé à VoxApp au cours des 12 derniers mois.', de: 'VoxApp haftet nicht für indirekte Schäden, Folgeschäden oder entgangenen Gewinn. Unsere Gesamthaftung ist auf den Betrag beschränkt, den der Kunde in den letzten 12 Monaten an VoxApp gezahlt hat.' },
+    },
+    section8: {
+      title: { nl: '8. Intellectueel Eigendom', en: '8. Intellectual Property', fr: '8. Propriété intellectuelle', de: '8. Geistiges Eigentum' },
+      content: { nl: 'Alle intellectuele eigendomsrechten op de software, technologie en content van VoxApp blijven eigendom van Vysion Horeca. De Klant krijgt een beperkt gebruiksrecht voor de duur van het abonnement.', en: 'All intellectual property rights to VoxApp software, technology and content remain the property of Vysion Horeca. The Customer receives a limited right of use for the duration of the subscription.', fr: 'Tous les droits de propriété intellectuelle sur le logiciel, la technologie et le contenu de VoxApp restent la propriété de Vysion Horeca. Le Client reçoit un droit d\'utilisation limité pour la durée de l\'abonnement.', de: 'Alle geistigen Eigentumsrechte an der Software, Technologie und dem Inhalt von VoxApp bleiben Eigentum von Vysion Horeca. Der Kunde erhält ein begrenztes Nutzungsrecht für die Dauer des Abonnements.' },
+    },
+    section9: {
+      title: { nl: '9. Wijzigingen', en: '9. Changes', fr: '9. Modifications', de: '9. Änderungen' },
+      content: { nl: 'VoxApp behoudt zich het recht voor deze voorwaarden te wijzigen. Wijzigingen worden minimaal 30 dagen van tevoren aangekondigd via e-mail of via het dashboard.', en: 'VoxApp reserves the right to change these terms. Changes will be announced at least 30 days in advance via email or the dashboard.', fr: 'VoxApp se réserve le droit de modifier ces conditions. Les modifications seront annoncées au moins 30 jours à l\'avance par e-mail ou via le tableau de bord.', de: 'VoxApp behält sich das Recht vor, diese Bedingungen zu ändern. Änderungen werden mindestens 30 Tage im Voraus per E-Mail oder über das Dashboard angekündigt.' },
+    },
+    section10: {
+      title: { nl: '10. Toepasselijk Recht', en: '10. Applicable Law', fr: '10. Droit applicable', de: '10. Anwendbares Recht' },
+      content: { nl: 'Op deze voorwaarden is Belgisch recht van toepassing. Geschillen worden voorgelegd aan de bevoegde rechtbank in België.', en: 'These terms are governed by Belgian law. Disputes will be submitted to the competent court in Belgium.', fr: 'Ces conditions sont régies par le droit belge. Les litiges seront soumis au tribunal compétent en Belgique.', de: 'Diese Bedingungen unterliegen belgischem Recht. Streitigkeiten werden dem zuständigen Gericht in Belgien vorgelegt.' },
+    },
+    section11: {
+      title: { nl: '11. Contact', en: '11. Contact', fr: '11. Contact', de: '11. Kontakt' },
+      content: { nl: 'Voor vragen over deze voorwaarden kunt u contact opnemen via:', en: 'For questions about these terms, please contact us at:', fr: 'Pour toute question concernant ces conditions, veuillez nous contacter à:', de: 'Bei Fragen zu diesen Bedingungen kontaktieren Sie uns bitte unter:' },
+    },
   },
 };
 

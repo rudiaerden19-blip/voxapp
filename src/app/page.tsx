@@ -41,6 +41,7 @@ import {
    DEMO MODAL - Audio conversation with live transcript
 ============================================ */
 function DemoModal({ isOpen, onClose, demoType = 'belle' }: { isOpen: boolean; onClose: () => void; demoType?: 'belle' | 'garage' | 'restaurant' }) {
+  const { t } = useLanguage();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentLine, setCurrentLine] = useState(0);
   const [typingText, setTypingText] = useState('');
@@ -236,10 +237,10 @@ function DemoModal({ isOpen, onClose, demoType = 'belle' }: { isOpen: boolean; o
               borderRadius: '50%',
               animation: isPlaying ? 'pulse 1.5s infinite' : 'none',
             }} />
-            <span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>Live demo</span>
+            <span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>{t('demoModal.liveDemo')}</span>
           </div>
           <p style={{ color: '#6b7280', fontSize: 15, lineHeight: 1.6, margin: 0 }}>
-            Luister mee hoe VoxApp een afspraak boekt voor Kapsalon Belle
+            {t('demoModal.listenDescription')}
           </p>
         </div>
 
@@ -309,7 +310,7 @@ function DemoModal({ isOpen, onClose, demoType = 'belle' }: { isOpen: boolean; o
         }}>
           {!isPlaying && currentLine === 0 ? (
             <div style={{ textAlign: 'center', color: '#9ca3af', fontSize: 14, paddingTop: 20 }}>
-              Klik op de knop hieronder om het gesprek te starten
+              {t('demoModal.clickToStart')}
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -323,7 +324,7 @@ function DemoModal({ isOpen, onClose, demoType = 'belle' }: { isOpen: boolean; o
                     letterSpacing: 0.5,
                     color: line.speaker === 'receptionist' ? '#16a34a' : '#2563eb',
                   }}>
-                    {line.speaker === 'receptionist' ? 'Receptionist' : 'Klant'}
+                    {line.speaker === 'receptionist' ? t('demoModal.receptionist') : t('demoModal.customer')}
                   </span>
                   <span style={{ 
                     fontSize: 15, 
@@ -345,7 +346,7 @@ function DemoModal({ isOpen, onClose, demoType = 'belle' }: { isOpen: boolean; o
                     letterSpacing: 0.5,
                     color: currentSpeaker === 'receptionist' ? '#16a34a' : '#2563eb',
                   }}>
-                    {currentSpeaker === 'receptionist' ? 'Receptionist' : 'Klant'}
+                    {currentSpeaker === 'receptionist' ? t('demoModal.receptionist') : t('demoModal.customer')}
                   </span>
                   <span style={{ 
                     fontSize: 15, 
@@ -389,7 +390,7 @@ function DemoModal({ isOpen, onClose, demoType = 'belle' }: { isOpen: boolean; o
                 boxShadow: '0 4px 14px rgba(102, 126, 234, 0.4)',
               }}
             >
-              Start live demo
+              {t('demoModal.startLiveDemo')}
             </button>
           ) : isComplete ? (
             <button 
@@ -411,7 +412,7 @@ function DemoModal({ isOpen, onClose, demoType = 'belle' }: { isOpen: boolean; o
               }}
             >
               <RefreshCw size={18} />
-              Opnieuw afspelen
+              {t('demoModal.playAgain')}
             </button>
           ) : (
             <div style={{ 
@@ -420,7 +421,7 @@ function DemoModal({ isOpen, onClose, demoType = 'belle' }: { isOpen: boolean; o
               fontSize: 13,
               padding: '8px 0',
             }}>
-              Gesprek bezig...
+              {t('demoModal.callInProgress')}
             </div>
           )}
         </div>
@@ -433,7 +434,7 @@ function DemoModal({ isOpen, onClose, demoType = 'belle' }: { isOpen: boolean; o
           borderTop: '1px solid #f3f4f6',
         }}>
           <p style={{ fontSize: 12, color: '#9ca3af', margin: 0 }}>
-            Dit is een simulatie van hoe VoxApp uw telefoongesprekken afhandelt.
+            {t('demoModal.simulationNote')}
           </p>
         </div>
       </div>
@@ -3172,6 +3173,7 @@ function Footer() {
    MAIN PAGE
 ============================================ */
 export default function Home() {
+  const { t } = useLanguage();
   const [demoOpen, setDemoOpen] = useState(false);
   const [demoType, setDemoType] = useState<'belle' | 'garage' | 'restaurant'>('belle');
   const [showCookieBanner, setShowCookieBanner] = useState(false);
@@ -3259,12 +3261,11 @@ export default function Home() {
           }}>
             <div style={{ flex: 1, minWidth: 280 }}>
               <p style={{ color: 'white', fontSize: 15, fontWeight: 600, marginBottom: 6 }}>
-                🍪 Wij gebruiken cookies
+                {t('cookies.title')}
               </p>
               <p style={{ color: '#9ca3af', fontSize: 13, lineHeight: 1.6 }}>
-                Wij gebruiken cookies om onze website te laten functioneren en uw ervaring te verbeteren. 
-                Door op "Accepteren" te klikken, gaat u akkoord met ons{' '}
-                <a href="/privacy" style={{ color: '#f97316', textDecoration: 'underline' }}>cookiebeleid</a>.
+                {t('cookies.message')}{' '}
+                <a href="/privacy" style={{ color: '#f97316', textDecoration: 'underline' }}>{t('cookies.cookiePolicy')}</a>.
               </p>
             </div>
             <div style={{ display: 'flex', gap: 12 }}>
@@ -3281,7 +3282,7 @@ export default function Home() {
                   cursor: 'pointer',
                 }}
               >
-                Weigeren
+                {t('cookies.decline')}
               </button>
               <button
                 onClick={acceptCookies}
@@ -3296,7 +3297,7 @@ export default function Home() {
                   cursor: 'pointer',
                 }}
               >
-                Accepteren
+                {t('cookies.accept')}
               </button>
             </div>
           </div>

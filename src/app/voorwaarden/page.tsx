@@ -1,8 +1,11 @@
 'use client';
 
 import { ArrowLeft } from 'lucide-react';
+import { useLanguage } from '@/lib/LanguageContext';
 
 export default function VoorwaardenPage() {
+  const { t } = useLanguage();
+  
   return (
     <div style={{ background: '#0a0710', minHeight: '100vh', color: 'white' }}>
       {/* Header */}
@@ -25,7 +28,7 @@ export default function VoorwaardenPage() {
             fontSize: 14,
           }}>
             <ArrowLeft size={18} />
-            Terug naar home
+            {t('nav.backToHome')}
           </a>
         </div>
       </header>
@@ -33,105 +36,94 @@ export default function VoorwaardenPage() {
       {/* Content */}
       <main style={{ maxWidth: 800, margin: '0 auto', padding: '60px 24px' }}>
         <h1 style={{ fontSize: 36, fontWeight: 700, marginBottom: 8 }}>
-          Algemene <span style={{ color: '#f97316' }}>Voorwaarden</span>
+          {t('terms.title')}
         </h1>
-        <p style={{ color: '#6b7280', marginBottom: 48 }}>Laatst bijgewerkt: februari 2026</p>
+        <p style={{ color: '#6b7280', marginBottom: 48 }}>{t('terms.lastUpdated')}</p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
           <section>
-            <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 16, color: '#f97316' }}>1. Definities</h2>
+            <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 16, color: '#f97316' }}>{t('terms.section1.title')}</h2>
             <p style={{ color: '#9ca3af', lineHeight: 1.8 }}>
-              <strong style={{ color: 'white' }}>VoxApp:</strong> De dienst aangeboden door Vysion Horeca, gevestigd in België.<br />
-              <strong style={{ color: 'white' }}>Klant:</strong> De natuurlijke of rechtspersoon die gebruik maakt van de diensten van VoxApp.<br />
-              <strong style={{ color: 'white' }}>Diensten:</strong> De slimme receptionist en gerelateerde functionaliteiten aangeboden door VoxApp.
+              <strong style={{ color: 'white' }}>VoxApp:</strong> {t('terms.section1.voxapp')}<br />
+              <strong style={{ color: 'white' }}>{t('terms.section1.customerLabel')}:</strong> {t('terms.section1.customer')}<br />
+              <strong style={{ color: 'white' }}>{t('terms.section1.servicesLabel')}:</strong> {t('terms.section1.services')}
             </p>
           </section>
 
           <section>
-            <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 16, color: '#f97316' }}>2. Toepasselijkheid</h2>
+            <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 16, color: '#f97316' }}>{t('terms.section2.title')}</h2>
             <p style={{ color: '#9ca3af', lineHeight: 1.8 }}>
-              Deze algemene voorwaarden zijn van toepassing op alle overeenkomsten tussen VoxApp en de Klant. 
-              Door gebruik te maken van onze diensten, gaat u akkoord met deze voorwaarden.
+              {t('terms.section2.content')}
             </p>
           </section>
 
           <section>
-            <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 16, color: '#f97316' }}>3. Dienstverlening</h2>
+            <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 16, color: '#f97316' }}>{t('terms.section3.title')}</h2>
             <p style={{ color: '#9ca3af', lineHeight: 1.8 }}>
-              VoxApp biedt een slimme telefonische receptionist die telefoongesprekken beantwoordt, afspraken inboekt 
-              en veelgestelde vragen beantwoordt namens de Klant. Wij streven naar een uptime van 99.9%.
+              {t('terms.section3.content')}
             </p>
           </section>
 
           <section>
-            <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 16, color: '#f97316' }}>4. Abonnementen en Prijzen</h2>
+            <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 16, color: '#f97316' }}>{t('terms.section4.title')}</h2>
             <ul style={{ color: '#9ca3af', lineHeight: 2, paddingLeft: 24 }}>
-              <li><strong style={{ color: 'white' }}>Starter:</strong> €99/maand - 300 minuten inbegrepen</li>
-              <li><strong style={{ color: 'white' }}>Pro:</strong> €149/maand - 750 minuten inbegrepen</li>
-              <li><strong style={{ color: 'white' }}>Business:</strong> €249/maand - 1500 minuten inbegrepen</li>
+              <li><strong style={{ color: 'white' }}>Starter:</strong> {t('terms.section4.starter')}</li>
+              <li><strong style={{ color: 'white' }}>Pro:</strong> {t('terms.section4.pro')}</li>
+              <li><strong style={{ color: 'white' }}>Business:</strong> {t('terms.section4.business')}</li>
             </ul>
             <p style={{ color: '#9ca3af', lineHeight: 1.8, marginTop: 16 }}>
-              De eerste 7 dagen zijn gratis. Daarna wordt het abonnement maandelijks gefactureerd. 
-              Extra minuten worden aan het einde van de maand in rekening gebracht.
+              {t('terms.section4.trial')}
             </p>
           </section>
 
           <section>
-            <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 16, color: '#f97316' }}>5. Betaling</h2>
+            <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 16, color: '#f97316' }}>{t('terms.section5.title')}</h2>
             <p style={{ color: '#9ca3af', lineHeight: 1.8 }}>
-              Betaling geschiedt via automatische incasso of creditcard via onze betalingspartner Stripe. 
-              Facturen worden maandelijks verstuurd. Bij niet-tijdige betaling behouden wij ons het recht voor 
-              de dienstverlening op te schorten.
+              {t('terms.section5.content')}
             </p>
           </section>
 
           <section>
-            <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 16, color: '#f97316' }}>6. Opzegging</h2>
+            <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 16, color: '#f97316' }}>{t('terms.section6.title')}</h2>
             <p style={{ color: '#9ca3af', lineHeight: 1.8 }}>
-              U kunt uw abonnement op elk moment opzeggen via uw dashboard. De opzegging gaat in aan het einde 
-              van de lopende facturatieperiode. Er is geen opzegtermijn en geen contractuele binding.
+              {t('terms.section6.content')}
             </p>
           </section>
 
           <section>
-            <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 16, color: '#f97316' }}>7. Aansprakelijkheid</h2>
+            <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 16, color: '#f97316' }}>{t('terms.section7.title')}</h2>
             <p style={{ color: '#9ca3af', lineHeight: 1.8 }}>
-              VoxApp is niet aansprakelijk voor indirecte schade, gevolgschade of gederfde winst. 
-              Onze totale aansprakelijkheid is beperkt tot het bedrag dat de Klant in de afgelopen 
-              12 maanden aan VoxApp heeft betaald.
+              {t('terms.section7.content')}
             </p>
           </section>
 
           <section>
-            <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 16, color: '#f97316' }}>8. Intellectueel Eigendom</h2>
+            <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 16, color: '#f97316' }}>{t('terms.section8.title')}</h2>
             <p style={{ color: '#9ca3af', lineHeight: 1.8 }}>
-              Alle intellectuele eigendomsrechten op de software, technologie en content van VoxApp 
-              blijven eigendom van Vysion Horeca. De Klant krijgt een beperkt gebruiksrecht voor de duur van het abonnement.
+              {t('terms.section8.content')}
             </p>
           </section>
 
           <section>
-            <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 16, color: '#f97316' }}>9. Wijzigingen</h2>
+            <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 16, color: '#f97316' }}>{t('terms.section9.title')}</h2>
             <p style={{ color: '#9ca3af', lineHeight: 1.8 }}>
-              VoxApp behoudt zich het recht voor deze voorwaarden te wijzigen. Wijzigingen worden minimaal 
-              30 dagen van tevoren aangekondigd via e-mail of via het dashboard.
+              {t('terms.section9.content')}
             </p>
           </section>
 
           <section>
-            <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 16, color: '#f97316' }}>10. Toepasselijk Recht</h2>
+            <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 16, color: '#f97316' }}>{t('terms.section10.title')}</h2>
             <p style={{ color: '#9ca3af', lineHeight: 1.8 }}>
-              Op deze voorwaarden is Belgisch recht van toepassing. Geschillen worden voorgelegd aan 
-              de bevoegde rechtbank in België.
+              {t('terms.section10.content')}
             </p>
           </section>
 
           <section>
-            <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 16, color: '#f97316' }}>11. Contact</h2>
+            <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 16, color: '#f97316' }}>{t('terms.section11.title')}</h2>
             <p style={{ color: '#9ca3af', lineHeight: 1.8 }}>
-              Voor vragen over deze voorwaarden kunt u contact opnemen via:<br /><br />
-              <strong style={{ color: 'white' }}>E-mail:</strong> info@vysionhoreca.com<br />
-              <strong style={{ color: 'white' }}>Website:</strong> voxapp.tech
+              {t('terms.section11.content')}<br /><br />
+              <strong style={{ color: 'white' }}>{t('contact.email')}:</strong> info@vysionhoreca.com<br />
+              <strong style={{ color: 'white' }}>{t('contact.website')}:</strong> voxapp.tech
             </p>
           </section>
         </div>
