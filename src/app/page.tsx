@@ -886,6 +886,15 @@ function ForWhoSection() {
 ============================================ */
 function InboundSection({ onOpenDemo }: { onOpenDemo: () => void }) {
   const { t } = useLanguage();
+  const [selectedDemoLang, setSelectedDemoLang] = useState<'nl' | 'en' | 'fr' | 'de'>('nl');
+
+  const demoLanguages = [
+    { code: 'nl' as const, flag: '🇳🇱', label: 'NL' },
+    { code: 'en' as const, flag: '🇬🇧', label: 'EN' },
+    { code: 'fr' as const, flag: '🇫🇷', label: 'FR' },
+    { code: 'de' as const, flag: '🇩🇪', label: 'DE' },
+  ];
+
   return (
     <section id="features" style={{ background: '#e3e3e3', padding: '200px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
@@ -903,7 +912,7 @@ function InboundSection({ onOpenDemo }: { onOpenDemo: () => void }) {
             </p>
 
             {/* CTA Buttons */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 32 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
               <a href="/register" style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -935,6 +944,32 @@ function InboundSection({ onOpenDemo }: { onOpenDemo: () => void }) {
                 <PhoneCall size={16} />
                 {t('inbound.listenDemo')}
               </button>
+            </div>
+            {/* Language selector for demo */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 32 }}>
+              {demoLanguages.map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => setSelectedDemoLang(lang.code)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    padding: '6px 10px',
+                    borderRadius: 6,
+                    border: selectedDemoLang === lang.code ? '2px solid #f97316' : '2px solid #e5e7eb',
+                    background: selectedDemoLang === lang.code ? '#fff7ed' : 'white',
+                    cursor: 'pointer',
+                    fontSize: 13,
+                    fontWeight: selectedDemoLang === lang.code ? 600 : 400,
+                    color: selectedDemoLang === lang.code ? '#f97316' : '#6b7280',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <span style={{ fontSize: 16 }}>{lang.flag}</span>
+                  <span>{lang.label}</span>
+                </button>
+              ))}
             </div>
 
             {/* Feature list */}
@@ -974,6 +1009,15 @@ function InboundSection({ onOpenDemo }: { onOpenDemo: () => void }) {
 ============================================ */
 function RestaurantSection({ onOpenDemo }: { onOpenDemo: () => void }) {
   const { t } = useLanguage();
+  const [selectedDemoLang, setSelectedDemoLang] = useState<'nl' | 'en' | 'fr' | 'de'>('nl');
+
+  const demoLanguages = [
+    { code: 'nl' as const, flag: '🇳🇱', label: 'NL' },
+    { code: 'en' as const, flag: '🇬🇧', label: 'EN' },
+    { code: 'fr' as const, flag: '🇫🇷', label: 'FR' },
+    { code: 'de' as const, flag: '🇩🇪', label: 'DE' },
+  ];
+
   return (
     <section style={{ background: '#f5f5f5', padding: '200px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
@@ -1002,7 +1046,7 @@ function RestaurantSection({ onOpenDemo }: { onOpenDemo: () => void }) {
             </p>
 
             {/* CTA Buttons */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 32 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
               <a href="/register" style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -1035,6 +1079,32 @@ function RestaurantSection({ onOpenDemo }: { onOpenDemo: () => void }) {
                 {t('inbound.listenDemo')}
               </button>
             </div>
+            {/* Language selector for demo */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 32 }}>
+              {demoLanguages.map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => setSelectedDemoLang(lang.code)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    padding: '6px 10px',
+                    borderRadius: 6,
+                    border: selectedDemoLang === lang.code ? '2px solid #f97316' : '2px solid #e5e7eb',
+                    background: selectedDemoLang === lang.code ? '#fff7ed' : 'white',
+                    cursor: 'pointer',
+                    fontSize: 13,
+                    fontWeight: selectedDemoLang === lang.code ? 600 : 400,
+                    color: selectedDemoLang === lang.code ? '#f97316' : '#6b7280',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <span style={{ fontSize: 16 }}>{lang.flag}</span>
+                  <span>{lang.label}</span>
+                </button>
+              ))}
+            </div>
 
             {/* Feature list */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -1065,6 +1135,14 @@ function FrituurSection() {
   const [callStatus, setCallStatus] = useState<'idle' | 'connecting' | 'connected' | 'ended' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [selectedDemoLang, setSelectedDemoLang] = useState<'nl' | 'en' | 'fr' | 'de'>('nl');
+
+  const demoLanguages = [
+    { code: 'nl' as const, flag: '🇳🇱', label: 'NL' },
+    { code: 'en' as const, flag: '🇬🇧', label: 'EN' },
+    { code: 'fr' as const, flag: '🇫🇷', label: 'FR' },
+    { code: 'de' as const, flag: '🇩🇪', label: 'DE' },
+  ];
 
   const conversation = useConversation({
     onConnect: () => setCallStatus('connected'),
@@ -1137,25 +1215,53 @@ function FrituurSection() {
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 16, marginBottom: 32 }}>
               {!isActive ? (
                 <>
-                  <button 
-                    onClick={startCall}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: callStatus === 'error' ? '#ef4444' : '#22c55e',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: 100,
-                      width: 80,
-                      height: 80,
-                      cursor: 'pointer',
-                      boxShadow: '0 0 30px rgba(34, 197, 94, 0.5)',
-                      animation: 'breathe 2s ease-in-out infinite',
-                    }}
-                  >
-                    <Phone size={32} />
-                  </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                    <button 
+                      onClick={startCall}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: callStatus === 'error' ? '#ef4444' : '#22c55e',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: 100,
+                        width: 80,
+                        height: 80,
+                        cursor: 'pointer',
+                        boxShadow: '0 0 30px rgba(34, 197, 94, 0.5)',
+                        animation: 'breathe 2s ease-in-out infinite',
+                      }}
+                    >
+                      <Phone size={32} />
+                    </button>
+                    {/* Language selector for demo */}
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {demoLanguages.map((lang) => (
+                        <button
+                          key={lang.code}
+                          onClick={() => setSelectedDemoLang(lang.code)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            padding: '8px 12px',
+                            borderRadius: 8,
+                            border: selectedDemoLang === lang.code ? '2px solid #f97316' : '2px solid #e5e7eb',
+                            background: selectedDemoLang === lang.code ? '#fff7ed' : 'white',
+                            cursor: 'pointer',
+                            fontSize: 14,
+                            fontWeight: selectedDemoLang === lang.code ? 600 : 400,
+                            color: selectedDemoLang === lang.code ? '#f97316' : '#6b7280',
+                            transition: 'all 0.2s',
+                          }}
+                        >
+                          <span style={{ fontSize: 18 }}>{lang.flag}</span>
+                          <span>{lang.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   <p style={{ color: '#f97316', fontSize: 14, fontWeight: 500 }}>
                     {t('frituur.clickToOrder')}
                   </p>
@@ -1872,7 +1978,15 @@ function TryLiveSection() {
   const [callStatus, setCallStatus] = useState<'idle' | 'connecting' | 'connected' | 'ended' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [selectedDemoLang, setSelectedDemoLang] = useState<'nl' | 'en' | 'fr' | 'de'>('nl');
   const conversationRef = useRef<ReturnType<typeof useConversation> | null>(null);
+
+  const demoLanguages = [
+    { code: 'nl' as const, flag: '🇳🇱', label: 'NL' },
+    { code: 'en' as const, flag: '🇬🇧', label: 'EN' },
+    { code: 'fr' as const, flag: '🇫🇷', label: 'FR' },
+    { code: 'de' as const, flag: '🇩🇪', label: 'DE' },
+  ];
 
   // We'll use the hook at component level
   const conversation = useConversation({
@@ -1967,6 +2081,32 @@ function TryLiveSection() {
               >
                 <Phone size={40} />
               </button>
+              {/* Language selector for demo */}
+              <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                {demoLanguages.map((lang) => (
+                  <button
+                    key={lang.code}
+                    onClick={() => setSelectedDemoLang(lang.code)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      padding: '8px 12px',
+                      borderRadius: 8,
+                      border: selectedDemoLang === lang.code ? '2px solid #f97316' : '2px solid rgba(255,255,255,0.2)',
+                      background: selectedDemoLang === lang.code ? 'rgba(249, 115, 22, 0.2)' : 'rgba(255,255,255,0.05)',
+                      cursor: 'pointer',
+                      fontSize: 14,
+                      fontWeight: selectedDemoLang === lang.code ? 600 : 400,
+                      color: selectedDemoLang === lang.code ? '#f97316' : '#9ca3af',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    <span style={{ fontSize: 18 }}>{lang.flag}</span>
+                    <span>{lang.label}</span>
+                  </button>
+                ))}
+              </div>
               {errorMessage && (
                 <p style={{ color: '#ef4444', fontSize: 14, maxWidth: 300 }}>
                   {errorMessage}
