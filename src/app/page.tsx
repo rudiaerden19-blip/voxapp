@@ -1247,28 +1247,11 @@ function ROICalculatorSection() {
   // Berekeningen
   const totaleMaandMinuten = gesprekkenPerMaand * gespreksduur;
   
-  // VoxApp kosten (gebaseerd op minuten)
-  let voxAppPlan = 'Starter';
-  let voxAppKostenPerMaand = 99;
-  let inclusieveMinuten = 300;
-  let extraMinuutPrijs = 0.40;
-  
-  if (totaleMaandMinuten > 1500) {
-    voxAppPlan = 'Business';
-    voxAppKostenPerMaand = 249;
-    inclusieveMinuten = 1500;
-    extraMinuutPrijs = 0.30;
-  } else if (totaleMaandMinuten > 750) {
-    voxAppPlan = 'Business';
-    voxAppKostenPerMaand = 249;
-    inclusieveMinuten = 1500;
-    extraMinuutPrijs = 0.30;
-  } else if (totaleMaandMinuten > 300) {
-    voxAppPlan = 'Pro';
-    voxAppKostenPerMaand = 149;
-    inclusieveMinuten = 750;
-    extraMinuutPrijs = 0.35;
-  }
+  // VoxApp kosten (Starter pakket)
+  const voxAppPlan = 'Starter';
+  const voxAppKostenPerMaand = 99;
+  const inclusieveMinuten = 300;
+  const extraMinuutPrijs = 0.40;
   
   const extraMinuten = Math.max(0, totaleMaandMinuten - inclusieveMinuten);
   const extraKosten = extraMinuten * extraMinuutPrijs;
@@ -1471,7 +1454,7 @@ function ROICalculatorSection() {
               </div>
 
               <p style={{ color: '#6b7280', fontSize: 11, margin: 0 }}>
-                * Gebaseerd op {voxAppPlan} pakket incl. BTW
+                * Gebaseerd op {voxAppPlan} pakket excl. BTW
               </p>
             </div>
 
