@@ -1229,7 +1229,7 @@ function FrituurSection() {
    KASSA SCHERM SECTIE - Bestelling Demo
 ============================================ */
 function KassaSection() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   return (
     <section style={{ background: '#1a1a2e', padding: '80px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
@@ -1396,14 +1396,14 @@ function KassaSection() {
               </div>
 
               <div style={{ marginBottom: 12 }}>
-                <p style={{ fontSize: 11, margin: '0 0 6px 0', color: '#1a1a2e' }}>KLANT: Jan Peeters</p>
+                <p style={{ fontSize: 11, margin: '0 0 6px 0', color: '#1a1a2e' }}>{language === 'nl' ? 'KLANT:' : language === 'en' ? 'CUSTOMER:' : language === 'fr' ? 'CLIENT:' : 'KUNDE:'} Jan Peeters</p>
                 <p style={{ fontSize: 10, color: '#666', margin: 0 }}>Kerkstraat 42, 2000 Antwerpen</p>
-                <p style={{ fontSize: 10, color: '#666', margin: '2px 0 0 0' }}>LEVEREN om 16:00</p>
+                <p style={{ fontSize: 10, color: '#666', margin: '2px 0 0 0' }}>{language === 'nl' ? 'LEVEREN om' : language === 'en' ? 'DELIVER at' : language === 'fr' ? 'LIVRER à' : 'LIEFERN um'} 16:00</p>
               </div>
 
               <div style={{ borderTop: '1px dashed #ccc', padding: '12px 0' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4, color: '#1a1a2e' }}>
-                  <span>1x Grote Friet + Mayo</span>
+                  <span>1x {language === 'nl' ? 'Grote Friet + Mayo' : language === 'en' ? 'Large Fries + Mayo' : language === 'fr' ? 'Grandes Frites + Mayo' : 'Große Pommes + Mayo'}</span>
                   <span>€4,50</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4, color: '#1a1a2e' }}>
@@ -1411,7 +1411,7 @@ function KassaSection() {
                   <span>€2,50</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#1a1a2e' }}>
-                  <span>1x Cola (blikje)</span>
+                  <span>1x Cola ({language === 'nl' ? 'blikje' : language === 'en' ? 'can' : language === 'fr' ? 'canette' : 'Dose'})</span>
                   <span>€2,00</span>
                 </div>
               </div>
@@ -1438,6 +1438,7 @@ function KassaSection() {
    ROI CALCULATOR SECTIE
 ============================================ */
 function ROICalculatorSection() {
+  const { t } = useLanguage();
   const [maandsalaris, setMaandsalaris] = useState(2500);
   const [aantalFTE, setAantalFTE] = useState(1);
 
@@ -1464,11 +1465,10 @@ function ROICalculatorSection() {
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: 60 }}>
           <h2 style={{ fontSize: 'clamp(28px, 5vw, 48px)', fontWeight: 700, color: 'white', marginBottom: 16 }}>
-            Bereken je <span style={{ color: '#22c55e' }}>ROI</span> met VoxApp
+            {t('roi.title1')} <span style={{ color: '#22c55e' }}>ROI</span> {t('roi.title2')}
           </h2>
           <p style={{ fontSize: 16, color: '#9ca3af', maxWidth: 600, margin: '0 auto' }}>
-            Ontdek hoeveel je kunt besparen door over te stappen naar een slimme receptie.
-            Realistische berekening op basis van werkelijke kosten.
+            {t('roi.subtitle')}
           </p>
         </div>
 
@@ -1477,13 +1477,13 @@ function ROICalculatorSection() {
           <div style={{ background: '#1a1025', borderRadius: 16, padding: 32 }}>
             <h3 style={{ color: 'white', fontSize: 18, fontWeight: 600, marginBottom: 32, display: 'flex', alignItems: 'center', gap: 10 }}>
               <Settings size={20} style={{ color: '#9ca3af' }} />
-              Huidige Situatie
+              {t('roi.currentSituation')}
             </h3>
 
             {/* Maandsalaris */}
             <div style={{ marginBottom: 28 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-                <label style={{ color: '#9ca3af', fontSize: 14 }}>Bruto maandsalaris receptionist(e)</label>
+                <label style={{ color: '#9ca3af', fontSize: 14 }}>{t('roi.grossSalary')}</label>
                 <span style={{ color: 'white', fontWeight: 600 }}>€{maandsalaris.toLocaleString()}</span>
               </div>
               <input 
@@ -1500,7 +1500,7 @@ function ROICalculatorSection() {
             {/* Aantal FTE */}
             <div style={{ marginBottom: 28 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-                <label style={{ color: '#9ca3af', fontSize: 14 }}>Aantal FTE receptionisten</label>
+                <label style={{ color: '#9ca3af', fontSize: 14 }}>{t('roi.numberOfFTE')}</label>
                 <span style={{ color: 'white', fontWeight: 600 }}>{aantalFTE}</span>
               </div>
               <input 
@@ -1516,15 +1516,15 @@ function ROICalculatorSection() {
 
             {/* Berekening */}
             <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 24, marginTop: 8 }}>
-              <h4 style={{ color: 'white', fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Berekening</h4>
+              <h4 style={{ color: 'white', fontSize: 14, fontWeight: 600, marginBottom: 16 }}>{t('roi.calculation')}</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: '#9ca3af', fontSize: 13 }}>Bruto salaris x 12 maanden</span>
-                  <span style={{ color: 'white', fontSize: 13 }}>€{(maandsalaris * 12).toLocaleString()}/jaar</span>
+                  <span style={{ color: '#9ca3af', fontSize: 13 }}>{t('roi.salaryX12')}</span>
+                  <span style={{ color: 'white', fontSize: 13 }}>€{(maandsalaris * 12).toLocaleString()}{t('roi.perYear')}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ color: '#9ca3af', fontSize: 13 }}>x {aantalFTE} FTE</span>
-                  <span style={{ color: '#ef4444', fontSize: 13, fontWeight: 600 }}>€{Math.round(jaarlijksePersoneelskosten).toLocaleString()}/jaar</span>
+                  <span style={{ color: '#ef4444', fontSize: 13, fontWeight: 600 }}>€{Math.round(jaarlijksePersoneelskosten).toLocaleString()}{t('roi.perYear')}</span>
                 </div>
               </div>
             </div>
@@ -1535,13 +1535,13 @@ function ROICalculatorSection() {
             {/* Besparing Card */}
             <div style={{ background: '#1a1025', borderRadius: 16, padding: 32, border: '1px solid rgba(34, 197, 94, 0.3)' }}>
               <p style={{ color: '#22c55e', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
-                Directe Jaarlijkse Besparing
+                {t('roi.directSavings')}
               </p>
               <p style={{ fontSize: 'clamp(36px, 6vw, 56px)', fontWeight: 700, color: '#22c55e', margin: '0 0 8px 0' }}>
                 €{Math.max(0, Math.round(jaarlijkseBesparing)).toLocaleString()}
               </p>
               <p style={{ color: '#9ca3af', fontSize: 14 }}>
-                Dat is <span style={{ color: '#22c55e', fontWeight: 600 }}>€{Math.max(0, Math.round(maandelijkseBesparing)).toLocaleString()}</span> per maand
+                {t('roi.thatsPerMonth')} <span style={{ color: '#22c55e', fontWeight: 600 }}>€{Math.max(0, Math.round(maandelijkseBesparing)).toLocaleString()}</span> {t('roi.perMonth')}
               </p>
 
               {/* ROI & Terugverdientijd */}
@@ -1551,8 +1551,8 @@ function ROICalculatorSection() {
                   <p style={{ color: '#22c55e', fontSize: 28, fontWeight: 700, margin: 0 }}>{Math.round(roi)}%</p>
                 </div>
                 <div>
-                  <p style={{ color: '#9ca3af', fontSize: 11, textTransform: 'uppercase', marginBottom: 4 }}>Terugverdientijd</p>
-                  <p style={{ color: '#8b5cf6', fontSize: 28, fontWeight: 700, margin: 0 }}>{terugverdientijd.toFixed(1)} mnd</p>
+                  <p style={{ color: '#9ca3af', fontSize: 11, textTransform: 'uppercase', marginBottom: 4 }}>{t('roi.paybackTime')}</p>
+                  <p style={{ color: '#8b5cf6', fontSize: 28, fontWeight: 700, margin: 0 }}>{terugverdientijd.toFixed(1)} {t('roi.months')}</p>
                 </div>
               </div>
             </div>
@@ -1560,13 +1560,13 @@ function ROICalculatorSection() {
             {/* Kosten Vergelijking */}
             <div style={{ background: '#1a1025', borderRadius: 16, padding: 32 }}>
               <p style={{ color: '#8b5cf6', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 20 }}>
-                Kosten Vergelijking (per jaar)
+                {t('roi.costComparison')}
               </p>
               
               {/* Huidige Situatie */}
               <div style={{ marginBottom: 20 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <span style={{ color: '#9ca3af', fontSize: 14 }}>Huidige Situatie</span>
+                  <span style={{ color: '#9ca3af', fontSize: 14 }}>{t('roi.currentSituation')}</span>
                   <span style={{ color: '#ef4444', fontSize: 16, fontWeight: 600 }}>€{Math.round(totaleHuidigeKosten).toLocaleString()}</span>
                 </div>
                 <div style={{ background: 'rgba(239, 68, 68, 0.2)', borderRadius: 4, height: 8 }}>
@@ -1577,7 +1577,7 @@ function ROICalculatorSection() {
               {/* Met VoxApp */}
               <div style={{ marginBottom: 20 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <span style={{ color: '#9ca3af', fontSize: 14 }}>Met VoxApp ({voxAppPlan})</span>
+                  <span style={{ color: '#9ca3af', fontSize: 14 }}>{t('roi.withVoxApp')} ({voxAppPlan})</span>
                   <span style={{ color: '#22c55e', fontSize: 16, fontWeight: 600 }}>€{Math.round(totaalVoxAppPerJaar).toLocaleString()}</span>
                 </div>
                 <div style={{ background: 'rgba(34, 197, 94, 0.2)', borderRadius: 4, height: 8 }}>
@@ -1591,7 +1591,7 @@ function ROICalculatorSection() {
               </div>
 
               <p style={{ color: '#6b7280', fontSize: 11, margin: 0 }}>
-                * Gebaseerd op {voxAppPlan} pakket excl. BTW
+                * {t('roi.basedOn')} {voxAppPlan} {t('roi.packageExclVat')}
               </p>
             </div>
 
@@ -1599,20 +1599,20 @@ function ROICalculatorSection() {
             <div style={{ background: '#1a1025', borderRadius: 16, padding: 24 }}>
               <p style={{ color: '#22c55e', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Check size={16} />
-                Extra Waarde
+                {t('roi.extraValue')}
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#9ca3af', fontSize: 13 }}>24/7 Bereikbaarheid</span>
+                  <span style={{ color: '#9ca3af', fontSize: 13 }}>{t('roi.availability247')}</span>
                   <span style={{ color: 'white', fontSize: 13 }}>€1.200</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#9ca3af', fontSize: 13 }}>Geen Vakantieplanning</span>
+                  <span style={{ color: '#9ca3af', fontSize: 13 }}>{t('roi.noVacationPlanning')}</span>
                   <span style={{ color: 'white', fontSize: 13 }}>€1.500</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                  <span style={{ color: 'white', fontSize: 13, fontWeight: 600 }}>Totale Extra Waarde:</span>
-                  <span style={{ color: '#22c55e', fontSize: 13, fontWeight: 600 }}>€2.700/jr</span>
+                  <span style={{ color: 'white', fontSize: 13, fontWeight: 600 }}>{t('roi.totalExtraValue')}</span>
+                  <span style={{ color: '#22c55e', fontSize: 13, fontWeight: 600 }}>€2.700{t('roi.perYear')}</span>
                 </div>
               </div>
             </div>
@@ -1627,6 +1627,7 @@ function ROICalculatorSection() {
    FEATURE SECTION 3 - Outbound Calls
 ============================================ */
 function OutboundSection() {
+  const { t, language } = useLanguage();
   return (
     <section style={{ background: '#e3e3e3', padding: '200px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
@@ -1642,18 +1643,21 @@ function OutboundSection() {
               {/* Calendar header */}
               <div style={{ background: '#f97316', padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12, marginBottom: 4 }}>Februari 2026</p>
-                  <p style={{ color: 'white', fontSize: 18, fontWeight: 600 }}>Week Overzicht</p>
+                  <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12, marginBottom: 4 }}>{language === 'nl' ? 'Februari' : language === 'en' ? 'February' : language === 'fr' ? 'Février' : 'Februar'} 2026</p>
+                  <p style={{ color: 'white', fontSize: 18, fontWeight: 600 }}>{t('outbound.weekOverview')}</p>
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '8px 16px', borderRadius: 6, fontSize: 13, fontWeight: 500 }}>Dag</button>
-                  <button style={{ background: 'white', border: 'none', color: '#f97316', padding: '8px 16px', borderRadius: 6, fontSize: 13, fontWeight: 600 }}>Week</button>
+                  <button style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '8px 16px', borderRadius: 6, fontSize: 13, fontWeight: 500 }}>{t('outbound.day')}</button>
+                  <button style={{ background: 'white', border: 'none', color: '#f97316', padding: '8px 16px', borderRadius: 6, fontSize: 13, fontWeight: 600 }}>{t('outbound.week')}</button>
                 </div>
               </div>
 
               {/* Days header */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', borderBottom: '1px solid #e5e7eb' }}>
-                {['Ma 10', 'Di 11', 'Wo 12', 'Do 13', 'Vr 14'].map((day, i) => (
+                {(language === 'nl' ? ['Ma 10', 'Di 11', 'Wo 12', 'Do 13', 'Vr 14'] : 
+                  language === 'en' ? ['Mon 10', 'Tue 11', 'Wed 12', 'Thu 13', 'Fri 14'] : 
+                  language === 'fr' ? ['Lun 10', 'Mar 11', 'Mer 12', 'Jeu 13', 'Ven 14'] : 
+                  ['Mo 10', 'Di 11', 'Mi 12', 'Do 13', 'Fr 14']).map((day, i) => (
                   <div key={i} style={{ padding: '12px 8px', textAlign: 'center', borderRight: i < 4 ? '1px solid #e5e7eb' : 'none' }}>
                     <span style={{ fontSize: 12, color: i === 1 ? '#f97316' : '#6b7280', fontWeight: i === 1 ? 600 : 400 }}>{day}</span>
                   </div>
@@ -1669,12 +1673,12 @@ function OutboundSection() {
                     <span style={{ fontSize: 11, color: '#9ca3af', width: 40 }}>09:00</span>
                     <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8 }}>
                       <div style={{ background: '#fef3c7', borderLeft: '3px solid #f59e0b', borderRadius: 4, padding: 8 }}>
-                        <p style={{ fontSize: 11, fontWeight: 600, color: '#92400e' }}>Knippen</p>
+                        <p style={{ fontSize: 11, fontWeight: 600, color: '#92400e' }}>{language === 'nl' ? 'Knippen' : language === 'en' ? 'Haircut' : language === 'fr' ? 'Coupe' : 'Schnitt'}</p>
                         <p style={{ fontSize: 10, color: '#a16207' }}>Marie V.</p>
                       </div>
                       <div></div>
                       <div style={{ background: '#dbeafe', borderLeft: '3px solid #3b82f6', borderRadius: 4, padding: 8 }}>
-                        <p style={{ fontSize: 11, fontWeight: 600, color: '#1e40af' }}>Consult</p>
+                        <p style={{ fontSize: 11, fontWeight: 600, color: '#1e40af' }}>{language === 'nl' ? 'Consult' : language === 'en' ? 'Consult' : language === 'fr' ? 'Conseil' : 'Beratung'}</p>
                         <p style={{ fontSize: 10, color: '#1d4ed8' }}>Peter J.</p>
                       </div>
                       <div></div>
@@ -1688,16 +1692,16 @@ function OutboundSection() {
                     <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8 }}>
                       <div></div>
                       <div style={{ background: '#ffedd5', borderLeft: '3px solid #f97316', borderRadius: 4, padding: 8 }}>
-                        <p style={{ fontSize: 11, fontWeight: 600, color: '#9a3412' }}>Kleuren</p>
+                        <p style={{ fontSize: 11, fontWeight: 600, color: '#9a3412' }}>{language === 'nl' ? 'Kleuren' : language === 'en' ? 'Coloring' : language === 'fr' ? 'Coloration' : 'Färben'}</p>
                         <p style={{ fontSize: 10, color: '#c2410c' }}>Lisa G.</p>
                       </div>
                       <div></div>
                       <div style={{ background: '#dcfce7', borderLeft: '3px solid #22c55e', borderRadius: 4, padding: 8 }}>
-                        <p style={{ fontSize: 11, fontWeight: 600, color: '#166534' }}>Knippen</p>
+                        <p style={{ fontSize: 11, fontWeight: 600, color: '#166534' }}>{language === 'nl' ? 'Knippen' : language === 'en' ? 'Haircut' : language === 'fr' ? 'Coupe' : 'Schnitt'}</p>
                         <p style={{ fontSize: 10, color: '#15803d' }}>Jan P.</p>
                       </div>
                       <div style={{ background: '#fef3c7', borderLeft: '3px solid #f59e0b', borderRadius: 4, padding: 8 }}>
-                        <p style={{ fontSize: 11, fontWeight: 600, color: '#92400e' }}>Baard</p>
+                        <p style={{ fontSize: 11, fontWeight: 600, color: '#92400e' }}>{language === 'nl' ? 'Baard' : language === 'en' ? 'Beard' : language === 'fr' ? 'Barbe' : 'Bart'}</p>
                         <p style={{ fontSize: 10, color: '#a16207' }}>Tom H.</p>
                       </div>
                     </div>
@@ -1708,14 +1712,14 @@ function OutboundSection() {
                     <span style={{ fontSize: 11, color: '#9ca3af', width: 40 }}>11:00</span>
                     <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8 }}>
                       <div style={{ background: '#dcfce7', borderLeft: '3px solid #22c55e', borderRadius: 4, padding: 8 }}>
-                        <p style={{ fontSize: 11, fontWeight: 600, color: '#166534' }}>Föhnen</p>
+                        <p style={{ fontSize: 11, fontWeight: 600, color: '#166534' }}>{language === 'nl' ? 'Föhnen' : language === 'en' ? 'Blow dry' : language === 'fr' ? 'Brushing' : 'Föhnen'}</p>
                         <p style={{ fontSize: 10, color: '#15803d' }}>Emma S.</p>
                       </div>
                       <div></div>
                       <div></div>
                       <div></div>
                       <div style={{ background: '#dbeafe', borderLeft: '3px solid #3b82f6', borderRadius: 4, padding: 8 }}>
-                        <p style={{ fontSize: 11, fontWeight: 600, color: '#1e40af' }}>Knippen</p>
+                        <p style={{ fontSize: 11, fontWeight: 600, color: '#1e40af' }}>{language === 'nl' ? 'Knippen' : language === 'en' ? 'Haircut' : language === 'fr' ? 'Coupe' : 'Schnitt'}</p>
                         <p style={{ fontSize: 10, color: '#1d4ed8' }}>Anna K.</p>
                       </div>
                     </div>
@@ -1728,8 +1732,8 @@ function OutboundSection() {
                     <Check size={16} style={{ color: 'white' }} />
                   </div>
                   <div>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: '#166534' }}>Nieuwe boeking via VoxApp</p>
-                    <p style={{ fontSize: 11, color: '#15803d' }}>Sarah M. - Knippen & Kleuren - Di 11 feb, 14:00</p>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: '#166534' }}>{t('outbound.newBooking')}</p>
+                    <p style={{ fontSize: 11, color: '#15803d' }}>Sarah M. - {language === 'nl' ? 'Knippen & Kleuren' : language === 'en' ? 'Cut & Color' : language === 'fr' ? 'Coupe & Coloration' : 'Schneiden & Färben'} - {language === 'nl' ? 'Di 11 feb' : language === 'en' ? 'Tue Feb 11' : language === 'fr' ? 'Mar 11 fév' : 'Di 11. Feb'}, 14:00</p>
                   </div>
                 </div>
               </div>
@@ -1739,14 +1743,13 @@ function OutboundSection() {
           {/* Right - Text */}
           <div>
             <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
-              Uitgaande Oproepen
+              {t('outbound.badge')}
             </p>
             <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 700, color: '#1a1a2e', lineHeight: 1.2, marginBottom: 20 }}>
-              Verhoog boekingen en houd uw agenda vol.
+              {t('outbound.title')}
             </h2>
             <p style={{ fontSize: 16, color: '#6b7280', lineHeight: 1.7, marginBottom: 32 }}>
-              Uitgaande oproepen vullen uw agenda. Klanten ontvangen herinneringen, 
-              follow-ups en herboeking-verzoeken — allemaal natuurlijk en in lijn met uw merk.
+              {t('outbound.subtitle')}
             </p>
 
             {/* CTA Buttons */}
@@ -1764,17 +1767,17 @@ function OutboundSection() {
                 textDecoration: 'none',
               }}>
                 <Calendar size={16} />
-                Start gratis
+                {t('outbound.startFree')}
               </a>
             </div>
 
             {/* Feature list */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {[
-                { icon: Users, text: 'Doordachte lead follow-ups' },
-                { icon: Calendar, text: 'Terugkerende afspraken plannen' },
-                { icon: Heart, text: 'Nazorg check-ins' },
-                { icon: Bell, text: 'Vriendelijke herboeking-herinneringen' },
+                { icon: Users, text: t('outbound.feature1') },
+                { icon: Calendar, text: t('outbound.feature2') },
+                { icon: Heart, text: t('outbound.feature3') },
+                { icon: Bell, text: t('outbound.feature4') },
               ].map((item, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <item.icon size={18} style={{ color: '#6b7280' }} />
@@ -1793,6 +1796,7 @@ function OutboundSection() {
    FEATURE SECTION 3 - Automation
 ============================================ */
 function AutomationSection() {
+  const { t } = useLanguage();
   return (
     <section style={{ background: '#e3e3e3', padding: '200px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
@@ -1800,14 +1804,13 @@ function AutomationSection() {
           {/* Left - Text */}
           <div>
             <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
-              Geautomatiseerde Taken
+              {t('automation.badge')}
             </p>
             <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 700, color: '#1a1a2e', lineHeight: 1.2, marginBottom: 20 }}>
-              Laat administratie stilletjes op de achtergrond draaien.
+              {t('automation.title')}
             </h2>
             <p style={{ fontSize: 16, color: '#6b7280', lineHeight: 1.7, marginBottom: 32 }}>
-              Routine boekingen, wijzigingen en follow-ups draaien automatisch — 
-              zodat uw team gefocust kan blijven op wat echt belangrijk is.
+              {t('automation.subtitle')}
             </p>
 
             {/* CTA Buttons */}
@@ -1825,17 +1828,17 @@ function AutomationSection() {
                 textDecoration: 'none',
               }}>
                 <Calendar size={16} />
-                Start gratis
+                {t('outbound.startFree')}
               </a>
             </div>
 
             {/* Feature list */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {[
-                { icon: Send, text: 'Verstuur boekingslinks automatisch' },
-                { icon: RefreshCw, text: 'Beheer afspraakwijzigingen' },
-                { icon: PhoneCall, text: 'Route prioriteitsoproepen' },
-                { icon: UserCheck, text: 'Vang en koester nieuwe leads' },
+                { icon: Send, text: t('automation.feature1') },
+                { icon: RefreshCw, text: t('automation.feature2') },
+                { icon: PhoneCall, text: t('automation.feature3') },
+                { icon: UserCheck, text: t('automation.feature4') },
               ].map((item, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <item.icon size={18} style={{ color: '#6b7280' }} />
@@ -1865,6 +1868,7 @@ function AutomationSection() {
    TRY LIVE SECTION - Test the receptionist
 ============================================ */
 function TryLiveSection() {
+  const { t } = useLanguage();
   const [callStatus, setCallStatus] = useState<'idle' | 'connecting' | 'connected' | 'ended' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -1880,7 +1884,7 @@ function TryLiveSection() {
     },
     onError: (error) => {
       console.error('Conversation error:', error);
-      setErrorMessage('Er ging iets mis. Probeer het opnieuw.');
+      setErrorMessage(t('tryLive.errorGeneral'));
       setCallStatus('error');
     },
     onModeChange: ({ mode }) => {
@@ -1903,7 +1907,7 @@ function TryLiveSection() {
       });
     } catch (error) {
       console.error('Failed to start call:', error);
-      setErrorMessage('Kon geen verbinding maken. Controleer of je microfoon toegang hebt gegeven.');
+      setErrorMessage(t('tryLive.errorConnection'));
       setCallStatus('error');
     }
   };
@@ -1925,13 +1929,13 @@ function TryLiveSection() {
     <section style={{ background: '#1a1a2e', padding: '120px 0' }}>
       <div style={{ maxWidth: 800, margin: '0 auto', padding: '0 24px', textAlign: 'center' }}>
         <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
-          Test Het Zelf
+          {t('tryLive.badge')}
         </p>
         <h2 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: 700, color: 'white', lineHeight: 1.2, marginBottom: 20 }}>
-          Bel nu met Kapsalon Belle
+          {t('tryLive.title')}
         </h2>
         <p style={{ fontSize: 18, color: '#9ca3af', lineHeight: 1.7, marginBottom: 48, maxWidth: 600, margin: '0 auto 48px' }}>
-          Maak een afspraak, vraag naar prijzen, openingsuren of een specifieke medewerker. Onze receptie helpt u verder.
+          {t('tryLive.subtitle')}
         </p>
 
         {/* Call Button */}
@@ -1970,12 +1974,12 @@ function TryLiveSection() {
               )}
               {callStatus === 'ended' && (
                 <p style={{ color: '#22c55e', fontSize: 14 }}>
-                  Gesprek beëindigd. Bedankt voor het testen!
+                  {t('tryLive.callEnded')}
                 </p>
               )}
               {callStatus === 'idle' && !errorMessage && (
                 <p style={{ color: '#6b7280', fontSize: 14 }}>
-                  Klik om te bellen • Gratis • Geen registratie nodig
+                  {t('tryLive.clickToCall')}
                 </p>
               )}
             </>
@@ -2004,14 +2008,14 @@ function TryLiveSection() {
                     animation: 'pulse 1.5s infinite',
                   }} />
                   <span style={{ color: 'white', fontSize: 16, fontWeight: 500 }}>
-                    {callStatus === 'connecting' && 'Verbinden...'}
-                    {callStatus === 'connected' && (isSpeaking ? 'Receptionist spreekt...' : 'Receptionist luistert...')}
+                    {callStatus === 'connecting' && t('tryLive.connecting')}
+                    {callStatus === 'connected' && (isSpeaking ? t('tryLive.speaking') : t('tryLive.listening'))}
                   </span>
                 </div>
                 
                 {callStatus === 'connected' && (
                   <p style={{ color: '#9ca3af', fontSize: 14, marginBottom: 0 }}>
-                    {isSpeaking ? 'Even wachten...' : 'Spreek nu, de receptionist luistert'}
+                    {isSpeaking ? t('tryLive.pleaseWait') : t('tryLive.speakNow')}
                   </p>
                 )}
               </div>
@@ -2063,14 +2067,14 @@ function TryLiveSection() {
         {/* Example prompts */}
         {!isActive && callStatus !== 'ended' && (
           <div style={{ marginTop: 48 }}>
-            <p style={{ color: '#6b7280', fontSize: 14, marginBottom: 16 }}>Probeer bijvoorbeeld:</p>
+            <p style={{ color: '#6b7280', fontSize: 14, marginBottom: 16 }}>{t('tryLive.tryFor')}</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 12 }}>
               {[
-                '"Ik wil een afspraak maken voor knippen"',
-                '"Wat kost knippen en verven?"',
-                '"Wat zijn de openingsuren?"',
-                '"Is Lisa beschikbaar donderdag?"',
-                '"Kan ik morgen langskomen?"',
+                t('tryLive.example1'),
+                t('tryLive.example2'),
+                t('tryLive.example3'),
+                t('tryLive.example4'),
+                t('tryLive.example5'),
               ].map((prompt, i) => (
                 <span key={i} style={{
                   background: 'rgba(255,255,255,0.05)',
@@ -2179,6 +2183,7 @@ function HowItWorksSection() {
    STATS SECTION - Animated Counters
 ============================================ */
 function StatsSection() {
+  const { t } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
   const [counts, setCounts] = useState({ revenue: 0, clients: 0, uptime: 0 });
   const sectionRef = useRef<HTMLElement>(null);
@@ -2226,10 +2231,10 @@ function StatsSection() {
   }, [isVisible]);
 
   const stats = [
-    { value: `€${counts.revenue}M+`, label: 'Verwerkt per maand' },
-    { value: `${counts.clients}+`, label: 'Actieve horecazaken' },
-    { value: `${counts.uptime}%`, label: 'Uptime garantie' },
-    { value: '24/7', label: 'Support beschikbaar' },
+    { value: `€${counts.revenue}M+`, label: t('stats.processed') },
+    { value: `${counts.clients}+`, label: t('stats.activeBusinesses') },
+    { value: `${counts.uptime}%`, label: t('stats.uptimeGuarantee') },
+    { value: '24/7', label: t('stats.supportAvailable') },
   ];
 
   return (
@@ -2399,12 +2404,13 @@ function PartnersSection() {
   // Duplicate array for seamless loop
   const allPartners = [...partners, ...partners];
 
+  const { t } = useLanguage();
   return (
     <section style={{ background: '#1a1a2e', padding: '60px 0', overflow: 'hidden' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', textAlign: 'center', marginBottom: 40 }}>
         <span style={{ color: '#f97316', fontSize: 14, fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase' }}>Partners</span>
         <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 700, color: 'white', margin: '12px 0 0 0' }}>
-          Onze <span style={{ color: '#f97316' }}>Partners</span>
+          {t('partners.title').split(' ')[0]} <span style={{ color: '#f97316' }}>{t('partners.title').split(' ').slice(1).join(' ') || 'Partners'}</span>
         </h2>
       </div>
       
@@ -2501,27 +2507,28 @@ function FAQSection() {
    TESTIMONIALS SECTION
 ============================================ */
 function TestimonialsSection() {
+  const { t } = useLanguage();
   const testimonials = [
     {
-      name: 'Mark van der Berg',
-      role: 'CEO, TechStart',
+      name: t('testimonials.testimonial1.author'),
+      role: t('testimonials.testimonial1.role'),
       initials: 'MV',
       color: '#22c55e',
-      text: '"VoxApp heeft onze klantenservice volledig getransformeerd. We missen geen enkele oproep meer en onze klanten zijn zeer tevreden met de snelle respons."',
+      text: t('testimonials.testimonial1.text'),
     },
     {
-      name: 'Sophie Janssen',
-      role: 'Operations Manager, HealthPlus',
+      name: t('testimonials.testimonial2.author'),
+      role: t('testimonials.testimonial2.role'),
       initials: 'SJ',
       color: '#3b82f6',
-      text: '"Het team van VoxApp heeft een perfect passend systeem voor ons gebouwd. Volledig afgestemd op onze werkwijze. Nu besparen we 30+ uur per week."',
+      text: t('testimonials.testimonial2.text'),
     },
     {
-      name: 'Dr. Peter Hendriks',
-      role: 'Eigenaar, Dental Care',
+      name: t('testimonials.testimonial3.author'),
+      role: t('testimonials.testimonial3.role'),
       initials: 'PH',
       color: '#a855f7',
-      text: '"Als tandartspraktijk ontvangen we veel afspraakverzoken. VoxApp handelt deze perfect af, zelfs buiten kantooruren. Een absolute game-changer!"',
+      text: t('testimonials.testimonial3.text'),
     },
   ];
 
@@ -2529,11 +2536,11 @@ function TestimonialsSection() {
     <section style={{ background: '#1a1a2e', padding: '100px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 700, color: 'white', textAlign: 'center', marginBottom: 60 }}>
-          Wat Onze Klanten Zeggen
+          {t('testimonials.title')}
         </h2>
         
         <div className="testimonials-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 30 }}>
-          {testimonials.map((t, i) => (
+          {testimonials.map((testimonial, i) => (
             <div 
               key={i}
               style={{
@@ -2552,7 +2559,7 @@ function TestimonialsSection() {
               
               {/* Quote */}
               <p style={{ color: '#d1d5db', fontSize: 15, lineHeight: 1.7, marginBottom: 24 }}>
-                {t.text}
+                {testimonial.text}
               </p>
               
               {/* Author */}
@@ -2561,7 +2568,7 @@ function TestimonialsSection() {
                   width: 44,
                   height: 44,
                   borderRadius: '50%',
-                  background: t.color,
+                  background: testimonial.color,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -2569,11 +2576,11 @@ function TestimonialsSection() {
                   fontWeight: 600,
                   fontSize: 14,
                 }}>
-                  {t.initials}
+                  {testimonial.initials}
                 </div>
                 <div>
-                  <p style={{ color: 'white', fontWeight: 600, margin: 0, fontSize: 15 }}>{t.name}</p>
-                  <p style={{ color: '#9ca3af', fontSize: 13, margin: 0 }}>{t.role}</p>
+                  <p style={{ color: 'white', fontWeight: 600, margin: 0, fontSize: 15 }}>{testimonial.name}</p>
+                  <p style={{ color: '#9ca3af', fontSize: 13, margin: 0 }}>{testimonial.role}</p>
                 </div>
               </div>
             </div>

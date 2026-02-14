@@ -681,6 +681,114 @@ export const translations = {
     notifications: { nl: 'Notificaties', en: 'Notifications', fr: 'Notifications', de: 'Benachrichtigungen' },
   },
 
+  // ROI Calculator
+  roi: {
+    title1: { nl: 'Bereken je', en: 'Calculate your', fr: 'Calculez votre', de: 'Berechnen Sie Ihren' },
+    title2: { nl: 'met VoxApp', en: 'with VoxApp', fr: 'avec VoxApp', de: 'mit VoxApp' },
+    subtitle: { nl: 'Ontdek hoeveel je kunt besparen door over te stappen naar een slimme receptie. Realistische berekening op basis van werkelijke kosten.', en: 'Discover how much you can save by switching to a smart reception. Realistic calculation based on actual costs.', fr: 'Découvrez combien vous pouvez économiser en passant à une réception intelligente. Calcul réaliste basé sur les coûts réels.', de: 'Entdecken Sie, wie viel Sie sparen können, wenn Sie auf eine intelligente Rezeption umsteigen. Realistische Berechnung auf Basis tatsächlicher Kosten.' },
+    currentSituation: { nl: 'Huidige Situatie', en: 'Current Situation', fr: 'Situation Actuelle', de: 'Aktuelle Situation' },
+    grossSalary: { nl: 'Bruto maandsalaris receptionist(e)', en: 'Gross monthly salary receptionist', fr: 'Salaire brut mensuel réceptionniste', de: 'Bruttomonatsgehalt Rezeptionist(in)' },
+    numberOfFTE: { nl: 'Aantal FTE receptionisten', en: 'Number of FTE receptionists', fr: 'Nombre d\'ETP réceptionnistes', de: 'Anzahl VZÄ Rezeptionisten' },
+    calculation: { nl: 'Berekening', en: 'Calculation', fr: 'Calcul', de: 'Berechnung' },
+    salaryX12: { nl: 'Bruto salaris x 12 maanden', en: 'Gross salary x 12 months', fr: 'Salaire brut x 12 mois', de: 'Bruttogehalt x 12 Monate' },
+    perYear: { nl: '/jaar', en: '/year', fr: '/an', de: '/Jahr' },
+    directSavings: { nl: 'Directe Jaarlijkse Besparing', en: 'Direct Annual Savings', fr: 'Économies Annuelles Directes', de: 'Direkte Jährliche Einsparungen' },
+    thatsPerMonth: { nl: 'Dat is', en: 'That is', fr: 'C\'est', de: 'Das sind' },
+    perMonth: { nl: 'per maand', en: 'per month', fr: 'par mois', de: 'pro Monat' },
+    paybackTime: { nl: 'Terugverdientijd', en: 'Payback time', fr: 'Délai de récupération', de: 'Amortisationszeit' },
+    months: { nl: 'mnd', en: 'mo', fr: 'mois', de: 'Mon' },
+    costComparison: { nl: 'Kosten Vergelijking (per jaar)', en: 'Cost Comparison (per year)', fr: 'Comparaison des Coûts (par an)', de: 'Kostenvergleich (pro Jahr)' },
+    withVoxApp: { nl: 'Met VoxApp', en: 'With VoxApp', fr: 'Avec VoxApp', de: 'Mit VoxApp' },
+    basedOn: { nl: 'Gebaseerd op', en: 'Based on', fr: 'Basé sur', de: 'Basierend auf' },
+    packageExclVat: { nl: 'pakket excl. BTW', en: 'package excl. VAT', fr: 'forfait hors TVA', de: 'Paket exkl. MwSt.' },
+    extraValue: { nl: 'Extra Waarde', en: 'Extra Value', fr: 'Valeur Ajoutée', de: 'Zusätzlicher Wert' },
+    availability247: { nl: '24/7 Bereikbaarheid', en: '24/7 Availability', fr: 'Disponibilité 24h/24', de: '24/7 Erreichbarkeit' },
+    noVacationPlanning: { nl: 'Geen Vakantieplanning', en: 'No Vacation Planning', fr: 'Pas de planification vacances', de: 'Keine Urlaubsplanung' },
+    totalExtraValue: { nl: 'Totale Extra Waarde:', en: 'Total Extra Value:', fr: 'Valeur Extra Totale:', de: 'Gesamter Zusatzwert:' },
+  },
+
+  // Outbound Section
+  outbound: {
+    badge: { nl: 'Uitgaande Oproepen', en: 'Outbound Calls', fr: 'Appels Sortants', de: 'Ausgehende Anrufe' },
+    title: { nl: 'Verhoog boekingen en houd uw agenda vol.', en: 'Increase bookings and keep your calendar full.', fr: 'Augmentez les réservations et gardez votre agenda plein.', de: 'Steigern Sie Buchungen und halten Sie Ihren Kalender voll.' },
+    subtitle: { nl: 'Uitgaande oproepen vullen uw agenda. Klanten ontvangen herinneringen, follow-ups en herboeking-verzoeken — allemaal natuurlijk en in lijn met uw merk.', en: 'Outbound calls fill your calendar. Customers receive reminders, follow-ups and rebooking requests — all naturally and in line with your brand.', fr: 'Les appels sortants remplissent votre agenda. Les clients reçoivent des rappels, des suivis et des demandes de nouvelle réservation — le tout naturellement et en accord avec votre marque.', de: 'Ausgehende Anrufe füllen Ihren Kalender. Kunden erhalten Erinnerungen, Follow-ups und Umbuchungsanfragen — alles natürlich und im Einklang mit Ihrer Marke.' },
+    startFree: { nl: 'Start gratis', en: 'Start free', fr: 'Commencer gratuitement', de: 'Kostenlos starten' },
+    feature1: { nl: 'Doordachte lead follow-ups', en: 'Thoughtful lead follow-ups', fr: 'Suivis de leads réfléchis', de: 'Durchdachte Lead-Follow-ups' },
+    feature2: { nl: 'Terugkerende afspraken plannen', en: 'Schedule recurring appointments', fr: 'Planifier des rendez-vous récurrents', de: 'Wiederkehrende Termine planen' },
+    feature3: { nl: 'Nazorg check-ins', en: 'Aftercare check-ins', fr: 'Suivis de soins', de: 'Nachsorge Check-ins' },
+    feature4: { nl: 'Vriendelijke herboeking-herinneringen', en: 'Friendly rebooking reminders', fr: 'Rappels de réservation amicaux', de: 'Freundliche Umbuchungserinnerungen' },
+    newBooking: { nl: 'Nieuwe boeking via VoxApp', en: 'New booking via VoxApp', fr: 'Nouvelle réservation via VoxApp', de: 'Neue Buchung über VoxApp' },
+    weekOverview: { nl: 'Week Overzicht', en: 'Week Overview', fr: 'Aperçu de la Semaine', de: 'Wochenübersicht' },
+    day: { nl: 'Dag', en: 'Day', fr: 'Jour', de: 'Tag' },
+    week: { nl: 'Week', en: 'Week', fr: 'Semaine', de: 'Woche' },
+  },
+
+  // Automation Section
+  automation: {
+    badge: { nl: 'Geautomatiseerde Taken', en: 'Automated Tasks', fr: 'Tâches Automatisées', de: 'Automatisierte Aufgaben' },
+    title: { nl: 'Laat administratie stilletjes op de achtergrond draaien.', en: 'Let admin tasks run quietly in the background.', fr: 'Laissez l\'administration tourner en arrière-plan.', de: 'Lassen Sie Verwaltungsaufgaben leise im Hintergrund laufen.' },
+    subtitle: { nl: 'Routine boekingen, wijzigingen en follow-ups draaien automatisch — zodat uw team gefocust kan blijven op wat echt belangrijk is.', en: 'Routine bookings, changes and follow-ups run automatically — so your team can stay focused on what really matters.', fr: 'Les réservations, modifications et suivis de routine fonctionnent automatiquement — pour que votre équipe puisse rester concentrée sur ce qui compte vraiment.', de: 'Routinebuchungen, Änderungen und Follow-ups laufen automatisch — damit sich Ihr Team auf das konzentrieren kann, was wirklich wichtig ist.' },
+    feature1: { nl: 'Verstuur boekingslinks automatisch', en: 'Send booking links automatically', fr: 'Envoyez des liens de réservation automatiquement', de: 'Buchungslinks automatisch versenden' },
+    feature2: { nl: 'Beheer afspraakwijzigingen', en: 'Manage appointment changes', fr: 'Gérer les modifications de rendez-vous', de: 'Terminänderungen verwalten' },
+    feature3: { nl: 'Route prioriteitsoproepen', en: 'Route priority calls', fr: 'Acheminer les appels prioritaires', de: 'Prioritätsanrufe weiterleiten' },
+    feature4: { nl: 'Vang en koester nieuwe leads', en: 'Capture and nurture new leads', fr: 'Capturer et cultiver de nouveaux leads', de: 'Neue Leads erfassen und pflegen' },
+  },
+
+  // Try Live Section
+  tryLive: {
+    badge: { nl: 'Test Het Zelf', en: 'Try It Yourself', fr: 'Essayez Vous-même', de: 'Probieren Sie es selbst' },
+    title: { nl: 'Bel nu met Kapsalon Belle', en: 'Call Salon Belle now', fr: 'Appelez Salon Belle maintenant', de: 'Rufen Sie jetzt Salon Belle an' },
+    subtitle: { nl: 'Maak een afspraak, vraag naar prijzen, openingsuren of een specifieke medewerker. Onze receptie helpt u verder.', en: 'Make an appointment, ask about prices, opening hours or a specific employee. Our reception will help you.', fr: 'Prenez rendez-vous, demandez les prix, les horaires d\'ouverture ou un employé spécifique. Notre réception vous aidera.', de: 'Vereinbaren Sie einen Termin, fragen Sie nach Preisen, Öffnungszeiten oder einem bestimmten Mitarbeiter. Unsere Rezeption hilft Ihnen weiter.' },
+    clickToCall: { nl: 'Klik om te bellen • Gratis • Geen registratie nodig', en: 'Click to call • Free • No registration needed', fr: 'Cliquez pour appeler • Gratuit • Pas d\'inscription nécessaire', de: 'Klicken zum Anrufen • Kostenlos • Keine Registrierung erforderlich' },
+    connecting: { nl: 'Verbinden...', en: 'Connecting...', fr: 'Connexion...', de: 'Verbinden...' },
+    speaking: { nl: 'Receptionist spreekt...', en: 'Receptionist speaking...', fr: 'Réceptionniste parle...', de: 'Rezeptionist spricht...' },
+    listening: { nl: 'Receptionist luistert...', en: 'Receptionist listening...', fr: 'Réceptionniste écoute...', de: 'Rezeptionist hört zu...' },
+    pleaseWait: { nl: 'Even wachten...', en: 'Please wait...', fr: 'Veuillez patienter...', de: 'Bitte warten...' },
+    speakNow: { nl: 'Spreek nu, de receptionist luistert', en: 'Speak now, the receptionist is listening', fr: 'Parlez maintenant, le réceptionniste écoute', de: 'Sprechen Sie jetzt, der Rezeptionist hört zu' },
+    callEnded: { nl: 'Gesprek beëindigd. Bedankt voor het testen!', en: 'Call ended. Thanks for testing!', fr: 'Appel terminé. Merci d\'avoir testé!', de: 'Anruf beendet. Danke fürs Testen!' },
+    tryFor: { nl: 'Probeer bijvoorbeeld:', en: 'Try for example:', fr: 'Essayez par exemple:', de: 'Versuchen Sie zum Beispiel:' },
+    example1: { nl: '"Ik wil een afspraak maken voor knippen"', en: '"I want to make an appointment for a haircut"', fr: '"Je voudrais prendre rendez-vous pour une coupe"', de: '"Ich möchte einen Termin für einen Haarschnitt machen"' },
+    example2: { nl: '"Wat kost knippen en verven?"', en: '"What does a haircut and coloring cost?"', fr: '"Combien coûtent la coupe et la coloration?"', de: '"Was kostet Schneiden und Färben?"' },
+    example3: { nl: '"Wat zijn de openingsuren?"', en: '"What are the opening hours?"', fr: '"Quels sont les horaires d\'ouverture?"', de: '"Was sind die Öffnungszeiten?"' },
+    example4: { nl: '"Is Lisa beschikbaar donderdag?"', en: '"Is Lisa available Thursday?"', fr: '"Est-ce que Lisa est disponible jeudi?"', de: '"Ist Lisa am Donnerstag verfügbar?"' },
+    example5: { nl: '"Kan ik morgen langskomen?"', en: '"Can I come by tomorrow?"', fr: '"Puis-je passer demain?"', de: '"Kann ich morgen vorbeikommen?"' },
+    errorConnection: { nl: 'Kon geen verbinding maken. Controleer of je microfoon toegang hebt gegeven.', en: 'Could not connect. Check if you gave microphone access.', fr: 'Impossible de se connecter. Vérifiez si vous avez donné accès au microphone.', de: 'Verbindung nicht möglich. Prüfen Sie, ob Sie Mikrofonzugriff gewährt haben.' },
+    errorGeneral: { nl: 'Er ging iets mis. Probeer het opnieuw.', en: 'Something went wrong. Please try again.', fr: 'Une erreur s\'est produite. Veuillez réessayer.', de: 'Etwas ist schief gelaufen. Bitte versuchen Sie es erneut.' },
+  },
+
+  // Stats Section
+  stats: {
+    processed: { nl: 'Verwerkt per maand', en: 'Processed per month', fr: 'Traité par mois', de: 'Verarbeitet pro Monat' },
+    activeBusinesses: { nl: 'Actieve horecazaken', en: 'Active businesses', fr: 'Entreprises actives', de: 'Aktive Unternehmen' },
+    uptimeGuarantee: { nl: 'Uptime garantie', en: 'Uptime guarantee', fr: 'Garantie de disponibilité', de: 'Uptime-Garantie' },
+    supportAvailable: { nl: 'Support beschikbaar', en: 'Support available', fr: 'Support disponible', de: 'Support verfügbar' },
+  },
+
+  // Partners Section
+  partners: {
+    title: { nl: 'Onze Partners', en: 'Our Partners', fr: 'Nos Partenaires', de: 'Unsere Partner' },
+  },
+
+  // Testimonials Section
+  testimonials: {
+    title: { nl: 'Wat Onze Klanten Zeggen', en: 'What Our Customers Say', fr: 'Ce Que Disent Nos Clients', de: 'Was Unsere Kunden Sagen' },
+    testimonial1: {
+      text: { nl: '"VoxApp heeft onze klantenservice volledig getransformeerd. We missen geen enkele oproep meer en onze klanten zijn zeer tevreden met de snelle respons."', en: '"VoxApp has completely transformed our customer service. We never miss a call anymore and our customers are very satisfied with the quick response."', fr: '"VoxApp a complètement transformé notre service client. Nous ne manquons plus aucun appel et nos clients sont très satisfaits de la réponse rapide."', de: '"VoxApp hat unseren Kundenservice komplett transformiert. Wir verpassen keinen Anruf mehr und unsere Kunden sind sehr zufrieden mit der schnellen Reaktion."' },
+      author: { nl: 'Mark van der Berg', en: 'Mark van der Berg', fr: 'Mark van der Berg', de: 'Mark van der Berg' },
+      role: { nl: 'CEO, TechStart', en: 'CEO, TechStart', fr: 'PDG, TechStart', de: 'CEO, TechStart' },
+    },
+    testimonial2: {
+      text: { nl: '"Het team van VoxApp heeft een perfect passend systeem voor ons gebouwd. Volledig afgestemd op onze werkwijze. Nu besparen we 30+ uur per week."', en: '"The VoxApp team has built a perfectly fitting system for us. Fully tailored to our way of working. Now we save 30+ hours per week."', fr: '"L\'équipe VoxApp a construit un système parfaitement adapté pour nous. Entièrement adapté à notre façon de travailler. Maintenant nous économisons plus de 30 heures par semaine."', de: '"Das VoxApp-Team hat ein perfekt passendes System für uns gebaut. Vollständig auf unsere Arbeitsweise abgestimmt. Jetzt sparen wir 30+ Stunden pro Woche."' },
+      author: { nl: 'Sophie Janssen', en: 'Sophie Janssen', fr: 'Sophie Janssen', de: 'Sophie Janssen' },
+      role: { nl: 'Operations Manager, HealthPlus', en: 'Operations Manager, HealthPlus', fr: 'Directrice des Opérations, HealthPlus', de: 'Operations Manager, HealthPlus' },
+    },
+    testimonial3: {
+      text: { nl: '"Als tandartspraktijk ontvangen we veel afspraakverzoeken. VoxApp handelt deze perfect af, zelfs buiten kantooruren. Een absolute game-changer!"', en: '"As a dental practice we receive many appointment requests. VoxApp handles these perfectly, even outside office hours. An absolute game-changer!"', fr: '"En tant que cabinet dentaire, nous recevons de nombreuses demandes de rendez-vous. VoxApp les gère parfaitement, même en dehors des heures de bureau. Un véritable game-changer!"', de: '"Als Zahnarztpraxis erhalten wir viele Terminanfragen. VoxApp bearbeitet diese perfekt, auch außerhalb der Geschäftszeiten. Ein absoluter Game-Changer!"' },
+      author: { nl: 'Dr. Peter Hendriks', en: 'Dr. Peter Hendriks', fr: 'Dr. Peter Hendriks', de: 'Dr. Peter Hendriks' },
+      role: { nl: 'Eigenaar, Dental Care', en: 'Owner, Dental Care', fr: 'Propriétaire, Dental Care', de: 'Inhaber, Dental Care' },
+    },
+  },
+
   // Onboarding
   onboarding: {
     title: { nl: 'Welkom bij VoxApp!', en: 'Welcome to VoxApp!', fr: 'Bienvenue chez VoxApp!', de: 'Willkommen bei VoxApp!' },
