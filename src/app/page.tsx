@@ -2184,6 +2184,80 @@ function PricingSection() {
 }
 
 /* ============================================
+   PARTNERS SECTION - Auto-sliding logos
+============================================ */
+function PartnersSection() {
+  const partners = [
+    { name: 'Rogiers Motiv', logo: '/partners/rogiers-motiv.png' },
+    { name: 'Frituur Nolim', logo: '/partners/frituur-nolim.png' },
+    { name: 'Jacqmar', logo: '/partners/jacqmar.png' },
+    { name: 'Vysion Consulting', logo: '/partners/vysion.png' },
+    { name: 'PostNL', logo: '/partners/postnl.png' },
+    { name: 'Bol.com', logo: '/partners/bolcom.png' },
+    { name: 'Rogiers Mercedes', logo: '/partners/rogiers-mercedes.png' },
+  ];
+
+  // Duplicate array for seamless loop
+  const allPartners = [...partners, ...partners];
+
+  return (
+    <section style={{ background: '#1a1a2e', padding: '60px 0', overflow: 'hidden' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', textAlign: 'center', marginBottom: 40 }}>
+        <span style={{ color: '#f97316', fontSize: 14, fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase' }}>Partners</span>
+        <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 700, color: 'white', margin: '12px 0 0 0' }}>
+          Onze <span style={{ color: '#f97316' }}>Partners</span>
+        </h2>
+      </div>
+      
+      <div style={{ position: 'relative', width: '100%' }}>
+        <div 
+          style={{ 
+            display: 'flex', 
+            gap: 60,
+            animation: 'slideLeft 25s linear infinite',
+            width: 'fit-content',
+          }}
+        >
+          {allPartners.map((partner, i) => (
+            <div 
+              key={i} 
+              style={{ 
+                flexShrink: 0,
+                width: 180,
+                height: 100,
+                background: 'white',
+                borderRadius: 12,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 20,
+              }}
+            >
+              <img 
+                src={partner.logo} 
+                alt={partner.name}
+                style={{ 
+                  maxWidth: '100%', 
+                  maxHeight: '100%', 
+                  objectFit: 'contain',
+                }}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes slideLeft {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+      `}</style>
+    </section>
+  );
+}
+
+/* ============================================
    FAQ SECTION
 ============================================ */
 function FAQSection() {
@@ -2365,6 +2439,7 @@ export default function Home() {
       <HowItWorksSection />
       <StatsSection />
       <PricingSection />
+      <PartnersSection />
       <FAQSection />
       <CTASection />
       <Footer />
