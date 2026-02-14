@@ -2485,49 +2485,226 @@ function TestimonialsSection() {
    CTA SECTION
 ============================================ */
 function CTASection() {
+  const [showSupport, setShowSupport] = useState(false);
+  const [supportStatus, setSupportStatus] = useState<'idle' | 'connecting' | 'connected' | 'error'>('idle');
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  
+  const supportConversation = useConversation({
+    onConnect: () => setSupportStatus('connected'),
+    onDisconnect: () => setSupportStatus('idle'),
+    onError: (error) => {
+      console.error('Support conversation error:', error);
+      setSupportStatus('error');
+    },
+    onModeChange: ({ mode }) => setIsSpeaking(mode === 'speaking'),
+  });
+
+  const startSupportCall = async () => {
+    try {
+      setSupportStatus('connecting');
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      // VoxApp Support Agent - using same agent for now, replace with dedicated support agent ID later
+      await supportConversation.startSession({
+        agentId: 'agent_4801khcaeveffx7tbayp097p54kh',
+        connectionType: 'webrtc',
+      });
+    } catch (error) {
+      console.error('Failed to start support call:', error);
+      setSupportStatus('error');
+    }
+  };
+
+  const endSupportCall = async () => {
+    await supportConversation.endSession();
+    setSupportStatus('idle');
+  };
+
+  const closeSupport = async () => {
+    if (supportStatus === 'connected' || supportStatus === 'connecting') {
+      await supportConversation.endSession();
+    }
+    setSupportStatus('idle');
+    setShowSupport(false);
+  };
+
   return (
-    <section style={{ background: '#e3e3e3', padding: '200px 0' }}>
-      <div style={{ maxWidth: 700, margin: '0 auto', padding: '0 24px', textAlign: 'center' }}>
-        <h2 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 700, color: '#1a1a2e', marginBottom: 20 }}>
-          Klaar om nooit meer een <span style={{ color: '#f97316' }}>oproep te missen?</span>
-        </h2>
-        <p style={{ fontSize: 18, color: '#6b7280', marginBottom: 40 }}>
-          Start vandaag nog. Eerste maand gratis, geen contract.
-        </p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
-          <a href="/register" style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            background: '#f97316',
-            color: 'white',
-            padding: '16px 32px',
-            borderRadius: 8,
-            fontSize: 16,
-            fontWeight: 600,
-            textDecoration: 'none',
-          }}>
-            Start gratis proefperiode <ArrowRight size={18} />
-          </a>
-          <a href="/contact" style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            background: 'transparent',
-            color: '#1a1a2e',
-            padding: '16px 32px',
-            borderRadius: 8,
-            fontSize: 16,
-            fontWeight: 600,
-            textDecoration: 'none',
-            border: '1px solid #d1d5db',
-          }}>
-            <Headphones size={18} />
-            Praat met ons team
-          </a>
+    <>
+      <section style={{ background: '#e3e3e3', padding: '200px 0' }}>
+        <div style={{ maxWidth: 700, margin: '0 auto', padding: '0 24px', textAlign: 'center' }}>
+          <h2 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 700, color: '#1a1a2e', marginBottom: 20 }}>
+            Klaar om nooit meer een <span style={{ color: '#f97316' }}>oproep te missen?</span>
+          </h2>
+          <p style={{ fontSize: 18, color: '#6b7280', marginBottom: 40 }}>
+            Start vandaag nog. Eerste maand gratis, geen contract.
+          </p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
+            <a href="/register" style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              background: '#f97316',
+              color: 'white',
+              padding: '16px 32px',
+              borderRadius: 8,
+              fontSize: 16,
+              fontWeight: 600,
+              textDecoration: 'none',
+            }}>
+              Start gratis proefperiode <ArrowRight size={18} />
+            </a>
+            <button 
+              onClick={() => setShowSupport(true)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: 'transparent',
+                color: '#1a1a2e',
+                padding: '16px 32px',
+                borderRadius: 8,
+                fontSize: 16,
+                fontWeight: 600,
+                border: '1px solid #d1d5db',
+                cursor: 'pointer',
+              }}>
+              <Headphones size={18} />
+              Praat met ons team
+            </button>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      {/* Support Modal */}
+      {showSupport && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: 20,
+        }}>
+          <div style={{
+            background: '#1a1a2e',
+            borderRadius: 24,
+            padding: 40,
+            maxWidth: 400,
+            width: '100%',
+            textAlign: 'center',
+            position: 'relative',
+          }}>
+            <button 
+              onClick={closeSupport}
+              style={{
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                background: 'transparent',
+                border: 'none',
+                color: '#9ca3af',
+                cursor: 'pointer',
+                padding: 8,
+              }}
+            >
+              <X size={24} />
+            </button>
+
+            <div style={{
+              width: 80,
+              height: 80,
+              borderRadius: '50%',
+              background: supportStatus === 'connected' 
+                ? 'linear-gradient(135deg, #22c55e, #16a34a)' 
+                : 'linear-gradient(135deg, #f97316, #ea580c)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 24px',
+              boxShadow: supportStatus === 'connected' 
+                ? '0 0 40px rgba(34, 197, 94, 0.4)' 
+                : '0 0 40px rgba(249, 115, 22, 0.4)',
+              animation: isSpeaking ? 'pulse 1s infinite' : 'none',
+            }}>
+              <Headphones size={36} color="white" />
+            </div>
+
+            <h3 style={{ color: 'white', fontSize: 24, fontWeight: 700, marginBottom: 8 }}>
+              VoxApp Support
+            </h3>
+            <p style={{ color: '#9ca3af', fontSize: 14, marginBottom: 24 }}>
+              {supportStatus === 'idle' && 'Stel al uw vragen over VoxApp'}
+              {supportStatus === 'connecting' && 'Verbinden...'}
+              {supportStatus === 'connected' && (isSpeaking ? 'Aan het spreken...' : 'Luistert naar u...')}
+              {supportStatus === 'error' && 'Er ging iets mis. Probeer opnieuw.'}
+            </p>
+
+            {supportStatus === 'idle' || supportStatus === 'error' ? (
+              <button
+                onClick={startSupportCall}
+                style={{
+                  width: '100%',
+                  padding: '16px 32px',
+                  background: '#f97316',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 12,
+                  fontSize: 16,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                }}
+              >
+                <Phone size={20} />
+                Start gesprek
+              </button>
+            ) : supportStatus === 'connecting' ? (
+              <div style={{
+                width: '100%',
+                padding: '16px 32px',
+                background: '#374151',
+                color: '#9ca3af',
+                borderRadius: 12,
+                fontSize: 16,
+                fontWeight: 600,
+              }}>
+                Verbinden...
+              </div>
+            ) : (
+              <button
+                onClick={endSupportCall}
+                style={{
+                  width: '100%',
+                  padding: '16px 32px',
+                  background: '#ef4444',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 12,
+                  fontSize: 16,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                }}
+              >
+                <Phone size={20} />
+                Beëindig gesprek
+              </button>
+            )}
+
+            <p style={{ color: '#6b7280', fontSize: 12, marginTop: 16 }}>
+              Prijzen • Features • Demo • Integraties
+            </p>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
