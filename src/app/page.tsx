@@ -1183,7 +1183,7 @@ function KassaSection() {
 
               <div style={{ textAlign: 'center', marginBottom: 16 }}>
                 <p style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#1a1a2e' }}>FRITUUR DE SCHANS</p>
-                <p style={{ fontSize: 10, color: '#666', margin: '4px 0 0 0' }}>Marktplein 15, 2000 Antwerpen</p>
+                <p style={{ fontSize: 10, color: '#666', margin: '4px 0 0 0' }}>Kerkstraat 42, 2000 Antwerpen</p>
                 <p style={{ fontSize: 10, color: '#666', margin: '2px 0 0 0' }}>Tel: 03 123 45 67</p>
               </div>
 
