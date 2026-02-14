@@ -65,7 +65,7 @@ export default function OverOnsPage() {
       </section>
 
       {/* Stats Section */}
-      <section style={{ padding: '60px 24px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+      <section style={{ padding: '100px 24px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
         <div style={{ 
           maxWidth: 1100, 
           margin: '0 auto',
@@ -94,7 +94,7 @@ export default function OverOnsPage() {
       </section>
 
       {/* Founder Section */}
-      <section style={{ padding: '80px 24px', background: 'rgba(249, 115, 22, 0.03)' }}>
+      <section style={{ padding: '120px 24px', background: 'rgba(249, 115, 22, 0.03)' }}>
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
           <div style={{ 
             display: 'grid', 
@@ -155,7 +155,7 @@ export default function OverOnsPage() {
       </section>
 
       {/* What We Do Section */}
-      <section style={{ padding: '80px 24px' }}>
+      <section style={{ padding: '120px 24px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 60 }}>
             <h2 style={{ fontSize: 36, fontWeight: 700, marginBottom: 16 }}>
@@ -252,7 +252,7 @@ export default function OverOnsPage() {
 
       {/* Custom Software CTA */}
       <section style={{ 
-        padding: '80px 24px', 
+        padding: '120px 24px', 
         background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(249, 115, 22, 0.02) 100%)',
         borderTop: '1px solid rgba(249, 115, 22, 0.2)',
         borderBottom: '1px solid rgba(249, 115, 22, 0.2)',
@@ -316,7 +316,7 @@ export default function OverOnsPage() {
       </section>
 
       {/* Global Presence */}
-      <section style={{ padding: '80px 24px' }}>
+      <section style={{ padding: '120px 24px' }}>
         <div style={{ maxWidth: 900, margin: '0 auto', textAlign: 'center' }}>
           <h2 style={{ fontSize: 32, fontWeight: 700, marginBottom: 20 }}>
             Wereldwijd <span style={{ color: '#f97316' }}>actief</span>
@@ -350,7 +350,7 @@ export default function OverOnsPage() {
 
       {/* Contact Section */}
       <section style={{ 
-        padding: '60px 24px', 
+        padding: '100px 24px', 
         background: 'rgba(255,255,255,0.02)',
         borderTop: '1px solid rgba(255,255,255,0.05)'
       }}>
