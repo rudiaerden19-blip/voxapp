@@ -1043,8 +1043,8 @@ Klanten bellen of spreken hun bestelling in. De receptie noteert alles correct,
                   >
                     <Phone size={32} />
                   </button>
-                  <p style={{ color: '#6b7280', fontSize: 14 }}>
-                    Klik om te bestellen bij Frituur De Schans
+                  <p style={{ color: '#f97316', fontSize: 14, fontWeight: 500 }}>
+                    Klik en bestel een demo bestelling bij Frituur De Schans
                   </p>
                   {errorMessage && (
                     <p style={{ color: '#ef4444', fontSize: 13 }}>{errorMessage}</p>
