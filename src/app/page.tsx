@@ -1144,6 +1144,14 @@ function FrituurSection() {
     { code: 'de' as const, flag: '🇩🇪', label: 'DE' },
   ];
 
+  // Frituur agent IDs per language
+  const frituurAgents: Record<string, string> = {
+    nl: 'agent_4801khcaeveffx7tbayp097p54kh',
+    en: 'agent_0201khethnnte7gbgw1hebcyhjq5',
+    fr: 'agent_8501khetjab0fcvs299t4mj89sfm',
+    de: 'agent_1801khetjxk3e8s9xmg8xqadjjnk',
+  };
+
   const conversation = useConversation({
     onConnect: () => setCallStatus('connected'),
     onDisconnect: () => setCallStatus('idle'),
@@ -1160,9 +1168,9 @@ function FrituurSection() {
       setCallStatus('connecting');
       setErrorMessage('');
       await navigator.mediaDevices.getUserMedia({ audio: true });
-      // Frituur De Schans agent
+      // Frituur De Schans agent - use selected language
       await conversation.startSession({
-        agentId: 'agent_4801khcaeveffx7tbayp097p54kh',
+        agentId: frituurAgents[selectedDemoLang],
         connectionType: 'webrtc',
       });
     } catch (error) {
@@ -1986,6 +1994,14 @@ function TryLiveSection() {
     { code: 'de' as const, flag: '🇩🇪', label: 'DE' },
   ];
 
+  // Kapsalon Belle agent IDs per language
+  const belleAgents: Record<string, string> = {
+    nl: 'agent_7001kh7ck6cvfpqvrt1gc63bs88k',
+    en: 'agent_7101khetmv6aedatrzg030vn5ge4',
+    fr: 'agent_9401khetnphqe2kb1g9d861rzn0g',
+    de: 'agent_1501khetp4xtfpeamd250tpfqwjy',
+  };
+
   // We'll use the hook at component level
   const conversation = useConversation({
     onConnect: () => {
@@ -2012,9 +2028,9 @@ function TryLiveSection() {
       // Request microphone permission
       await navigator.mediaDevices.getUserMedia({ audio: true });
       
-      // Start the conversation with the agent
+      // Start the conversation with the agent - use selected language
       await conversation.startSession({
-        agentId: 'agent_7001kh7ck6cvfpqvrt1gc63bs88k',
+        agentId: belleAgents[selectedDemoLang],
         connectionType: 'webrtc',
       });
     } catch (error) {
