@@ -605,6 +605,7 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
       // Then start the conversation
       await conversation.startSession({
         agentId: 'agent_4801khcaeveffx7tbayp097p54kh',
+        connectionType: 'webrtc',
       });
     } catch (error) {
       console.error('Failed to start call:', error);
