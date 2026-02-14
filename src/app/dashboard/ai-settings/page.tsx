@@ -7,18 +7,26 @@ import { Phone, Mic, Globe, Save, Check, Play, Volume2, Sparkles, MapPin, Clock,
 
 interface Business {
   id: string;
+  user_id: string;
   name: string;
   type: string;
+  description: string | null;
   phone: string | null;
   email: string | null;
   website: string | null;
   street: string | null;
   city: string | null;
   postal_code: string | null;
+  country: string | null;
   opening_hours: Record<string, { open: string; close: string; closed: boolean }> | null;
   voice_id: string | null;
   welcome_message: string | null;
   agent_id: string | null;
+  subscription_status: string | null;
+  subscription_plan: string | null;
+  trial_ends_at: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 const voiceOptions = [
