@@ -1239,45 +1239,27 @@ function KassaSection() {
    ROI CALCULATOR SECTIE
 ============================================ */
 function ROICalculatorSection() {
-  const [gesprekkenPerMaand, setGesprekkenPerMaand] = useState(500);
-  const [gespreksduur, setGespreksduur] = useState(3);
   const [maandsalaris, setMaandsalaris] = useState(2500);
   const [aantalFTE, setAantalFTE] = useState(1);
 
-  // Berekeningen
-  const totaleMaandMinuten = gesprekkenPerMaand * gespreksduur;
-  
-  // VoxApp kosten (Starter pakket)
+  // VoxApp kosten (Starter pakket - vast bedrag)
   const voxAppPlan = 'Starter';
   const voxAppKostenPerMaand = 99;
-  const inclusieveMinuten = 300;
-  const extraMinuutPrijs = 0.40;
-  
-  const extraMinuten = Math.max(0, totaleMaandMinuten - inclusieveMinuten);
-  const extraKosten = extraMinuten * extraMinuutPrijs;
-  const totaalVoxAppPerMaand = voxAppKostenPerMaand + extraKosten;
-  const totaalVoxAppPerJaar = totaalVoxAppPerMaand * 12;
+  const totaalVoxAppPerJaar = voxAppKostenPerMaand * 12; // €1.188 per jaar
 
-  // Huidige kosten (personeel)
-  const werkgeverslasten = maandsalaris * 0.30; // 30% extra
-  const vakantiegeld = maandsalaris * 0.08; // 8%
-  const totaleSalarisKosten = (maandsalaris + werkgeverslasten + vakantiegeld) * aantalFTE;
-  const jaarlijksePersoneelskosten = totaleSalarisKosten * 12;
+  // Huidige kosten personeel (realistisch)
+  // Bruto salaris + 30% werkgeverslasten = totale loonkosten
+  const loonkostenPerMaand = maandsalaris * 1.30 * aantalFTE;
+  const jaarlijksePersoneelskosten = loonkostenPerMaand * 12;
   
-  // Extra kosten
-  const werkplekKosten = 500 * aantalFTE * 12; // €500/maand per persoon
-  const trainingKosten = 2000 * aantalFTE; // €2000/jaar
-  const wervingKosten = aantalFTE > 0 ? 3500 : 0; // Eenmalig
-  const gemistOproepenKosten = gesprekkenPerMaand * 0.20 * 25 * 12; // 20% gemist, €25 per gemiste klant
-  const ziekteKosten = jaarlijksePersoneelskosten * 0.05; // 5% ziekte
-  
-  const totaleHuidigeKosten = jaarlijksePersoneelskosten + werkplekKosten + trainingKosten + gemistOproepenKosten + ziekteKosten;
+  // Totale huidige kosten = alleen personeelskosten
+  const totaleHuidigeKosten = jaarlijksePersoneelskosten;
   
   // Besparing
-  const jaarlijkseBesparing = totaleHuidigeKosten - totaalVoxAppPerJaar;
+  const jaarlijkseBesparing = Math.max(0, totaleHuidigeKosten - totaalVoxAppPerJaar);
   const maandelijkseBesparing = jaarlijkseBesparing / 12;
-  const roi = totaleHuidigeKosten > 0 ? ((jaarlijkseBesparing / totaleHuidigeKosten) * 100) : 0;
-  const terugverdientijd = jaarlijkseBesparing > 0 ? (totaalVoxAppPerJaar / jaarlijkseBesparing * 12) : 0;
+  const roi = totaleHuidigeKosten > 0 ? Math.round((jaarlijkseBesparing / totaleHuidigeKosten) * 100) : 0;
+  const terugverdientijd = jaarlijkseBesparing > 0 ? (totaalVoxAppPerJaar / (jaarlijkseBesparing / 12)) : 0;
 
   return (
     <section style={{ background: '#0f0a14', padding: '80px 0' }}>
@@ -1300,40 +1282,6 @@ function ROICalculatorSection() {
               <Settings size={20} style={{ color: '#9ca3af' }} />
               Huidige Situatie
             </h3>
-
-            {/* Aantal gesprekken */}
-            <div style={{ marginBottom: 28 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-                <label style={{ color: '#9ca3af', fontSize: 14 }}>Aantal gesprekken per maand</label>
-                <span style={{ color: 'white', fontWeight: 600 }}>{gesprekkenPerMaand} gesprekken</span>
-              </div>
-              <input 
-                type="range" 
-                min="50" 
-                max="2000" 
-                step="50"
-                value={gesprekkenPerMaand}
-                onChange={(e) => setGesprekkenPerMaand(Number(e.target.value))}
-                style={{ width: '100%', accentColor: '#8b5cf6' }}
-              />
-            </div>
-
-            {/* Gespreksduur */}
-            <div style={{ marginBottom: 28 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-                <label style={{ color: '#9ca3af', fontSize: 14 }}>Gemiddelde gespreksduur (min)</label>
-                <span style={{ color: 'white', fontWeight: 600 }}>{gespreksduur} minuten</span>
-              </div>
-              <input 
-                type="range" 
-                min="1" 
-                max="10" 
-                step="1"
-                value={gespreksduur}
-                onChange={(e) => setGespreksduur(Number(e.target.value))}
-                style={{ width: '100%', accentColor: '#8b5cf6' }}
-              />
-            </div>
 
             {/* Maandsalaris */}
             <div style={{ marginBottom: 28 }}>
@@ -1371,24 +1319,24 @@ function ROICalculatorSection() {
 
             {/* Kostencomponenten */}
             <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 24, marginTop: 8 }}>
-              <h4 style={{ color: 'white', fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Kostencomponenten</h4>
+              <h4 style={{ color: 'white', fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Berekening</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {[
-                  { label: 'Werkgeverslasten', value: '+30%', color: '#8b5cf6' },
-                  { label: 'Vakantiegeld', value: '8%', color: '#8b5cf6' },
-                  { label: 'Werkplek & Faciliteiten', value: '€500/mnd', color: '#8b5cf6' },
-                  { label: 'Training & Ontwikkeling', value: '€2.000/jr', color: '#8b5cf6' },
-                  { label: 'Gemiste Oproepen', value: '20%', color: '#8b5cf6' },
-                  { label: 'Vervanging bij Ziekte', value: '5%', color: '#8b5cf6' },
-                ].map((item, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div style={{ width: 16, height: 16, borderRadius: 4, background: item.color }} />
-                      <span style={{ color: '#9ca3af', fontSize: 13 }}>{item.label}</span>
-                    </div>
-                    <span style={{ color: item.color, fontSize: 13, fontWeight: 500 }}>{item.value}</span>
-                  </div>
-                ))}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#9ca3af', fontSize: 13 }}>Bruto salaris</span>
+                  <span style={{ color: 'white', fontSize: 13 }}>€{maandsalaris.toLocaleString()}/mnd</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#9ca3af', fontSize: 13 }}>+ Werkgeverslasten (30%)</span>
+                  <span style={{ color: '#8b5cf6', fontSize: 13 }}>€{Math.round(maandsalaris * 0.30).toLocaleString()}/mnd</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 10 }}>
+                  <span style={{ color: 'white', fontSize: 13, fontWeight: 600 }}>Totaal per FTE</span>
+                  <span style={{ color: 'white', fontSize: 13, fontWeight: 600 }}>€{Math.round(maandsalaris * 1.30).toLocaleString()}/mnd</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#9ca3af', fontSize: 13 }}>x {aantalFTE} FTE x 12 maanden</span>
+                  <span style={{ color: '#ef4444', fontSize: 13, fontWeight: 600 }}>€{Math.round(jaarlijksePersoneelskosten).toLocaleString()}/jaar</span>
+                </div>
               </div>
             </div>
           </div>
