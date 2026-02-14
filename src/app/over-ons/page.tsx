@@ -122,18 +122,34 @@ export default function OverOnsPage() {
               </div>
             </div>
             <div style={{ 
-              background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
               borderRadius: 16,
-              padding: 40,
-              textAlign: 'center'
+              overflow: 'hidden',
+              position: 'relative'
             }}>
-              <Building2 size={64} style={{ marginBottom: 20, opacity: 0.9 }} />
-              <p style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>Vysion HQ</p>
-              <p style={{ fontSize: 15, opacity: 0.9 }}>
-                Siberiëstraat 24<br />
-                3900 Pelt<br />
-                België
-              </p>
+              <img 
+                src="/vysion-office.png" 
+                alt="Vysion Office" 
+                style={{ 
+                  width: '100%', 
+                  height: '100%', 
+                  objectFit: 'cover',
+                  minHeight: 280
+                }} 
+              />
+              <div style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
+                padding: '40px 24px 24px',
+                textAlign: 'center'
+              }}>
+                <p style={{ fontSize: 18, fontWeight: 600, marginBottom: 4 }}>Vysion HQ</p>
+                <p style={{ fontSize: 14, opacity: 0.9 }}>
+                  Siberiëstraat 24, 3900 Pelt, België
+                </p>
+              </div>
             </div>
           </div>
         </div>
