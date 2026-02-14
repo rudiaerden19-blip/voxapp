@@ -7,15 +7,15 @@ import { Search, Ban, Check, Trash2, Eye, UserPlus, X } from 'lucide-react';
 
 interface Tenant {
   id: string;
-  user_id: string;
+  user_id?: string;
   name: string;
-  email: string;
-  type: string;
-  phone: string;
-  subscription_status: string;
-  blocked: boolean;
+  email?: string | null;
+  type?: string;
+  phone?: string | null;
+  subscription_status?: string;
+  blocked?: boolean;
   created_at: string;
-  trial_ends_at: string | null;
+  trial_ends_at?: string | null;
 }
 
 export default function TenantsPage() {
@@ -57,10 +57,9 @@ export default function TenantsPage() {
       .select('*')
       .order('created_at', { ascending: false });
     
-    if (data) {
-      setTenants(data as Tenant[]);
-      setFilteredTenants(data as Tenant[]);
-    }
+    const tenantData = (data || []) as unknown as Tenant[];
+    setTenants(tenantData);
+    setFilteredTenants(tenantData);
     setLoading(false);
   };
 
@@ -70,7 +69,7 @@ export default function TenantsPage() {
     
     await supabase
       .from('businesses')
-      .update({ blocked: newBlockedState })
+      .update({ blocked: newBlockedState } as any)
       .eq('id', tenant.id);
     
     setTenants(prev => prev.map(t => 

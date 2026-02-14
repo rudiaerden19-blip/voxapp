@@ -141,7 +141,7 @@ export default function SubscriptionsPage() {
                     </td>
                     <td style={{ padding: '16px' }}>
                       <p style={{ color: 'white', textTransform: 'capitalize' }}>{sub.subscription_plan || 'Starter'}</p>
-                      <p style={{ color: '#6b7280', fontSize: 13 }}>{getPlanPrice(sub.subscription_plan)}</p>
+                      <p style={{ color: '#6b7280', fontSize: 13 }}>{getPlanPrice(sub.subscription_plan || 'starter')}</p>
                     </td>
                     <td style={{ padding: '16px' }}>
                       <span style={{
