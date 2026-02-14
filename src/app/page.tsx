@@ -2102,11 +2102,12 @@ function TryLiveSection() {
    HOW IT WORKS
 ============================================ */
 function HowItWorksSection() {
+  const { t } = useLanguage();
   const steps = [
-    { num: '01', icon: Users, title: 'Account aanmaken', desc: 'Registreer in 2 minuten. Kies uw sector en vul bedrijfsgegevens in.' },
-    { num: '02', icon: Settings, title: 'Diensten & medewerkers', desc: 'Voeg diensten toe met prijzen. Configureer werkuren per medewerker.' },
-    { num: '03', icon: Mic, title: 'Stem kiezen', desc: 'Kies een standaard stem of gebruik uw eigen stem. Klaar in 5 minuten.' },
-    { num: '04', icon: Phone, title: 'Ga live', desc: 'Koppel uw nummer en uw receptionist is actief. Klaar!' },
+    { num: '01', icon: Users, titleKey: 'step1.title', descKey: 'step1.desc' },
+    { num: '02', icon: Settings, titleKey: 'step2.title', descKey: 'step2.desc' },
+    { num: '03', icon: Mic, titleKey: 'step3.title', descKey: 'step3.desc' },
+    { num: '04', icon: Phone, titleKey: 'step4.title', descKey: 'step4.desc' },
   ];
 
   return (
@@ -2114,13 +2115,13 @@ function HowItWorksSection() {
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: 64 }}>
           <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
-            HOE HET WERKT
+            {t('howItWorks.badge')}
           </p>
           <h2 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 700, color: 'white', marginBottom: 16 }}>
-            Live in <span style={{ color: '#f97316' }}>10 minuten</span>
+            {t('howItWorks.title1')} <span style={{ color: '#f97316' }}>{t('howItWorks.title2')}</span>
           </h2>
           <p style={{ fontSize: 18, color: '#9ca3af', maxWidth: 500, margin: '0 auto' }}>
-            Geen technische kennis nodig. Onze wizard begeleidt u door elke stap.
+            {t('howItWorks.subtitle')}
           </p>
         </div>
 
@@ -2146,8 +2147,8 @@ function HowItWorksSection() {
               }}>
                 <step.icon size={24} style={{ color: '#f97316' }} />
               </div>
-              <h3 style={{ fontSize: 18, fontWeight: 600, color: 'white', marginBottom: 8 }}>{step.title}</h3>
-              <p style={{ fontSize: 14, color: '#9ca3af', lineHeight: 1.6 }}>{step.desc}</p>
+              <h3 style={{ fontSize: 18, fontWeight: 600, color: 'white', marginBottom: 8 }}>{t(`howItWorks.${step.titleKey}`)}</h3>
+              <p style={{ fontSize: 14, color: '#9ca3af', lineHeight: 1.6 }}>{t(`howItWorks.${step.descKey}`)}</p>
             </div>
           ))}
         </div>
@@ -2165,7 +2166,7 @@ function HowItWorksSection() {
             fontWeight: 600,
             textDecoration: 'none',
           }}>
-            Start nu - 7 dagen gratis <ArrowRight size={18} />
+            {t('howItWorks.startNow')} <ArrowRight size={18} />
           </a>
         </div>
       </div>
@@ -2259,35 +2260,33 @@ function StatsSection() {
    PRICING SECTION
 ============================================ */
 function PricingSection() {
+  const { t } = useLanguage();
   const plans = [
     {
-      name: 'Starter',
+      key: 'starter',
       price: '99',
-      desc: 'Perfect voor zelfstandigen.',
       minutes: '300',
       appointments: '~150',
       extra: '0,40',
-      features: ['Receptionist 24/7', 'Ingebouwde agenda', '1 medewerker', 'SMS bevestigingen', 'Gesprekstranscripties', 'Email support'],
+      featureKeys: ['f1', 'f2', 'f3', 'f4', 'f5', 'f6'],
       popular: false,
     },
     {
-      name: 'Pro',
+      key: 'pro',
       price: '149',
-      desc: 'Voor groeiende teams.',
       minutes: '750',
       appointments: '~375',
       extra: '0,35',
-      features: ['Alles van Starter, plus:', '5 medewerkers', 'Voice cloning', 'Uitgaande herinneringen', 'Online booking pagina', 'Priority support'],
+      featureKeys: ['f1', 'f2', 'f3', 'f4', 'f5', 'f6'],
       popular: true,
     },
     {
-      name: 'Business',
+      key: 'business',
       price: '249',
-      desc: 'Voor grotere bedrijven.',
       minutes: '1500',
       appointments: '~750',
       extra: '0,30',
-      features: ['Alles van Pro, plus:', 'Onbeperkt medewerkers', 'Meerdere locaties', 'API toegang', 'Custom integraties', 'Account manager'],
+      featureKeys: ['f1', 'f2', 'f3', 'f4', 'f5', 'f6'],
       popular: false,
     },
   ];
@@ -2297,19 +2296,19 @@ function PricingSection() {
       <div style={{ maxWidth: 1000, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: 64 }}>
           <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
-            PRIJZEN
+            {t('pricing.badge')}
           </p>
           <h2 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 700, color: 'white', marginBottom: 16 }}>
-            Simpele, <span style={{ color: '#f97316' }}>transparante prijzen</span>
+            {t('pricing.title1')} <span style={{ color: '#f97316' }}>{t('pricing.title2')}</span>
           </h2>
           <p style={{ fontSize: 18, color: '#9ca3af' }}>
-            Alles inbegrepen. Geen verrassingen.
+            {t('pricing.subtitle')}
           </p>
         </div>
 
         <div className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
           {plans.map((plan) => (
-            <div key={plan.name} style={{
+            <div key={plan.key} style={{
               background: '#ffffff',
               border: plan.popular ? '2px solid #f97316' : '1px solid #d1d5db',
               borderRadius: 20,
@@ -2328,28 +2327,28 @@ function PricingSection() {
                   fontSize: 12,
                   fontWeight: 600,
                   textTransform: 'uppercase',
-                }}>Populair</span>
+                }}>{t('pricing.popular')}</span>
               )}
 
-              <h3 style={{ fontSize: 20, fontWeight: 600, color: '#1a1a2e', marginBottom: 8 }}>{plan.name}</h3>
-              <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>{plan.desc}</p>
+              <h3 style={{ fontSize: 20, fontWeight: 600, color: '#1a1a2e', marginBottom: 8 }}>{t(`pricing.${plan.key}.name`)}</h3>
+              <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>{t(`pricing.${plan.key}.desc`)}</p>
 
               <div style={{ marginBottom: 24 }}>
                 <span style={{ fontSize: 18, color: '#9ca3af' }}>€</span>
                 <span style={{ fontSize: 48, fontWeight: 700, color: '#f97316' }}>{plan.price}</span>
-                <span style={{ fontSize: 16, color: '#9ca3af' }}>/maand</span>
+                <span style={{ fontSize: 16, color: '#9ca3af' }}>{t('pricing.perMonth')}</span>
               </div>
 
               <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 24 }}>
-                {plan.appointments} afspraken/maand<br />
-                <span style={{ fontSize: 12 }}>({plan.minutes} min incl. • €{plan.extra}/extra min)</span>
+                {plan.appointments} {t('pricing.appointments')}<br />
+                <span style={{ fontSize: 12 }}>({plan.minutes} {t('pricing.minutes')} • €{plan.extra} {t('pricing.extraMinute')})</span>
               </p>
 
               <ul style={{ listStyle: 'none', padding: 0, marginBottom: 32 }}>
-                {plan.features.map((feature, i) => (
+                {plan.featureKeys.map((fKey, i) => (
                   <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', fontSize: 14, color: '#374151' }}>
                     <Check size={16} style={{ color: '#f97316' }} />
-                    {feature}
+                    {t(`pricing.${plan.key}.${fKey}`)}
                   </li>
                 ))}
               </ul>
@@ -2368,11 +2367,11 @@ function PricingSection() {
                 textDecoration: 'none',
                 border: plan.popular ? 'none' : '1px solid #d1d5db',
               }}>
-                Kies {plan.name}
+                {t('pricing.startTrial')}
               </a>
 
               <p style={{ textAlign: 'center', fontSize: 12, color: '#6b7280', marginTop: 12 }}>
-                Maandelijks opzegbaar
+                {t('pricing.monthlyCancelable')}
               </p>
             </div>
           ))}
