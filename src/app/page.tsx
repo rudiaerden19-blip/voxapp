@@ -3056,7 +3056,7 @@ function Footer() {
           </div>
         </div>
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 24, display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 16 }}>
-          <p style={{ fontSize: 13, color: '#6b7280' }}>© 2026 VoxApp. Alle rechten voorbehouden.</p>
+          <p style={{ fontSize: 13, color: '#6b7280' }}>© 2026 Vysion. Alle rechten voorbehouden.</p>
           <div style={{ display: 'flex', gap: 24 }}>
             <a href="/privacy" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 13 }}>Privacy</a>
             <a href="/voorwaarden" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 13 }}>Voorwaarden</a>
