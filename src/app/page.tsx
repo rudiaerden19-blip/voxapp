@@ -2865,10 +2865,10 @@ function ContactSection() {
             CONTACT
           </p>
           <h2 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 700, color: 'white', marginBottom: 20 }}>
-            Neem <span style={{ color: '#f97316' }}>contact</span> met ons op
+            {t('contact.title')}
           </h2>
           <p style={{ fontSize: 18, color: '#9ca3af', marginBottom: 48, lineHeight: 1.7 }}>
-            Heeft u vragen over VoxApp? Wij helpen u graag verder.
+            {t('contact.subtitle')}
           </p>
 
           <div style={{ 
@@ -2896,7 +2896,7 @@ function ContactSection() {
               }}>
                 <Send size={24} color="#f97316" />
               </div>
-              <h3 style={{ color: 'white', fontSize: 18, fontWeight: 600, marginBottom: 8 }}>E-mail</h3>
+              <h3 style={{ color: 'white', fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{t('contact.email')}</h3>
               <a href="mailto:info@vysionhoreca.com" style={{ color: '#f97316', textDecoration: 'none', fontSize: 16 }}>
                 info@vysionhoreca.com
               </a>
@@ -2921,7 +2921,7 @@ function ContactSection() {
               }}>
                 <Globe size={24} color="#f97316" />
               </div>
-              <h3 style={{ color: 'white', fontSize: 18, fontWeight: 600, marginBottom: 8 }}>Website</h3>
+              <h3 style={{ color: 'white', fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{t('contact.website')}</h3>
               <a href="https://voxapp.tech" target="_blank" rel="noopener noreferrer" style={{ color: '#f97316', textDecoration: 'none', fontSize: 16 }}>
                 voxapp.tech
               </a>
@@ -2946,7 +2946,7 @@ function ContactSection() {
               }}>
                 <MapPin size={24} color="#f97316" />
               </div>
-              <h3 style={{ color: 'white', fontSize: 18, fontWeight: 600, marginBottom: 8 }}>Locatie</h3>
+              <h3 style={{ color: 'white', fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{t('contact.location')}</h3>
               <p style={{ color: '#9ca3af', fontSize: 16, lineHeight: 1.6 }}>
                 Siberiëstraat 24<br />
                 3900 Pelt<br />
@@ -2978,9 +2978,9 @@ function ContactSection() {
               }}>
                 <Headphones size={24} color="white" />
               </div>
-              <h3 style={{ color: 'white', fontSize: 18, fontWeight: 600, marginBottom: 8 }}>Live Support</h3>
+              <h3 style={{ color: 'white', fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{t('contact.liveSupport')}</h3>
               <p style={{ color: '#f97316', fontSize: 16 }}>
-                Praat nu met ons
+                {t('contact.talkNow')}
               </p>
             </div>
           </div>
@@ -3121,6 +3121,7 @@ function ContactSection() {
    FOOTER
 ============================================ */
 function Footer() {
+  const { t } = useLanguage();
   return (
     <footer style={{ background: '#0a0710', borderTop: '1px solid rgba(255,255,255,0.1)', padding: '60px 0 40px' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
@@ -3130,36 +3131,36 @@ function Footer() {
               <span style={{ color: '#f97316' }}>Vox</span>App
             </a>
             <p style={{ fontSize: 14, color: '#6b7280', lineHeight: 1.6, marginTop: 16 }}>
-              De slimme receptionist voor elke KMO.
+              {t('footer.tagline')}
             </p>
           </div>
           <div>
-            <h4 style={{ fontWeight: 600, color: 'white', marginBottom: 16 }}>Product</h4>
+            <h4 style={{ fontWeight: 600, color: 'white', marginBottom: 16 }}>{t('footer.product')}</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <a href="#features" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>Functies</a>
-              <a href="#pricing" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>Prijzen</a>
+              <a href="#features" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>{t('footer.features')}</a>
+              <a href="#pricing" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>{t('footer.pricing')}</a>
             </div>
           </div>
           <div>
-            <h4 style={{ fontWeight: 600, color: 'white', marginBottom: 16 }}>Bedrijf</h4>
+            <h4 style={{ fontWeight: 600, color: 'white', marginBottom: 16 }}>{t('footer.company')}</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <a href="/over-ons" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>Over ons</a>
-              <a href="#contact" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>Contact</a>
+              <a href="/over-ons" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>{t('footer.aboutUs')}</a>
+              <a href="#contact" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>{t('footer.contact')}</a>
             </div>
           </div>
           <div>
-            <h4 style={{ fontWeight: 600, color: 'white', marginBottom: 16 }}>Support</h4>
+            <h4 style={{ fontWeight: 600, color: 'white', marginBottom: 16 }}>{t('footer.support')}</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <a href="#faq" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>Help Center</a>
-              <a href="#faq" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>FAQ</a>
+              <a href="#faq" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>{t('footer.helpCenter')}</a>
+              <a href="#faq" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>{t('footer.faq')}</a>
             </div>
           </div>
         </div>
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 24, display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 16 }}>
-          <p style={{ fontSize: 13, color: '#6b7280' }}>© 2026 Vysion. Alle rechten voorbehouden.</p>
+          <p style={{ fontSize: 13, color: '#6b7280' }}>© 2026 Vysion. {t('footer.allRights')}</p>
           <div style={{ display: 'flex', gap: 24 }}>
-            <a href="/privacy" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 13 }}>Privacy</a>
-            <a href="/voorwaarden" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 13 }}>Voorwaarden</a>
+            <a href="/privacy" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 13 }}>{t('footer.privacy')}</a>
+            <a href="/voorwaarden" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 13 }}>{t('footer.terms')}</a>
           </div>
         </div>
       </div>

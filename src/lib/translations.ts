@@ -306,21 +306,27 @@ export const translations = {
 
   // Contact Section
   contact: {
-    title: { nl: 'Neem contact op', en: 'Get in touch', fr: 'Contactez-nous', de: 'Kontaktieren Sie uns' },
-    subtitle: { nl: 'Heeft u vragen? Wij staan voor u klaar.', en: 'Have questions? We\'re here to help.', fr: 'Vous avez des questions? Nous sommes là pour vous aider.', de: 'Haben Sie Fragen? Wir sind für Sie da.' },
+    title: { nl: 'Contact', en: 'Contact', fr: 'Contact', de: 'Kontakt' },
+    subtitle: { nl: 'Heeft u vragen over VoxApp? Wij helpen u graag verder.', en: 'Have questions about VoxApp? We\'re happy to help.', fr: 'Vous avez des questions sur VoxApp? Nous sommes là pour vous aider.', de: 'Haben Sie Fragen zu VoxApp? Wir helfen Ihnen gerne weiter.' },
     email: { nl: 'E-mail', en: 'Email', fr: 'E-mail', de: 'E-Mail' },
     website: { nl: 'Website', en: 'Website', fr: 'Site web', de: 'Webseite' },
     location: { nl: 'Locatie', en: 'Location', fr: 'Emplacement', de: 'Standort' },
     liveSupport: { nl: 'Live Support', en: 'Live Support', fr: 'Support en direct', de: 'Live-Support' },
-    liveSupportDesc: { nl: 'Praat direct met ons', en: 'Talk to us directly', fr: 'Parlez-nous directement', de: 'Sprechen Sie direkt mit uns' },
+    talkNow: { nl: 'Praat nu met ons', en: 'Talk to us now', fr: 'Parlez-nous maintenant', de: 'Sprechen Sie jetzt mit uns' },
   },
 
   // Footer
   footer: {
+    tagline: { nl: 'De slimme receptionist voor elke KMO.', en: 'The smart receptionist for every SME.', fr: 'Le réceptionniste intelligent pour chaque PME.', de: 'Der smarte Rezeptionist für jedes KMU.' },
     product: { nl: 'Product', en: 'Product', fr: 'Produit', de: 'Produkt' },
+    features: { nl: 'Functies', en: 'Features', fr: 'Fonctionnalités', de: 'Funktionen' },
+    pricing: { nl: 'Prijzen', en: 'Pricing', fr: 'Tarifs', de: 'Preise' },
     company: { nl: 'Bedrijf', en: 'Company', fr: 'Entreprise', de: 'Unternehmen' },
-    legal: { nl: 'Juridisch', en: 'Legal', fr: 'Légal', de: 'Rechtliches' },
+    aboutUs: { nl: 'Over ons', en: 'About us', fr: 'À propos', de: 'Über uns' },
+    contact: { nl: 'Contact', en: 'Contact', fr: 'Contact', de: 'Kontakt' },
+    support: { nl: 'Support', en: 'Support', fr: 'Support', de: 'Support' },
     helpCenter: { nl: 'Help Center', en: 'Help Center', fr: 'Centre d\'aide', de: 'Hilfezentrum' },
+    faq: { nl: 'FAQ', en: 'FAQ', fr: 'FAQ', de: 'FAQ' },
     privacy: { nl: 'Privacy', en: 'Privacy', fr: 'Confidentialité', de: 'Datenschutz' },
     terms: { nl: 'Voorwaarden', en: 'Terms', fr: 'Conditions', de: 'Bedingungen' },
     allRights: { nl: 'Alle rechten voorbehouden.', en: 'All rights reserved.', fr: 'Tous droits réservés.', de: 'Alle Rechte vorbehalten.' },
