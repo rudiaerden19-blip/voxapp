@@ -690,32 +690,58 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
             {/* Breathing Circle with Phone Button - Left Side */}
             <div style={{
               position: 'absolute',
-              bottom: -60,
-              left: -40,
-              width: 200,
-              height: 200,
-              borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, rgba(236, 72, 153, 0.1) 50%, transparent 70%)',
-              border: '1px solid rgba(139, 92, 246, 0.3)',
+              bottom: -40,
+              left: 40,
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 0 60px rgba(139, 92, 246, 0.3)',
+              gap: 16,
             }}>
-              {/* Breathing Green Phone Button */}
               <div style={{
-                width: 80,
-                height: 80,
+                width: 180,
+                height: 180,
                 borderRadius: '50%',
-                background: '#22c55e',
+                background: 'radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, rgba(236, 72, 153, 0.1) 50%, transparent 70%)',
+                border: '1px solid rgba(139, 92, 246, 0.3)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 0 30px rgba(34, 197, 94, 0.5)',
-                animation: 'breathe 2s ease-in-out infinite',
-                cursor: 'pointer',
+                boxShadow: '0 0 60px rgba(139, 92, 246, 0.3)',
               }}>
-                <Phone size={32} style={{ color: 'white' }} />
+                {/* Breathing Green Phone Button */}
+                <div style={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: '50%',
+                  background: '#22c55e',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 0 30px rgba(34, 197, 94, 0.5)',
+                  animation: 'breathe 2s ease-in-out infinite',
+                  cursor: 'pointer',
+                }}>
+                  <Phone size={32} style={{ color: 'white' }} />
+                </div>
+              </div>
+              {/* Call to action text */}
+              <div style={{ textAlign: 'center', maxWidth: 200 }}>
+                <p style={{ 
+                  color: '#f97316', 
+                  fontSize: 14, 
+                  fontWeight: 600, 
+                  margin: '0 0 8px 0',
+                }}>
+                  Probeer het nu
+                </p>
+                <p style={{ 
+                  color: '#9ca3af', 
+                  fontSize: 12, 
+                  margin: 0,
+                  lineHeight: 1.5,
+                }}>
+                  Open de site op uw smartphone, druk op de knop en maak een demo bestelling
+                </p>
               </div>
             </div>
 
