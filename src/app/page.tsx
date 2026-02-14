@@ -590,8 +590,11 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
               <span style={{ color: '#f97316' }}>Bespaar tijd.</span>
             </h1>
 
-            <p style={{ fontSize: 18, color: '#9ca3af', lineHeight: 1.7, marginBottom: 32 }}>
+            <p style={{ fontSize: 18, color: '#9ca3af', lineHeight: 1.7, marginBottom: 12 }}>
               VoxApp beheert uw oproepen, boekt afspraken en beantwoordt vragen — zodat u kunt focussen op uw werk.
+            </p>
+            <p style={{ fontSize: 16, color: '#f97316', fontWeight: 500, marginBottom: 32 }}>
+              Geen robotstemmen, maar uw eigen stem die spreekt.
             </p>
 
             {/* CTA Buttons */}
