@@ -13,12 +13,12 @@ interface Business {
 }
 
 const voiceOptions = [
-  { id: 'nl-NL-ColetteNeural', name: 'Colette', accent: 'Nederlands', gender: 'Vrouw' },
-  { id: 'nl-NL-MaartenNeural', name: 'Maarten', accent: 'Nederlands', gender: 'Man' },
-  { id: 'nl-BE-ArnaudNeural', name: 'Arnaud', accent: 'Belgisch', gender: 'Man' },
-  { id: 'nl-BE-DenaNeural', name: 'Dena', accent: 'Belgisch', gender: 'Vrouw' },
-  { id: 'fr-BE-CharlineNeural', name: 'Charline', accent: 'Frans (BE)', gender: 'Vrouw' },
-  { id: 'fr-BE-GerardNeural', name: 'Gerard', accent: 'Frans (BE)', gender: 'Man' },
+  { id: 'nl-BE-DenaNeural', name: 'Dena', accent: 'Belgisch', gender: 'Vrouw', sample: 'Goedendag, welkom bij ons bedrijf. Waarmee kan ik u helpen vandaag?' },
+  { id: 'nl-BE-ArnaudNeural', name: 'Arnaud', accent: 'Belgisch', gender: 'Man', sample: 'Goedendag, u spreekt met de receptie. Hoe kan ik u van dienst zijn?' },
+  { id: 'nl-NL-ColetteNeural', name: 'Colette', accent: 'Nederlands', gender: 'Vrouw', sample: 'Goedemiddag, fijn dat u belt. Kan ik een afspraak voor u inplannen?' },
+  { id: 'nl-NL-MaartenNeural', name: 'Maarten', accent: 'Nederlands', gender: 'Man', sample: 'Goedendag, welkom. Ik help u graag verder met uw vraag.' },
+  { id: 'fr-BE-CharlineNeural', name: 'Charline', accent: 'Frans (BE)', gender: 'Vrouw', sample: 'Bonjour, bienvenue. Comment puis-je vous aider aujourd\'hui?' },
+  { id: 'fr-BE-GerardNeural', name: 'Gerard', accent: 'Frans (BE)', gender: 'Man', sample: 'Bonjour, vous êtes bien chez nous. Que puis-je faire pour vous?' },
 ];
 
 const brancheTemplates: Record<string, { greeting: string; capabilities: string; style: string }> = {
@@ -162,9 +162,38 @@ export default function AISettingsPage() {
   };
 
   const playVoiceSample = (voiceId: string) => {
+    // Stop any currently playing voice
+    window.speechSynthesis.cancel();
+    
+    const voice = voiceOptions.find(v => v.id === voiceId);
+    if (!voice) return;
+
     setPlayingVoice(voiceId);
-    // TODO: Play actual voice sample
-    setTimeout(() => setPlayingVoice(null), 2000);
+    
+    const utterance = new SpeechSynthesisUtterance(voice.sample);
+    
+    // Set language based on voice
+    if (voiceId.startsWith('fr-')) {
+      utterance.lang = 'fr-BE';
+    } else if (voiceId.startsWith('nl-BE')) {
+      utterance.lang = 'nl-BE';
+    } else {
+      utterance.lang = 'nl-NL';
+    }
+    
+    // Adjust voice characteristics based on gender
+    if (voice.gender === 'Vrouw') {
+      utterance.pitch = 1.1;
+    } else {
+      utterance.pitch = 0.9;
+    }
+    
+    utterance.rate = 0.95;
+    
+    utterance.onend = () => setPlayingVoice(null);
+    utterance.onerror = () => setPlayingVoice(null);
+    
+    window.speechSynthesis.speak(utterance);
   };
 
   if (loading) {
