@@ -2303,6 +2303,93 @@ function FAQSection() {
 }
 
 /* ============================================
+   TESTIMONIALS SECTION
+============================================ */
+function TestimonialsSection() {
+  const testimonials = [
+    {
+      name: 'Mark van der Berg',
+      role: 'CEO, TechStart',
+      initials: 'MV',
+      color: '#22c55e',
+      text: '"VoxApp heeft onze klantenservice volledig getransformeerd. We missen geen enkele oproep meer en onze klanten zijn zeer tevreden met de snelle respons."',
+    },
+    {
+      name: 'Sophie Janssen',
+      role: 'Operations Manager, HealthPlus',
+      initials: 'SJ',
+      color: '#3b82f6',
+      text: '"Het team van VoxApp heeft een perfect passend AI-systeem voor ons gebouwd. Volledig afgestemd op onze werkwijze. Nu besparen we 30+ uur per week."',
+    },
+    {
+      name: 'Dr. Peter Hendriks',
+      role: 'Eigenaar, Dental Care',
+      initials: 'PH',
+      color: '#a855f7',
+      text: '"Als tandartspraktijk ontvangen we veel afspraakverzoken. VoxApp handelt deze perfect af, zelfs buiten kantooruren. Een absolute game-changer!"',
+    },
+  ];
+
+  return (
+    <section style={{ background: '#1a1a2e', padding: '100px 0' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
+        <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 700, color: 'white', textAlign: 'center', marginBottom: 60 }}>
+          Wat Onze Klanten Zeggen
+        </h2>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 30 }}>
+          {testimonials.map((t, i) => (
+            <div 
+              key={i}
+              style={{
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: 16,
+                padding: 30,
+              }}
+            >
+              {/* Stars */}
+              <div style={{ marginBottom: 16 }}>
+                {[1,2,3,4,5].map(s => (
+                  <span key={s} style={{ color: '#fbbf24', fontSize: 18 }}>★</span>
+                ))}
+              </div>
+              
+              {/* Quote */}
+              <p style={{ color: '#d1d5db', fontSize: 15, lineHeight: 1.7, marginBottom: 24 }}>
+                {t.text}
+              </p>
+              
+              {/* Author */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: '50%',
+                  background: t.color,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontWeight: 600,
+                  fontSize: 14,
+                }}>
+                  {t.initials}
+                </div>
+                <div>
+                  <p style={{ color: 'white', fontWeight: 600, margin: 0, fontSize: 15 }}>{t.name}</p>
+                  <p style={{ color: '#9ca3af', fontSize: 13, margin: 0 }}>{t.role}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================
    CTA SECTION
 ============================================ */
 function CTASection() {
@@ -2441,6 +2528,7 @@ export default function Home() {
       <PricingSection />
       <PartnersSection />
       <FAQSection />
+      <TestimonialsSection />
       <CTASection />
       <Footer />
       <DemoModal isOpen={demoOpen} onClose={() => setDemoOpen(false)} demoType={demoType} />
