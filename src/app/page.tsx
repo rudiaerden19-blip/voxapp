@@ -695,7 +695,7 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
             alignItems: 'center',
             gap: 16,
             marginTop: 40,
-            paddingBottom: 20,
+            paddingBottom: 80,
           }}>
             <div style={{
               width: 140,
