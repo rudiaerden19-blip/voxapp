@@ -619,102 +619,97 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
           </div>
         </div>
 
-        {/* Audio Visualizer Circle with Floating Badges */}
-        <div style={{ position: 'relative', marginTop: 60 }}>
+        {/* Hero Image with Floating Elements */}
+        <div style={{ position: 'relative', marginTop: 40 }}>
           <div style={{ 
             position: 'relative',
-            maxWidth: 500,
+            maxWidth: 900,
             margin: '0 auto',
           }}>
-            {/* Circular Audio Visualizer */}
+            {/* Main Image */}
             <div style={{
-              width: 300,
-              height: 300,
-              borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.1) 50%, transparent 70%)',
-              border: '1px solid rgba(139, 92, 246, 0.3)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              borderRadius: 24,
+              overflow: 'hidden',
+              boxShadow: '0 40px 80px rgba(0,0,0,0.4)',
+              maxWidth: 600,
               margin: '0 auto',
-              boxShadow: '0 0 60px rgba(139, 92, 246, 0.2)',
             }}>
-              {/* Animated Bars */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, height: 120 }}>
-                {[0, 1, 2, 3, 4, 5, 6].map((i) => (
-                  <div
-                    key={i}
-                    className="audio-bar"
-                    style={{
-                      width: 8,
-                      borderRadius: 4,
-                      background: `linear-gradient(180deg, #8b5cf6 0%, #ec4899 100%)`,
-                      animationDelay: `${i * 0.15}s`,
-                    }}
-                  />
-                ))}
-              </div>
+              <img 
+                src="/frituur.jpg"
+                alt="Frituur met verse friet"
+                style={{ width: '100%', height: 'auto', display: 'block', maxHeight: 500, objectFit: 'cover' }}
+              />
             </div>
 
-            {/* Status Badge - Top Right */}
+            {/* Floating Chat Bubble - Top Right */}
             <div style={{
               position: 'absolute',
-              top: 20,
-              right: 20,
-              background: 'rgba(255,255,255,0.1)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: 12,
-              padding: '12px 16px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              border: '1px solid rgba(255,255,255,0.1)',
+              top: 40,
+              right: -20,
+              background: 'white',
+              borderRadius: 16,
+              padding: 16,
+              boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+              maxWidth: 280,
             }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e' }} />
+                <span style={{ fontSize: 12, color: '#6b7280' }}>VoxApp Bestelling</span>
+              </div>
+              <p style={{ fontSize: 14, color: '#1a1a2e', margin: 0 }}>
+                &quot;Goedendag, Frituur De Schans. Wilt u een bestelling doorgeven?&quot;
+              </p>
+            </div>
+
+            {/* Action Badges - Right Side */}
+            <div style={{ position: 'absolute', top: 160, right: -30, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {[
+                { icon: Check, text: 'Bestelling Opgenomen', color: '#22c55e' },
+                { icon: Clock, text: 'Afhaaltijd Berekend', color: '#f97316' },
+                { icon: Send, text: 'SMS Verstuurd', color: '#3b82f6' },
+              ].map((badge, i) => (
+                <div key={i} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  background: 'white',
+                  borderRadius: 8,
+                  padding: '10px 16px',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                }}>
+                  <badge.icon size={16} style={{ color: badge.color }} />
+                  <span style={{ fontSize: 13, fontWeight: 500, color: '#1a1a2e' }}>{badge.text}</span>
+                </div>
+              ))}
+
+              {/* Audio Visualizer Circle under SMS Verstuurd */}
               <div style={{
-                width: 32,
-                height: 32,
+                width: 180,
+                height: 180,
                 borderRadius: '50%',
-                background: 'rgba(34, 197, 94, 0.2)',
+                background: 'radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.1) 50%, transparent 70%)',
+                border: '1px solid rgba(139, 92, 246, 0.3)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                boxShadow: '0 0 40px rgba(139, 92, 246, 0.2)',
+                marginTop: 8,
               }}>
-                <Check size={16} style={{ color: '#22c55e' }} />
-              </div>
-              <div>
-                <p style={{ fontSize: 11, color: '#9ca3af', margin: 0 }}>Status</p>
-                <p style={{ fontSize: 14, color: 'white', margin: 0, fontWeight: 600 }}>Afspraak geboekt</p>
-              </div>
-            </div>
-
-            {/* Service Badge - Bottom Left */}
-            <div style={{
-              position: 'absolute',
-              bottom: 40,
-              left: 0,
-              background: 'rgba(255,255,255,0.1)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: 12,
-              padding: '12px 16px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              border: '1px solid rgba(255,255,255,0.1)',
-            }}>
-              <div style={{
-                width: 32,
-                height: 32,
-                borderRadius: '50%',
-                background: 'rgba(59, 130, 246, 0.2)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-                <Clock size={16} style={{ color: '#3b82f6' }} />
-              </div>
-              <div>
-                <p style={{ fontSize: 11, color: '#9ca3af', margin: 0 }}>Service</p>
-                <p style={{ fontSize: 14, color: 'white', margin: 0, fontWeight: 600 }}>24/7 Bereikbaar</p>
+                {/* Animated Bars */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, height: 80 }}>
+                  {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+                    <div
+                      key={i}
+                      className="audio-bar"
+                      style={{
+                        width: 6,
+                        borderRadius: 3,
+                        background: `linear-gradient(180deg, #8b5cf6 0%, #ec4899 100%)`,
+                        animationDelay: `${i * 0.15}s`,
+                      }}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
 
