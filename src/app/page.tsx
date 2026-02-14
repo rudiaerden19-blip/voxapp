@@ -2845,23 +2845,23 @@ function Footer() {
           <div>
             <h4 style={{ fontWeight: 600, color: 'white', marginBottom: 16 }}>Bedrijf</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <a href="#" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>Over ons</a>
-              <a href="/contact" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>Contact</a>
+              <a href="#hero" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>Over ons</a>
+              <a href="#contact" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>Contact</a>
             </div>
           </div>
           <div>
             <h4 style={{ fontWeight: 600, color: 'white', marginBottom: 16 }}>Support</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <a href="#" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>Help Center</a>
-              <a href="#" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>FAQ</a>
+              <a href="#faq" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>Help Center</a>
+              <a href="#faq" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>FAQ</a>
             </div>
           </div>
         </div>
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 24, display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 16 }}>
           <p style={{ fontSize: 13, color: '#6b7280' }}>© 2026 VoxApp. Alle rechten voorbehouden.</p>
           <div style={{ display: 'flex', gap: 24 }}>
-            <a href="#" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 13 }}>Privacy</a>
-            <a href="#" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 13 }}>Voorwaarden</a>
+            <a href="/privacy" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 13 }}>Privacy</a>
+            <a href="/voorwaarden" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 13 }}>Voorwaarden</a>
           </div>
         </div>
       </div>
@@ -2875,11 +2875,27 @@ function Footer() {
 export default function Home() {
   const [demoOpen, setDemoOpen] = useState(false);
   const [demoType, setDemoType] = useState<'belle' | 'garage' | 'restaurant'>('belle');
+  const [showCookieBanner, setShowCookieBanner] = useState(false);
 
   // Scroll to top on page load/refresh
   useEffect(() => {
     window.scrollTo(0, 0);
+    // Check if cookies are already accepted
+    const cookiesAccepted = localStorage.getItem('cookiesAccepted');
+    if (!cookiesAccepted) {
+      setShowCookieBanner(true);
+    }
   }, []);
+
+  const acceptCookies = () => {
+    localStorage.setItem('cookiesAccepted', 'true');
+    setShowCookieBanner(false);
+  };
+
+  const declineCookies = () => {
+    localStorage.setItem('cookiesAccepted', 'false');
+    setShowCookieBanner(false);
+  };
 
   const openBelleDemo = () => {
     setDemoType('belle');
@@ -2919,6 +2935,74 @@ export default function Home() {
       <ContactSection />
       <Footer />
       <DemoModal isOpen={demoOpen} onClose={() => setDemoOpen(false)} demoType={demoType} />
+      
+      {/* Cookie Banner */}
+      {showCookieBanner && (
+        <div style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          background: 'rgba(26, 26, 46, 0.98)',
+          backdropFilter: 'blur(10px)',
+          borderTop: '1px solid rgba(255,255,255,0.1)',
+          padding: '20px 24px',
+          zIndex: 9999,
+        }}>
+          <div style={{ 
+            maxWidth: 1200, 
+            margin: '0 auto', 
+            display: 'flex', 
+            flexWrap: 'wrap',
+            alignItems: 'center', 
+            justifyContent: 'space-between',
+            gap: 20,
+          }}>
+            <div style={{ flex: 1, minWidth: 280 }}>
+              <p style={{ color: 'white', fontSize: 15, fontWeight: 600, marginBottom: 6 }}>
+                🍪 Wij gebruiken cookies
+              </p>
+              <p style={{ color: '#9ca3af', fontSize: 13, lineHeight: 1.6 }}>
+                Wij gebruiken cookies om onze website te laten functioneren en uw ervaring te verbeteren. 
+                Door op "Accepteren" te klikken, gaat u akkoord met ons{' '}
+                <a href="/privacy" style={{ color: '#f97316', textDecoration: 'underline' }}>cookiebeleid</a>.
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button
+                onClick={declineCookies}
+                style={{
+                  padding: '10px 20px',
+                  background: 'transparent',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  borderRadius: 8,
+                  color: '#9ca3af',
+                  fontSize: 14,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                }}
+              >
+                Weigeren
+              </button>
+              <button
+                onClick={acceptCookies}
+                style={{
+                  padding: '10px 24px',
+                  background: '#f97316',
+                  border: 'none',
+                  borderRadius: 8,
+                  color: 'white',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Accepteren
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
