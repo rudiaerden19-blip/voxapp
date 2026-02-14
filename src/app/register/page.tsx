@@ -57,7 +57,7 @@ export default function RegisterPage() {
             type: businessType,
             phone: phone,
             email: email,
-            trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            trial_ends_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
           }] as any);
 
         if (businessError) {
@@ -101,7 +101,7 @@ export default function RegisterPage() {
             </span>
           </Link>
           <p style={{ color: '#9ca3af', marginTop: 8, fontSize: 14 }}>
-            Start je gratis proefperiode van 30 dagen
+            Start je gratis proefperiode van 7 dagen
           </p>
         </div>
 

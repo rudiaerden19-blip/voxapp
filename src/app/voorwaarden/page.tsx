@@ -71,7 +71,7 @@ export default function VoorwaardenPage() {
               <li><strong style={{ color: 'white' }}>Business:</strong> €249/maand - 1500 minuten inbegrepen</li>
             </ul>
             <p style={{ color: '#9ca3af', lineHeight: 1.8, marginTop: 16 }}>
-              De eerste maand is gratis. Daarna wordt het abonnement maandelijks gefactureerd. 
+              De eerste 7 dagen zijn gratis. Daarna wordt het abonnement maandelijks gefactureerd. 
               Extra minuten worden aan het einde van de maand in rekening gebracht.
             </p>
           </section>

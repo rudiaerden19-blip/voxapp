@@ -2061,7 +2061,7 @@ function HowItWorksSection() {
             fontWeight: 600,
             textDecoration: 'none',
           }}>
-            Start nu - eerste maand gratis <ArrowRight size={18} />
+            Start nu - 7 dagen gratis <ArrowRight size={18} />
           </a>
         </div>
       </div>
@@ -2364,7 +2364,7 @@ function FAQSection() {
     { q: 'Kan ik mijn bestaande nummer behouden?', a: 'Ja! U kunt uw bestaande nummer doorschakelen naar VoxApp.' },
     { q: 'Hoe werkt de voice cloning?', a: 'U leest 5 minuten een tekst in. VoxApp klinkt daarna precies als u.' },
     { q: 'Welke talen worden ondersteund?', a: 'Nederlands, Frans en Duits. Automatische taalherkenning.' },
-    { q: 'Is er een contract?', a: 'Nee. Maandelijks opzegbaar, eerste maand gratis.' },
+    { q: 'Is er een contract?', a: 'Nee. Maandelijks opzegbaar, 7 dagen gratis.' },
   ];
 
   return (
@@ -2539,7 +2539,7 @@ function CTASection() {
             Klaar om nooit meer een <span style={{ color: '#f97316' }}>oproep te missen?</span>
           </h2>
           <p style={{ fontSize: 18, color: '#6b7280', marginBottom: 40 }}>
-            Start vandaag nog. Eerste maand gratis, geen contract.
+            Start vandaag nog. 7 dagen gratis, geen contract.
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
             <a href="/register" style={{
