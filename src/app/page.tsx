@@ -2460,38 +2460,33 @@ function PartnersSection() {
    FAQ SECTION
 ============================================ */
 function FAQSection() {
+  const { t } = useLanguage();
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
-  const faqs = [
-    { q: 'Hoe snel kan ik starten?', a: 'Binnen 10 minuten. Onze setup wizard begeleidt u stap voor stap.' },
-    { q: 'Kan ik mijn bestaande nummer behouden?', a: 'Ja! U kunt uw bestaande nummer doorschakelen naar VoxApp.' },
-    { q: 'Hoe werkt de voice cloning?', a: 'U leest 5 minuten een tekst in. VoxApp klinkt daarna precies als u.' },
-    { q: 'Welke talen worden ondersteund?', a: 'Nederlands, Frans en Duits. Automatische taalherkenning.' },
-    { q: 'Is er een contract?', a: 'Nee. Maandelijks opzegbaar, 7 dagen gratis.' },
-  ];
+  const faqKeys = ['q1', 'q2', 'q3', 'q4', 'q5'];
 
   return (
     <section id="faq" style={{ background: '#1a1025', padding: '200px 0' }}>
       <div style={{ maxWidth: 700, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
-          <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>FAQ</p>
+          <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>{t('faq.badge')}</p>
           <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 700, color: 'white' }}>
-            Veelgestelde <span style={{ color: '#f97316' }}>vragen</span>
+            {t('faq.title1')} <span style={{ color: '#f97316' }}>{t('faq.title2')}</span>
           </h2>
         </div>
 
         <div>
-          {faqs.map((faq, i) => (
+          {faqKeys.map((key, i) => (
             <div key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
               <div 
                 onClick={() => setOpenIndex(openIndex === i ? null : i)}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px 0', cursor: 'pointer' }}
               >
-                <span style={{ fontWeight: 600, color: 'white' }}>{faq.q}</span>
+                <span style={{ fontWeight: 600, color: 'white' }}>{t(`faq.${key}.q`)}</span>
                 <ChevronRight size={20} style={{ color: '#f97316', transform: openIndex === i ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />
               </div>
               {openIndex === i && (
-                <p style={{ paddingBottom: 24, color: '#9ca3af', lineHeight: 1.7 }}>{faq.a}</p>
+                <p style={{ paddingBottom: 24, color: '#9ca3af', lineHeight: 1.7 }}>{t(`faq.${key}.a`)}</p>
               )}
             </div>
           ))}
@@ -2592,6 +2587,7 @@ function TestimonialsSection() {
    CTA SECTION
 ============================================ */
 function CTASection() {
+  const { t } = useLanguage();
   const [showSupport, setShowSupport] = useState(false);
   const [supportStatus, setSupportStatus] = useState<'idle' | 'connecting' | 'connected' | 'error'>('idle');
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -2639,10 +2635,10 @@ function CTASection() {
       <section style={{ background: '#e3e3e3', padding: '200px 0' }}>
         <div style={{ maxWidth: 700, margin: '0 auto', padding: '0 24px', textAlign: 'center' }}>
           <h2 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 700, color: '#1a1a2e', marginBottom: 20 }}>
-            Klaar om nooit meer een <span style={{ color: '#f97316' }}>oproep te missen?</span>
+            {t('cta.title1')} <span style={{ color: '#f97316' }}>{t('cta.title2')}</span>
           </h2>
           <p style={{ fontSize: 18, color: '#6b7280', marginBottom: 40 }}>
-            Start vandaag nog. 7 dagen gratis, geen contract.
+            {t('cta.subtitle')}
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
             <a href="/register" style={{
@@ -2657,7 +2653,7 @@ function CTASection() {
               fontWeight: 600,
               textDecoration: 'none',
             }}>
-              Start gratis proefperiode <ArrowRight size={18} />
+              {t('cta.startTrial')} <ArrowRight size={18} />
             </a>
             <button 
               onClick={() => setShowSupport(true)}
@@ -2675,7 +2671,7 @@ function CTASection() {
                 cursor: 'pointer',
               }}>
               <Headphones size={18} />
-              Praat met ons team
+              {t('cta.talkToTeam')}
             </button>
           </div>
         </div>
@@ -2738,13 +2734,13 @@ function CTASection() {
             </div>
 
             <h3 style={{ color: 'white', fontSize: 24, fontWeight: 700, marginBottom: 8 }}>
-              VoxApp Support
+              {t('cta.support')}
             </h3>
             <p style={{ color: '#9ca3af', fontSize: 14, marginBottom: 24 }}>
-              {supportStatus === 'idle' && 'Stel al uw vragen over VoxApp'}
-              {supportStatus === 'connecting' && 'Verbinden...'}
-              {supportStatus === 'connected' && (isSpeaking ? 'Aan het spreken...' : 'Luistert naar u...')}
-              {supportStatus === 'error' && 'Er ging iets mis. Probeer opnieuw.'}
+              {supportStatus === 'idle' && t('cta.askQuestions')}
+              {supportStatus === 'connecting' && t('cta.connecting')}
+              {supportStatus === 'connected' && (isSpeaking ? t('cta.speaking') : t('cta.listening'))}
+              {supportStatus === 'error' && t('cta.error')}
             </p>
 
             {supportStatus === 'idle' || supportStatus === 'error' ? (
@@ -2767,7 +2763,7 @@ function CTASection() {
                 }}
               >
                 <Phone size={20} />
-                Start gesprek
+                {t('cta.startCall')}
               </button>
             ) : supportStatus === 'connecting' ? (
               <div style={{
@@ -2801,7 +2797,7 @@ function CTASection() {
                 }}
               >
                 <Phone size={20} />
-                Beëindig gesprek
+                {t('cta.endCall')}
               </button>
             )}
 
@@ -2819,6 +2815,7 @@ function CTASection() {
    CONTACT SECTION
 ============================================ */
 function ContactSection() {
+  const { t } = useLanguage();
   const [showSupport, setShowSupport] = useState(false);
   const [supportStatus, setSupportStatus] = useState<'idle' | 'connecting' | 'connected' | 'error'>('idle');
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -3047,13 +3044,13 @@ function ContactSection() {
             </div>
 
             <h3 style={{ color: 'white', fontSize: 24, fontWeight: 700, marginBottom: 8 }}>
-              VoxApp Support
+              {t('cta.support')}
             </h3>
             <p style={{ color: '#9ca3af', fontSize: 14, marginBottom: 24 }}>
-              {supportStatus === 'idle' && 'Stel al uw vragen over VoxApp'}
-              {supportStatus === 'connecting' && 'Verbinden...'}
-              {supportStatus === 'connected' && (isSpeaking ? 'Aan het spreken...' : 'Luistert naar u...')}
-              {supportStatus === 'error' && 'Er ging iets mis. Probeer opnieuw.'}
+              {supportStatus === 'idle' && t('cta.askQuestions')}
+              {supportStatus === 'connecting' && t('cta.connecting')}
+              {supportStatus === 'connected' && (isSpeaking ? t('cta.speaking') : t('cta.listening'))}
+              {supportStatus === 'error' && t('cta.error')}
             </p>
 
             {supportStatus === 'idle' || supportStatus === 'error' ? (
@@ -3076,7 +3073,7 @@ function ContactSection() {
                 }}
               >
                 <Phone size={20} />
-                Start gesprek
+                {t('cta.startCall')}
               </button>
             ) : supportStatus === 'connecting' ? (
               <div style={{
@@ -3110,7 +3107,7 @@ function ContactSection() {
                 }}
               >
                 <Phone size={20} />
-                Beëindig gesprek
+                {t('cta.endCall')}
               </button>
             )}
           </div>

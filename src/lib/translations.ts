@@ -262,35 +262,46 @@ export const translations = {
 
   // FAQ
   faq: {
-    title: { nl: 'Veelgestelde vragen', en: 'Frequently asked questions', fr: 'Questions fréquentes', de: 'Häufig gestellte Fragen' },
+    badge: { nl: 'FAQ', en: 'FAQ', fr: 'FAQ', de: 'FAQ' },
+    title1: { nl: 'Veelgestelde', en: 'Frequently asked', fr: 'Questions', de: 'Häufig gestellte' },
+    title2: { nl: 'vragen', en: 'questions', fr: 'fréquentes', de: 'Fragen' },
     q1: {
-      q: { nl: 'Hoe natuurlijk klinkt de receptionist?', en: 'How natural does the receptionist sound?', fr: 'À quel point la réceptionniste semble-t-elle naturelle?', de: 'Wie natürlich klingt der Rezeptionist?' },
-      a: { nl: 'Zeer natuurlijk! Klanten merken vaak niet dat ze met een slimme receptionist spreken. Met voice cloning klinkt het exact zoals u.', en: 'Very natural! Customers often don\'t notice they\'re speaking with a smart receptionist. With voice cloning, it sounds exactly like you.', fr: 'Très naturel! Les clients ne remarquent souvent pas qu\'ils parlent à un réceptionniste intelligent. Avec le clonage de voix, ça sonne exactement comme vous.', de: 'Sehr natürlich! Kunden merken oft nicht, dass sie mit einem smarten Rezeptionisten sprechen. Mit Stimmklonen klingt es genau wie Sie.' },
+      q: { nl: 'Hoe snel kan ik starten?', en: 'How fast can I start?', fr: 'À quelle vitesse puis-je commencer?', de: 'Wie schnell kann ich starten?' },
+      a: { nl: 'Binnen 10 minuten. Onze setup wizard begeleidt u stap voor stap.', en: 'Within 10 minutes. Our setup wizard guides you step by step.', fr: 'En 10 minutes. Notre assistant de configuration vous guide étape par étape.', de: 'Innerhalb von 10 Minuten. Unser Setup-Assistent führt Sie Schritt für Schritt.' },
     },
     q2: {
-      q: { nl: 'Kan ik de receptionist aanpassen?', en: 'Can I customize the receptionist?', fr: 'Puis-je personnaliser la réceptionniste?', de: 'Kann ich den Rezeptionisten anpassen?' },
-      a: { nl: 'Ja! U bepaalt begroeting, diensten, openingsuren en hoe er gereageerd wordt.', en: 'Yes! You determine the greeting, services, opening hours and how to respond.', fr: 'Oui! Vous déterminez l\'accueil, les services, les heures d\'ouverture et comment répondre.', de: 'Ja! Sie bestimmen Begrüßung, Dienstleistungen, Öffnungszeiten und wie reagiert wird.' },
+      q: { nl: 'Kan ik mijn bestaande nummer behouden?', en: 'Can I keep my existing number?', fr: 'Puis-je garder mon numéro existant?', de: 'Kann ich meine bestehende Nummer behalten?' },
+      a: { nl: 'Ja! U kunt uw bestaande nummer doorschakelen naar VoxApp.', en: 'Yes! You can forward your existing number to VoxApp.', fr: 'Oui! Vous pouvez transférer votre numéro existant vers VoxApp.', de: 'Ja! Sie können Ihre bestehende Nummer zu VoxApp weiterleiten.' },
     },
     q3: {
-      q: { nl: 'Werkt het met mijn bestaande nummer?', en: 'Does it work with my existing number?', fr: 'Ça fonctionne avec mon numéro existant?', de: 'Funktioniert es mit meiner bestehenden Nummer?' },
-      a: { nl: 'Ja, via doorschakeling. Klanten bellen gewoon uw vertrouwde nummer.', en: 'Yes, via call forwarding. Customers simply call your trusted number.', fr: 'Oui, via le transfert d\'appel. Les clients appellent simplement votre numéro habituel.', de: 'Ja, über Rufumleitung. Kunden rufen einfach Ihre vertraute Nummer an.' },
+      q: { nl: 'Hoe werkt de voice cloning?', en: 'How does voice cloning work?', fr: 'Comment fonctionne le clonage de voix?', de: 'Wie funktioniert das Stimmklonen?' },
+      a: { nl: 'U leest 5 minuten een tekst in. VoxApp klinkt daarna precies als u.', en: 'You read a text for 5 minutes. VoxApp then sounds exactly like you.', fr: 'Vous lisez un texte pendant 5 minutes. VoxApp sonne ensuite exactement comme vous.', de: 'Sie lesen 5 Minuten einen Text. VoxApp klingt danach genau wie Sie.' },
     },
     q4: {
-      q: { nl: 'Is er een proefperiode?', en: 'Is there a trial period?', fr: 'Y a-t-il une période d\'essai?', de: 'Gibt es eine Testphase?' },
-      a: { nl: 'Ja, de eerste 7 dagen zijn volledig gratis. Geen creditcard nodig.', en: 'Yes, the first 7 days are completely free. No credit card required.', fr: 'Oui, les 7 premiers jours sont entièrement gratuits. Pas de carte de crédit requise.', de: 'Ja, die ersten 7 Tage sind völlig kostenlos. Keine Kreditkarte erforderlich.' },
+      q: { nl: 'Welke talen worden ondersteund?', en: 'Which languages are supported?', fr: 'Quelles langues sont supportées?', de: 'Welche Sprachen werden unterstützt?' },
+      a: { nl: 'Nederlands, Frans en Duits. Automatische taalherkenning.', en: 'Dutch, French and German. Automatic language detection.', fr: 'Néerlandais, français et allemand. Détection automatique de la langue.', de: 'Niederländisch, Französisch und Deutsch. Automatische Spracherkennung.' },
     },
     q5: {
-      q: { nl: 'Welke talen worden ondersteund?', en: 'Which languages are supported?', fr: 'Quelles langues sont supportées?', de: 'Welche Sprachen werden unterstützt?' },
-      a: { nl: 'Nederlands, Frans, Engels en Duits - perfect voor België en internationale klanten!', en: 'Dutch, French, English and German - perfect for Belgium and international customers!', fr: 'Néerlandais, français, anglais et allemand - parfait pour la Belgique et les clients internationaux!', de: 'Niederländisch, Französisch, Englisch und Deutsch - perfekt für Belgien und internationale Kunden!' },
+      q: { nl: 'Is er een contract?', en: 'Is there a contract?', fr: 'Y a-t-il un contrat?', de: 'Gibt es einen Vertrag?' },
+      a: { nl: 'Nee. Maandelijks opzegbaar, 7 dagen gratis.', en: 'No. Cancel monthly, 7 days free.', fr: 'Non. Résiliation mensuelle, 7 jours gratuits.', de: 'Nein. Monatlich kündbar, 7 Tage kostenlos.' },
     },
   },
 
   // CTA Section
   cta: {
-    title: { nl: 'Klaar om te starten?', en: 'Ready to start?', fr: 'Prêt à commencer?', de: 'Bereit zu starten?' },
-    subtitle: { nl: 'Probeer VoxApp 7 dagen gratis. Geen creditcard nodig.', en: 'Try VoxApp free for 7 days. No credit card required.', fr: 'Essayez VoxApp gratuitement pendant 7 jours. Pas de carte de crédit requise.', de: 'Testen Sie VoxApp 7 Tage kostenlos. Keine Kreditkarte erforderlich.' },
+    title1: { nl: 'Klaar om nooit meer een', en: 'Ready to never miss a', fr: 'Prêt à ne plus jamais manquer un', de: 'Bereit, nie wieder einen' },
+    title2: { nl: 'oproep te missen?', en: 'call again?', fr: 'appel?', de: 'Anruf zu verpassen?' },
+    subtitle: { nl: 'Start vandaag nog. 7 dagen gratis, geen contract.', en: 'Start today. 7 days free, no contract.', fr: 'Commencez aujourd\'hui. 7 jours gratuits, sans contrat.', de: 'Starten Sie heute. 7 Tage kostenlos, kein Vertrag.' },
     startTrial: { nl: 'Start gratis proefperiode', en: 'Start free trial', fr: 'Commencer l\'essai gratuit', de: 'Kostenlose Testphase starten' },
     talkToTeam: { nl: 'Praat met ons team', en: 'Talk to our team', fr: 'Parlez à notre équipe', de: 'Sprechen Sie mit unserem Team' },
+    support: { nl: 'VoxApp Support', en: 'VoxApp Support', fr: 'Support VoxApp', de: 'VoxApp Support' },
+    askQuestions: { nl: 'Stel al uw vragen over VoxApp', en: 'Ask all your questions about VoxApp', fr: 'Posez toutes vos questions sur VoxApp', de: 'Stellen Sie alle Ihre Fragen zu VoxApp' },
+    connecting: { nl: 'Verbinden...', en: 'Connecting...', fr: 'Connexion...', de: 'Verbinden...' },
+    speaking: { nl: 'Aan het spreken...', en: 'Speaking...', fr: 'En train de parler...', de: 'Spricht...' },
+    listening: { nl: 'Luistert naar u...', en: 'Listening to you...', fr: 'Vous écoute...', de: 'Hört Ihnen zu...' },
+    error: { nl: 'Er ging iets mis. Probeer opnieuw.', en: 'Something went wrong. Try again.', fr: 'Une erreur s\'est produite. Réessayez.', de: 'Etwas ist schiefgelaufen. Versuchen Sie es erneut.' },
+    startCall: { nl: 'Start gesprek', en: 'Start call', fr: 'Démarrer l\'appel', de: 'Anruf starten' },
+    endCall: { nl: 'Beëindig gesprek', en: 'End call', fr: 'Terminer l\'appel', de: 'Anruf beenden' },
   },
 
   // Contact Section
