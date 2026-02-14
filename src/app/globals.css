@@ -98,14 +98,22 @@ html {
     gap: 20px !important;
   }
   
-  /* Partners slider */
+  /* Partners slider - horizontal scroll on mobile */
   .partners-slider {
-    gap: 20px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    flex-wrap: nowrap !important;
+    gap: 16px !important;
+    padding-bottom: 16px !important;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
   }
   
   .partners-slider > div {
-    width: 140px !important;
-    height: 80px !important;
+    flex-shrink: 0 !important;
+    width: 120px !important;
+    height: 70px !important;
+    scroll-snap-align: start;
   }
   
   /* Hero image smaller on mobile */

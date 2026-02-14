@@ -1997,7 +1997,7 @@ function HowItWorksSection() {
   const steps = [
     { num: '01', icon: Users, title: 'Account aanmaken', desc: 'Registreer in 2 minuten. Kies uw sector en vul bedrijfsgegevens in.' },
     { num: '02', icon: Settings, title: 'Diensten & medewerkers', desc: 'Voeg diensten toe met prijzen. Configureer werkuren per medewerker.' },
-    { num: '03', icon: Mic, title: 'Stem kiezen', desc: 'Kies een standaard stem of kloon uw eigen stem in 5 minuten.' },
+    { num: '03', icon: Mic, title: 'Stem kiezen', desc: 'Kies een standaard stem of gebruik uw eigen stem. Klaar in 5 minuten.' },
     { num: '04', icon: Phone, title: 'Ga live', desc: 'Koppel uw nummer en uw receptionist is actief. Klaar!' },
   ];
 
