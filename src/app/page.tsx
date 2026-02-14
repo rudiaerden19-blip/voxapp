@@ -1031,6 +1031,207 @@ Klanten bellen of spreken hun bestelling in. De receptie noteert alles correct,
 }
 
 /* ============================================
+   KASSA SCHERM SECTIE - Bestelling Demo
+============================================ */
+function KassaSection() {
+  return (
+    <section style={{ background: '#1a1a2e', padding: '80px 0' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
+        {/* Header Text */}
+        <div style={{ textAlign: 'center', marginBottom: 60 }}>
+          <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
+            Automatisch Verwerkt
+          </p>
+          <h2 style={{ fontSize: 'clamp(24px, 4vw, 40px)', fontWeight: 700, color: 'white', lineHeight: 1.3, marginBottom: 20 }}>
+            De klant belt in, u werkt gewoon verder.<br />
+            <span style={{ color: '#f97316' }}>De bestelling komt automatisch binnen.</span>
+          </h2>
+          <p style={{ fontSize: 16, color: '#9ca3af', lineHeight: 1.7, maxWidth: 600, margin: '0 auto' }}>
+            Terwijl u friet bakt, verschijnt de bestelling op uw kassascherm én komt de bon uit de printer. Geen telefoon oppakken, geen fouten.
+          </p>
+        </div>
+
+        {/* Kassa Screen + Bon Printer */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 40, alignItems: 'start' }}>
+          
+          {/* Kassa Scherm */}
+          <div style={{
+            background: '#0a0a0a',
+            borderRadius: 16,
+            overflow: 'hidden',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+            border: '4px solid #333',
+          }}>
+            {/* Screen Header */}
+            <div style={{ background: '#f97316', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ color: 'white', fontWeight: 700, fontSize: 16 }}>Frituur De Schans</span>
+              <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12 }}>KASSA</span>
+            </div>
+            
+            {/* New Order Alert */}
+            <div style={{ background: '#22c55e', padding: '10px 20px', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Bell size={18} style={{ color: 'white' }} />
+              <span style={{ color: 'white', fontWeight: 600, fontSize: 14 }}>NIEUWE BESTELLING!</span>
+            </div>
+
+            {/* Order Content */}
+            <div style={{ padding: 20 }}>
+              {/* Customer Info */}
+              <div style={{ marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid #333' }}>
+                <p style={{ color: '#9ca3af', fontSize: 11, textTransform: 'uppercase', marginBottom: 6 }}>Klant</p>
+                <p style={{ color: 'white', fontSize: 16, fontWeight: 600, margin: 0 }}>Jan Peeters</p>
+                <p style={{ color: '#9ca3af', fontSize: 14, margin: '4px 0 0 0' }}>Kerkstraat 42, 2000 Antwerpen</p>
+                <p style={{ color: '#9ca3af', fontSize: 14, margin: '2px 0 0 0' }}>0471 23 45 67</p>
+              </div>
+
+              {/* Order Type */}
+              <div style={{ 
+                display: 'inline-block',
+                background: '#3b82f6', 
+                color: 'white', 
+                padding: '6px 14px', 
+                borderRadius: 20, 
+                fontSize: 12, 
+                fontWeight: 600,
+                marginBottom: 16,
+              }}>
+                LEVEREN
+              </div>
+
+              {/* Order Items */}
+              <div style={{ marginBottom: 20 }}>
+                <p style={{ color: '#9ca3af', fontSize: 11, textTransform: 'uppercase', marginBottom: 10 }}>Bestelling</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: 'white' }}>
+                    <span>1x Grote Friet + Mayonaise</span>
+                    <span style={{ color: '#22c55e' }}>€4,50</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: 'white' }}>
+                    <span>1x Frikandel</span>
+                    <span style={{ color: '#22c55e' }}>€2,50</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: 'white' }}>
+                    <span>1x Cola (blikje)</span>
+                    <span style={{ color: '#22c55e' }}>€2,00</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Total */}
+              <div style={{ 
+                background: '#1a1a1a', 
+                margin: '0 -20px -20px', 
+                padding: '16px 20px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}>
+                <span style={{ color: '#9ca3af', fontSize: 14 }}>TOTAAL</span>
+                <span style={{ color: '#22c55e', fontSize: 24, fontWeight: 700 }}>€9,00</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Bon Printer */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+            {/* Printer */}
+            <div style={{
+              background: '#2a2a2a',
+              borderRadius: '12px 12px 0 0',
+              padding: '20px 30px 10px',
+              width: '100%',
+              maxWidth: 280,
+              position: 'relative',
+            }}>
+              <div style={{ 
+                background: '#1a1a1a', 
+                height: 8, 
+                borderRadius: 4, 
+                marginBottom: 10,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <div style={{ width: '60%', height: 2, background: '#333' }} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: '#666', fontSize: 10, textTransform: 'uppercase' }}>Bon Printer</span>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e', animation: 'pulse 1.5s infinite' }} />
+              </div>
+            </div>
+
+            {/* Receipt/Bon */}
+            <div style={{
+              background: '#fffef5',
+              width: '100%',
+              maxWidth: 280,
+              padding: 20,
+              fontFamily: 'monospace',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+              position: 'relative',
+            }}>
+              {/* Torn edge effect */}
+              <div style={{
+                position: 'absolute',
+                top: -8,
+                left: 0,
+                right: 0,
+                height: 8,
+                background: 'linear-gradient(135deg, #fffef5 25%, transparent 25%), linear-gradient(-135deg, #fffef5 25%, transparent 25%)',
+                backgroundSize: '16px 16px',
+              }} />
+
+              <div style={{ textAlign: 'center', marginBottom: 16 }}>
+                <p style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#1a1a2e' }}>FRITUUR DE SCHANS</p>
+                <p style={{ fontSize: 10, color: '#666', margin: '4px 0 0 0' }}>Marktplein 15, 2000 Antwerpen</p>
+                <p style={{ fontSize: 10, color: '#666', margin: '2px 0 0 0' }}>Tel: 03 123 45 67</p>
+              </div>
+
+              <div style={{ borderTop: '1px dashed #ccc', borderBottom: '1px dashed #ccc', padding: '12px 0', marginBottom: 12 }}>
+                <p style={{ fontSize: 10, color: '#666', margin: '0 0 4px 0' }}>Bestelling #1247</p>
+                <p style={{ fontSize: 10, color: '#666', margin: 0 }}>14-02-2026 15:23</p>
+              </div>
+
+              <div style={{ marginBottom: 12 }}>
+                <p style={{ fontSize: 11, margin: '0 0 6px 0', color: '#1a1a2e' }}>KLANT: Jan Peeters</p>
+                <p style={{ fontSize: 10, color: '#666', margin: 0 }}>Kerkstraat 42, 2000 Antwerpen</p>
+                <p style={{ fontSize: 10, color: '#666', margin: '2px 0 8px 0' }}>LEVEREN</p>
+              </div>
+
+              <div style={{ borderTop: '1px dashed #ccc', padding: '12px 0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4, color: '#1a1a2e' }}>
+                  <span>1x Grote Friet + Mayo</span>
+                  <span>€4,50</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4, color: '#1a1a2e' }}>
+                  <span>1x Frikandel</span>
+                  <span>€2,50</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#1a1a2e' }}>
+                  <span>1x Cola (blikje)</span>
+                  <span>€2,00</span>
+                </div>
+              </div>
+
+              <div style={{ borderTop: '1px dashed #ccc', paddingTop: 12, marginTop: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, fontWeight: 700, color: '#1a1a2e' }}>
+                  <span>TOTAAL</span>
+                  <span>€9,00</span>
+                </div>
+              </div>
+
+              <p style={{ textAlign: 'center', fontSize: 10, color: '#999', marginTop: 16, marginBottom: 0 }}>
+                Bedankt voor uw bestelling!
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================
    FEATURE SECTION 3 - Outbound Calls
 ============================================ */
 function OutboundSection() {
@@ -1877,6 +2078,7 @@ export default function Home() {
       <Navigation />
       <HeroSection onOpenDemo={openBelleDemo} />
       <FrituurSection />
+      <KassaSection />
       <InboundSection onOpenDemo={openGarageDemo} />
       <RestaurantSection onOpenDemo={openRestaurantDemo} />
       <OutboundSection />
