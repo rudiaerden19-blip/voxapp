@@ -572,7 +572,7 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
         {/* Badge */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 32 }}>
           <Phone size={16} style={{ color: '#f97316' }} />
-          <span style={{ color: '#9ca3af', fontSize: 14 }}>Slimme Receptionist voor Groeiende Bedrijven</span>
+          <span style={{ color: '#9ca3af', fontSize: 14 }}>Slimme Receptie voor Groeiende Bedrijven</span>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 60, alignItems: 'center' }}>
