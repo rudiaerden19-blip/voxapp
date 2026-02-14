@@ -585,7 +585,7 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
               color: 'white',
               marginBottom: 24,
             }}>
-              Mis nooit een oproep.<br />
+              Mis nooit meer een oproep.<br />
               Boek meer afspraken.<br />
               <span style={{ color: '#f97316' }}>Bespaar tijd.</span>
             </h1>
