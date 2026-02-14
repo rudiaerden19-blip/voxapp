@@ -730,18 +730,18 @@ export default function AISettingsPage() {
           <h2 style={{ color: 'white', fontSize: 18, fontWeight: 600, marginBottom: 16 }}>Status</h2>
           <div style={{
             display: 'flex', alignItems: 'center', gap: 12, padding: 16, borderRadius: 8,
-            background: business?.elevenlabs_agent_id ? 'rgba(34, 197, 94, 0.1)' : 'rgba(249, 115, 22, 0.1)',
-            border: business?.elevenlabs_agent_id ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid rgba(249, 115, 22, 0.3)',
+            background: business?.agent_id ? 'rgba(34, 197, 94, 0.1)' : 'rgba(249, 115, 22, 0.1)',
+            border: business?.agent_id ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid rgba(249, 115, 22, 0.3)',
           }}>
             <div style={{
               width: 12, height: 12, borderRadius: '50%',
-              background: business?.elevenlabs_agent_id ? '#22c55e' : '#f97316',
+              background: business?.agent_id ? '#22c55e' : '#f97316',
             }} />
-            <span style={{ color: business?.elevenlabs_agent_id ? '#22c55e' : '#f97316', fontWeight: 500 }}>
-              {business?.elevenlabs_agent_id ? 'Receptie is actief' : 'Receptie nog niet geconfigureerd'}
+            <span style={{ color: business?.agent_id ? '#22c55e' : '#f97316', fontWeight: 500 }}>
+              {business?.agent_id ? 'Receptie is actief' : 'Receptie nog niet geconfigureerd'}
             </span>
           </div>
-          {!business?.elevenlabs_agent_id && (
+          {!business?.agent_id && (
             <p style={{ color: '#6b7280', fontSize: 14, marginTop: 12 }}>
               Sla je instellingen op om de receptie te activeren. Je ontvangt daarna een telefoonnummer.
             </p>
