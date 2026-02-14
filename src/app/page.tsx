@@ -955,11 +955,9 @@ Klanten bellen of spreken hun bestelling in. De receptie noteert alles correct,
                       width: 80,
                       height: 80,
                       cursor: 'pointer',
-                      boxShadow: `0 0 30px ${callStatus === 'error' ? 'rgba(239, 68, 68, 0.4)' : 'rgba(34, 197, 94, 0.4)'}`,
-                      transition: 'all 0.3s ease',
+                      boxShadow: '0 0 30px rgba(34, 197, 94, 0.5)',
+                      animation: 'breathe 2s ease-in-out infinite',
                     }}
-                    onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                    onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
                   >
                     <Phone size={32} />
                   </button>
