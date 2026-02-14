@@ -569,7 +569,7 @@ function Navigation() {
 ============================================ */
 function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
   return (
-    <section style={{
+    <section id="hero" style={{
       background: 'linear-gradient(180deg, #0f0a14 0%, #1a1025 100%)',
       paddingTop: 120,
       paddingBottom: 80,
@@ -2368,7 +2368,7 @@ function FAQSection() {
   ];
 
   return (
-    <section style={{ background: '#1a1025', padding: '200px 0' }}>
+    <section id="faq" style={{ background: '#1a1025', padding: '200px 0' }}>
       <div style={{ maxWidth: 700, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>FAQ</p>
