@@ -1084,18 +1084,22 @@ function KassaSection() {
                 <p style={{ color: '#9ca3af', fontSize: 14, margin: '2px 0 0 0' }}>0471 23 45 67</p>
               </div>
 
-              {/* Order Type */}
-              <div style={{ 
-                display: 'inline-block',
-                background: '#3b82f6', 
-                color: 'white', 
-                padding: '6px 14px', 
-                borderRadius: 20, 
-                fontSize: 12, 
-                fontWeight: 600,
-                marginBottom: 16,
-              }}>
-                LEVEREN
+              {/* Order Type + Time */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                <div style={{ 
+                  display: 'inline-block',
+                  background: '#3b82f6', 
+                  color: 'white', 
+                  padding: '6px 14px', 
+                  borderRadius: 20, 
+                  fontSize: 12, 
+                  fontWeight: 600,
+                }}>
+                  LEVEREN
+                </div>
+                <div style={{ color: '#f97316', fontSize: 14, fontWeight: 600 }}>
+                  om 16:00
+                </div>
               </div>
 
               {/* Order Items */}
@@ -1195,7 +1199,7 @@ function KassaSection() {
               <div style={{ marginBottom: 12 }}>
                 <p style={{ fontSize: 11, margin: '0 0 6px 0', color: '#1a1a2e' }}>KLANT: Jan Peeters</p>
                 <p style={{ fontSize: 10, color: '#666', margin: 0 }}>Kerkstraat 42, 2000 Antwerpen</p>
-                <p style={{ fontSize: 10, color: '#666', margin: '2px 0 8px 0' }}>LEVEREN</p>
+                <p style={{ fontSize: 10, color: '#666', margin: '2px 0 0 0' }}>LEVEREN om 16:00</p>
               </div>
 
               <div style={{ borderTop: '1px dashed #ccc', padding: '12px 0' }}>
