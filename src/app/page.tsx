@@ -611,22 +611,6 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
                 <Calendar size={18} />
                 Start gratis proefperiode
               </a>
-              <button onClick={onOpenDemo} style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                background: 'transparent',
-                color: 'white',
-                padding: '16px 28px',
-                borderRadius: 8,
-                fontSize: 16,
-                fontWeight: 600,
-                border: '1px solid rgba(255,255,255,0.2)',
-                cursor: 'pointer',
-              }}>
-                <PhoneCall size={18} />
-                Luister Demo Gesprek
-              </button>
             </div>
           </div>
         </div>
