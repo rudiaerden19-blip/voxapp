@@ -687,6 +687,84 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
 }
 
 /* ============================================
+   FOR WHO SECTION - Business Types Grid
+============================================ */
+function ForWhoSection() {
+  const businesses = [
+    { icon: '💇', name: 'Kapsalons' },
+    { icon: '👨‍⚕️', name: 'Dokterspraktijken' },
+    { icon: '🏥', name: 'Ziekenhuizen' },
+    { icon: '🏨', name: 'Hotels' },
+    { icon: '🍟', name: 'Frituren' },
+    { icon: '🥙', name: 'Kebabzaken' },
+    { icon: '🍕', name: 'Pizzeria\'s' },
+    { icon: '🍝', name: 'Restaurants' },
+    { icon: '🦷', name: 'Tandartsen' },
+    { icon: '👁️', name: 'Opticiens' },
+    { icon: '💆', name: 'Beautysalons' },
+    { icon: '🏋️', name: 'Fitnessstudio\'s' },
+    { icon: '🚗', name: 'Garages' },
+    { icon: '🏠', name: 'Immobiliënkantoren' },
+    { icon: '⚖️', name: 'Advocatenkantoren' },
+    { icon: '📊', name: 'Boekhoudkantoren' },
+    { icon: '🐕', name: 'Dierenklinieken' },
+    { icon: '💐', name: 'Bloemenwinkels' },
+    { icon: '🧹', name: 'Schoonmaakbedrijven' },
+    { icon: '🔧', name: 'Loodgieters' },
+  ];
+
+  return (
+    <section style={{ background: '#f5f5f5', padding: '100px 0' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
+        <div style={{ textAlign: 'center', marginBottom: 60 }}>
+          <span style={{ color: '#f97316', fontSize: 14, fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase' }}>
+            Voor Wie
+          </span>
+          <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 700, color: '#1a1a2e', margin: '12px 0 16px 0' }}>
+            Perfect voor <span style={{ color: '#f97316' }}>elk bedrijf</span>
+          </h2>
+          <p style={{ fontSize: 18, color: '#6b7280', maxWidth: 600, margin: '0 auto' }}>
+            VoxApp past zich aan elk type onderneming aan
+          </p>
+        </div>
+
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', 
+          gap: 20,
+        }}>
+          {businesses.map((b, i) => (
+            <div 
+              key={i}
+              style={{
+                background: 'white',
+                borderRadius: 12,
+                padding: '24px 20px',
+                textAlign: 'center',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                cursor: 'default',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
+              }}
+            >
+              <span style={{ fontSize: 36, display: 'block', marginBottom: 12 }}>{b.icon}</span>
+              <p style={{ margin: 0, fontWeight: 600, color: '#1a1a2e', fontSize: 15 }}>{b.name}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================
    FEATURE SECTION 1 - Inbound Calls
 ============================================ */
 function InboundSection({ onOpenDemo }: { onOpenDemo: () => void }) {
@@ -2518,6 +2596,7 @@ export default function Home() {
       <FrituurSection />
       <KassaSection />
       <ROICalculatorSection />
+      <ForWhoSection />
       <InboundSection onOpenDemo={openGarageDemo} />
       <RestaurantSection onOpenDemo={openRestaurantDemo} />
       <OutboundSection />
