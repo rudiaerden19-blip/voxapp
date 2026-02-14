@@ -20,7 +20,7 @@ const navItems = [
   { href: '/dashboard/services', icon: Briefcase, label: 'Diensten' },
   { href: '/dashboard/staff', icon: Users, label: 'Medewerkers' },
   { href: '/dashboard/conversations', icon: MessageSquare, label: 'Gesprekken' },
-  { href: '/dashboard/ai-settings', icon: Phone, label: 'AI Receptionist' },
+  { href: '/dashboard/ai-settings', icon: Phone, label: 'Receptie' },
   { href: '/dashboard/settings', icon: Settings, label: 'Instellingen' },
 ];
 

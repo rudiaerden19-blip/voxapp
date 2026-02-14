@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import DashboardLayout from '@/components/DashboardLayout';
-import { Phone, Mic, Globe, Save, Check, Play, Volume2, Sparkles } from 'lucide-react';
+import { Phone, Mic, Globe, Save, Check, Play, Volume2, Sparkles, MapPin, Clock, Euro, HelpCircle, Plus, Trash2 } from 'lucide-react';
 
 interface Business {
   id: string;
@@ -80,6 +80,28 @@ export default function AISettingsPage() {
     style: '',
     fallback_action: 'voicemail',
     transfer_number: '',
+    // Bedrijfsgegevens
+    address_street: '',
+    address_number: '',
+    address_postal: '',
+    address_city: '',
+    phone_display: '',
+    email: '',
+    website: '',
+    // Openingsuren
+    opening_hours: {
+      maandag: { open: '09:00', close: '18:00', closed: false },
+      dinsdag: { open: '09:00', close: '18:00', closed: false },
+      woensdag: { open: '09:00', close: '18:00', closed: false },
+      donderdag: { open: '09:00', close: '18:00', closed: false },
+      vrijdag: { open: '09:00', close: '18:00', closed: false },
+      zaterdag: { open: '09:00', close: '17:00', closed: false },
+      zondag: { open: '', close: '', closed: true },
+    } as Record<string, { open: string; close: string; closed: boolean }>,
+    // Prijslijst
+    services_prices: [] as Array<{ name: string; price: string; duration: string }>,
+    // FAQ's
+    faqs: [] as Array<{ question: string; answer: string }>,
   });
 
   useEffect(() => { loadSettings(); }, []);
@@ -156,8 +178,8 @@ export default function AISettingsPage() {
   return (
     <DashboardLayout>
       <div style={{ marginBottom: 32 }}>
-        <h1 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>AI Receptionist</h1>
-        <p style={{ color: '#9ca3af', fontSize: 16 }}>Configureer je AI telefoniste</p>
+        <h1 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Receptie Instellingen</h1>
+        <p style={{ color: '#9ca3af', fontSize: 16 }}>Configureer je telefonische receptie</p>
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -204,11 +226,11 @@ export default function AISettingsPage() {
           </div>
         </div>
 
-        {/* AI Behavior */}
+        {/* Receptie Gedrag */}
         <div style={{ background: '#16161f', borderRadius: 16, border: '1px solid #2a2a35', padding: 24, marginBottom: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
             <h2 style={{ color: 'white', fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 10 }}>
-              <Sparkles size={20} style={{ color: '#f97316' }} /> AI Gedrag
+              <Sparkles size={20} style={{ color: '#f97316' }} /> Receptie Gedrag
             </h2>
             <button
               type="button"
@@ -230,7 +252,7 @@ export default function AISettingsPage() {
               onChange={(e) => setConfig({ ...config, greeting: e.target.value })}
               rows={2}
               style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16, resize: 'vertical' }}
-              placeholder="Hoe begroet de AI de beller?"
+              placeholder="Hoe begroet de receptie de beller?"
             />
           </div>
 
@@ -241,7 +263,7 @@ export default function AISettingsPage() {
               onChange={(e) => setConfig({ ...config, capabilities: e.target.value })}
               rows={3}
               style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16, resize: 'vertical' }}
-              placeholder="Wat kan de AI allemaal doen?"
+              placeholder="Wat kan de receptie allemaal doen?"
             />
           </div>
 
@@ -252,9 +274,272 @@ export default function AISettingsPage() {
               onChange={(e) => setConfig({ ...config, style: e.target.value })}
               rows={2}
               style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16, resize: 'vertical' }}
-              placeholder="Hoe moet de AI communiceren?"
+              placeholder="Hoe moet de receptie communiceren?"
             />
           </div>
+        </div>
+
+        {/* Bedrijfsgegevens */}
+        <div style={{ background: '#16161f', borderRadius: 16, border: '1px solid #2a2a35', padding: 24, marginBottom: 24 }}>
+          <h2 style={{ color: 'white', fontSize: 18, fontWeight: 600, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <MapPin size={20} style={{ color: '#f97316' }} /> Bedrijfsgegevens
+          </h2>
+          <p style={{ color: '#6b7280', fontSize: 14, marginBottom: 20 }}>
+            Deze info gebruikt de receptie om vragen te beantwoorden zoals &quot;Waar zijn jullie gevestigd?&quot;
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 16 }}>
+            <div>
+              <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Straatnaam</label>
+              <input
+                type="text"
+                value={config.address_street}
+                onChange={(e) => setConfig({ ...config, address_street: e.target.value })}
+                style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }}
+                placeholder="Kerkstraat"
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Huisnummer</label>
+              <input
+                type="text"
+                value={config.address_number}
+                onChange={(e) => setConfig({ ...config, address_number: e.target.value })}
+                style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }}
+                placeholder="15"
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Postcode</label>
+              <input
+                type="text"
+                value={config.address_postal}
+                onChange={(e) => setConfig({ ...config, address_postal: e.target.value })}
+                style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }}
+                placeholder="2000"
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Stad</label>
+              <input
+                type="text"
+                value={config.address_city}
+                onChange={(e) => setConfig({ ...config, address_city: e.target.value })}
+                style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }}
+                placeholder="Antwerpen"
+              />
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+            <div>
+              <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Telefoonnummer (weergave)</label>
+              <input
+                type="tel"
+                value={config.phone_display}
+                onChange={(e) => setConfig({ ...config, phone_display: e.target.value })}
+                style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }}
+                placeholder="03 123 45 67"
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Email</label>
+              <input
+                type="email"
+                value={config.email}
+                onChange={(e) => setConfig({ ...config, email: e.target.value })}
+                style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }}
+                placeholder="info@uwbedrijf.be"
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Website</label>
+              <input
+                type="url"
+                value={config.website}
+                onChange={(e) => setConfig({ ...config, website: e.target.value })}
+                style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }}
+                placeholder="www.uwbedrijf.be"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Openingsuren */}
+        <div style={{ background: '#16161f', borderRadius: 16, border: '1px solid #2a2a35', padding: 24, marginBottom: 24 }}>
+          <h2 style={{ color: 'white', fontSize: 18, fontWeight: 600, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Clock size={20} style={{ color: '#f97316' }} /> Openingsuren
+          </h2>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {Object.entries(config.opening_hours).map(([day, hours]) => (
+              <div key={day} style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                <span style={{ color: 'white', fontWeight: 500, width: 100, textTransform: 'capitalize' }}>{day}</span>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#9ca3af', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={hours.closed}
+                    onChange={(e) => setConfig({
+                      ...config,
+                      opening_hours: { ...config.opening_hours, [day]: { ...hours, closed: e.target.checked } }
+                    })}
+                    style={{ accentColor: '#f97316' }}
+                  />
+                  Gesloten
+                </label>
+                {!hours.closed && (
+                  <>
+                    <input
+                      type="time"
+                      value={hours.open}
+                      onChange={(e) => setConfig({
+                        ...config,
+                        opening_hours: { ...config.opening_hours, [day]: { ...hours, open: e.target.value } }
+                      })}
+                      style={{ padding: '8px 12px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 6, color: 'white', fontSize: 14 }}
+                    />
+                    <span style={{ color: '#6b7280' }}>tot</span>
+                    <input
+                      type="time"
+                      value={hours.close}
+                      onChange={(e) => setConfig({
+                        ...config,
+                        opening_hours: { ...config.opening_hours, [day]: { ...hours, close: e.target.value } }
+                      })}
+                      style={{ padding: '8px 12px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 6, color: 'white', fontSize: 14 }}
+                    />
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Prijslijst */}
+        <div style={{ background: '#16161f', borderRadius: 16, border: '1px solid #2a2a35', padding: 24, marginBottom: 24 }}>
+          <h2 style={{ color: 'white', fontSize: 18, fontWeight: 600, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Euro size={20} style={{ color: '#f97316' }} /> Prijslijst
+          </h2>
+          <p style={{ color: '#6b7280', fontSize: 14, marginBottom: 20 }}>
+            Voeg diensten toe zodat de receptie prijzen kan noemen.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
+            {config.services_prices.map((service, index) => (
+              <div key={index} style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                <input
+                  type="text"
+                  value={service.name}
+                  onChange={(e) => {
+                    const newServices = [...config.services_prices];
+                    newServices[index].name = e.target.value;
+                    setConfig({ ...config, services_prices: newServices });
+                  }}
+                  style={{ flex: 2, minWidth: 150, padding: '10px 14px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 6, color: 'white', fontSize: 14 }}
+                  placeholder="Dienst naam"
+                />
+                <input
+                  type="text"
+                  value={service.price}
+                  onChange={(e) => {
+                    const newServices = [...config.services_prices];
+                    newServices[index].price = e.target.value;
+                    setConfig({ ...config, services_prices: newServices });
+                  }}
+                  style={{ width: 100, padding: '10px 14px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 6, color: 'white', fontSize: 14 }}
+                  placeholder="€25"
+                />
+                <input
+                  type="text"
+                  value={service.duration}
+                  onChange={(e) => {
+                    const newServices = [...config.services_prices];
+                    newServices[index].duration = e.target.value;
+                    setConfig({ ...config, services_prices: newServices });
+                  }}
+                  style={{ width: 100, padding: '10px 14px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 6, color: 'white', fontSize: 14 }}
+                  placeholder="30 min"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newServices = config.services_prices.filter((_, i) => i !== index);
+                    setConfig({ ...config, services_prices: newServices });
+                  }}
+                  style={{ padding: 8, background: 'rgba(239, 68, 68, 0.15)', border: 'none', borderRadius: 6, color: '#ef4444', cursor: 'pointer' }}
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setConfig({ ...config, services_prices: [...config.services_prices, { name: '', price: '', duration: '' }] })}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: 'rgba(249, 115, 22, 0.15)', border: '1px dashed #f97316', borderRadius: 8, color: '#f97316', fontSize: 14, cursor: 'pointer' }}
+          >
+            <Plus size={16} /> Dienst toevoegen
+          </button>
+        </div>
+
+        {/* FAQ's */}
+        <div style={{ background: '#16161f', borderRadius: 16, border: '1px solid #2a2a35', padding: 24, marginBottom: 24 }}>
+          <h2 style={{ color: 'white', fontSize: 18, fontWeight: 600, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <HelpCircle size={20} style={{ color: '#f97316' }} /> Veelgestelde Vragen (FAQ)
+          </h2>
+          <p style={{ color: '#6b7280', fontSize: 14, marginBottom: 20 }}>
+            Voeg vragen en antwoorden toe die de receptie kan gebruiken.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 16 }}>
+            {config.faqs.map((faq, index) => (
+              <div key={index} style={{ background: '#0a0a0f', borderRadius: 8, padding: 16 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: 12, marginBottom: 12 }}>
+                  <input
+                    type="text"
+                    value={faq.question}
+                    onChange={(e) => {
+                      const newFaqs = [...config.faqs];
+                      newFaqs[index].question = e.target.value;
+                      setConfig({ ...config, faqs: newFaqs });
+                    }}
+                    style={{ flex: 1, padding: '10px 14px', background: '#16161f', border: '1px solid #2a2a35', borderRadius: 6, color: 'white', fontSize: 14 }}
+                    placeholder="Vraag, bijv: Moet ik parkeren betalen?"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newFaqs = config.faqs.filter((_, i) => i !== index);
+                      setConfig({ ...config, faqs: newFaqs });
+                    }}
+                    style={{ padding: 8, background: 'rgba(239, 68, 68, 0.15)', border: 'none', borderRadius: 6, color: '#ef4444', cursor: 'pointer' }}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+                <textarea
+                  value={faq.answer}
+                  onChange={(e) => {
+                    const newFaqs = [...config.faqs];
+                    newFaqs[index].answer = e.target.value;
+                    setConfig({ ...config, faqs: newFaqs });
+                  }}
+                  rows={2}
+                  style={{ width: '100%', padding: '10px 14px', background: '#16161f', border: '1px solid #2a2a35', borderRadius: 6, color: 'white', fontSize: 14, resize: 'vertical' }}
+                  placeholder="Antwoord, bijv: Nee, wij hebben gratis parking achter het gebouw."
+                />
+              </div>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setConfig({ ...config, faqs: [...config.faqs, { question: '', answer: '' }] })}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: 'rgba(249, 115, 22, 0.15)', border: '1px dashed #f97316', borderRadius: 8, color: '#f97316', fontSize: 14, cursor: 'pointer' }}
+          >
+            <Plus size={16} /> Vraag toevoegen
+          </button>
         </div>
 
         {/* Fallback Settings */}
@@ -264,7 +549,7 @@ export default function AISettingsPage() {
           </h2>
 
           <div style={{ marginBottom: 20 }}>
-            <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Als de AI niet kan helpen:</label>
+            <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Als de receptie niet kan helpen:</label>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               {[
                 { value: 'voicemail', label: 'Voicemail inspreken' },
@@ -315,12 +600,12 @@ export default function AISettingsPage() {
               background: business?.elevenlabs_agent_id ? '#22c55e' : '#f97316',
             }} />
             <span style={{ color: business?.elevenlabs_agent_id ? '#22c55e' : '#f97316', fontWeight: 500 }}>
-              {business?.elevenlabs_agent_id ? 'AI Receptionist is actief' : 'AI Receptionist nog niet geconfigureerd'}
+              {business?.elevenlabs_agent_id ? 'Receptie is actief' : 'Receptie nog niet geconfigureerd'}
             </span>
           </div>
           {!business?.elevenlabs_agent_id && (
             <p style={{ color: '#6b7280', fontSize: 14, marginTop: 12 }}>
-              Sla je instellingen op om de AI receptionist te activeren. Je ontvangt daarna een telefoonnummer.
+              Sla je instellingen op om de receptie te activeren. Je ontvangt daarna een telefoonnummer.
             </p>
           )}
         </div>
