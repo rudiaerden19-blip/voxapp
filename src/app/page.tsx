@@ -23,11 +23,13 @@ import {
   Send,
   Headphones,
   ChevronRight,
+  ChevronDown,
   PhoneCall,
   CalendarCheck,
   UserCheck,
   FileText,
   Heart,
+  Globe,
   RefreshCw,
   PhoneOff,
   ShoppingBag,
@@ -460,6 +462,98 @@ function DemoModal({ isOpen, onClose, demoType = 'belle' }: { isOpen: boolean; o
 }
 
 /* ============================================
+   LANGUAGE SELECTOR
+============================================ */
+function LanguageSelector() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [currentLang, setCurrentLang] = useState('nl');
+  
+  const languages = [
+    { code: 'nl', name: 'Nederlands', flag: '🇳🇱' },
+    { code: 'en', name: 'English', flag: '🇬🇧' },
+    { code: 'fr', name: 'Français', flag: '🇫🇷' },
+  ];
+  
+  const current = languages.find(l => l.code === currentLang) || languages[0];
+  
+  return (
+    <div style={{ position: 'relative' }}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          background: 'rgba(255,255,255,0.05)',
+          border: '1px solid rgba(255,255,255,0.1)',
+          borderRadius: 8,
+          padding: '8px 12px',
+          color: 'white',
+          cursor: 'pointer',
+          fontSize: 14,
+        }}
+      >
+        <span style={{ fontSize: 18 }}>{current.flag}</span>
+        <ChevronDown size={16} style={{ opacity: 0.6, transform: isOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }} />
+      </button>
+      
+      {isOpen && (
+        <>
+          <div 
+            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 150 }}
+            onClick={() => setIsOpen(false)}
+          />
+          <div style={{
+            position: 'absolute',
+            top: '100%',
+            right: 0,
+            marginTop: 8,
+            background: '#1a1520',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: 12,
+            padding: 8,
+            minWidth: 160,
+            zIndex: 200,
+            boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+          }}>
+            {languages.map((lang) => (
+              <button
+                key={lang.code}
+                onClick={() => {
+                  setCurrentLang(lang.code);
+                  setIsOpen(false);
+                  // TODO: Implement actual language switching
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  width: '100%',
+                  padding: '10px 12px',
+                  background: currentLang === lang.code ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
+                  border: 'none',
+                  borderRadius: 8,
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontSize: 14,
+                  textAlign: 'left',
+                }}
+              >
+                <span style={{ fontSize: 20 }}>{lang.flag}</span>
+                <span>{lang.name}</span>
+                {currentLang === lang.code && (
+                  <Check size={16} color="#f97316" style={{ marginLeft: 'auto' }} />
+                )}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ============================================
    NAVIGATION
 ============================================ */
 function Navigation() {
@@ -492,6 +586,7 @@ function Navigation() {
             </div>
 
             <div style={{ display: 'none', alignItems: 'center', gap: 16 }} className="desktop-nav">
+              <LanguageSelector />
               <a href="/login" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 15 }}>Inloggen</a>
               <a href="/register" style={{
                 display: 'inline-flex',
@@ -536,6 +631,9 @@ function Navigation() {
           <a href="#pricing" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Prijzen</a>
           <a href="#contact" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Contact</a>
           <a href="/over-ons" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Over ons</a>
+          <div style={{ padding: '16px 0', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+            <LanguageSelector />
+          </div>
           <div style={{ marginTop: 24 }}>
             <a href="/register" style={{
               display: 'flex',
