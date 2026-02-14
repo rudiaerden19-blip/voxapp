@@ -1247,12 +1247,10 @@ function ROICalculatorSection() {
   const voxAppKostenPerMaand = 99;
   const totaalVoxAppPerJaar = voxAppKostenPerMaand * 12; // €1.188 per jaar
 
-  // Huidige kosten personeel (realistisch)
-  // Bruto salaris + 30% werkgeverslasten = totale loonkosten
-  const loonkostenPerMaand = maandsalaris * 1.30 * aantalFTE;
-  const jaarlijksePersoneelskosten = loonkostenPerMaand * 12;
+  // Huidige kosten personeel = bruto salaris x 12 x FTE
+  const jaarlijksePersoneelskosten = maandsalaris * 12 * aantalFTE;
   
-  // Totale huidige kosten = alleen personeelskosten
+  // Totale huidige kosten
   const totaleHuidigeKosten = jaarlijksePersoneelskosten;
   
   // Besparing
@@ -1317,24 +1315,16 @@ function ROICalculatorSection() {
               />
             </div>
 
-            {/* Kostencomponenten */}
+            {/* Berekening */}
             <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 24, marginTop: 8 }}>
               <h4 style={{ color: 'white', fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Berekening</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: '#9ca3af', fontSize: 13 }}>Bruto salaris</span>
-                  <span style={{ color: 'white', fontSize: 13 }}>€{maandsalaris.toLocaleString()}/mnd</span>
+                  <span style={{ color: '#9ca3af', fontSize: 13 }}>Bruto salaris x 12 maanden</span>
+                  <span style={{ color: 'white', fontSize: 13 }}>€{(maandsalaris * 12).toLocaleString()}/jaar</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: '#9ca3af', fontSize: 13 }}>+ Werkgeverslasten (30%)</span>
-                  <span style={{ color: '#8b5cf6', fontSize: 13 }}>€{Math.round(maandsalaris * 0.30).toLocaleString()}/mnd</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 10 }}>
-                  <span style={{ color: 'white', fontSize: 13, fontWeight: 600 }}>Totaal per FTE</span>
-                  <span style={{ color: 'white', fontSize: 13, fontWeight: 600 }}>€{Math.round(maandsalaris * 1.30).toLocaleString()}/mnd</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: '#9ca3af', fontSize: 13 }}>x {aantalFTE} FTE x 12 maanden</span>
+                  <span style={{ color: '#9ca3af', fontSize: 13 }}>x {aantalFTE} FTE</span>
                   <span style={{ color: '#ef4444', fontSize: 13, fontWeight: 600 }}>€{Math.round(jaarlijksePersoneelskosten).toLocaleString()}/jaar</span>
                 </div>
               </div>
