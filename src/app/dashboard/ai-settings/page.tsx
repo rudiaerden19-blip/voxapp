@@ -182,9 +182,11 @@ export default function AISettingsPage() {
   const loadVoices = async () => {
     try {
       const res = await fetch('/api/elevenlabs/voices');
-      if (res.ok) {
-        const data = await res.json();
+      const data = await res.json();
+      if (Array.isArray(data)) {
         setVoices(data);
+      } else {
+        console.error('Invalid voices response:', data);
       }
     } catch (e) {
       console.error('Failed to load voices:', e);
