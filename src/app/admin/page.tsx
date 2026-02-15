@@ -44,6 +44,11 @@ export default function AdminDashboard() {
   const [adminPassword, setAdminPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
+  const [showNewTenantModal, setShowNewTenantModal] = useState(false);
+  const [newTenant, setNewTenant] = useState({ name: '', email: '', phone: '', type: 'restaurant', plan: 'starter' });
+  const [savingTenant, setSavingTenant] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [editData, setEditData] = useState({ name: '', email: '', phone: '', type: '' });
   const router = useRouter();
 
   useEffect(() => { 
@@ -96,10 +101,81 @@ export default function AdminDashboard() {
   };
 
   const deleteTenant = async (tenant: Tenant) => {
-    if (!confirm(`Weet je zeker dat je "${tenant.name}" wilt verwijderen?`)) return;
+    if (!confirm(`Weet je zeker dat je "${tenant.name}" wilt verwijderen? Dit kan niet ongedaan gemaakt worden.`)) return;
     const supabase = createClient();
     await supabase.from('businesses').delete().eq('id', tenant.id);
     setTenants(prev => prev.filter(t => t.id !== tenant.id));
+    setSelectedTenant(null);
+  };
+
+  // Create new tenant
+  const createTenant = async () => {
+    if (!newTenant.name.trim()) {
+      alert('Bedrijfsnaam is verplicht');
+      return;
+    }
+    setSavingTenant(true);
+    const supabase = createClient();
+    
+    // Calculate trial end date (14 days from now)
+    const trialEndsAt = new Date();
+    trialEndsAt.setDate(trialEndsAt.getDate() + 14);
+    
+    const { data, error } = await supabase.from('businesses').insert({
+      name: newTenant.name.trim(),
+      email: newTenant.email.trim() || null,
+      phone: newTenant.phone.trim() || null,
+      type: newTenant.type,
+      subscription_plan: newTenant.plan,
+      subscription_status: 'trial',
+      trial_ends_at: trialEndsAt.toISOString(),
+      user_id: crypto.randomUUID(), // Placeholder user_id for admin-created tenants
+    } as any).select().single();
+    
+    if (error) {
+      alert('Fout bij aanmaken: ' + error.message);
+    } else if (data) {
+      setTenants(prev => [data as unknown as Tenant, ...prev]);
+      setShowNewTenantModal(false);
+      setNewTenant({ name: '', email: '', phone: '', type: 'restaurant', plan: 'starter' });
+    }
+    setSavingTenant(false);
+  };
+
+  // Update tenant details
+  const updateTenantDetails = async () => {
+    if (!selectedTenant) return;
+    setSavingTenant(true);
+    const supabase = createClient();
+    
+    const { error } = await supabase.from('businesses').update({
+      name: editData.name.trim(),
+      email: editData.email.trim() || null,
+      phone: editData.phone.trim() || null,
+      type: editData.type,
+    } as any).eq('id', selectedTenant.id);
+    
+    if (error) {
+      alert('Fout bij opslaan: ' + error.message);
+    } else {
+      setTenants(prev => prev.map(t => t.id === selectedTenant.id ? { ...t, ...editData } : t));
+      setSelectedTenant(prev => prev ? { ...prev, ...editData } : null);
+      setEditMode(false);
+    }
+    setSavingTenant(false);
+  };
+
+  // Start edit mode
+  const startEditMode = () => {
+    if (selectedTenant) {
+      setEditData({
+        name: selectedTenant.name || '',
+        email: selectedTenant.email || '',
+        phone: selectedTenant.phone || '',
+        type: selectedTenant.type || 'other',
+      });
+      setEditMode(true);
+    }
   };
 
   // Calculate MRR (Monthly Recurring Revenue)
@@ -296,7 +372,10 @@ export default function AdminDashboard() {
       <div style={{ background: '#1e293b', borderRadius: 12, border: '1px solid #334155', overflow: 'hidden', marginBottom: 32 }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 style={{ color: 'white', fontSize: 18, fontWeight: 600, margin: 0 }}>Alle Tenants</h2>
-          <button style={{ padding: '8px 16px', background: '#22c55e', border: 'none', borderRadius: 6, color: 'white', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button 
+            onClick={() => setShowNewTenantModal(true)}
+            style={{ padding: '8px 16px', background: '#22c55e', border: 'none', borderRadius: 6, color: 'white', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}
+          >
             <Plus size={16} /> Nieuwe Tenant
           </button>
         </div>
@@ -392,7 +471,10 @@ export default function AdminDashboard() {
 
       {/* Quick Actions */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-        <div style={{ background: '#1e293b', borderRadius: 12, padding: 20, border: '1px solid #334155', cursor: 'pointer' }}>
+        <div 
+          onClick={() => setShowNewTenantModal(true)}
+          style={{ background: '#1e293b', borderRadius: 12, padding: 20, border: '1px solid #334155', cursor: 'pointer' }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ width: 40, height: 40, borderRadius: 8, background: '#22c55e20', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Plus size={20} style={{ color: '#22c55e' }} />
@@ -426,6 +508,166 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {/* New Tenant Modal */}
+      {showNewTenantModal && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: 24,
+        }}>
+          <div style={{
+            background: '#1e293b',
+            borderRadius: 16,
+            width: '100%',
+            maxWidth: 500,
+            border: '1px solid #334155',
+          }}>
+            {/* Modal Header */}
+            <div style={{ 
+              padding: '20px 24px', 
+              borderBottom: '1px solid #334155',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+              <div>
+                <h2 style={{ color: 'white', fontSize: 20, fontWeight: 600, margin: 0 }}>Nieuwe Tenant</h2>
+                <p style={{ color: '#6b7280', fontSize: 14, margin: 0 }}>Voeg een nieuwe klant toe</p>
+              </div>
+              <button
+                onClick={() => setShowNewTenantModal(false)}
+                style={{ padding: 8, background: '#0f172a', border: 'none', borderRadius: 8, color: '#9ca3af', cursor: 'pointer' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Form */}
+            <div style={{ padding: 24 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div>
+                  <label style={{ color: '#6b7280', fontSize: 12, marginBottom: 6, display: 'block' }}>Bedrijfsnaam *</label>
+                  <input
+                    type="text"
+                    value={newTenant.name}
+                    onChange={(e) => setNewTenant(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Bijv. Restaurant De Molen"
+                    style={{ width: '100%', padding: '12px 16px', background: '#0f172a', border: '1px solid #334155', borderRadius: 8, color: 'white', fontSize: 14 }}
+                  />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                  <div>
+                    <label style={{ color: '#6b7280', fontSize: 12, marginBottom: 6, display: 'block' }}>Email</label>
+                    <input
+                      type="email"
+                      value={newTenant.email}
+                      onChange={(e) => setNewTenant(prev => ({ ...prev, email: e.target.value }))}
+                      placeholder="info@bedrijf.be"
+                      style={{ width: '100%', padding: '12px 16px', background: '#0f172a', border: '1px solid #334155', borderRadius: 8, color: 'white', fontSize: 14 }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ color: '#6b7280', fontSize: 12, marginBottom: 6, display: 'block' }}>Telefoon</label>
+                    <input
+                      type="tel"
+                      value={newTenant.phone}
+                      onChange={(e) => setNewTenant(prev => ({ ...prev, phone: e.target.value }))}
+                      placeholder="+32 123 456 789"
+                      style={{ width: '100%', padding: '12px 16px', background: '#0f172a', border: '1px solid #334155', borderRadius: 8, color: 'white', fontSize: 14 }}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label style={{ color: '#6b7280', fontSize: 12, marginBottom: 6, display: 'block' }}>Type bedrijf</label>
+                  <select
+                    value={newTenant.type}
+                    onChange={(e) => setNewTenant(prev => ({ ...prev, type: e.target.value }))}
+                    style={{ width: '100%', padding: '12px 16px', background: '#0f172a', border: '1px solid #334155', borderRadius: 8, color: 'white', fontSize: 14 }}
+                  >
+                    <option value="restaurant">Restaurant</option>
+                    <option value="salon">Kapsalon</option>
+                    <option value="garage">Garage</option>
+                    <option value="takeaway">Frituur/Takeaway</option>
+                    <option value="doctor">Dokter</option>
+                    <option value="dentist">Tandarts</option>
+                    <option value="physio">Kinesist</option>
+                    <option value="other">Overig</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ color: '#6b7280', fontSize: 12, marginBottom: 6, display: 'block' }}>Abonnement</label>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {['starter', 'pro', 'business'].map((plan) => (
+                      <button
+                        key={plan}
+                        onClick={() => setNewTenant(prev => ({ ...prev, plan }))}
+                        style={{
+                          flex: 1,
+                          padding: '12px 16px',
+                          background: newTenant.plan === plan ? '#f97316' : '#0f172a',
+                          border: newTenant.plan === plan ? 'none' : '1px solid #334155',
+                          borderRadius: 8,
+                          color: 'white',
+                          fontSize: 13,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          textTransform: 'capitalize',
+                        }}
+                      >
+                        {plan} €{planPricing[plan]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: 24, padding: 16, background: '#0f172a', borderRadius: 8, border: '1px solid #334155' }}>
+                <p style={{ color: '#9ca3af', fontSize: 13, margin: 0 }}>
+                  De tenant krijgt automatisch een <strong style={{ color: '#f97316' }}>14-dagen trial</strong> periode.
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
+                <button
+                  onClick={createTenant}
+                  disabled={savingTenant || !newTenant.name.trim()}
+                  style={{ 
+                    flex: 1, 
+                    padding: '14px 24px', 
+                    background: '#22c55e', 
+                    border: 'none', 
+                    borderRadius: 8, 
+                    color: 'white', 
+                    fontSize: 14, 
+                    fontWeight: 600, 
+                    cursor: 'pointer',
+                    opacity: (savingTenant || !newTenant.name.trim()) ? 0.5 : 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                  }}
+                >
+                  <Plus size={18} />
+                  {savingTenant ? 'Aanmaken...' : 'Tenant Aanmaken'}
+                </button>
+                <button
+                  onClick={() => setShowNewTenantModal(false)}
+                  style={{ padding: '14px 24px', background: 'transparent', border: '1px solid #334155', borderRadius: 8, color: '#9ca3af', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}
+                >
+                  Annuleren
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tenant Detail Modal */}
       {selectedTenant && (
@@ -463,30 +705,109 @@ export default function AdminDashboard() {
                 <h2 style={{ color: 'white', fontSize: 20, fontWeight: 600, margin: 0 }}>{selectedTenant.name}</h2>
                 <p style={{ color: '#6b7280', fontSize: 14, margin: 0, textTransform: 'capitalize' }}>{selectedTenant.type || 'Overig'}</p>
               </div>
-              <button
-                onClick={() => setSelectedTenant(null)}
-                style={{ padding: 8, background: '#0f172a', border: 'none', borderRadius: 8, color: '#9ca3af', cursor: 'pointer' }}
-              >
-                <X size={20} />
-              </button>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {!editMode && (
+                  <button
+                    onClick={startEditMode}
+                    style={{ padding: '8px 16px', background: '#3b82f6', border: 'none', borderRadius: 8, color: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 500 }}
+                  >
+                    Bewerken
+                  </button>
+                )}
+                <button
+                  onClick={() => { setSelectedTenant(null); setEditMode(false); }}
+                  style={{ padding: 8, background: '#0f172a', border: 'none', borderRadius: 8, color: '#9ca3af', cursor: 'pointer' }}
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
             {/* Modal Content */}
             <div style={{ padding: 24 }}>
-              {/* Contact Info */}
-              <div style={{ marginBottom: 24 }}>
-                <h3 style={{ color: '#9ca3af', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Contact</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                  <div>
-                    <p style={{ color: '#6b7280', fontSize: 12, marginBottom: 4 }}>Email</p>
-                    <p style={{ color: 'white', fontSize: 14, margin: 0 }}>{selectedTenant.email || '-'}</p>
-                  </div>
-                  <div>
-                    <p style={{ color: '#6b7280', fontSize: 12, marginBottom: 4 }}>Telefoon</p>
-                    <p style={{ color: 'white', fontSize: 14, margin: 0 }}>{selectedTenant.phone || '-'}</p>
+              {/* Contact Info - Edit Mode */}
+              {editMode ? (
+                <div style={{ marginBottom: 24 }}>
+                  <h3 style={{ color: '#9ca3af', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Gegevens Bewerken</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <div>
+                      <label style={{ color: '#6b7280', fontSize: 12, marginBottom: 6, display: 'block' }}>Bedrijfsnaam *</label>
+                      <input
+                        type="text"
+                        value={editData.name}
+                        onChange={(e) => setEditData(prev => ({ ...prev, name: e.target.value }))}
+                        style={{ width: '100%', padding: '12px 16px', background: '#0f172a', border: '1px solid #334155', borderRadius: 8, color: 'white', fontSize: 14 }}
+                      />
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                      <div>
+                        <label style={{ color: '#6b7280', fontSize: 12, marginBottom: 6, display: 'block' }}>Email</label>
+                        <input
+                          type="email"
+                          value={editData.email}
+                          onChange={(e) => setEditData(prev => ({ ...prev, email: e.target.value }))}
+                          style={{ width: '100%', padding: '12px 16px', background: '#0f172a', border: '1px solid #334155', borderRadius: 8, color: 'white', fontSize: 14 }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ color: '#6b7280', fontSize: 12, marginBottom: 6, display: 'block' }}>Telefoon</label>
+                        <input
+                          type="tel"
+                          value={editData.phone}
+                          onChange={(e) => setEditData(prev => ({ ...prev, phone: e.target.value }))}
+                          style={{ width: '100%', padding: '12px 16px', background: '#0f172a', border: '1px solid #334155', borderRadius: 8, color: 'white', fontSize: 14 }}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label style={{ color: '#6b7280', fontSize: 12, marginBottom: 6, display: 'block' }}>Type bedrijf</label>
+                      <select
+                        value={editData.type}
+                        onChange={(e) => setEditData(prev => ({ ...prev, type: e.target.value }))}
+                        style={{ width: '100%', padding: '12px 16px', background: '#0f172a', border: '1px solid #334155', borderRadius: 8, color: 'white', fontSize: 14 }}
+                      >
+                        <option value="restaurant">Restaurant</option>
+                        <option value="salon">Kapsalon</option>
+                        <option value="garage">Garage</option>
+                        <option value="takeaway">Frituur/Takeaway</option>
+                        <option value="doctor">Dokter</option>
+                        <option value="dentist">Tandarts</option>
+                        <option value="physio">Kinesist</option>
+                        <option value="other">Overig</option>
+                      </select>
+                    </div>
+                    <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+                      <button
+                        onClick={updateTenantDetails}
+                        disabled={savingTenant}
+                        style={{ flex: 1, padding: '12px 24px', background: '#22c55e', border: 'none', borderRadius: 8, color: 'white', fontSize: 14, fontWeight: 600, cursor: 'pointer', opacity: savingTenant ? 0.5 : 1 }}
+                      >
+                        {savingTenant ? 'Opslaan...' : 'Opslaan'}
+                      </button>
+                      <button
+                        onClick={() => setEditMode(false)}
+                        style={{ padding: '12px 24px', background: 'transparent', border: '1px solid #334155', borderRadius: 8, color: '#9ca3af', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}
+                      >
+                        Annuleren
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div style={{ marginBottom: 24 }}>
+                  <h3 style={{ color: '#9ca3af', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Contact</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                    <div>
+                      <p style={{ color: '#6b7280', fontSize: 12, marginBottom: 4 }}>Email</p>
+                      <p style={{ color: 'white', fontSize: 14, margin: 0 }}>{selectedTenant.email || '-'}</p>
+                    </div>
+                    <div>
+                      <p style={{ color: '#6b7280', fontSize: 12, marginBottom: 4 }}>Telefoon</p>
+                      <p style={{ color: 'white', fontSize: 14, margin: 0 }}>{selectedTenant.phone || '-'}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Subscription Info */}
               <div style={{ marginBottom: 24 }}>
