@@ -833,6 +833,9 @@ function ForWhoSection() {
           <p style={{ fontSize: 18, color: '#6b7280', maxWidth: 600, margin: '0 auto' }}>
             {t('forWho.subtitle')}
           </p>
+          <p style={{ fontSize: 'clamp(20px, 3vw, 28px)', color: '#f97316', fontWeight: 700, maxWidth: 800, margin: '24px auto 0', lineHeight: 1.4 }}>
+            Al bewezen door talrijke bedrijven: 80% minder kosten, 40% meer omzet
+          </p>
         </div>
 
         <div className="for-who-grid" style={{ 
