@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/LanguageContext';
 import { LogOut, Plus, Monitor, RotateCcw, Eye, Ban, Check, Trash2, Phone, Users, CreditCard, AlertTriangle, Shield, Lock, X, ExternalLink, Calendar, Euro, TrendingUp } from 'lucide-react';
@@ -63,13 +62,15 @@ export default function AdminDashboard() {
   }, []);
 
   const loadTenants = async () => {
-    const supabase = createClient();
-    const { data } = await supabase
-      .from('businesses')
-      .select('*')
-      .order('created_at', { ascending: false });
-    
-    setTenants((data || []) as unknown as Tenant[]);
+    try {
+      const res = await fetch('/api/admin/tenants');
+      if (res.ok) {
+        const data = await res.json();
+        setTenants(data || []);
+      }
+    } catch (e) {
+      console.error('Failed to load tenants:', e);
+    }
     setLoading(false);
   };
 
@@ -94,18 +95,24 @@ export default function AdminDashboard() {
   };
 
   const toggleBlock = async (tenant: Tenant) => {
-    const supabase = createClient();
     const newState = !tenant.blocked;
-    await supabase.from('businesses').update({ blocked: newState } as any).eq('id', tenant.id);
-    setTenants(prev => prev.map(t => t.id === tenant.id ? { ...t, blocked: newState } : t));
+    const res = await fetch('/api/admin/tenants', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: tenant.id, blocked: newState }),
+    });
+    if (res.ok) {
+      setTenants(prev => prev.map(t => t.id === tenant.id ? { ...t, blocked: newState } : t));
+    }
   };
 
   const deleteTenant = async (tenant: Tenant) => {
     if (!confirm(`Weet je zeker dat je "${tenant.name}" wilt verwijderen? Dit kan niet ongedaan gemaakt worden.`)) return;
-    const supabase = createClient();
-    await supabase.from('businesses').delete().eq('id', tenant.id);
-    setTenants(prev => prev.filter(t => t.id !== tenant.id));
-    setSelectedTenant(null);
+    const res = await fetch(`/api/admin/tenants?id=${tenant.id}`, { method: 'DELETE' });
+    if (res.ok) {
+      setTenants(prev => prev.filter(t => t.id !== tenant.id));
+      setSelectedTenant(null);
+    }
   };
 
   // Create new tenant
@@ -115,27 +122,25 @@ export default function AdminDashboard() {
       return;
     }
     setSavingTenant(true);
-    const supabase = createClient();
     
-    // Calculate trial end date (7 days from now)
-    const trialEndsAt = new Date();
-    trialEndsAt.setDate(trialEndsAt.getDate() + 7);
+    const res = await fetch('/api/admin/tenants', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: newTenant.name.trim(),
+        email: newTenant.email.trim() || null,
+        phone: newTenant.phone.trim() || null,
+        type: newTenant.type,
+        plan: newTenant.plan,
+      }),
+    });
     
-    const { data, error } = await supabase.from('businesses').insert({
-      name: newTenant.name.trim(),
-      email: newTenant.email.trim() || null,
-      phone: newTenant.phone.trim() || null,
-      type: newTenant.type,
-      subscription_plan: newTenant.plan,
-      subscription_status: 'trial',
-      trial_ends_at: trialEndsAt.toISOString(),
-      user_id: crypto.randomUUID(), // Placeholder user_id for admin-created tenants
-    } as any).select().single();
+    const data = await res.json();
     
-    if (error) {
-      alert('Fout bij aanmaken: ' + error.message);
-    } else if (data) {
-      setTenants(prev => [data as unknown as Tenant, ...prev]);
+    if (!res.ok) {
+      alert('Fout bij aanmaken: ' + (data.error || 'Onbekende fout'));
+    } else {
+      setTenants(prev => [data, ...prev]);
       setShowNewTenantModal(false);
       setNewTenant({ name: '', email: '', phone: '', type: 'restaurant', plan: 'starter' });
     }
@@ -146,17 +151,22 @@ export default function AdminDashboard() {
   const updateTenantDetails = async () => {
     if (!selectedTenant) return;
     setSavingTenant(true);
-    const supabase = createClient();
     
-    const { error } = await supabase.from('businesses').update({
-      name: editData.name.trim(),
-      email: editData.email.trim() || null,
-      phone: editData.phone.trim() || null,
-      type: editData.type,
-    } as any).eq('id', selectedTenant.id);
+    const res = await fetch('/api/admin/tenants', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: selectedTenant.id,
+        name: editData.name.trim(),
+        email: editData.email.trim() || null,
+        phone: editData.phone.trim() || null,
+        type: editData.type,
+      }),
+    });
     
-    if (error) {
-      alert('Fout bij opslaan: ' + error.message);
+    if (!res.ok) {
+      const data = await res.json();
+      alert('Fout bij opslaan: ' + (data.error || 'Onbekende fout'));
     } else {
       setTenants(prev => prev.map(t => t.id === selectedTenant.id ? { ...t, ...editData } : t));
       setSelectedTenant(prev => prev ? { ...prev, ...editData } : null);
@@ -209,18 +219,28 @@ export default function AdminDashboard() {
 
   // Update tenant subscription
   const updateTenantPlan = async (tenant: Tenant, newPlan: string) => {
-    const supabase = createClient();
-    await supabase.from('businesses').update({ subscription_plan: newPlan } as any).eq('id', tenant.id);
-    setTenants(prev => prev.map(t => t.id === tenant.id ? { ...t, subscription_plan: newPlan } : t));
-    setSelectedTenant(prev => prev ? { ...prev, subscription_plan: newPlan } : null);
+    const res = await fetch('/api/admin/tenants', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: tenant.id, subscription_plan: newPlan }),
+    });
+    if (res.ok) {
+      setTenants(prev => prev.map(t => t.id === tenant.id ? { ...t, subscription_plan: newPlan } : t));
+      setSelectedTenant(prev => prev ? { ...prev, subscription_plan: newPlan } : null);
+    }
   };
 
   // Update tenant status
   const updateTenantStatus = async (tenant: Tenant, newStatus: string) => {
-    const supabase = createClient();
-    await supabase.from('businesses').update({ subscription_status: newStatus } as any).eq('id', tenant.id);
-    setTenants(prev => prev.map(t => t.id === tenant.id ? { ...t, subscription_status: newStatus } : t));
-    setSelectedTenant(prev => prev ? { ...prev, subscription_status: newStatus } : null);
+    const res = await fetch('/api/admin/tenants', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: tenant.id, subscription_status: newStatus }),
+    });
+    if (res.ok) {
+      setTenants(prev => prev.map(t => t.id === tenant.id ? { ...t, subscription_status: newStatus } : t));
+      setSelectedTenant(prev => prev ? { ...prev, subscription_status: newStatus } : null);
+    }
   };
 
   const formatDate = (date: string) => {
