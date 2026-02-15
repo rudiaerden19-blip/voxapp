@@ -60,9 +60,18 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [isAdminView, setIsAdminView] = useState(false);
+  const [adminViewId, setAdminViewId] = useState<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  // Helper to add admin_view to links
+  const getHref = (path: string) => {
+    if (adminViewId) {
+      return `${path}?admin_view=${adminViewId}`;
+    }
+    return path;
+  };
 
   useEffect(() => { checkAuth(); }, []);
 
@@ -71,13 +80,14 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     
     // Get admin_view from URL directly (more reliable than useSearchParams)
     const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    const adminViewId = urlParams?.get('admin_view') || searchParams.get('admin_view');
+    const viewId = urlParams?.get('admin_view') || searchParams.get('admin_view');
     
     // Check if admin is viewing a tenant dashboard (via URL parameter)
-    if (adminViewId) {
+    if (viewId) {
+      setAdminViewId(viewId);
       // Load tenant via API (bypasses RLS)
       try {
-        const res = await fetch(`/api/business/${adminViewId}`);
+        const res = await fetch(`/api/business/${viewId}`);
         if (res.ok) {
           const businessData = await res.json();
           setBusiness(businessData as Business);
@@ -142,7 +152,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)', transition: 'transform 0.3s ease',
       }} className="sidebar-desktop">
         <div style={{ marginBottom: 32, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Link href="/dashboard" style={{ textDecoration: 'none' }}>
+          <Link href={getHref('/dashboard')} style={{ textDecoration: 'none' }}>
             <span style={{ fontSize: 24, fontWeight: 700 }}><span style={{ color: '#f97316' }}>Vox</span><span style={{ color: 'white' }}>App</span></span>
           </Link>
           <button onClick={() => setSidebarOpen(false)} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer' }} className="sidebar-close-btn"><X size={24} /></button>
@@ -208,7 +218,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
         <nav style={{ flex: 1 }}>
           {/* Dashboard - altijd bovenaan */}
-          <Link href="/dashboard" onClick={() => setSidebarOpen(false)} style={{
+          <Link href={getHref('/dashboard')} onClick={() => setSidebarOpen(false)} style={{
             display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
             background: pathname === '/dashboard' ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
             border: 'none', borderRadius: 8, color: pathname === '/dashboard' ? '#f97316' : '#9ca3af',
@@ -229,7 +239,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                 if (!moduleEnabled) return null;
                 const active = pathname.startsWith(item.href);
                 return (
-                  <Link key={item.href} href={item.href} onClick={() => setSidebarOpen(false)} style={{
+                  <Link key={item.href} href={getHref(item.href)} onClick={() => setSidebarOpen(false)} style={{
                     display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
                     background: active ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
                     border: 'none', borderRadius: 8, color: active ? '#f97316' : '#9ca3af',
@@ -247,7 +257,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           <div style={{ height: 1, background: '#2a2a35', margin: '12px 0' }} />
 
           {/* Gesprekken */}
-          <Link href="/dashboard/conversations" onClick={() => setSidebarOpen(false)} style={{
+          <Link href={getHref('/dashboard/conversations')} onClick={() => setSidebarOpen(false)} style={{
             display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
             background: pathname.startsWith('/dashboard/conversations') ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
             border: 'none', borderRadius: 8, color: pathname.startsWith('/dashboard/conversations') ? '#f97316' : '#9ca3af',
@@ -258,7 +268,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           </Link>
 
           {/* AI Receptie */}
-          <Link href="/dashboard/ai-settings" onClick={() => setSidebarOpen(false)} style={{
+          <Link href={getHref('/dashboard/ai-settings')} onClick={() => setSidebarOpen(false)} style={{
             display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
             background: pathname.startsWith('/dashboard/ai-settings') ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
             border: 'none', borderRadius: 8, color: pathname.startsWith('/dashboard/ai-settings') ? '#f97316' : '#9ca3af',
@@ -269,7 +279,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           </Link>
 
           {/* Instellingen */}
-          <Link href="/dashboard/settings" onClick={() => setSidebarOpen(false)} style={{
+          <Link href={getHref('/dashboard/settings')} onClick={() => setSidebarOpen(false)} style={{
             display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
             background: pathname.startsWith('/dashboard/settings') ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
             border: 'none', borderRadius: 8, color: pathname.startsWith('/dashboard/settings') ? '#f97316' : '#9ca3af',
@@ -300,7 +310,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
       <main style={{ flex: 1, marginLeft: 260, minHeight: '100vh' }} className="main-content">
         <div style={{ display: 'none', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', background: '#16161f', borderBottom: '1px solid #2a2a35', position: 'sticky', top: 0, zIndex: 40 }} className="mobile-header">
           <button onClick={() => setSidebarOpen(true)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}><Menu size={24} /></button>
-          <Link href="/dashboard" style={{ textDecoration: 'none' }}><span style={{ fontSize: 20, fontWeight: 700 }}><span style={{ color: '#f97316' }}>Vox</span><span style={{ color: 'white' }}>App</span></span></Link>
+          <Link href={getHref('/dashboard')} style={{ textDecoration: 'none' }}><span style={{ fontSize: 20, fontWeight: 700 }}><span style={{ color: '#f97316' }}>Vox</span><span style={{ color: 'white' }}>App</span></span></Link>
           <div style={{ width: 24 }} />
         </div>
         <div style={{ padding: 32 }}>{children}</div>
