@@ -209,7 +209,7 @@ function DashboardContent() {
 
       <div style={{ marginBottom: 32 }}>
         <h1 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>
-          {loading ? t('dashboard.welcomeBack') : `${t('dashboard.welcomeBack')}, ${businessName || 'je bedrijf'}!`}
+          {t('dashboard.welcomeBack')}{businessName && !loading ? `, ${businessName}` : ''}!
         </h1>
         <p style={{ color: '#9ca3af', fontSize: 16 }}>
           {t('dashboard.overview')}
