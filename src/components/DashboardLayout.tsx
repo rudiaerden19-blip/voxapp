@@ -52,16 +52,20 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     // Get admin_view from URL directly (more reliable than useSearchParams)
     const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
     const adminViewId = urlParams?.get('admin_view') || searchParams.get('admin_view');
+    const adminName = urlParams?.get('admin_name') || searchParams.get('admin_name');
     
     // Check if admin is viewing a tenant dashboard (via URL parameter)
     if (adminViewId) {
       // Load tenant directly by ID
       const { data: businessData, error } = await supabase.from('businesses').select('*').eq('id', adminViewId).single();
-      console.log('Admin view load:', { adminViewId, businessData, error });
+      
       if (businessData) {
         setBusiness(businessData as Business);
-        setIsAdminView(true);
+      } else if (adminName) {
+        // Fallback: use name from URL if database query fails
+        setBusiness({ id: adminViewId, name: decodeURIComponent(adminName), type: '', email: null, subscription_status: 'active', trial_ends_at: null } as Business);
       }
+      setIsAdminView(true);
       setLoading(false);
       return;
     }

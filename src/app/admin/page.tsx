@@ -460,8 +460,7 @@ export default function AdminDashboard() {
                         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                           <button
                             onClick={() => {
-                              // Add timestamp to prevent caching
-                              const url = `/dashboard?admin_view=${tenant.id}&t=${Date.now()}`;
+                              const url = `/dashboard?admin_view=${tenant.id}&admin_name=${encodeURIComponent(tenant.name || '')}`;
                               window.open(url, '_blank');
                             }}
                             style={{ padding: 8, background: '#8b5cf620', border: 'none', borderRadius: 6, color: '#8b5cf6', cursor: 'pointer' }}

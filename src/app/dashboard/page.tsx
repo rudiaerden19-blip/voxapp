@@ -47,10 +47,11 @@ function DashboardContent() {
     // Get admin_view from URL directly (more reliable)
     const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
     const adminViewId = urlParams?.get('admin_view') || searchParams.get('admin_view');
-    loadDashboardData(adminViewId);
+    const adminName = urlParams?.get('admin_name') || searchParams.get('admin_name');
+    loadDashboardData(adminViewId, adminName ? decodeURIComponent(adminName) : null);
   }, []);
 
-  const loadDashboardData = async (adminViewId: string | null) => {
+  const loadDashboardData = async (adminViewId: string | null, adminName: string | null) => {
     const supabase = createClient();
     let businessId: string | null = null;
     let businessNameValue: string = '';
@@ -68,9 +69,14 @@ function DashboardContent() {
         const biz = businessData as { id: string; name: string; email: string | null; type: string };
         businessId = biz.id;
         businessNameValue = biz.name || biz.email || biz.type || '';
-        setBusinessName(businessNameValue);
-        setIsAdminView(true);
+      } else if (adminName) {
+        // Fallback: use name from URL if database query fails
+        businessId = adminViewId;
+        businessNameValue = adminName;
       }
+      
+      setBusinessName(businessNameValue);
+      setIsAdminView(true);
     }
     
     // Normal user flow
