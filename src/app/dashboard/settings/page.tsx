@@ -201,25 +201,29 @@ function SettingsContent() {
     setError('');
     setSaved(false);
 
-    const supabase = createClient();
+    try {
+      const res = await fetch('/api/business/update', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: business.id,
+          name: formData.name.trim(),
+          type: formData.type,
+          phone: formData.phone.trim() || null,
+          email: formData.email.trim() || null,
+          address: formData.address.trim() || null,
+          opening_hours: formData.opening_hours,
+        }),
+      });
 
-    const { error: updateError } = await supabase
-      .from('businesses')
-      .update({
-        name: formData.name.trim(),
-        type: formData.type,
-        phone: formData.phone.trim() || null,
-        email: formData.email.trim() || null,
-        address: formData.address.trim() || null,
-        opening_hours: formData.opening_hours as unknown as Json,
-      })
-      .eq('id', business.id);
-
-    if (updateError) {
+      if (!res.ok) {
+        setError('Er ging iets mis bij het opslaan');
+      } else {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+      }
+    } catch (err) {
       setError('Er ging iets mis bij het opslaan');
-    } else {
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
     }
     setSaving(false);
   };

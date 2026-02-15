@@ -13,14 +13,12 @@ function createAdminClient() {
   return createClient(supabaseUrl, serviceRoleKey);
 }
 
-// GET - Get business by ID (bypasses RLS)
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+// PUT - Update business
+export async function PUT(request: NextRequest) {
   try {
-    const { id } = await params;
-    
+    const body = await request.json();
+    const { id, ...updates } = body;
+
     if (!id) {
       return NextResponse.json({ error: 'Business ID required' }, { status: 400 });
     }
@@ -29,17 +27,14 @@ export async function GET(
 
     const { data, error } = await supabase
       .from('businesses')
-      .select('*')
+      .update(updates)
       .eq('id', id)
+      .select()
       .single();
 
     if (error) {
-      console.error('Get business error:', error);
+      console.error('Update business error:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    if (!data) {
-      return NextResponse.json({ error: 'Business not found' }, { status: 404 });
     }
 
     return NextResponse.json(data);
