@@ -196,7 +196,7 @@ export default function AISettingsPage() {
     faqs: [] as Array<{ question: string; answer: string }>,
   });
 
-  useEffect(() => { loadSettings(); loadVoices(); loadMenuItems(); }, []);
+  useEffect(() => { loadSettings(); loadVoices(); }, []);
 
   const loadVoices = async () => {
     setVoicesLoading(true);
@@ -226,13 +226,11 @@ export default function AISettingsPage() {
     }
   };
 
-  const loadMenuItems = async () => {
-    if (!business?.id) return;
-    
+  const loadMenuItemsForBusiness = async (businessId: string) => {
     setMenuLoading(true);
     try {
       // Gebruik admin API (bypass RLS)
-      const res = await fetch(`/api/admin/products?business_id=${business.id}`);
+      const res = await fetch(`/api/admin/products?business_id=${businessId}`);
       if (res.ok) {
         const data = await res.json();
         setMenuItems((data || []).map((item: { id: string; name: string; price: number; category?: string }) => ({
@@ -247,6 +245,11 @@ export default function AISettingsPage() {
     } finally {
       setMenuLoading(false);
     }
+  };
+
+  const loadMenuItems = async () => {
+    if (!business?.id) return;
+    await loadMenuItemsForBusiness(business.id);
   };
 
   // Load menu items when business is loaded
@@ -417,19 +420,22 @@ export default function AISettingsPage() {
   const loadSettings = async () => {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user || !user.email) return;
 
-    const { data: businessData } = await supabase
-      .from('businesses')
-      .select('id, user_id, name, type, description, phone, email, website, street, city, postal_code, country, opening_hours, voice_id, welcome_message, agent_id, subscription_status, subscription_plan, trial_ends_at, created_at, updated_at')
-      .eq('user_id', user.id)
-      .single();
+    // Gebruik API om business te laden (bypass RLS)
+    const bizRes = await fetch(`/api/business/by-email?email=${encodeURIComponent(user.email)}`);
+    if (!bizRes.ok) return;
+    
+    const businessData = await bizRes.json();
+    if (!businessData || !businessData.id) return;
 
-    if (businessData) {
-      const biz = businessData as unknown as Business;
-      setBusiness(biz);
-      
-      // Load saved data from database
+    const biz = businessData as Business;
+    setBusiness(biz);
+    
+    // Laad producten nu business bekend is
+    loadMenuItemsForBusiness(biz.id);
+
+    // Load saved data from database
       const template = brancheTemplates[biz.type] || brancheTemplates.other;
       
       // Map English day names from DB to Dutch day names in UI
@@ -478,7 +484,6 @@ export default function AISettingsPage() {
         // Load opening hours
         opening_hours: openingHours,
       }));
-    }
     setLoading(false);
   };
 
