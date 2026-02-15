@@ -25,6 +25,8 @@ interface Business {
   voice_id: string | null;
   welcome_message: string | null;
   agent_id: string | null;
+  fallback_action: string | null;
+  transfer_number: string | null;
   subscription_status: string | null;
   subscription_plan: string | null;
   trial_ends_at: string | null;
