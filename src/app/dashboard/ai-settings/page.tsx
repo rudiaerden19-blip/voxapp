@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useLanguage } from '@/lib/LanguageContext';
-import { Phone, Mic, Globe, Save, Check, Play, Volume2, Sparkles, MapPin, Clock, Euro, HelpCircle, Plus, Trash2 } from 'lucide-react';
+import { Phone, Mic, Globe, Save, Check, Play, Volume2, Sparkles, MapPin, Clock, Euro, HelpCircle, Plus, Trash2, Upload, FileText, X } from 'lucide-react';
 
 interface Business {
   id: string;
@@ -146,6 +146,13 @@ export default function AISettingsPage() {
   const [voicesLoading, setVoicesLoading] = useState(true);
   const [voicesError, setVoicesError] = useState<string | null>(null);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
+  
+  // Menu items state
+  const [menuItems, setMenuItems] = useState<Array<{ id: string; category: string; name: string; price: number; description?: string }>>([]);
+  const [menuLoading, setMenuLoading] = useState(false);
+  const [menuUploading, setMenuUploading] = useState(false);
+  const [menuError, setMenuError] = useState<string | null>(null);
+  const [menuSuccess, setMenuSuccess] = useState<string | null>(null);
 
   const [config, setConfig] = useState({
     voice_id: 'EXAVITQu4vr4xnSDxMaL', // Default ElevenLabs voice (Sarah)
@@ -179,7 +186,7 @@ export default function AISettingsPage() {
     faqs: [] as Array<{ question: string; answer: string }>,
   });
 
-  useEffect(() => { loadSettings(); loadVoices(); }, []);
+  useEffect(() => { loadSettings(); loadVoices(); loadMenuItems(); }, []);
 
   const loadVoices = async () => {
     setVoicesLoading(true);
@@ -206,6 +213,127 @@ export default function AISettingsPage() {
       setVoices([]);
     } finally {
       setVoicesLoading(false);
+    }
+  };
+
+  const loadMenuItems = async () => {
+    if (!business?.id) return;
+    
+    setMenuLoading(true);
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('menu_items')
+        .select('id, category, name, price, description')
+        .eq('business_id', business.id)
+        .eq('is_available', true)
+        .order('category')
+        .order('name');
+      
+      if (error) throw error;
+      setMenuItems(data || []);
+    } catch (e) {
+      console.error('Failed to load menu items:', e);
+    } finally {
+      setMenuLoading(false);
+    }
+  };
+
+  // Load menu items when business is loaded
+  useEffect(() => {
+    if (business?.id) {
+      loadMenuItems();
+    }
+  }, [business?.id]);
+
+  const handleMenuUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !business?.id) return;
+
+    setMenuUploading(true);
+    setMenuError(null);
+    setMenuSuccess(null);
+
+    try {
+      const text = await file.text();
+      let items: Array<{ category: string; name: string; price: number; description?: string }> = [];
+
+      // Parse CSV or JSON
+      if (file.name.endsWith('.json')) {
+        items = JSON.parse(text);
+      } else if (file.name.endsWith('.csv')) {
+        const lines = text.split('\n').filter(line => line.trim());
+        const headers = lines[0].split(';').map(h => h.trim().toLowerCase());
+        
+        for (let i = 1; i < lines.length; i++) {
+          const values = lines[i].split(';').map(v => v.trim());
+          const item: { category: string; name: string; price: number; description?: string } = {
+            category: '',
+            name: '',
+            price: 0,
+          };
+          
+          headers.forEach((header, idx) => {
+            if (header === 'categorie' || header === 'category') item.category = values[idx] || '';
+            if (header === 'naam' || header === 'name' || header === 'product') item.name = values[idx] || '';
+            if (header === 'prijs' || header === 'price') {
+              const priceStr = values[idx]?.replace('€', '').replace(',', '.').trim();
+              item.price = parseFloat(priceStr) || 0;
+            }
+            if (header === 'beschrijving' || header === 'description') item.description = values[idx] || '';
+          });
+          
+          if (item.name && item.price > 0) {
+            items.push(item);
+          }
+        }
+      }
+
+      if (items.length === 0) {
+        throw new Error('Geen geldige producten gevonden in bestand');
+      }
+
+      // Upload to Supabase
+      const supabase = createClient();
+      
+      // Delete existing items for this business
+      await supabase.from('menu_items').delete().eq('business_id', business.id);
+      
+      // Insert new items
+      const { error } = await supabase.from('menu_items').insert(
+        items.map(item => ({
+          business_id: business.id,
+          category: item.category,
+          name: item.name,
+          price: item.price,
+          description: item.description || null,
+          is_available: true,
+        }))
+      );
+
+      if (error) throw error;
+
+      setMenuSuccess(`${items.length} producten succesvol geïmporteerd!`);
+      loadMenuItems();
+      
+      // Clear success message after 5 seconds
+      setTimeout(() => setMenuSuccess(null), 5000);
+    } catch (err) {
+      setMenuError(err instanceof Error ? err.message : 'Upload mislukt');
+    } finally {
+      setMenuUploading(false);
+      // Reset file input
+      e.target.value = '';
+    }
+  };
+
+  const deleteMenuItem = async (itemId: string) => {
+    try {
+      const supabase = createClient();
+      await supabase.from('menu_items').delete().eq('id', itemId);
+      setMenuItems(menuItems.filter(item => item.id !== itemId));
+    } catch (e) {
+      console.error('Failed to delete menu item:', e);
     }
   };
 
@@ -648,72 +776,98 @@ export default function AISettingsPage() {
           </div>
         </div>
 
-        {/* Prijslijst */}
+        {/* Prijslijst / Menu */}
         <div style={{ background: '#16161f', borderRadius: 16, border: '1px solid #2a2a35', padding: 24, marginBottom: 24 }}>
-          <h2 style={{ color: 'white', fontSize: 18, fontWeight: 600, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Euro size={20} style={{ color: '#f97316' }} /> Prijslijst
-          </h2>
-          <p style={{ color: '#6b7280', fontSize: 14, marginBottom: 20 }}>
-            Voeg diensten toe zodat de receptie prijzen kan noemen.
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 8, flexWrap: 'wrap', gap: 12 }}>
+            <h2 style={{ color: 'white', fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Euro size={20} style={{ color: '#f97316' }} /> Prijslijst / Menu
+            </h2>
+            <label style={{ 
+              display: 'flex', alignItems: 'center', gap: 8, 
+              padding: '10px 16px', background: '#f97316', 
+              borderRadius: 8, color: 'white', fontSize: 14, 
+              cursor: menuUploading ? 'not-allowed' : 'pointer',
+              opacity: menuUploading ? 0.7 : 1,
+            }}>
+              <Upload size={16} />
+              {menuUploading ? 'Uploaden...' : 'Menu importeren (CSV)'}
+              <input
+                type="file"
+                accept=".csv,.json"
+                onChange={handleMenuUpload}
+                disabled={menuUploading}
+                style={{ display: 'none' }}
+              />
+            </label>
+          </div>
+          
+          <p style={{ color: '#6b7280', fontSize: 14, marginBottom: 12 }}>
+            Upload een CSV-bestand met je producten. De AI receptionist kan deze gebruiken om prijzen te noemen.
           </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
-            {config.services_prices.map((service, index) => (
-              <div key={index} style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-                <input
-                  type="text"
-                  value={service.name}
-                  onChange={(e) => {
-                    const newServices = [...config.services_prices];
-                    newServices[index].name = e.target.value;
-                    setConfig({ ...config, services_prices: newServices });
-                  }}
-                  style={{ flex: 2, minWidth: 150, padding: '10px 14px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 6, color: 'white', fontSize: 14 }}
-                  placeholder="Dienst naam"
-                />
-                <input
-                  type="text"
-                  value={service.price}
-                  onChange={(e) => {
-                    const newServices = [...config.services_prices];
-                    newServices[index].price = e.target.value;
-                    setConfig({ ...config, services_prices: newServices });
-                  }}
-                  style={{ width: 100, padding: '10px 14px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 6, color: 'white', fontSize: 14 }}
-                  placeholder="€25"
-                />
-                <input
-                  type="text"
-                  value={service.duration}
-                  onChange={(e) => {
-                    const newServices = [...config.services_prices];
-                    newServices[index].duration = e.target.value;
-                    setConfig({ ...config, services_prices: newServices });
-                  }}
-                  style={{ width: 100, padding: '10px 14px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 6, color: 'white', fontSize: 14 }}
-                  placeholder="30 min"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    const newServices = config.services_prices.filter((_, i) => i !== index);
-                    setConfig({ ...config, services_prices: newServices });
-                  }}
-                  style={{ padding: 8, background: 'rgba(239, 68, 68, 0.15)', border: 'none', borderRadius: 6, color: '#ef4444', cursor: 'pointer' }}
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            ))}
+          
+          <div style={{ background: '#0a0a0f', borderRadius: 8, padding: 12, marginBottom: 16 }}>
+            <p style={{ color: '#9ca3af', fontSize: 13, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <FileText size={14} /> CSV formaat (puntkomma gescheiden):
+            </p>
+            <code style={{ color: '#f97316', fontSize: 12, fontFamily: 'monospace' }}>
+              categorie;naam;prijs;beschrijving<br/>
+              Friet;Kleine friet;3.50;<br/>
+              Snacks;Frikandel;2.40;Klassieke frikandel
+            </code>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setConfig({ ...config, services_prices: [...config.services_prices, { name: '', price: '', duration: '' }] })}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: 'rgba(249, 115, 22, 0.15)', border: '1px dashed #f97316', borderRadius: 8, color: '#f97316', fontSize: 14, cursor: 'pointer' }}
-          >
-            <Plus size={16} /> Dienst toevoegen
-          </button>
+          {menuError && (
+            <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 8, padding: 12, marginBottom: 16, color: '#ef4444', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <X size={16} /> {menuError}
+            </div>
+          )}
+
+          {menuSuccess && (
+            <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: 8, padding: 12, marginBottom: 16, color: '#22c55e', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Check size={16} /> {menuSuccess}
+            </div>
+          )}
+
+          {menuLoading ? (
+            <p style={{ color: '#6b7280' }}>Menu laden...</p>
+          ) : menuItems.length === 0 ? (
+            <p style={{ color: '#6b7280', fontStyle: 'italic' }}>Nog geen producten. Upload een CSV-bestand om te beginnen.</p>
+          ) : (
+            <>
+              <p style={{ color: '#9ca3af', fontSize: 14, marginBottom: 12 }}>
+                {menuItems.length} producten in {[...new Set(menuItems.map(i => i.category))].length} categorieën
+              </p>
+              
+              {/* Group by category */}
+              {[...new Set(menuItems.map(i => i.category))].map(category => (
+                <div key={category} style={{ marginBottom: 16 }}>
+                  <h4 style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 8 }}>{category}</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {menuItems.filter(i => i.category === category).slice(0, 5).map(item => (
+                      <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', background: '#0a0a0f', borderRadius: 6 }}>
+                        <span style={{ color: 'white', fontSize: 13 }}>{item.name}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ color: '#f97316', fontSize: 13, fontWeight: 500 }}>€{item.price.toFixed(2)}</span>
+                          <button
+                            type="button"
+                            onClick={() => deleteMenuItem(item.id)}
+                            style={{ padding: 4, background: 'transparent', border: 'none', color: '#6b7280', cursor: 'pointer' }}
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    {menuItems.filter(i => i.category === category).length > 5 && (
+                      <p style={{ color: '#6b7280', fontSize: 12, paddingLeft: 10 }}>
+                        + {menuItems.filter(i => i.category === category).length - 5} meer...
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
         </div>
 
         {/* FAQ's */}
