@@ -153,6 +153,16 @@ export default function AISettingsPage() {
   const [menuUploading, setMenuUploading] = useState(false);
   const [menuError, setMenuError] = useState<string | null>(null);
   const [menuSuccess, setMenuSuccess] = useState<string | null>(null);
+  
+  // New product form state
+  const [showProductForm, setShowProductForm] = useState(false);
+  const [newProduct, setNewProduct] = useState({ name: '', price: '', category: '', description: '' });
+  const [productSaving, setProductSaving] = useState(false);
+  
+  // Option groups state
+  const [optionGroups, setOptionGroups] = useState<Array<{ id: string; name: string; required: boolean; multiple: boolean; options: Array<{ name: string; price: number }> }>>([]);
+  const [showOptionForm, setShowOptionForm] = useState(false);
+  const [newOptionGroup, setNewOptionGroup] = useState({ name: '', required: false, multiple: true, options: [{ name: '', price: 0 }] });
 
   const [config, setConfig] = useState({
     voice_id: 'EXAVITQu4vr4xnSDxMaL', // Default ElevenLabs voice (Sarah)
@@ -340,6 +350,57 @@ export default function AISettingsPage() {
     } catch (e) {
       console.error('Failed to delete menu item:', e);
     }
+  };
+
+  const saveNewProduct = async () => {
+    if (!business?.id || !newProduct.name || !newProduct.price) return;
+    
+    setProductSaving(true);
+    try {
+      const supabase = createClient();
+      const priceNum = parseFloat(newProduct.price.replace(',', '.'));
+      
+      const { data, error } = await supabase.from('menu_items').insert({
+        business_id: business.id,
+        category: newProduct.category || 'Overig',
+        name: newProduct.name,
+        price: priceNum,
+        description: newProduct.description || null,
+        is_available: true,
+      }).select().single();
+      
+      if (error) throw error;
+      
+      setMenuItems([...menuItems, { ...data, category: data.category || 'Overig' }]);
+      setNewProduct({ name: '', price: '', category: '', description: '' });
+      setShowProductForm(false);
+      setMenuSuccess('Product toegevoegd!');
+      setTimeout(() => setMenuSuccess(null), 3000);
+    } catch (e) {
+      console.error('Failed to save product:', e);
+      setMenuError('Kon product niet opslaan');
+    } finally {
+      setProductSaving(false);
+    }
+  };
+
+  const saveOptionGroup = async () => {
+    if (!business?.id || !newOptionGroup.name) return;
+    
+    // For now, store option groups in localStorage (can be moved to Supabase later)
+    const newGroup = {
+      id: Date.now().toString(),
+      ...newOptionGroup,
+      options: newOptionGroup.options.filter(o => o.name.trim()),
+    };
+    
+    setOptionGroups([...optionGroups, newGroup]);
+    setNewOptionGroup({ name: '', required: false, multiple: true, options: [{ name: '', price: 0 }] });
+    setShowOptionForm(false);
+  };
+
+  const deleteOptionGroup = (groupId: string) => {
+    setOptionGroups(optionGroups.filter(g => g.id !== groupId));
   };
 
   const loadSettings = async () => {
@@ -872,6 +933,262 @@ export default function AISettingsPage() {
                 </div>
               ))}
             </>
+          )}
+        </div>
+
+        {/* Handmatig Product Toevoegen */}
+        <div style={{ background: '#16161f', borderRadius: 16, border: '1px solid #2a2a35', padding: 24, marginBottom: 24 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <h2 style={{ color: 'white', fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Plus size={20} style={{ color: '#f97316' }} /> Product Toevoegen
+            </h2>
+          </div>
+          
+          <p style={{ color: '#6b7280', fontSize: 14, marginBottom: 16 }}>
+            Voeg individuele producten toe aan je menu.
+          </p>
+
+          {!showProductForm ? (
+            <button
+              type="button"
+              onClick={() => setShowProductForm(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 20px', background: 'rgba(249, 115, 22, 0.15)', border: '1px dashed #f97316', borderRadius: 8, color: '#f97316', fontSize: 14, cursor: 'pointer', width: '100%', justifyContent: 'center' }}
+            >
+              <Plus size={16} /> Nieuw Product
+            </button>
+          ) : (
+            <div style={{ background: '#0a0a0f', borderRadius: 12, padding: 20 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div>
+                  <label style={{ color: '#9ca3af', fontSize: 13, marginBottom: 6, display: 'block' }}>Naam *</label>
+                  <input
+                    type="text"
+                    value={newProduct.name}
+                    onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                    placeholder="bijv. Grote Friet"
+                    style={{ width: '100%', padding: '12px 14px', background: '#16161f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 14 }}
+                  />
+                </div>
+                
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ color: '#9ca3af', fontSize: 13, marginBottom: 6, display: 'block' }}>Categorie</label>
+                    <input
+                      type="text"
+                      value={newProduct.category}
+                      onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+                      placeholder="bijv. Friet"
+                      style={{ width: '100%', padding: '12px 14px', background: '#16161f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 14 }}
+                    />
+                  </div>
+                  <div style={{ width: 120 }}>
+                    <label style={{ color: '#9ca3af', fontSize: 13, marginBottom: 6, display: 'block' }}>Prijs *</label>
+                    <div style={{ position: 'relative' }}>
+                      <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }}>€</span>
+                      <input
+                        type="text"
+                        value={newProduct.price}
+                        onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+                        placeholder="3.50"
+                        style={{ width: '100%', padding: '12px 14px 12px 28px', background: '#16161f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 14 }}
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <label style={{ color: '#9ca3af', fontSize: 13, marginBottom: 6, display: 'block' }}>Beschrijving</label>
+                  <textarea
+                    value={newProduct.description}
+                    onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
+                    placeholder="Optionele beschrijving..."
+                    rows={2}
+                    style={{ width: '100%', padding: '12px 14px', background: '#16161f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 14, resize: 'none' }}
+                  />
+                </div>
+                
+                <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+                  <button
+                    type="button"
+                    onClick={() => { setShowProductForm(false); setNewProduct({ name: '', price: '', category: '', description: '' }); }}
+                    style={{ flex: 1, padding: '12px', background: '#2a2a35', border: 'none', borderRadius: 8, color: 'white', fontSize: 14, cursor: 'pointer' }}
+                  >
+                    Annuleren
+                  </button>
+                  <button
+                    type="button"
+                    onClick={saveNewProduct}
+                    disabled={productSaving || !newProduct.name || !newProduct.price}
+                    style={{ flex: 1, padding: '12px', background: productSaving ? '#4b5563' : '#f97316', border: 'none', borderRadius: 8, color: 'white', fontSize: 14, cursor: productSaving ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                  >
+                    <Check size={16} /> {productSaving ? 'Opslaan...' : 'Opslaan'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Optie Menu */}
+        <div style={{ background: '#16161f', borderRadius: 16, border: '1px solid #2a2a35', padding: 24, marginBottom: 24 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <h2 style={{ color: 'white', fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <FileText size={20} style={{ color: '#f97316' }} /> Optie Menu
+            </h2>
+          </div>
+          
+          <p style={{ color: '#6b7280', fontSize: 14, marginBottom: 16 }}>
+            Maak optiegroepen aan voor producten (bijv. sauzen, toppings, maten).
+          </p>
+
+          {/* Existing option groups */}
+          {optionGroups.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
+              {optionGroups.map(group => (
+                <div key={group.id} style={{ background: '#0a0a0f', borderRadius: 8, padding: 14 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <div>
+                      <span style={{ color: 'white', fontWeight: 500 }}>{group.name}</span>
+                      <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                        {group.required && <span style={{ fontSize: 11, color: '#f97316', background: 'rgba(249, 115, 22, 0.15)', padding: '2px 6px', borderRadius: 4 }}>Verplicht</span>}
+                        {group.multiple && <span style={{ fontSize: 11, color: '#3b82f6', background: 'rgba(59, 130, 246, 0.15)', padding: '2px 6px', borderRadius: 4 }}>Meerdere keuzes</span>}
+                      </div>
+                    </div>
+                    <button type="button" onClick={() => deleteOptionGroup(group.id)} style={{ padding: 6, background: 'transparent', border: 'none', color: '#6b7280', cursor: 'pointer' }}>
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {group.options.map((opt, idx) => (
+                      <span key={idx} style={{ fontSize: 12, color: '#9ca3af', background: '#16161f', padding: '4px 8px', borderRadius: 4 }}>
+                        {opt.name} {opt.price > 0 && `+€${opt.price.toFixed(2)}`}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!showOptionForm ? (
+            <button
+              type="button"
+              onClick={() => setShowOptionForm(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 20px', background: 'rgba(249, 115, 22, 0.15)', border: '1px dashed #f97316', borderRadius: 8, color: '#f97316', fontSize: 14, cursor: 'pointer', width: '100%', justifyContent: 'center' }}
+            >
+              <Plus size={16} /> Nieuwe Optiegroep
+            </button>
+          ) : (
+            <div style={{ background: '#0a0a0f', borderRadius: 12, padding: 20 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div>
+                  <label style={{ color: '#9ca3af', fontSize: 13, marginBottom: 6, display: 'block' }}>Naam *</label>
+                  <input
+                    type="text"
+                    value={newOptionGroup.name}
+                    onChange={(e) => setNewOptionGroup({ ...newOptionGroup, name: e.target.value })}
+                    placeholder="bijv. Sauzen, Maten, Extras"
+                    style={{ width: '100%', padding: '12px 14px', background: '#16161f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 14 }}
+                  />
+                </div>
+                
+                <div style={{ display: 'flex', gap: 20 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#9ca3af', fontSize: 14, cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={newOptionGroup.required}
+                      onChange={(e) => setNewOptionGroup({ ...newOptionGroup, required: e.target.checked })}
+                      style={{ width: 18, height: 18, accentColor: '#f97316' }}
+                    />
+                    Verplicht
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#9ca3af', fontSize: 14, cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={newOptionGroup.multiple}
+                      onChange={(e) => setNewOptionGroup({ ...newOptionGroup, multiple: e.target.checked })}
+                      style={{ width: 18, height: 18, accentColor: '#3b82f6' }}
+                    />
+                    Meerdere keuzes
+                  </label>
+                </div>
+                
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <label style={{ color: '#9ca3af', fontSize: 13 }}>Opties *</label>
+                    <button
+                      type="button"
+                      onClick={() => setNewOptionGroup({ ...newOptionGroup, options: [...newOptionGroup.options, { name: '', price: 0 }] })}
+                      style={{ padding: '6px 12px', background: '#f97316', border: 'none', borderRadius: 6, color: 'white', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+                    >
+                      <Plus size={14} /> Optie
+                    </button>
+                  </div>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {newOptionGroup.options.map((opt, idx) => (
+                      <div key={idx} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <input
+                          type="text"
+                          value={opt.name}
+                          onChange={(e) => {
+                            const newOpts = [...newOptionGroup.options];
+                            newOpts[idx].name = e.target.value;
+                            setNewOptionGroup({ ...newOptionGroup, options: newOpts });
+                          }}
+                          placeholder="Naam (bijv. Mayo)"
+                          style={{ flex: 1, padding: '10px 12px', background: '#16161f', border: '1px solid #2a2a35', borderRadius: 6, color: 'white', fontSize: 13 }}
+                        />
+                        <div style={{ position: 'relative', width: 90 }}>
+                          <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#6b7280', fontSize: 13 }}>+€</span>
+                          <input
+                            type="number"
+                            value={opt.price || ''}
+                            onChange={(e) => {
+                              const newOpts = [...newOptionGroup.options];
+                              newOpts[idx].price = parseFloat(e.target.value) || 0;
+                              setNewOptionGroup({ ...newOptionGroup, options: newOpts });
+                            }}
+                            placeholder="0"
+                            style={{ width: '100%', padding: '10px 12px 10px 32px', background: '#16161f', border: '1px solid #2a2a35', borderRadius: 6, color: 'white', fontSize: 13 }}
+                          />
+                        </div>
+                        {newOptionGroup.options.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newOpts = newOptionGroup.options.filter((_, i) => i !== idx);
+                              setNewOptionGroup({ ...newOptionGroup, options: newOpts });
+                            }}
+                            style={{ padding: 8, background: 'rgba(239, 68, 68, 0.15)', border: 'none', borderRadius: 6, color: '#ef4444', cursor: 'pointer' }}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+                  <button
+                    type="button"
+                    onClick={() => { setShowOptionForm(false); setNewOptionGroup({ name: '', required: false, multiple: true, options: [{ name: '', price: 0 }] }); }}
+                    style={{ flex: 1, padding: '12px', background: '#2a2a35', border: 'none', borderRadius: 8, color: 'white', fontSize: 14, cursor: 'pointer' }}
+                  >
+                    Annuleren
+                  </button>
+                  <button
+                    type="button"
+                    onClick={saveOptionGroup}
+                    disabled={!newOptionGroup.name || !newOptionGroup.options.some(o => o.name.trim())}
+                    style={{ flex: 1, padding: '12px', background: (!newOptionGroup.name || !newOptionGroup.options.some(o => o.name.trim())) ? '#4b5563' : '#f97316', border: 'none', borderRadius: 8, color: 'white', fontSize: 14, cursor: (!newOptionGroup.name || !newOptionGroup.options.some(o => o.name.trim())) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                  >
+                    <Check size={16} /> Opslaan
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
         </div>
 
