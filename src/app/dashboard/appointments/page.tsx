@@ -4,7 +4,11 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useLanguage } from '@/lib/LanguageContext';
-import { Plus, ChevronLeft, ChevronRight, X, Clock, User, Check, Trash2, Settings } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, X, Clock, User, Check, Trash2, Settings, Calendar } from 'lucide-react';
+import { getBusinessType } from '@/lib/modules';
+
+// Business types that use medical/professional appointment form
+const ZORG_TYPES = ['dokter', 'ziekenhuis', 'tandarts', 'opticien', 'dierenkliniek', 'advocaat', 'boekhouder', 'loodgieter'];
 
 interface Service {
   id: string;
@@ -63,8 +67,14 @@ export default function AppointmentsPage() {
   const [startHour, setStartHour] = useState(8);
   const [endHour, setEndHour] = useState(18);
 
+  const [businessType, setBusinessType] = useState<string>('');
+  const isZorgType = ZORG_TYPES.includes(businessType);
+
   const [formData, setFormData] = useState({
     customer_name: '',
+    customer_firstname: '',
+    customer_lastname: '',
+    customer_birthdate: '',
     customer_phone: '',
     customer_email: '',
     start_time: '09:00',
@@ -72,6 +82,7 @@ export default function AppointmentsPage() {
     staff_id: '',
     status: 'scheduled',
     notes: '',
+    reason: '',
   });
 
   useEffect(() => { loadData(); }, []);
@@ -103,6 +114,7 @@ export default function AppointmentsPage() {
 
       const bizId = business.id;
       setBusinessId(bizId);
+      setBusinessType(business.type || '');
 
       // Load services and staff via admin APIs (parallel)
       const [servicesRes, staffRes] = await Promise.all([
@@ -221,8 +233,9 @@ export default function AppointmentsPage() {
     setSelectedDate(date);
     setSelectedTime(time || '09:00');
     setFormData({
-      customer_name: '', customer_phone: '', customer_email: '',
-      start_time: time || '09:00', service_id: '', staff_id: '', status: 'scheduled', notes: '',
+      customer_name: '', customer_firstname: '', customer_lastname: '', customer_birthdate: '',
+      customer_phone: '', customer_email: '',
+      start_time: time || '09:00', service_id: '', staff_id: '', status: 'scheduled', notes: '', reason: '',
     });
     setError('');
     setModalOpen(true);
@@ -231,15 +244,39 @@ export default function AppointmentsPage() {
   const openEditModal = (apt: Appointment) => {
     setEditingAppointment(apt);
     setSelectedDate(new Date(apt.start_time));
+    
+    // Parse name for zorg types (firstname lastname)
+    const nameParts = apt.customer_name.split(' ');
+    const firstname = nameParts[0] || '';
+    const lastname = nameParts.slice(1).join(' ') || '';
+    
+    // Parse notes for zorg types (extract birthdate and reason)
+    let birthdate = '';
+    let reason = '';
+    let otherNotes = apt.notes || '';
+    
+    if (apt.notes && isZorgType) {
+      const lines = apt.notes.split('\n');
+      const birthdateLine = lines.find(l => l.startsWith('Geboortedatum:'));
+      const reasonLine = lines.find(l => l.startsWith('Reden:'));
+      if (birthdateLine) birthdate = birthdateLine.replace('Geboortedatum:', '').trim();
+      if (reasonLine) reason = reasonLine.replace('Reden:', '').trim();
+      otherNotes = lines.filter(l => !l.startsWith('Geboortedatum:') && !l.startsWith('Reden:')).join('\n').trim();
+    }
+    
     setFormData({
       customer_name: apt.customer_name,
+      customer_firstname: firstname,
+      customer_lastname: lastname,
+      customer_birthdate: birthdate,
       customer_phone: apt.customer_phone || '',
       customer_email: apt.customer_email || '',
       start_time: new Date(apt.start_time).toTimeString().slice(0, 5),
       service_id: apt.service_id || '',
       staff_id: apt.staff_id || '',
       status: apt.status,
-      notes: apt.notes || '',
+      notes: otherNotes,
+      reason: reason,
     });
     setError('');
     setModalOpen(true);
@@ -249,7 +286,16 @@ export default function AppointmentsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.customer_name.trim()) { setError('Klantnaam is verplicht'); return; }
+    
+    // Validation based on business type
+    if (isZorgType) {
+      if (!formData.customer_firstname.trim() || !formData.customer_lastname.trim()) {
+        setError('Voor- en achternaam zijn verplicht');
+        return;
+      }
+    } else {
+      if (!formData.customer_name.trim()) { setError('Klantnaam is verplicht'); return; }
+    }
     if (!businessId || !selectedDate) return;
 
     setSaving(true);
@@ -264,19 +310,30 @@ export default function AppointmentsPage() {
       : 30;
     const endDateTime = new Date(startDateTime.getTime() + duration * 60000);
 
+    // Combine firstname + lastname for zorg types
+    const customerName = isZorgType 
+      ? `${formData.customer_firstname.trim()} ${formData.customer_lastname.trim()}`
+      : formData.customer_name.trim();
+
     try {
       const appointmentData = {
         id: editingAppointment?.id,
         business_id: businessId,
-        customer_name: formData.customer_name.trim(),
+        customer_name: customerName,
         customer_phone: formData.customer_phone.trim() || null,
         customer_email: formData.customer_email.trim() || null,
         start_time: startDateTime.toISOString(),
         end_time: endDateTime.toISOString(),
-        service_id: formData.service_id || null,
+        service_id: isZorgType ? null : (formData.service_id || null),
         staff_id: formData.staff_id || null,
         status: formData.status,
-        notes: formData.notes.trim() || null,
+        notes: isZorgType 
+          ? [
+              formData.customer_birthdate ? `Geboortedatum: ${formData.customer_birthdate}` : '',
+              formData.reason ? `Reden: ${formData.reason}` : '',
+              formData.notes ? formData.notes.trim() : ''
+            ].filter(Boolean).join('\n') || null
+          : formData.notes.trim() || null,
       };
 
       const res = await fetch('/api/admin/appointments', {
@@ -734,56 +791,115 @@ export default function AppointmentsPage() {
             </div>
 
             <form onSubmit={handleSubmit} style={{ padding: 24 }}>
-              <div style={{ marginBottom: 20 }}>
-                <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}><User size={14} style={{ marginRight: 6 }} />Klantnaam *</label>
-                <input type="text" value={formData.customer_name} onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }} placeholder="Jan Janssen" required />
-              </div>
+              {isZorgType ? (
+                <>
+                  {/* ZORG/PROFESSIONAL FORM */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+                    <div>
+                      <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}><User size={14} style={{ marginRight: 6 }} />Voornaam *</label>
+                      <input type="text" value={formData.customer_firstname} onChange={(e) => setFormData({ ...formData, customer_firstname: e.target.value })} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }} placeholder="Jan" required />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Achternaam *</label>
+                      <input type="text" value={formData.customer_lastname} onChange={(e) => setFormData({ ...formData, customer_lastname: e.target.value })} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }} placeholder="Janssen" required />
+                    </div>
+                  </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
-                <div>
-                  <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Telefoon</label>
-                  <input type="tel" value={formData.customer_phone} onChange={(e) => setFormData({ ...formData, customer_phone: e.target.value })} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }} placeholder="+32 ..." />
-                </div>
-                <div>
-                  <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>E-mail</label>
-                  <input type="email" value={formData.customer_email} onChange={(e) => setFormData({ ...formData, customer_email: e.target.value })} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }} placeholder="jan@email.be" />
-                </div>
-              </div>
+                  <div style={{ marginBottom: 20 }}>
+                    <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}><Calendar size={14} style={{ marginRight: 6 }} />Geboortedatum</label>
+                    <input type="date" value={formData.customer_birthdate} onChange={(e) => setFormData({ ...formData, customer_birthdate: e.target.value })} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }} />
+                  </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
-                <div>
-                  <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}><Clock size={14} style={{ marginRight: 6 }} />Tijd</label>
-                  <input type="time" value={formData.start_time} onChange={(e) => setFormData({ ...formData, start_time: e.target.value })} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }} />
-                </div>
-                <div>
-                  <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Status</label>
-                  <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }}>
-                    {statusOptions.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-                  </select>
-                </div>
-              </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+                    <div>
+                      <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Telefoon</label>
+                      <input type="tel" value={formData.customer_phone} onChange={(e) => setFormData({ ...formData, customer_phone: e.target.value })} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }} placeholder="+32 ..." />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>E-mail</label>
+                      <input type="email" value={formData.customer_email} onChange={(e) => setFormData({ ...formData, customer_email: e.target.value })} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }} placeholder="jan@email.be" />
+                    </div>
+                  </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
-                <div>
-                  <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Dienst</label>
-                  <select value={formData.service_id} onChange={(e) => setFormData({ ...formData, service_id: e.target.value })} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }}>
-                    <option value="">Geen dienst</option>
-                    {services.map(s => <option key={s.id} value={s.id}>{s.name} ({s.duration_minutes} min)</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Medewerker</label>
-                  <select value={formData.staff_id} onChange={(e) => setFormData({ ...formData, staff_id: e.target.value })} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }}>
-                    <option value="">Geen medewerker</option>
-                    {staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                  </select>
-                </div>
-              </div>
+                  <div style={{ marginBottom: 20 }}>
+                    <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Met wie wil je een afspraak? *</label>
+                    <select value={formData.staff_id} onChange={(e) => setFormData({ ...formData, staff_id: e.target.value })} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }} required>
+                      <option value="">Selecteer...</option>
+                      {staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    </select>
+                  </div>
 
-              <div style={{ marginBottom: 20 }}>
-                <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Notities</label>
-                <textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} rows={3} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16, resize: 'vertical' }} placeholder="Extra opmerkingen..." />
-              </div>
+                  <div style={{ marginBottom: 20 }}>
+                    <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Reden van afspraak *</label>
+                    <textarea value={formData.reason} onChange={(e) => setFormData({ ...formData, reason: e.target.value })} rows={2} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16, resize: 'vertical' }} placeholder="Beschrijf kort de reden..." required />
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+                    <div>
+                      <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}><Calendar size={14} style={{ marginRight: 6 }} />Datum</label>
+                      <input type="text" readOnly value={selectedDate?.toLocaleDateString('nl-BE', { weekday: 'short', day: 'numeric', month: 'long' }) || ''} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: '#9ca3af', fontSize: 16 }} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}><Clock size={14} style={{ marginRight: 6 }} />Tijd</label>
+                      <input type="time" value={formData.start_time} onChange={(e) => setFormData({ ...formData, start_time: e.target.value })} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }} />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* STANDARD FORM (restaurants, salons, etc.) */}
+                  <div style={{ marginBottom: 20 }}>
+                    <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}><User size={14} style={{ marginRight: 6 }} />Klantnaam *</label>
+                    <input type="text" value={formData.customer_name} onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }} placeholder="Jan Janssen" required />
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+                    <div>
+                      <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Telefoon</label>
+                      <input type="tel" value={formData.customer_phone} onChange={(e) => setFormData({ ...formData, customer_phone: e.target.value })} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }} placeholder="+32 ..." />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>E-mail</label>
+                      <input type="email" value={formData.customer_email} onChange={(e) => setFormData({ ...formData, customer_email: e.target.value })} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }} placeholder="jan@email.be" />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+                    <div>
+                      <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}><Clock size={14} style={{ marginRight: 6 }} />Tijd</label>
+                      <input type="time" value={formData.start_time} onChange={(e) => setFormData({ ...formData, start_time: e.target.value })} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Status</label>
+                      <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }}>
+                        {statusOptions.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+                    <div>
+                      <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Dienst</label>
+                      <select value={formData.service_id} onChange={(e) => setFormData({ ...formData, service_id: e.target.value })} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }}>
+                        <option value="">Geen dienst</option>
+                        {services.map(s => <option key={s.id} value={s.id}>{s.name} ({s.duration_minutes} min)</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Medewerker</label>
+                      <select value={formData.staff_id} onChange={(e) => setFormData({ ...formData, staff_id: e.target.value })} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }}>
+                        <option value="">Geen medewerker</option>
+                        {staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div style={{ marginBottom: 20 }}>
+                    <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Notities</label>
+                    <textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} rows={3} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16, resize: 'vertical' }} placeholder="Extra opmerkingen..." />
+                  </div>
+                </>
+              )}
 
               {error && <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 8, padding: 12, marginBottom: 20, color: '#ef4444', fontSize: 14 }}>{error}</div>}
 
