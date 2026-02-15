@@ -4,28 +4,35 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/LanguageContext';
-import { LogOut, Plus, Monitor, RotateCcw, Eye, Ban, Check, Trash2, Phone, Users, CreditCard, AlertTriangle, Shield, Lock } from 'lucide-react';
+import { LogOut, Plus, Monitor, RotateCcw, Eye, Ban, Check, Trash2, Phone, Users, CreditCard, AlertTriangle, Shield, Lock, X, ExternalLink, Calendar, Euro, TrendingUp } from 'lucide-react';
 
 // Admin credentials - alleen jij hebt toegang
 const ADMIN_EMAIL = 'admin@voxapp.tech';
 const ADMIN_PASSWORD = 'VoxAdmin2024!';
 
+// Plan pricing for MRR calculation
+const planPricing: Record<string, number> = {
+  starter: 99,
+  pro: 149,
+  business: 249,
+};
+
 interface Tenant {
   id: string;
+  user_id?: string;
   name: string;
   email?: string;
   type?: string;
   phone?: string;
+  address?: string;
   subscription_status?: string;
   subscription_plan?: string;
   blocked?: boolean;
   created_at: string;
   trial_ends_at?: string;
-  has_kassa?: boolean;
-  has_app?: boolean;
-  has_website?: boolean;
-  total_calls?: number;
-  total_appointments?: number;
+  stripe_customer_id?: string;
+  stripe_subscription_id?: string;
+  elevenlabs_agent_id?: string;
 }
 
 export default function AdminDashboard() {
@@ -36,6 +43,7 @@ export default function AdminDashboard() {
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
   const router = useRouter();
 
   useEffect(() => { 
@@ -94,11 +102,49 @@ export default function AdminDashboard() {
     setTenants(prev => prev.filter(t => t.id !== tenant.id));
   };
 
+  // Calculate MRR (Monthly Recurring Revenue)
+  const calculateMRR = () => {
+    return tenants
+      .filter(t => t.subscription_status === 'active' && !t.blocked)
+      .reduce((sum, t) => sum + (planPricing[t.subscription_plan || 'starter'] || 0), 0);
+  };
+
   const stats = {
     total: tenants.length,
     active: tenants.filter(t => t.subscription_status === 'active' && !t.blocked).length,
     blocked: tenants.filter(t => t.blocked).length,
     trial: tenants.filter(t => t.subscription_status === 'trial').length,
+    mrr: calculateMRR(),
+  };
+
+  // Check if trial is expiring soon (within 2 days)
+  const isTrialExpiringSoon = (trialEndsAt?: string) => {
+    if (!trialEndsAt) return false;
+    const daysLeft = Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    return daysLeft <= 2 && daysLeft >= 0;
+  };
+
+  // Get days left in trial
+  const getTrialDaysLeft = (trialEndsAt?: string) => {
+    if (!trialEndsAt) return null;
+    const daysLeft = Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    return daysLeft;
+  };
+
+  // Update tenant subscription
+  const updateTenantPlan = async (tenant: Tenant, newPlan: string) => {
+    const supabase = createClient();
+    await supabase.from('businesses').update({ subscription_plan: newPlan } as any).eq('id', tenant.id);
+    setTenants(prev => prev.map(t => t.id === tenant.id ? { ...t, subscription_plan: newPlan } : t));
+    setSelectedTenant(prev => prev ? { ...prev, subscription_plan: newPlan } : null);
+  };
+
+  // Update tenant status
+  const updateTenantStatus = async (tenant: Tenant, newStatus: string) => {
+    const supabase = createClient();
+    await supabase.from('businesses').update({ subscription_status: newStatus } as any).eq('id', tenant.id);
+    setTenants(prev => prev.map(t => t.id === tenant.id ? { ...t, subscription_status: newStatus } : t));
+    setSelectedTenant(prev => prev ? { ...prev, subscription_status: newStatus } : null);
   };
 
   const formatDate = (date: string) => {
@@ -208,22 +254,41 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 32 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16, marginBottom: 32 }}>
         <div style={{ background: '#1e293b', borderRadius: 12, padding: 20, border: '1px solid #334155' }}>
-          <p style={{ color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Total Tenants</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <Users size={16} style={{ color: '#9ca3af' }} />
+            <p style={{ color: '#9ca3af', fontSize: 14, margin: 0 }}>Totaal</p>
+          </div>
           <p style={{ color: 'white', fontSize: 32, fontWeight: 700, margin: 0 }}>{stats.total}</p>
         </div>
         <div style={{ background: '#1e293b', borderRadius: 12, padding: 20, border: '1px solid #334155' }}>
-          <p style={{ color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Actief</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <Check size={16} style={{ color: '#22c55e' }} />
+            <p style={{ color: '#9ca3af', fontSize: 14, margin: 0 }}>Actief</p>
+          </div>
           <p style={{ color: '#22c55e', fontSize: 32, fontWeight: 700, margin: 0 }}>{stats.active}</p>
         </div>
         <div style={{ background: '#1e293b', borderRadius: 12, padding: 20, border: '1px solid #334155' }}>
-          <p style={{ color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Geblokkeerd</p>
-          <p style={{ color: '#ef4444', fontSize: 32, fontWeight: 700, margin: 0 }}>{stats.blocked}</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <Calendar size={16} style={{ color: '#f97316' }} />
+            <p style={{ color: '#9ca3af', fontSize: 14, margin: 0 }}>Trial</p>
+          </div>
+          <p style={{ color: '#f97316', fontSize: 32, fontWeight: 700, margin: 0 }}>{stats.trial}</p>
         </div>
         <div style={{ background: '#1e293b', borderRadius: 12, padding: 20, border: '1px solid #334155' }}>
-          <p style={{ color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Trial</p>
-          <p style={{ color: '#f97316', fontSize: 32, fontWeight: 700, margin: 0 }}>{stats.trial}</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <Ban size={16} style={{ color: '#ef4444' }} />
+            <p style={{ color: '#9ca3af', fontSize: 14, margin: 0 }}>Geblokkeerd</p>
+          </div>
+          <p style={{ color: '#ef4444', fontSize: 32, fontWeight: 700, margin: 0 }}>{stats.blocked}</p>
+        </div>
+        <div style={{ background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)', borderRadius: 12, padding: 20, border: '1px solid #22c55e40' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <TrendingUp size={16} style={{ color: '#22c55e' }} />
+            <p style={{ color: '#9ca3af', fontSize: 14, margin: 0 }}>MRR</p>
+          </div>
+          <p style={{ color: '#22c55e', fontSize: 28, fontWeight: 700, margin: 0 }}>€{stats.mrr}</p>
         </div>
       </div>
 
@@ -273,15 +338,33 @@ export default function AdminDashboard() {
                         </span>
                       </td>
                       <td style={{ padding: '14px 16px' }}>
-                        <span style={{ background: `${status.bg}20`, color: status.bg, padding: '4px 10px', borderRadius: 4, fontSize: 12, fontWeight: 500 }}>
-                          {status.label}
-                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ background: `${status.bg}20`, color: status.bg, padding: '4px 10px', borderRadius: 4, fontSize: 12, fontWeight: 500 }}>
+                            {status.label}
+                          </span>
+                          {tenant.subscription_status === 'trial' && tenant.trial_ends_at && (
+                            <span style={{ 
+                              fontSize: 11, 
+                              color: isTrialExpiringSoon(tenant.trial_ends_at) ? '#ef4444' : '#6b7280',
+                              fontWeight: isTrialExpiringSoon(tenant.trial_ends_at) ? 600 : 400,
+                            }}>
+                              {getTrialDaysLeft(tenant.trial_ends_at)}d
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td style={{ padding: '14px 16px', color: '#9ca3af', fontSize: 13 }}>
                         {formatDate(tenant.created_at)}
                       </td>
                       <td style={{ padding: '14px 16px' }}>
                         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                          <button
+                            onClick={() => setSelectedTenant(tenant)}
+                            style={{ padding: 8, background: '#3b82f620', border: 'none', borderRadius: 6, color: '#3b82f6', cursor: 'pointer' }}
+                            title="Details bekijken"
+                          >
+                            <Eye size={16} />
+                          </button>
                           <button
                             onClick={() => toggleBlock(tenant)}
                             style={{ padding: 8, background: tenant.blocked ? '#22c55e20' : '#f9731620', border: 'none', borderRadius: 6, color: tenant.blocked ? '#22c55e' : '#f97316', cursor: 'pointer' }}
@@ -343,6 +426,235 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Tenant Detail Modal */}
+      {selectedTenant && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: 24,
+        }}>
+          <div style={{
+            background: '#1e293b',
+            borderRadius: 16,
+            width: '100%',
+            maxWidth: 600,
+            maxHeight: '90vh',
+            overflow: 'auto',
+            border: '1px solid #334155',
+          }}>
+            {/* Modal Header */}
+            <div style={{ 
+              padding: '20px 24px', 
+              borderBottom: '1px solid #334155',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              position: 'sticky',
+              top: 0,
+              background: '#1e293b',
+            }}>
+              <div>
+                <h2 style={{ color: 'white', fontSize: 20, fontWeight: 600, margin: 0 }}>{selectedTenant.name}</h2>
+                <p style={{ color: '#6b7280', fontSize: 14, margin: 0, textTransform: 'capitalize' }}>{selectedTenant.type || 'Overig'}</p>
+              </div>
+              <button
+                onClick={() => setSelectedTenant(null)}
+                style={{ padding: 8, background: '#0f172a', border: 'none', borderRadius: 8, color: '#9ca3af', cursor: 'pointer' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div style={{ padding: 24 }}>
+              {/* Contact Info */}
+              <div style={{ marginBottom: 24 }}>
+                <h3 style={{ color: '#9ca3af', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Contact</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                  <div>
+                    <p style={{ color: '#6b7280', fontSize: 12, marginBottom: 4 }}>Email</p>
+                    <p style={{ color: 'white', fontSize: 14, margin: 0 }}>{selectedTenant.email || '-'}</p>
+                  </div>
+                  <div>
+                    <p style={{ color: '#6b7280', fontSize: 12, marginBottom: 4 }}>Telefoon</p>
+                    <p style={{ color: 'white', fontSize: 14, margin: 0 }}>{selectedTenant.phone || '-'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Subscription Info */}
+              <div style={{ marginBottom: 24 }}>
+                <h3 style={{ color: '#9ca3af', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Abonnement</h3>
+                
+                {/* Plan Selection */}
+                <p style={{ color: '#6b7280', fontSize: 12, marginBottom: 8 }}>Plan</p>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                  {['starter', 'pro', 'business'].map((plan) => (
+                    <button
+                      key={plan}
+                      onClick={() => updateTenantPlan(selectedTenant, plan)}
+                      style={{
+                        flex: 1,
+                        padding: '12px 16px',
+                        background: selectedTenant.subscription_plan === plan ? '#f97316' : '#0f172a',
+                        border: selectedTenant.subscription_plan === plan ? 'none' : '1px solid #334155',
+                        borderRadius: 8,
+                        color: 'white',
+                        fontSize: 14,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        textTransform: 'capitalize',
+                      }}
+                    >
+                      {plan} €{planPricing[plan]}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Status Selection */}
+                <p style={{ color: '#6b7280', fontSize: 12, marginBottom: 8 }}>Status</p>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                  {['trial', 'active', 'cancelled'].map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => updateTenantStatus(selectedTenant, status)}
+                      style={{
+                        flex: 1,
+                        padding: '10px 16px',
+                        background: selectedTenant.subscription_status === status 
+                          ? status === 'active' ? '#22c55e' : status === 'trial' ? '#f97316' : '#6b7280'
+                          : '#0f172a',
+                        border: selectedTenant.subscription_status === status ? 'none' : '1px solid #334155',
+                        borderRadius: 8,
+                        color: 'white',
+                        fontSize: 13,
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                        textTransform: 'capitalize',
+                      }}
+                    >
+                      {status}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Trial Info */}
+                {selectedTenant.subscription_status === 'trial' && selectedTenant.trial_ends_at && (
+                  <div style={{ 
+                    background: isTrialExpiringSoon(selectedTenant.trial_ends_at) ? '#ef444420' : '#f9731620', 
+                    border: `1px solid ${isTrialExpiringSoon(selectedTenant.trial_ends_at) ? '#ef4444' : '#f97316'}40`,
+                    borderRadius: 8, 
+                    padding: 12,
+                    marginBottom: 16,
+                  }}>
+                    <p style={{ color: isTrialExpiringSoon(selectedTenant.trial_ends_at) ? '#ef4444' : '#f97316', fontSize: 14, margin: 0 }}>
+                      Trial eindigt op {formatDate(selectedTenant.trial_ends_at)} ({getTrialDaysLeft(selectedTenant.trial_ends_at)} dagen)
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Stripe Info */}
+              <div style={{ marginBottom: 24 }}>
+                <h3 style={{ color: '#9ca3af', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Betalingen</h3>
+                {selectedTenant.stripe_customer_id ? (
+                  <a
+                    href={`https://dashboard.stripe.com/customers/${selectedTenant.stripe_customer_id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '12px 16px',
+                      background: '#0f172a',
+                      border: '1px solid #334155',
+                      borderRadius: 8,
+                      color: '#3b82f6',
+                      textDecoration: 'none',
+                      fontSize: 14,
+                    }}
+                  >
+                    <CreditCard size={16} />
+                    Bekijk in Stripe Dashboard
+                    <ExternalLink size={14} style={{ marginLeft: 'auto' }} />
+                  </a>
+                ) : (
+                  <p style={{ color: '#6b7280', fontSize: 14 }}>Geen Stripe account gekoppeld</p>
+                )}
+              </div>
+
+              {/* Technical Info */}
+              <div style={{ marginBottom: 24 }}>
+                <h3 style={{ color: '#9ca3af', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Technisch</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                  <div>
+                    <p style={{ color: '#6b7280', fontSize: 12, marginBottom: 4 }}>Aangemaakt</p>
+                    <p style={{ color: 'white', fontSize: 14, margin: 0 }}>{formatDate(selectedTenant.created_at)}</p>
+                  </div>
+                  <div>
+                    <p style={{ color: '#6b7280', fontSize: 12, marginBottom: 4 }}>ElevenLabs Agent</p>
+                    <p style={{ color: selectedTenant.elevenlabs_agent_id ? '#22c55e' : '#6b7280', fontSize: 14, margin: 0 }}>
+                      {selectedTenant.elevenlabs_agent_id ? 'Actief' : 'Niet geconfigureerd'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button
+                  onClick={() => { toggleBlock(selectedTenant); setSelectedTenant(prev => prev ? { ...prev, blocked: !prev.blocked } : null); }}
+                  style={{
+                    flex: 1,
+                    padding: '14px 24px',
+                    background: selectedTenant.blocked ? '#22c55e' : '#ef4444',
+                    border: 'none',
+                    borderRadius: 8,
+                    color: 'white',
+                    fontSize: 14,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                  }}
+                >
+                  {selectedTenant.blocked ? <Check size={18} /> : <Ban size={18} />}
+                  {selectedTenant.blocked ? 'Deblokkeren' : 'Blokkeren'}
+                </button>
+                <button
+                  onClick={() => { deleteTenant(selectedTenant); setSelectedTenant(null); }}
+                  style={{
+                    padding: '14px 24px',
+                    background: 'transparent',
+                    border: '1px solid #ef4444',
+                    borderRadius: 8,
+                    color: '#ef4444',
+                    fontSize: 14,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                  }}
+                >
+                  <Trash2 size={18} />
+                  Verwijderen
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
