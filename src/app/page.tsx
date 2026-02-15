@@ -2440,15 +2440,16 @@ function PartnersSection() {
         </h2>
       </div>
       
-      <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+      <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', padding: '20px 0' }}>
         <div 
           className="partners-slider"
           style={{ 
             display: 'flex', 
-            gap: 24,
+            gap: 48,
             animation: 'slideLeft 40s linear infinite',
             width: 'fit-content',
             padding: '0 24px',
+            alignItems: 'center',
           }}
         >
           {allPartners.map((partner, i) => (
@@ -2457,14 +2458,11 @@ function PartnersSection() {
               className="partner-card"
               style={{ 
                 flexShrink: 0,
-                width: 300,
-                height: 180,
-                background: 'white',
-                borderRadius: 20,
+                width: 180,
+                height: 100,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: 32,
               }}
             >
               <img 
@@ -2475,6 +2473,8 @@ function PartnersSection() {
                   width: '100%', 
                   height: '100%', 
                   objectFit: 'contain',
+                  filter: 'grayscale(100%) brightness(2)',
+                  opacity: 0.8,
                 }}
               />
             </div>
@@ -2489,14 +2489,13 @@ function PartnersSection() {
         }
         @media (max-width: 768px) {
           .partner-card {
-            min-width: 85vw !important;
-            width: 85vw !important;
-            height: 220px !important;
-            padding: 40px !important;
+            min-width: 200px !important;
+            width: 200px !important;
+            height: 120px !important;
           }
           .partners-slider {
-            gap: 20px !important;
-            padding: 0 16px !important;
+            gap: 40px !important;
+            padding: 0 20px !important;
           }
         }
       `}</style>
