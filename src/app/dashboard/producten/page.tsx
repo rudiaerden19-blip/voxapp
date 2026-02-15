@@ -100,61 +100,40 @@ export default function ProductenPage() {
       
       setBusiness({ id: businessData.id, type: businessData.type });
 
-      // Haal producten direct uit Supabase
-      const { data: productsData, error: productsError } = await supabase
-        .from('menu_items')
-        .select('*')
-        .eq('business_id', businessData.id)
-        .order('sort_order', { ascending: true })
-        .order('name', { ascending: true });
-
-      if (productsError) {
-        console.error('Products error:', productsError);
-      } else if (productsData) {
-        setProducts(productsData.map(p => ({
-          id: p.id,
-          category: p.category || 'Overig',
-          name: p.name,
-          description: p.description || undefined,
-          price: p.price,
-          duration_minutes: p.duration_minutes || undefined,
-          sort_order: p.sort_order,
-          is_available: p.is_available,
-          is_popular: p.is_popular,
-          is_promo: p.is_promo,
-          promo_price: p.promo_price || undefined,
-        })));
+      // Haal producten via admin API (bypass RLS)
+      const productsRes = await fetch(`/api/admin/products?business_id=${businessData.id}`);
+      if (productsRes.ok) {
+        const productsData = await productsRes.json();
+        if (Array.isArray(productsData)) {
+          setProducts(productsData.map(p => ({
+            id: p.id,
+            category: p.category || 'Overig',
+            name: p.name,
+            description: p.description || undefined,
+            price: p.price,
+            duration_minutes: p.duration_minutes || undefined,
+            sort_order: p.sort_order,
+            is_available: p.is_available,
+            is_popular: p.is_popular,
+            is_promo: p.is_promo,
+            promo_price: p.promo_price || undefined,
+          })));
+        }
       }
 
-      // Haal optiegroepen direct uit Supabase
-      const { data: optionsData, error: optionsError } = await supabase
-        .from('option_groups')
-        .select('*')
-        .eq('business_id', businessData.id)
-        .eq('is_active', true)
-        .order('sort_order', { ascending: true });
-      
-      if (optionsError) {
-        console.error('Options error:', optionsError);
-      } else if (optionsData) {
-        // Haal choices voor elke optiegroep
-        const groupsWithChoices = await Promise.all(optionsData.map(async (group) => {
-          const { data: choices } = await supabase
-            .from('option_choices')
-            .select('id, name, price')
-            .eq('option_group_id', group.id)
-            .eq('is_active', true)
-            .order('sort_order', { ascending: true });
-          
-          return {
-            id: group.id,
-            name: group.name,
-            type: group.type as 'single' | 'multiple',
-            required: group.required,
-            choices: choices || [],
-          };
-        }));
-        setOptionGroups(groupsWithChoices);
+      // Haal optiegroepen via admin API (bypass RLS)
+      const optionsRes = await fetch(`/api/admin/options?business_id=${businessData.id}`);
+      if (optionsRes.ok) {
+        const optionsData = await optionsRes.json();
+        if (Array.isArray(optionsData)) {
+          setOptionGroups(optionsData.map(g => ({
+            id: g.id,
+            name: g.name,
+            type: g.type as 'single' | 'multiple',
+            required: g.required,
+            choices: g.choices || [],
+          })));
+        }
       }
     } catch (e) {
       console.error('Failed to load data:', e);
@@ -227,66 +206,32 @@ export default function ProductenPage() {
     setError(null);
 
     try {
-      const supabase = createClient();
-      
-      const productData = {
-        business_id: business.id,
-        category: formData.category || 'Overig',
-        name: formData.name,
-        description: formData.description || null,
-        price: formData.price,
-        duration_minutes: formData.duration_minutes || null,
-        sort_order: formData.sort_order || 0,
-        is_available: formData.is_available ?? true,
-        is_popular: formData.is_popular ?? false,
-        is_promo: formData.is_promo ?? false,
-        promo_price: formData.is_promo ? formData.promo_price : null,
-      };
-
-      let savedProduct;
-      
-      if (editingProduct?.id) {
-        // Update
-        const { data, error } = await supabase
-          .from('menu_items')
-          .update(productData)
-          .eq('id', editingProduct.id)
-          .select()
-          .single();
-        
-        if (error) throw error;
-        savedProduct = data;
-      } else {
-        // Insert
-        const { data, error } = await supabase
-          .from('menu_items')
-          .insert(productData)
-          .select()
-          .single();
-        
-        if (error) throw error;
-        savedProduct = data;
-      }
-
-      // Sla optiekoppelingen op
-      if (savedProduct?.id && selectedOptionIds.length > 0) {
-        // Verwijder oude koppelingen
-        await supabase
-          .from('product_option_links')
-          .delete()
-          .eq('menu_item_id', savedProduct.id);
-        
-        // Voeg nieuwe koppelingen toe
-        const links = selectedOptionIds.map(optionId => ({
-          menu_item_id: savedProduct.id,
-          option_group_id: optionId,
+      // Gebruik admin API (bypass RLS)
+      const res = await fetch('/api/admin/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           business_id: business.id,
-        }));
-        
-        await supabase
-          .from('product_option_links')
-          .insert(links);
+          id: editingProduct?.id,
+          category: formData.category || 'Overig',
+          name: formData.name,
+          description: formData.description || null,
+          price: formData.price,
+          duration_minutes: formData.duration_minutes || null,
+          sort_order: formData.sort_order || 0,
+          is_available: formData.is_available ?? true,
+          is_popular: formData.is_popular ?? false,
+          is_promo: formData.is_promo ?? false,
+          promo_price: formData.is_promo ? formData.promo_price : null,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Opslaan mislukt');
       }
+
+      const savedProduct = await res.json();
 
       // Update lokale state
       const mappedProduct: Product = {
@@ -322,23 +267,14 @@ export default function ProductenPage() {
 
   const handleDelete = async (productId: string) => {
     if (!confirm('Weet je zeker dat je dit product wilt verwijderen?')) return;
+    if (!business) return;
 
     try {
-      const supabase = createClient();
+      const res = await fetch(`/api/admin/products?id=${productId}&business_id=${business.id}`, {
+        method: 'DELETE',
+      });
       
-      // Verwijder eerst optiekoppelingen
-      await supabase
-        .from('product_option_links')
-        .delete()
-        .eq('menu_item_id', productId);
-      
-      // Verwijder product
-      const { error } = await supabase
-        .from('menu_items')
-        .delete()
-        .eq('id', productId);
-      
-      if (error) throw error;
+      if (!res.ok) throw new Error('Verwijderen mislukt');
       
       setProducts(prev => prev.filter(p => p.id !== productId));
       setSuccess('Product verwijderd');
@@ -350,18 +286,23 @@ export default function ProductenPage() {
   };
 
   const toggleAvailable = async (product: Product) => {
-    if (!product.id) return;
+    if (!product.id || !business) return;
     
     try {
-      const supabase = createClient();
       const newAvailable = !product.is_available;
       
-      const { error } = await supabase
-        .from('menu_items')
-        .update({ is_available: newAvailable })
-        .eq('id', product.id);
+      const res = await fetch('/api/admin/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          business_id: business.id,
+          id: product.id,
+          ...product,
+          is_available: newAvailable,
+        }),
+      });
       
-      if (error) throw error;
+      if (!res.ok) throw new Error('Update mislukt');
       
       setProducts(prev => prev.map(p => 
         p.id === product.id ? { ...p, is_available: newAvailable } : p

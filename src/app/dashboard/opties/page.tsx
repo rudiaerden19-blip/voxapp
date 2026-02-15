@@ -78,40 +78,21 @@ export default function OptiesPage() {
       
       setBusiness({ id: businessData.id });
 
-      // Haal optiegroepen op
-      const { data: groups, error: groupsError } = await supabase
-        .from('option_groups')
-        .select('*')
-        .eq('business_id', businessData.id)
-        .eq('is_active', true)
-        .order('sort_order', { ascending: true });
-
-      if (groupsError) {
-        console.error('Groups error:', groupsError);
-        setError('Kon opties niet laden');
-        return;
+      // Haal optiegroepen via admin API (bypass RLS)
+      const optionsRes = await fetch(`/api/admin/options?business_id=${businessData.id}`);
+      if (optionsRes.ok) {
+        const optionsData = await optionsRes.json();
+        if (Array.isArray(optionsData)) {
+          setOptionGroups(optionsData.map(g => ({
+            id: g.id,
+            name: g.name,
+            type: g.type as 'single' | 'multiple',
+            required: g.required,
+            sort_order: g.sort_order,
+            choices: g.choices || [],
+          })));
+        }
       }
-
-      // Haal choices voor elke groep
-      const groupsWithChoices = await Promise.all((groups || []).map(async (group) => {
-        const { data: choices } = await supabase
-          .from('option_choices')
-          .select('id, name, price, sort_order')
-          .eq('option_group_id', group.id)
-          .eq('is_active', true)
-          .order('sort_order', { ascending: true });
-        
-        return {
-          id: group.id,
-          name: group.name,
-          type: group.type as 'single' | 'multiple',
-          required: group.required,
-          sort_order: group.sort_order,
-          choices: choices || [],
-        };
-      }));
-      
-      setOptionGroups(groupsWithChoices);
     } catch (e) {
       console.error('Failed to load options:', e);
       setError('Kon opties niet laden');
@@ -188,66 +169,27 @@ export default function OptiesPage() {
     setError(null);
 
     try {
-      const supabase = createClient();
-      
-      let savedGroup;
-      
-      if (editingGroup?.id) {
-        // Update bestaande groep
-        const { data, error } = await supabase
-          .from('option_groups')
-          .update({
-            name: formData.name,
-            type: formData.type,
-            required: formData.required,
-            sort_order: formData.sort_order || 0,
-          })
-          .eq('id', editingGroup.id)
-          .select()
-          .single();
-        
-        if (error) throw error;
-        savedGroup = data;
-        
-        // Verwijder oude choices
-        await supabase
-          .from('option_choices')
-          .delete()
-          .eq('option_group_id', editingGroup.id);
-      } else {
-        // Maak nieuwe groep
-        const { data, error } = await supabase
-          .from('option_groups')
-          .insert({
-            business_id: business.id,
-            name: formData.name,
-            type: formData.type,
-            required: formData.required,
-            sort_order: formData.sort_order || 0,
-            is_active: true,
-          })
-          .select()
-          .single();
-        
-        if (error) throw error;
-        savedGroup = data;
+      // Gebruik admin API (bypass RLS)
+      const res = await fetch('/api/admin/options', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          business_id: business.id,
+          id: editingGroup?.id,
+          name: formData.name,
+          type: formData.type,
+          required: formData.required,
+          sort_order: formData.sort_order || 0,
+          choices: validChoices,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Opslaan mislukt');
       }
 
-      // Voeg choices toe
-      if (savedGroup && validChoices.length > 0) {
-        const choicesData = validChoices.map((choice, index) => ({
-          option_group_id: savedGroup.id,
-          business_id: business.id,
-          name: choice.name,
-          price: choice.price || 0,
-          sort_order: index,
-          is_active: true,
-        }));
-        
-        await supabase
-          .from('option_choices')
-          .insert(choicesData);
-      }
+      const savedGroup = await res.json();
 
       // Update lokale state
       const updatedGroup: OptionGroup = {
@@ -256,7 +198,7 @@ export default function OptiesPage() {
         type: savedGroup.type as 'single' | 'multiple',
         required: savedGroup.required,
         sort_order: savedGroup.sort_order,
-        choices: validChoices,
+        choices: savedGroup.choices || validChoices,
       };
       
       if (editingGroup) {
@@ -278,29 +220,14 @@ export default function OptiesPage() {
 
   const handleDelete = async (groupId: string) => {
     if (!confirm('Weet je zeker dat je deze optiegroep wilt verwijderen?')) return;
+    if (!business) return;
 
     try {
-      const supabase = createClient();
+      const res = await fetch(`/api/admin/options?id=${groupId}&business_id=${business.id}`, {
+        method: 'DELETE',
+      });
       
-      // Verwijder eerst de choices
-      await supabase
-        .from('option_choices')
-        .delete()
-        .eq('option_group_id', groupId);
-      
-      // Verwijder product-optie koppelingen
-      await supabase
-        .from('product_option_links')
-        .delete()
-        .eq('option_group_id', groupId);
-      
-      // Verwijder de groep
-      const { error } = await supabase
-        .from('option_groups')
-        .delete()
-        .eq('id', groupId);
-      
-      if (error) throw error;
+      if (!res.ok) throw new Error('Verwijderen mislukt');
       
       setOptionGroups(prev => prev.filter(g => g.id !== groupId));
       setSuccess('Optiegroep verwijderd');
