@@ -112,15 +112,25 @@ export async function DELETE(request: NextRequest) {
   }
 }
 
-// GET - Get all tenants
-export async function GET() {
+// GET - Get all tenants or single tenant by ID
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    
     const supabase = createAdminClient();
 
-    const { data, error } = await supabase
-      .from('businesses')
-      .select('*')
-      .order('created_at', { ascending: false });
+    let query = supabase.from('businesses').select('*');
+    
+    if (id) {
+      // Get single tenant by ID
+      query = query.eq('id', id);
+    } else {
+      // Get all tenants
+      query = query.order('created_at', { ascending: false });
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('Get tenants error:', error);
