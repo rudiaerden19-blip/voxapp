@@ -1,53 +1,43 @@
 import { NextResponse } from 'next/server';
 
+// Curated multilingual voices for NL/FR/DE/EN
+const multilingualVoices = [
+  // Nederlands / Belgisch
+  { voice_id: 'pFZP5JQG7iQjIQuC4Bku', name: 'Lily', labels: { accent: 'Nederlands', gender: 'female', language: 'NL' } },
+  { voice_id: 'XB0fDUnXU5powFXDhCwa', name: 'Charlotte', labels: { accent: 'Nederlands', gender: 'female', language: 'NL' } },
+  { voice_id: 'IKne3meq5aSn9XLyUdCD', name: 'Charlie', labels: { accent: 'Nederlands', gender: 'male', language: 'NL' } },
+  { voice_id: 'JBFqnCBsd6RMkjVDRZzb', name: 'George', labels: { accent: 'Nederlands', gender: 'male', language: 'NL' } },
+  
+  // Frans / Belgisch Frans
+  { voice_id: 'XrExE9yKIg1WjnnlVkGX', name: 'Matilda', labels: { accent: 'Frans', gender: 'female', language: 'FR' } },
+  { voice_id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah', labels: { accent: 'Frans', gender: 'female', language: 'FR' } },
+  { voice_id: 'CYw3kZ02Hs0563khs1Fj', name: 'Dave', labels: { accent: 'Frans', gender: 'male', language: 'FR' } },
+  { voice_id: 'TX3LPaxmHKxFdv7VOQHJ', name: 'Liam', labels: { accent: 'Frans', gender: 'male', language: 'FR' } },
+  
+  // Duits
+  { voice_id: 'ThT5KcBeYPX3keUQqHPh', name: 'Dorothy', labels: { accent: 'Duits', gender: 'female', language: 'DE' } },
+  { voice_id: 'AZnzlk1XvdvUeBnXmlld', name: 'Domi', labels: { accent: 'Duits', gender: 'female', language: 'DE' } },
+  { voice_id: 'VR6AewLTigWG4xSOukaG', name: 'Arnold', labels: { accent: 'Duits', gender: 'male', language: 'DE' } },
+  { voice_id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam', labels: { accent: 'Duits', gender: 'male', language: 'DE' } },
+  
+  // Engels
+  { voice_id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel', labels: { accent: 'Engels (US)', gender: 'female', language: 'EN' } },
+  { voice_id: 'onwK4e9ZLuTAKqWW03F9', name: 'Daniel', labels: { accent: 'Engels (UK)', gender: 'male', language: 'EN' } },
+  { voice_id: 'N2lVS1w4EtoT3dr4eOWO', name: 'Callum', labels: { accent: 'Engels (UK)', gender: 'male', language: 'EN' } },
+  { voice_id: 'ErXwobaYiN019PkySvjV', name: 'Antoni', labels: { accent: 'Engels (US)', gender: 'male', language: 'EN' } },
+];
+
 // GET - Fetch ElevenLabs voices
 export async function GET() {
   try {
     const apiKey = process.env.ELEVENLABS_API_KEY;
     
-    if (!apiKey) {
-      // Return default voices if no API key
-      return NextResponse.json([
-        { voice_id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah', labels: { accent: 'American', gender: 'female' } },
-        { voice_id: 'TX3LPaxmHKxFdv7VOQHJ', name: 'Liam', labels: { accent: 'American', gender: 'male' } },
-        { voice_id: 'XB0fDUnXU5powFXDhCwa', name: 'Charlotte', labels: { accent: 'British', gender: 'female' } },
-        { voice_id: 'pFZP5JQG7iQjIQuC4Bku', name: 'Lily', labels: { accent: 'British', gender: 'female' } },
-        { voice_id: 'onwK4e9ZLuTAKqWW03F9', name: 'Daniel', labels: { accent: 'British', gender: 'male' } },
-        { voice_id: 'N2lVS1w4EtoT3dr4eOWO', name: 'Callum', labels: { accent: 'British', gender: 'male' } },
-      ]);
-    }
-
-    const response = await fetch('https://api.elevenlabs.io/v1/voices', {
-      headers: {
-        'xi-api-key': apiKey,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch voices');
-    }
-
-    const data = await response.json();
+    // Always return curated multilingual voices
+    // These work with eleven_multilingual_v2 model for all languages
+    return NextResponse.json(multilingualVoices);
     
-    // Filter for multilingual voices (better for Dutch/French/German)
-    const voices = data.voices
-      .filter((v: { category?: string }) => v.category === 'premade' || v.category === 'professional')
-      .slice(0, 12) // Limit to 12 voices
-      .map((v: { voice_id: string; name: string; labels?: { accent?: string; gender?: string } }) => ({
-        voice_id: v.voice_id,
-        name: v.name,
-        labels: v.labels || {},
-      }));
-
-    return NextResponse.json(voices);
   } catch (error) {
     console.error('ElevenLabs API error:', error);
-    // Return fallback voices
-    return NextResponse.json([
-      { voice_id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah', labels: { accent: 'American', gender: 'female' } },
-      { voice_id: 'TX3LPaxmHKxFdv7VOQHJ', name: 'Liam', labels: { accent: 'American', gender: 'male' } },
-      { voice_id: 'XB0fDUnXU5powFXDhCwa', name: 'Charlotte', labels: { accent: 'British', gender: 'female' } },
-      { voice_id: 'onwK4e9ZLuTAKqWW03F9', name: 'Daniel', labels: { accent: 'British', gender: 'male' } },
-    ]);
+    return NextResponse.json(multilingualVoices);
   }
 }

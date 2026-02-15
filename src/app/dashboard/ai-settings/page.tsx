@@ -38,6 +38,7 @@ interface ElevenLabsVoice {
     accent?: string;
     gender?: string;
     description?: string;
+    language?: string;
   };
 }
 
@@ -83,6 +84,52 @@ const brancheTemplates: Record<string, { greeting: string; capabilities: string;
     style: 'Professioneel en vriendelijk. Pas je aan de toon van de beller aan.',
   },
 };
+
+// Voice card component
+interface VoiceCardProps {
+  voice: ElevenLabsVoice;
+  config: { voice_id: string };
+  setConfig: (config: { voice_id: string } | ((prev: { voice_id: string }) => { voice_id: string })) => void;
+  playVoiceSample: (voiceId: string) => void;
+  playingVoice: string | null;
+}
+
+function VoiceCard({ voice, config, setConfig, playVoiceSample, playingVoice }: VoiceCardProps) {
+  return (
+    <div
+      onClick={() => setConfig((prev: { voice_id: string }) => ({ ...prev, voice_id: voice.voice_id }))}
+      style={{
+        padding: 14, borderRadius: 12, cursor: 'pointer',
+        background: config.voice_id === voice.voice_id ? 'rgba(249, 115, 22, 0.15)' : '#0a0a0f',
+        border: config.voice_id === voice.voice_id ? '2px solid #f97316' : '1px solid #2a2a35',
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 6 }}>
+        <div>
+          <p style={{ color: 'white', fontWeight: 600, marginBottom: 2, fontSize: 14 }}>{voice.name}</p>
+          <p style={{ color: '#6b7280', fontSize: 11 }}>
+            {voice.labels.gender === 'female' ? 'Vrouw' : 'Man'}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); playVoiceSample(voice.voice_id); }}
+          style={{
+            background: 'rgba(249, 115, 22, 0.15)', border: 'none', borderRadius: 6,
+            padding: 6, color: '#f97316', cursor: 'pointer',
+          }}
+        >
+          {playingVoice === voice.voice_id ? <Volume2 size={14} /> : <Play size={14} />}
+        </button>
+      </div>
+      {config.voice_id === voice.voice_id && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#f97316', fontSize: 11 }}>
+          <Check size={12} /> Geselecteerd
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function AISettingsPage() {
   const { t, language } = useLanguage();
@@ -345,47 +392,47 @@ export default function AISettingsPage() {
           <h2 style={{ color: 'white', fontSize: 18, fontWeight: 600, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
             <Mic size={20} style={{ color: '#f97316' }} /> Stem kiezen
           </h2>
+          <p style={{ color: '#6b7280', fontSize: 14, marginBottom: 20 }}>
+            ElevenLabs stemmen - alle stemmen spreken Nederlands, Frans, Duits en Engels
+          </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
-            {voices.length === 0 ? (
-              <p style={{ color: '#6b7280' }}>Stemmen laden...</p>
-            ) : voices.map(voice => (
-              <div
-                key={voice.voice_id}
-                onClick={() => setConfig({ ...config, voice_id: voice.voice_id })}
-                style={{
-                  padding: 16, borderRadius: 12, cursor: 'pointer',
-                  background: config.voice_id === voice.voice_id ? 'rgba(249, 115, 22, 0.15)' : '#0a0a0f',
-                  border: config.voice_id === voice.voice_id ? '2px solid #f97316' : '1px solid #2a2a35',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 8 }}>
-                  <div>
-                    <p style={{ color: 'white', fontWeight: 600, marginBottom: 4 }}>{voice.name}</p>
-                    <p style={{ color: '#6b7280', fontSize: 12 }}>
-                      {voice.labels.gender === 'female' ? 'Vrouw' : voice.labels.gender === 'male' ? 'Man' : ''} 
-                      {voice.labels.accent ? ` • ${voice.labels.accent}` : ''}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); playVoiceSample(voice.voice_id); }}
-                    style={{
-                      background: 'rgba(249, 115, 22, 0.15)', border: 'none', borderRadius: 6,
-                      padding: 8, color: '#f97316', cursor: 'pointer',
-                    }}
-                  >
-                    {playingVoice === voice.voice_id ? <Volume2 size={16} /> : <Play size={16} />}
-                  </button>
-                </div>
-                {config.voice_id === voice.voice_id && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#f97316', fontSize: 12 }}>
-                    <Check size={14} /> Geselecteerd
-                  </div>
-                )}
+          {voices.length === 0 ? (
+            <p style={{ color: '#6b7280' }}>Stemmen laden...</p>
+          ) : (
+            <>
+              {/* Nederlands */}
+              <h3 style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 12, marginTop: 16 }}>🇳🇱 Nederlands</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12, marginBottom: 20 }}>
+                {voices.filter(v => v.labels.language === 'NL').map(voice => (
+                  <VoiceCard key={voice.voice_id} voice={voice} config={config} setConfig={setConfig} playVoiceSample={playVoiceSample} playingVoice={playingVoice} />
+                ))}
               </div>
-            ))}
-          </div>
+
+              {/* Frans */}
+              <h3 style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 12 }}>🇫🇷 Frans</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12, marginBottom: 20 }}>
+                {voices.filter(v => v.labels.language === 'FR').map(voice => (
+                  <VoiceCard key={voice.voice_id} voice={voice} config={config} setConfig={setConfig} playVoiceSample={playVoiceSample} playingVoice={playingVoice} />
+                ))}
+              </div>
+
+              {/* Duits */}
+              <h3 style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 12 }}>🇩🇪 Duits</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12, marginBottom: 20 }}>
+                {voices.filter(v => v.labels.language === 'DE').map(voice => (
+                  <VoiceCard key={voice.voice_id} voice={voice} config={config} setConfig={setConfig} playVoiceSample={playVoiceSample} playingVoice={playingVoice} />
+                ))}
+              </div>
+
+              {/* Engels */}
+              <h3 style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 12 }}>🇬🇧 Engels</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
+                {voices.filter(v => v.labels.language === 'EN').map(voice => (
+                  <VoiceCard key={voice.voice_id} voice={voice} config={config} setConfig={setConfig} playVoiceSample={playVoiceSample} playingVoice={playingVoice} />
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Receptie Gedrag */}
