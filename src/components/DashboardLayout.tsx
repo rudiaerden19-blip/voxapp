@@ -49,19 +49,16 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     const supabase = createClient();
     const adminViewId = searchParams.get('admin_view');
     
-    // Check if admin is viewing a tenant dashboard
+    // Check if admin is viewing a tenant dashboard (via URL parameter)
     if (adminViewId) {
-      const adminSession = typeof window !== 'undefined' ? localStorage.getItem('voxapp_admin_session') : null;
-      if (adminSession === 'true') {
-        // Admin viewing tenant - load tenant data directly
-        const { data: businessData } = await supabase.from('businesses').select('*').eq('id', adminViewId).single();
-        if (businessData) {
-          setBusiness(businessData as Business);
-          setIsAdminView(true);
-        }
-        setLoading(false);
-        return;
+      // Load tenant directly by ID
+      const { data: businessData } = await supabase.from('businesses').select('*').eq('id', adminViewId).single();
+      if (businessData) {
+        setBusiness(businessData as Business);
+        setIsAdminView(true);
       }
+      setLoading(false);
+      return;
     }
     
     // Normal user auth flow

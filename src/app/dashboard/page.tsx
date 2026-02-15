@@ -53,24 +53,21 @@ function DashboardContent() {
     let businessId: string | null = null;
     let businessNameValue: string = '';
 
-    // Check if admin is viewing a tenant
+    // Check if admin is viewing a tenant (via URL parameter)
     if (adminViewId) {
-      const adminSession = typeof window !== 'undefined' ? localStorage.getItem('voxapp_admin_session') : null;
-      if (adminSession === 'true') {
-        // Admin viewing tenant dashboard
-        const { data: businessData } = await supabase
-          .from('businesses')
-          .select('*')
-          .eq('id', adminViewId)
-          .single();
-        
-        if (businessData) {
-          const biz = businessData as { id: string; name: string };
-          businessId = biz.id;
-          businessNameValue = biz.name || '';
-          setBusinessName(businessNameValue);
-          setIsAdminView(true);
-        }
+      // Load tenant directly by ID
+      const { data: businessData } = await supabase
+        .from('businesses')
+        .select('*')
+        .eq('id', adminViewId)
+        .single();
+      
+      if (businessData) {
+        const biz = businessData as { id: string; name: string };
+        businessId = biz.id;
+        businessNameValue = biz.name || '';
+        setBusinessName(businessNameValue);
+        setIsAdminView(true);
       }
     }
     
