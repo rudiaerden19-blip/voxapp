@@ -53,10 +53,15 @@ export async function POST(request: NextRequest) {
 
     const supabase = createAdminClient();
 
+    // Capitalize first letter
+    const capitalizedName = productData.name 
+      ? productData.name.charAt(0).toUpperCase() + productData.name.slice(1)
+      : '';
+
     const data = {
       business_id,
       category: productData.category || 'Overig',
-      name: productData.name,
+      name: capitalizedName,
       description: productData.description || null,
       price: productData.price || 0,
       duration_minutes: productData.duration_minutes || null,
