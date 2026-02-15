@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { createClient } from '@/lib/supabase';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -32,7 +32,7 @@ const languages: { code: Language; label: string; flag: string }[] = [
   { code: 'de', label: 'Deutsch', flag: '🇩🇪' },
 ];
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const { t, language, setLanguage } = useLanguage();
   const [business, setBusiness] = useState<Business | null>(null);
   const [loading, setLoading] = useState(true);
@@ -213,5 +213,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         @media (max-width: 1023px) { .main-content { margin-left: 0 !important; } .mobile-header { display: flex !important; } }
       `}</style>
     </div>
+  );
+}
+
+// Loading fallback for dashboard
+function DashboardLoadingFallback() {
+  return (
+    <div style={{ minHeight: '100vh', background: '#0a0a0f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ color: '#9ca3af' }}>Laden...</div>
+    </div>
+  );
+}
+
+// Main export with Suspense wrapper
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={<DashboardLoadingFallback />}>
+      <DashboardLayoutInner>{children}</DashboardLayoutInner>
+    </Suspense>
   );
 }
