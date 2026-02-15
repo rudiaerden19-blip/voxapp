@@ -575,14 +575,12 @@ export default function AISettingsPage() {
     
     const voice = voices.find(v => v.voice_id === voiceId);
     
-    if (!voice?.preview_url) {
-      console.error('No preview URL for voice:', voiceId);
-      return;
-    }
-    
     setPlayingVoice(voiceId);
     
-    const audio = new Audio(voice.preview_url);
+    // Use preview_url if available, otherwise generate via our API
+    const audioUrl = voice?.preview_url || `/api/elevenlabs/preview?voice_id=${voiceId}`;
+    
+    const audio = new Audio(audioUrl);
     setAudioElement(audio);
     audio.onended = () => setPlayingVoice(null);
     audio.onerror = () => {
