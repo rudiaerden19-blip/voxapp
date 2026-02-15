@@ -231,7 +231,12 @@ export default function AISettingsPage() {
         .order('name');
       
       if (error) throw error;
-      setMenuItems(data || []);
+      // Ensure category is never null
+      setMenuItems((data || []).map(item => ({
+        ...item,
+        category: item.category || 'Overig',
+        description: item.description || undefined,
+      })));
     } catch (e) {
       console.error('Failed to load menu items:', e);
     } finally {
