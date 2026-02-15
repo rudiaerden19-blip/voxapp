@@ -383,7 +383,7 @@ export const BUSINESS_TYPES: Record<string, BusinessTypeConfig> = {
     name: 'Overig',
     icon: '🏢',
     category: 'overig',
-    modules: ['appointments', 'menu'],
+    modules: ['appointments', 'staff'],
     aiContext: 'Je bent een vriendelijke receptionist. Je helpt klanten met afspraken en algemene vragen over het bedrijf.',
     terminology: { product: 'product', products: 'producten', appointment: 'afspraak', customer: 'klant' },
   },
