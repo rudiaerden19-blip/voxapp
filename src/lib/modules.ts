@@ -268,7 +268,7 @@ export const BUSINESS_TYPES: Record<string, BusinessTypeConfig> = {
     icon: '🏥',
     category: 'zorg',
     modules: ['appointments', 'staff'],
-    aiContext: 'Je bent receptionist van een ziekenhuis. Stel ALLEEN deze vragen: 1) Wat is uw voor- en achternaam? 2) Wat is uw telefoonnummer? 3) Wanneer wilt u langskomen? 4) Wat is de reden van uw bezoek? Als het te ingewikkeld wordt, zeg: "Ik ga u doorverbinden met een medewerker." Zeg NIETS anders.',
+    aiContext: 'Je bent een vriendelijke en behulpzame receptionist van een ziekenhuis. Wees warm en professioneel. Bij afspraken vraag je: naam, telefoonnummer, gewenste datum/tijd, en reden van bezoek. Bij vragen over adres/locatie: geef het echte adres. Bij vragen over openingsuren: geef de echte tijden. Bij verzetten: "Ja natuurlijk, mag ik uw naam en telefoonnummer?" Als iets complex is: "Ik verbind u door met een collega."',
     terminology: { product: 'onderzoek', products: 'onderzoeken', appointment: 'afspraak', customer: 'patiënt' },
   },
   tandarts: {
@@ -277,7 +277,7 @@ export const BUSINESS_TYPES: Record<string, BusinessTypeConfig> = {
     icon: '🦷',
     category: 'zorg',
     modules: ['appointments', 'staff'],
-    aiContext: 'Je bent receptionist van een tandartspraktijk. Stel ALLEEN deze vragen: 1) Wat is uw voor- en achternaam? 2) Wat is uw telefoonnummer? 3) Wanneer wilt u langskomen? 4) Wat is de reden van uw bezoek? Als het te ingewikkeld wordt, zeg: "Ik ga u doorverbinden met een medewerker." Zeg NIETS anders.',
+    aiContext: 'Je bent een vriendelijke receptionist van een tandartspraktijk. Wees warm en behulpzaam. Bij afspraken vraag je: naam, telefoonnummer, gewenste datum/tijd. Bij vragen over adres: geef het echte adres. Bij openingsuren: geef de echte tijden. Bij verzetten: "Ja hoor, mag ik uw naam en telefoonnummer?" Bij tandpijn: toon begrip en probeer snel een afspraak te regelen.',
     terminology: { product: 'behandeling', products: 'behandelingen', appointment: 'afspraak', customer: 'patiënt' },
   },
   dokter: {
@@ -286,7 +286,7 @@ export const BUSINESS_TYPES: Record<string, BusinessTypeConfig> = {
     icon: '👨‍⚕️',
     category: 'zorg',
     modules: ['appointments', 'staff'],
-    aiContext: 'Je bent receptionist van een dokterspraktijk. Stel ALLEEN deze vragen: 1) Wat is uw voor- en achternaam? 2) Wat is uw telefoonnummer? 3) Wanneer wilt u langskomen? 4) Wat is de reden van uw bezoek? Als het te ingewikkeld wordt, zeg: "Ik ga u doorverbinden met een medewerker." Zeg NIETS anders.',
+    aiContext: 'Je bent een vriendelijke en behulpzame receptionist van een dokterspraktijk. Wees warm en professioneel. Bij afspraken vraag je: naam, telefoonnummer, gewenste datum/tijd, en reden van bezoek. Bij vragen over adres/locatie: geef het echte adres van de praktijk. Bij vragen over openingsuren: geef de echte openingstijden. Bij het verzetten van afspraken: zeg "Ja natuurlijk, mag ik uw naam en telefoonnummer?" Als iets te complex is: "Ik verbind u door met een collega die u verder kan helpen."',
     terminology: { appointment: 'consult', customer: 'patiënt' },
   },
   opticien: {
@@ -295,7 +295,7 @@ export const BUSINESS_TYPES: Record<string, BusinessTypeConfig> = {
     icon: '👓',
     category: 'zorg',
     modules: ['appointments', 'staff'],
-    aiContext: 'Je bent receptionist bij een opticien. Stel ALLEEN deze vragen: 1) Wat is uw voor- en achternaam? 2) Wat is uw telefoonnummer? 3) Wanneer wilt u langskomen? 4) Wat is de reden van uw bezoek? Als het te ingewikkeld wordt, zeg: "Ik ga u doorverbinden met een medewerker." Zeg NIETS anders.',
+    aiContext: 'Je bent een vriendelijke medewerker van een opticien. Wees behulpzaam en deskundig. Bij afspraken voor oogmeting vraag je: naam, telefoonnummer, gewenste datum/tijd. Bij vragen over adres: geef het echte adres. Bij openingsuren: geef de echte tijden. Help actief met vragen over brillen, lenzen en oogmetingen.',
     terminology: { product: 'product', products: 'producten', appointment: 'afspraak', customer: 'klant' },
   },
   dierenkliniek: {
@@ -304,7 +304,7 @@ export const BUSINESS_TYPES: Record<string, BusinessTypeConfig> = {
     icon: '🐕',
     category: 'zorg',
     modules: ['appointments', 'staff'],
-    aiContext: 'Je bent receptionist van een dierenkliniek. Stel ALLEEN deze vragen: 1) Wat is uw voor- en achternaam? 2) Wat is uw telefoonnummer? 3) Wanneer wilt u langskomen? 4) Wat is de reden van uw bezoek? Als het te ingewikkeld wordt, zeg: "Ik ga u doorverbinden met een medewerker." Zeg NIETS anders.',
+    aiContext: 'Je bent een warme en dierenvriendelijke receptionist van een dierenkliniek. Help baasjes actief. Bij afspraken vraag je: naam baasje, naam en soort dier, telefoonnummer, gewenste datum/tijd, klacht of reden. Geef het echte adres en openingstijden. Bij spoed: toon begrip en plan direct in. Je handelt alles zelf af.',
     terminology: { appointment: 'afspraak', customer: 'baasje' },
   },
 
@@ -324,7 +324,7 @@ export const BUSINESS_TYPES: Record<string, BusinessTypeConfig> = {
     icon: '🔧',
     category: 'diensten',
     modules: ['appointments', 'workorders'],
-    aiContext: 'Je bent receptionist van een loodgietersbedrijf. Stel ALLEEN deze vragen: 1) Wat is uw voor- en achternaam? 2) Wat is uw telefoonnummer? 3) Wanneer wilt u dat we langskomen? 4) Wat is het probleem? Als het te ingewikkeld wordt, zeg: "Ik ga u doorverbinden met een medewerker." Zeg NIETS anders.',
+    aiContext: 'Je bent een behulpzame receptionist van een loodgietersbedrijf. Bij problemen toon begrip en handel snel. Vraag: naam, adres waar we moeten komen, telefoonnummer, beschrijving van het probleem, wanneer we kunnen langskomen. Bij spoed (waterlek, gaslek): prioriteit geven en snel inplannen. Geef echte bedrijfsinfo. Je regelt alles zelf.',
     terminology: { appointment: 'afspraak', customer: 'klant' },
   },
   schoonmaak: {
@@ -342,7 +342,7 @@ export const BUSINESS_TYPES: Record<string, BusinessTypeConfig> = {
     icon: '⚖️',
     category: 'diensten',
     modules: ['appointments', 'staff'],
-    aiContext: 'Je bent receptionist van een advocatenkantoor. Stel ALLEEN deze vragen: 1) Wat is uw voor- en achternaam? 2) Wat is uw telefoonnummer? 3) Wanneer wilt u langskomen? 4) Wat is de reden van uw bezoek? Als het te ingewikkeld wordt, zeg: "Ik ga u doorverbinden met een medewerker." Zeg NIETS anders.',
+    aiContext: 'Je bent een professionele en discrete receptionist van een advocatenkantoor. Wees kalm en behulpzaam. Bij afspraken vraag je: naam, telefoonnummer, kort waar het over gaat (zonder details te eisen), gewenste datum/tijd. Geef het echte adres en kantooruren. Je handelt alles zelf af en bent discreet over de aard van zaken.',
     terminology: { appointment: 'consult', customer: 'cliënt' },
   },
   boekhouder: {
@@ -351,7 +351,7 @@ export const BUSINESS_TYPES: Record<string, BusinessTypeConfig> = {
     icon: '📊',
     category: 'diensten',
     modules: ['appointments', 'staff'],
-    aiContext: 'Je bent receptionist van een boekhoudkantoor. Stel ALLEEN deze vragen: 1) Wat is uw voor- en achternaam? 2) Wat is uw telefoonnummer? 3) Wanneer wilt u langskomen? 4) Wat is de reden van uw bezoek? Als het te ingewikkeld wordt, zeg: "Ik ga u doorverbinden met een medewerker." Zeg NIETS anders.',
+    aiContext: 'Je bent een vriendelijke receptionist van een boekhoudkantoor. Wees behulpzaam en professioneel. Bij afspraken vraag je: naam, bedrijfsnaam indien van toepassing, telefoonnummer, waar u hulp bij nodig heeft, gewenste datum/tijd. Geef het echte adres en kantooruren. Je handelt alles zelf af. Ken de diensten: belastingaangifte, BTW, boekhouding, jaarrekening.',
     terminology: { appointment: 'afspraak', customer: 'klant' },
   },
 
@@ -478,26 +478,128 @@ export function getFAQTemplate(businessType: string): Array<{ question: string; 
   // Medische praktijken (dokter, ziekenhuis)
   if (typeId === 'dokter' || typeId === 'ziekenhuis') {
     return [
+      // Algemeen & Contact
       { question: 'Wat zijn jullie openingsuren?', answer: 'Onze openingsuren vindt u op onze website of vraag aan de receptie.' },
+      { question: 'Waar zijn jullie gevestigd?', answer: 'Ons adres vindt u op onze website of vraag de receptie.' },
+      { question: 'Wat is het telefoonnummer?', answer: 'Ons telefoonnummer staat op de website en uw afspraakbevestiging.' },
+      { question: 'Hebben jullie een e-mailadres?', answer: 'Ja, u kunt ons e-mailen voor niet-dringende vragen.' },
+      { question: 'Zijn jullie op zaterdag open?', answer: 'Neem contact op voor onze weekenduren.' },
+      { question: 'Zijn jullie op zondag open?', answer: 'Zondag zijn we gesloten, bij spoed bel de huisartsenpost.' },
+      { question: 'Zijn jullie op feestdagen open?', answer: 'Op feestdagen zijn we gesloten, bij spoed bel de huisartsenpost.' },
+      { question: 'Is er parkeergelegenheid?', answer: 'Ja, er is parking beschikbaar voor patiënten.' },
+      { question: 'Moet ik betalen voor parkeren?', answer: 'Neem contact op voor informatie over parkeertarieven.' },
+      { question: 'Zijn jullie rolstoeltoegankelijk?', answer: 'Ja, onze praktijk is volledig toegankelijk.' },
+      { question: 'Is er een lift aanwezig?', answer: 'Ja, onze praktijk is toegankelijk voor minder mobiele patiënten.' },
+      { question: 'Kan ik met het openbaar vervoer komen?', answer: 'Ja, er zijn bushaltes en/of treinstations in de buurt.' },
+      { question: 'Hebben jullie een website?', answer: 'Ja, alle informatie vindt u op onze website.' },
+      { question: 'Zijn jullie op sociale media?', answer: 'Ja, volg ons voor updates en gezondheidstips.' },
+      
+      // Afspraken maken
       { question: 'Hoe maak ik een afspraak?', answer: 'U kunt telefonisch of online een afspraak maken.' },
+      { question: 'Kan ik online een afspraak maken?', answer: 'Ja, via onze website of patiëntenportaal.' },
       { question: 'Kan ik dezelfde dag nog terecht?', answer: 'Voor dringende zaken proberen we u dezelfde dag te helpen.' },
+      { question: 'Hoe lang van tevoren moet ik bellen?', answer: 'Voor niet-dringende zaken adviseren we een paar dagen vooruit.' },
+      { question: 'Kan ik een afspraak maken voor iemand anders?', answer: 'Ja, met toestemming van de patiënt.' },
+      { question: 'Kan ik een dubbele afspraak maken?', answer: 'Ja, voor meerdere klachten kunt u een langere afspraak vragen.' },
+      { question: 'Kan ik een afspraak maken voor mijn kind?', answer: 'Ja, kinderen zijn welkom met een ouder/voogd.' },
+      { question: 'Wat als ik te laat kom?', answer: 'Bel ons, we bekijken of het consult nog door kan gaan.' },
+      { question: 'Hoe lang duurt een consult?', answer: 'Een standaard consult duurt 15-20 minuten.' },
+      { question: 'Kan ik een langere afspraak maken?', answer: 'Ja, geef dit aan bij het maken van de afspraak.' },
+      
+      // Afspraken wijzigen/annuleren
       { question: 'Hoe verzet ik mijn afspraak?', answer: 'Bel minstens 24 uur van tevoren om te verzetten.' },
+      { question: 'Hoe annuleer ik mijn afspraak?', answer: 'Bel minstens 24 uur van tevoren om te annuleren.' },
+      { question: 'Zijn er kosten voor annuleren?', answer: 'Bij te laat annuleren kunnen kosten in rekening worden gebracht.' },
+      { question: 'Krijg ik een herinnering voor mijn afspraak?', answer: 'Ja, u ontvangt een sms of e-mail herinnering.' },
+      
+      // Spoed & Buiten kantooruren
       { question: 'Wat doe ik bij spoed?', answer: 'Bij levensbedreigende situaties bel 112. Anders bel de praktijk.' },
+      { question: 'Wanneer moet ik 112 bellen?', answer: 'Bij bewusteloosheid, hartklachten, ernstige ademhalingsproblemen, zware bloedingen.' },
+      { question: 'Wat is het nummer van de huisartsenpost?', answer: 'Het nummer vindt u op onze website of voicemail buiten kantooruren.' },
+      { question: 'Wanneer is de huisartsenpost open?', answer: 'Avonden, nachten, weekenden en feestdagen.' },
+      { question: 'Wat doe ik bij klachten buiten kantooruren?', answer: 'Bel de huisartsenpost of bij spoed 112.' },
+      { question: 'Doen jullie avondspreekuur?', answer: 'Neem contact op voor informatie over avondspreekuren.' },
+      
+      // Huisbezoeken
       { question: 'Doen jullie huisbezoeken?', answer: 'Ja, voor patiënten die niet kunnen komen. Bel voor 10u.' },
-      { question: 'Hoe vraag ik een herhaalrecept aan?', answer: 'Telefonisch of via de website, recept is binnen 24-48u klaar.' },
+      { question: 'Hoe vraag ik een huisbezoek aan?', answer: 'Bel voor 10 uur s ochtends voor een huisbezoek dezelfde dag.' },
+      { question: 'Zijn er kosten voor een huisbezoek?', answer: 'Neem contact op voor informatie over eventuele kosten.' },
+      { question: 'Wanneer komt de dokter bij huisbezoek?', answer: 'Meestal in de loop van de ochtend of vroege middag.' },
+      
+      // Videoconsult
+      { question: 'Kan ik videoconsult doen?', answer: 'Ja, voor sommige klachten bieden we videoconsulten aan.' },
+      { question: 'Hoe werkt een videoconsult?', answer: 'U ontvangt een link en belt via uw computer of telefoon.' },
+      { question: 'Is een videoconsult gratis?', answer: 'Dezelfde vergoeding als een gewoon consult.' },
+      { question: 'Wanneer is videoconsult geschikt?', answer: 'Voor huidklachten, nacontroles, besprekingen van uitslagen.' },
+      
+      // Kosten & Verzekering
       { question: 'Moet ik betalen voor het consult?', answer: 'Meestal vergoed door uw zorgverzekering.' },
       { question: 'Welke verzekeringen accepteren jullie?', answer: 'Alle Belgische en Nederlandse zorgverzekeringen.' },
-      { question: 'Hoe krijg ik mijn labresultaten?', answer: 'Binnen enkele dagen beschikbaar, we bellen bij afwijkingen.' },
-      { question: 'Moet ik nuchter komen voor bloedonderzoek?', answer: 'Soms wel, dit wordt meegedeeld bij de afspraak.' },
+      { question: 'Moet ik mijn verzekeringspas meenemen?', answer: 'Ja, neem altijd uw ID en verzekeringspas mee.' },
+      { question: 'Wat als ik geen verzekering heb?', answer: 'Neem contact op om de mogelijkheden te bespreken.' },
+      { question: 'Krijg ik een factuur?', answer: 'De factuur gaat meestal rechtstreeks naar uw verzekering.' },
+      { question: 'Wat kost een consult zonder verzekering?', answer: 'Neem contact op voor actuele tarieven.' },
+      { question: 'Worden alle behandelingen vergoed?', answer: 'De meeste wel, vraag naar specifieke behandelingen.' },
+      
+      // Recepten & Medicatie
+      { question: 'Hoe vraag ik een herhaalrecept aan?', answer: 'Telefonisch of via de website, recept is binnen 24-48u klaar.' },
+      { question: 'Hoe lang duurt het voor mijn recept klaar is?', answer: 'Herhaalrecepten zijn binnen 24-48 werkuren klaar.' },
+      { question: 'Kan ik mijn recept bij elke apotheek ophalen?', answer: 'Ja, wij sturen het naar de apotheek van uw keuze.' },
+      { question: 'Wat als mijn medicijn op is?', answer: 'Vraag tijdig een herhaalrecept aan, minstens een week vooruit.' },
+      { question: 'Kan ik recepten telefonisch bestellen?', answer: 'Ja, voor herhaalrecepten van bestaande medicatie.' },
+      { question: 'Moet ik langskomen voor een herhaalrecept?', answer: 'Niet altijd, afhankelijk van het medicijn en controleperiode.' },
+      { question: 'Wat als ik bijwerkingen heb?', answer: 'Neem contact op met de praktijk om dit te bespreken.' },
+      { question: 'Kunnen jullie medicijnen voorschrijven voor vakantie?', answer: 'Ja, vraag dit tijdig aan voor uw vertrek.' },
+      
+      // Verwijzingen
       { question: 'Hoe krijg ik een verwijzing?', answer: 'Na consult kan de arts een verwijzing uitschrijven.' },
-      { question: 'Wat moet ik meenemen?', answer: 'ID, verzekeringspas en eventuele medische documenten.' },
-      { question: 'Zijn jullie rolstoeltoegankelijk?', answer: 'Ja, onze praktijk is volledig toegankelijk.' },
-      { question: 'Is er parkeergelegenheid?', answer: 'Ja, er is parking beschikbaar voor patiënten.' },
-      { question: 'Kan ik videoconsult doen?', answer: 'Ja, voor sommige klachten bieden we videoconsulten aan.' },
-      { question: 'Hoe wijzig ik mijn gegevens?', answer: 'Telefonisch of bij de receptie doorgeven.' },
+      { question: 'Hoe lang is een verwijzing geldig?', answer: 'Meestal 3-6 maanden, afhankelijk van de specialist.' },
+      { question: 'Kan ik zelf een specialist kiezen?', answer: 'Ja, u mag zelf kiezen naar welk ziekenhuis of specialist.' },
+      { question: 'Kan ik een second opinion krijgen?', answer: 'Ja, bespreek dit met uw arts.' },
+      
+      // Onderzoeken & Labresultaten
+      { question: 'Hoe krijg ik mijn labresultaten?', answer: 'Binnen enkele dagen beschikbaar, we bellen bij afwijkingen.' },
+      { question: 'Moet ik nuchter komen voor bloedonderzoek?', answer: 'Voor sommige testen wel, dit wordt meegedeeld bij de afspraak.' },
+      { question: 'Waar kan ik bloed laten prikken?', answer: 'Bij ons of bij een laboratorium in de buurt.' },
+      { question: 'Hoe lang duurt bloedonderzoek?', answer: 'Het prikken zelf duurt enkele minuten, resultaten binnen dagen.' },
+      { question: 'Kan ik mijn resultaten online inzien?', answer: 'Neem contact op voor toegang tot het patiëntenportaal.' },
+      { question: 'Wat als mijn resultaten niet goed zijn?', answer: 'Wij nemen contact met u op om dit te bespreken.' },
+      
+      // Vaccinaties
       { question: 'Wanneer is de griepprik?', answer: 'Vanaf oktober, u wordt uitgenodigd als u in aanmerking komt.' },
-      { question: 'Hoe lang duurt een consult?', answer: 'Een standaard consult duurt 15-20 minuten.' },
+      { question: 'Wie komt in aanmerking voor griepprik?', answer: '65-plussers, chronisch zieken, zwangeren en zorgmedewerkers.' },
+      { question: 'Bieden jullie reisvaccinaties?', answer: 'Ja, maak tijdig een afspraak voor uw reis.' },
+      { question: 'Welke vaccinaties bieden jullie?', answer: 'Griep, tetanus, reis- en overige vaccinaties.' },
+      { question: 'Zijn vaccinaties gratis?', answer: 'Sommige wel, andere niet. Vraag naar de kosten.' },
+      { question: 'Kan ik zonder afspraak voor vaccinatie komen?', answer: 'Nee, maak altijd een afspraak voor vaccinaties.' },
+      
+      // Dossier & Privacy
       { question: 'Kan ik mijn dossier opvragen?', answer: 'Ja, vraag een kopie aan bij de praktijk.' },
+      { question: 'Zijn mijn gegevens veilig?', answer: 'Ja, wij werken volgens AVG/GDPR richtlijnen.' },
+      { question: 'Kan ik mijn dossier laten overdragen?', answer: 'Ja, bij verhuizing dragen we uw dossier over naar nieuwe arts.' },
+      { question: 'Wie heeft toegang tot mijn dossier?', answer: 'Alleen uw behandelend artsen en geautoriseerd personeel.' },
+      { question: 'Hoe wijzig ik mijn gegevens?', answer: 'Telefonisch of bij de receptie doorgeven.' },
+      
+      // Klachten & Specifiek
+      { question: 'Wat doe ik bij koorts?', answer: 'Bij hoge koorts of koorts langer dan 3 dagen, neem contact op.' },
+      { question: 'Wat doe ik bij griepklachten?', answer: 'Rust, vocht, paracetamol. Bij verergering contact opnemen.' },
+      { question: 'Wat doe ik bij buikpijn?', answer: 'Bij ernstige of aanhoudende buikpijn, neem contact op.' },
+      { question: 'Wat doe ik bij hoofdpijn?', answer: 'Bij ernstige of ongewone hoofdpijn, neem contact op.' },
+      { question: 'Wat doe ik bij rugpijn?', answer: 'Bij aanhoudende rugpijn of uitstraling naar benen, contact opnemen.' },
+      { question: 'Wat doe ik bij huiduitslag?', answer: 'Maak een afspraak, eventueel met foto via videoconsult.' },
+      { question: 'Wat doe ik bij oorpijn?', answer: 'Maak een afspraak voor onderzoek.' },
+      { question: 'Wat doe ik bij keelpijn?', answer: 'Bij ernstige keelpijn of koorts, neem contact op.' },
+      { question: 'Wat doe ik bij een insectenbeet?', answer: 'Bij allergische reactie of verergering, direct contact opnemen.' },
+      { question: 'Wat doe ik bij een snijwond?', answer: 'Bij diepe wonden of niet-stoppende bloeding, direct contact opnemen.' },
+      
+      // Administratief
+      { question: 'Wat moet ik meenemen?', answer: 'ID, verzekeringspas en eventuele medische documenten.' },
+      { question: 'Kan ik me inschrijven als nieuwe patiënt?', answer: 'Ja, neem contact op voor inschrijving.' },
+      { question: 'Wat heb ik nodig voor inschrijving?', answer: 'ID, verzekeringspas en gegevens vorige huisarts.' },
+      { question: 'Kan ik van huisarts wisselen?', answer: 'Ja, u bent vrij om een andere huisarts te kiezen.' },
+      { question: 'Behandelen jullie ook kinderen?', answer: 'Ja, wij behandelen patiënten van alle leeftijden.' },
+      { question: 'Behandelen jullie ook ouderen?', answer: 'Ja, wij bieden zorg voor alle leeftijden.' },
+      { question: 'Spreken jullie andere talen?', answer: 'Neem contact op voor informatie over talen.' },
     ];
   }
   

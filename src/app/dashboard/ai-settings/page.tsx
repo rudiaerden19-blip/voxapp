@@ -452,8 +452,8 @@ export default function AISettingsPage() {
         address_city: biz.city || '',
         // Load opening hours
         opening_hours: openingHours,
-        // Load FAQs (use template if empty)
-        faqs: prev.faqs.length > 0 ? prev.faqs : faqTemplate,
+        // Always load FAQ template for business type
+        faqs: faqTemplate,
       }));
     setLoading(false);
   };
