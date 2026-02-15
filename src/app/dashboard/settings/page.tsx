@@ -113,15 +113,49 @@ function SettingsContent() {
   useEffect(() => { loadBusiness(); }, []);
 
   const loadBusiness = async () => {
+    // Check for admin view
+    const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const adminViewId = urlParams?.get('admin_view');
+    
+    if (adminViewId) {
+      // Load via API for admin view
+      try {
+        const res = await fetch(`/api/business/${adminViewId}`);
+        if (res.ok) {
+          const biz = await res.json() as Business;
+          setBusiness(biz);
+          setFormData({
+            name: biz.name || '',
+            type: biz.type || 'other',
+            phone: biz.phone || '',
+            email: biz.email || '',
+            address: biz.address || '',
+            opening_hours: biz.opening_hours ? migrateOpeningHours(biz.opening_hours) : defaultOpeningHours,
+          });
+        }
+      } catch (e) {
+        console.error('Failed to load business:', e);
+      }
+      setLoading(false);
+      return;
+    }
+    
+    // Normal user flow
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data: businessData } = await supabase
+    let { data: businessData } = await supabase
       .from('businesses')
       .select('*')
       .eq('user_id', user.id)
       .single();
+    
+    // Fallback to email
+    if (!businessData && user.email) {
+      const { data: emailBiz } = await supabase.from('businesses').select('*').eq('email', user.email).single();
+      businessData = emailBiz;
+    }
 
     if (businessData) {
       const biz = businessData as Business;
