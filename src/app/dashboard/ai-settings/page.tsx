@@ -554,14 +554,15 @@ export default function AISettingsPage() {
       if (agentRes.ok) {
         const agentData = await agentRes.json();
         // Update local business state with new agent_id if created
-        if (agentData.agent_id && !business.agent_id) {
+        if (agentData.agent_id) {
           setBusiness({ ...business, agent_id: agentData.agent_id });
         }
+        setSaved(true);
       } else {
-        console.error('ElevenLabs agent update failed');
+        const agentError = await agentRes.json().catch(() => ({ error: 'ElevenLabs fout' }));
+        throw new Error(agentError.error || 'AI agent aanmaken mislukt');
       }
       
-      setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Opslaan mislukt');
