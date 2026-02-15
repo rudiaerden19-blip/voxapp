@@ -625,44 +625,65 @@ function Navigation() {
         </div>
       </nav>
 
-      {mobileOpen && (
-        <div style={{
-          position: 'fixed',
-          top: 72,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: '#0f0a14',
-          zIndex: 99,
-          padding: 24,
-        }}>
-          <a href="#features" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>{t('nav.features')}</a>
-          <a href="#how-it-works" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>{t('nav.howItWorks')}</a>
-          <a href="#pricing" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>{t('nav.pricing')}</a>
-          <a href="#contact" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>{t('nav.contact')}</a>
-          <a href="/over-ons" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '16px 0', color: 'white', textDecoration: 'none', fontSize: 18, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>{t('nav.aboutUs')}</a>
-          <div style={{ padding: '16px 0', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-            <LanguageSelector />
-          </div>
-          <div style={{ marginTop: 24 }}>
-            <a href="/register" style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              background: '#f97316',
-              color: 'white',
-              padding: '14px 24px',
-              borderRadius: 8,
-              fontSize: 16,
-              fontWeight: 600,
-              textDecoration: 'none',
-            }}>
-              {t('nav.tryFree')} <ArrowRight size={18} />
-            </a>
-          </div>
+      {/* Mobile Menu with Animation */}
+      <div style={{
+        position: 'fixed',
+        top: 72,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: '#0f0a14',
+        zIndex: 99,
+        padding: 24,
+        transform: mobileOpen ? 'translateX(0)' : 'translateX(100%)',
+        transition: 'transform 0.3s ease-in-out',
+        overflowY: 'auto',
+      }}>
+        <a href="#features" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '18px 0', color: 'white', textDecoration: 'none', fontSize: 18, fontWeight: 500, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>{t('nav.features')}</a>
+        <a href="#how-it-works" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '18px 0', color: 'white', textDecoration: 'none', fontSize: 18, fontWeight: 500, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>{t('nav.howItWorks')}</a>
+        <a href="#pricing" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '18px 0', color: 'white', textDecoration: 'none', fontSize: 18, fontWeight: 500, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>{t('nav.pricing')}</a>
+        <a href="#contact" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '18px 0', color: 'white', textDecoration: 'none', fontSize: 18, fontWeight: 500, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>{t('nav.contact')}</a>
+        <a href="/over-ons" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '18px 0', color: 'white', textDecoration: 'none', fontSize: 18, fontWeight: 500, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>{t('nav.aboutUs')}</a>
+        <div style={{ padding: '18px 0', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+          <LanguageSelector />
         </div>
-      )}
+        <div style={{ marginTop: 32, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <a href="/login" onClick={() => setMobileOpen(false)} style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            background: 'transparent',
+            color: 'white',
+            padding: '16px 24px',
+            borderRadius: 12,
+            fontSize: 16,
+            fontWeight: 600,
+            textDecoration: 'none',
+            border: '1px solid rgba(255,255,255,0.2)',
+            minHeight: 52,
+          }}>
+            {t('nav.login')}
+          </a>
+          <a href="/register" onClick={() => setMobileOpen(false)} style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            background: '#f97316',
+            color: 'white',
+            padding: '16px 24px',
+            borderRadius: 12,
+            fontSize: 16,
+            fontWeight: 600,
+            textDecoration: 'none',
+            boxShadow: '0 4px 20px rgba(249, 115, 22, 0.4)',
+            minHeight: 52,
+          }}>
+            {t('nav.tryFree')} <ArrowRight size={18} />
+          </a>
+        </div>
+      </div>
 
       <style jsx>{`
         @media (min-width: 1024px) {
@@ -717,6 +738,41 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
               {t('hero.tagline')}
             </p>
 
+            {/* CTA Buttons */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
+              <a href="/register" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 10,
+                background: '#f97316',
+                color: 'white',
+                padding: '16px 32px',
+                borderRadius: 12,
+                fontSize: 16,
+                fontWeight: 600,
+                textDecoration: 'none',
+                boxShadow: '0 4px 20px rgba(249, 115, 22, 0.4)',
+                transition: 'all 0.2s ease',
+              }}>
+                {t('nav.tryFree')} <ArrowRight size={18} />
+              </a>
+              <a href="#features" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 10,
+                background: 'rgba(255,255,255,0.05)',
+                color: 'white',
+                padding: '16px 32px',
+                borderRadius: 12,
+                fontSize: 16,
+                fontWeight: 600,
+                textDecoration: 'none',
+                border: '1px solid rgba(255,255,255,0.2)',
+                transition: 'all 0.2s ease',
+              }}>
+                {t('nav.features')}
+              </a>
+            </div>
           </div>
         </div>
 
@@ -881,7 +937,7 @@ function InboundSection({ onOpenDemo }: { onOpenDemo: () => void }) {
   const { t } = useLanguage();
 
   return (
-    <section id="features" style={{ background: '#e3e3e3', padding: '200px 0' }}>
+    <section id="features" style={{ background: '#e3e3e3', padding: '100px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))', gap: 60, alignItems: 'center' }}>
           {/* Left - Text */}
@@ -971,7 +1027,7 @@ function RestaurantSection({ onOpenDemo }: { onOpenDemo: () => void }) {
   const { t } = useLanguage();
 
   return (
-    <section style={{ background: '#f5f5f5', padding: '200px 0' }}>
+    <section style={{ background: '#f5f5f5', padding: '100px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))', gap: 60, alignItems: 'center' }}>
           {/* Left - Image */}
@@ -1120,7 +1176,7 @@ function FrituurSection() {
   const isActive = callStatus === 'connecting' || callStatus === 'connected';
 
   return (
-    <section style={{ background: '#e3e3e3', padding: '200px 0' }}>
+    <section style={{ background: '#e3e3e3', padding: '100px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))', gap: 60, alignItems: 'center' }}>
           {/* Left - Image */}
@@ -1668,7 +1724,7 @@ function ROICalculatorSection() {
 function OutboundSection() {
   const { t, language } = useLanguage();
   return (
-    <section style={{ background: '#e3e3e3', padding: '200px 0' }}>
+    <section style={{ background: '#e3e3e3', padding: '100px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))', gap: 60, alignItems: 'center' }}>
           {/* Left - Professional Calendar - Hidden on mobile */}
@@ -1818,7 +1874,7 @@ function OutboundSection() {
 function AutomationSection() {
   const { t } = useLanguage();
   return (
-    <section style={{ background: '#e3e3e3', padding: '200px 0' }}>
+    <section style={{ background: '#e3e3e3', padding: '100px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))', gap: 60, alignItems: 'center' }}>
           {/* Left - Text */}
@@ -2159,7 +2215,7 @@ function HowItWorksSection() {
   ];
 
   return (
-    <section id="how-it-works" style={{ background: '#0f0a14', padding: '200px 0' }}>
+    <section id="how-it-works" style={{ background: '#0f0a14', padding: '100px 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: 64 }}>
           <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
@@ -2324,16 +2380,16 @@ function PricingSection() {
   ];
 
   return (
-    <section id="pricing" style={{ background: '#e3e3e3', padding: '200px 0' }}>
+    <section id="pricing" style={{ background: '#e3e3e3', padding: '100px 0' }}>
       <div style={{ maxWidth: 1000, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: 64 }}>
           <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
             {t('pricing.badge')}
           </p>
-          <h2 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 700, color: 'white', marginBottom: 16 }}>
+          <h2 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 700, color: '#1a1a2e', marginBottom: 16 }}>
             {t('pricing.title1')} <span style={{ color: '#f97316' }}>{t('pricing.title2')}</span>
           </h2>
-          <p style={{ fontSize: 18, color: '#9ca3af' }}>
+          <p style={{ fontSize: 18, color: '#6b7280' }}>
             {t('pricing.subtitle')}
           </p>
         </div>
@@ -2491,7 +2547,7 @@ function FAQSection() {
   const faqKeys = ['q1', 'q2', 'q3', 'q4', 'q5'];
 
   return (
-    <section id="faq" style={{ background: '#1a1025', padding: '200px 0' }}>
+    <section id="faq" style={{ background: '#1a1025', padding: '100px 0' }}>
       <div style={{ maxWidth: 700, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>{t('faq.badge')}</p>
@@ -2674,7 +2730,7 @@ function CTASection() {
 
   return (
     <>
-      <section style={{ background: '#e3e3e3', padding: '200px 0' }}>
+      <section style={{ background: '#e3e3e3', padding: '100px 0' }}>
         <div style={{ maxWidth: 700, margin: '0 auto', padding: '0 24px', textAlign: 'center' }}>
           <h2 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 700, color: '#1a1a2e', marginBottom: 20 }}>
             {t('cta.title1')} <span style={{ color: '#f97316' }}>{t('cta.title2')}</span>
