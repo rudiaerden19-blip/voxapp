@@ -368,7 +368,7 @@ export default function AISettingsPage() {
         body: JSON.stringify({
           business_id: business.id,
           category: 'Producten',
-          name: newProduct.name,
+          name: newProduct.name.charAt(0).toUpperCase() + newProduct.name.slice(1),
           price: priceNum,
           is_available: true,
         }),
