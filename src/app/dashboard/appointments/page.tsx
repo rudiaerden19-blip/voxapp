@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useLanguage } from '@/lib/LanguageContext';
-import { Plus, ChevronLeft, ChevronRight, X, Clock, User, Check, Trash2 } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, X, Clock, User, Check, Trash2, Calendar, Settings } from 'lucide-react';
 
 interface Service {
   id: string;
@@ -38,8 +38,10 @@ const statusOptions = [
   { value: 'no_show', label: 'No-show', color: '#ef4444' },
 ];
 
+type ViewMode = 'day' | 'week' | 'month';
+
 export default function AppointmentsPage() {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
@@ -47,10 +49,18 @@ export default function AppointmentsPage() {
   const [businessId, setBusinessId] = useState<string | null>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedTime, setSelectedTime] = useState<string>('09:00');
   const [modalOpen, setModalOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [viewMode, setViewMode] = useState<ViewMode>('day');
+  
+  // Configurable settings
+  const [slotsPerHour, setSlotsPerHour] = useState(4);
+  const [startHour, setStartHour] = useState(8);
+  const [endHour, setEndHour] = useState(18);
 
   const [formData, setFormData] = useState({
     customer_name: '',
@@ -64,7 +74,7 @@ export default function AppointmentsPage() {
   });
 
   useEffect(() => { loadData(); }, []);
-  useEffect(() => { if (businessId) loadAppointments(); }, [currentDate, businessId]);
+  useEffect(() => { if (businessId) loadAppointments(); }, [currentDate, businessId, viewMode]);
 
   const loadData = async () => {
     const supabase = createClient();
@@ -91,18 +101,59 @@ export default function AppointmentsPage() {
     if (!businessId) return;
     const supabase = createClient();
 
-    const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-    const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59);
+    let rangeStart: Date, rangeEnd: Date;
+    
+    if (viewMode === 'day') {
+      rangeStart = new Date(currentDate);
+      rangeStart.setHours(0, 0, 0, 0);
+      rangeEnd = new Date(currentDate);
+      rangeEnd.setHours(23, 59, 59, 999);
+    } else if (viewMode === 'week') {
+      const day = currentDate.getDay();
+      const diff = currentDate.getDate() - day + (day === 0 ? -6 : 1);
+      rangeStart = new Date(currentDate);
+      rangeStart.setDate(diff);
+      rangeStart.setHours(0, 0, 0, 0);
+      rangeEnd = new Date(rangeStart);
+      rangeEnd.setDate(rangeStart.getDate() + 6);
+      rangeEnd.setHours(23, 59, 59, 999);
+    } else {
+      rangeStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      rangeEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59);
+    }
 
     const { data } = await supabase
       .from('appointments')
       .select('*')
       .eq('business_id', businessId)
-      .gte('start_time', monthStart.toISOString())
-      .lte('start_time', monthEnd.toISOString())
+      .gte('start_time', rangeStart.toISOString())
+      .lte('start_time', rangeEnd.toISOString())
       .order('start_time');
 
     if (data) setAppointments(data as Appointment[]);
+  };
+
+  const getHours = () => {
+    const hours = [];
+    for (let h = startHour; h < endHour; h++) {
+      hours.push(h);
+    }
+    return hours;
+  };
+
+  const getWeekDays = () => {
+    const day = currentDate.getDay();
+    const diff = currentDate.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(currentDate);
+    monday.setDate(diff);
+    
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      days.push(d);
+    }
+    return days;
   };
 
   const getDaysInMonth = () => {
@@ -112,16 +163,21 @@ export default function AppointmentsPage() {
     const lastDay = new Date(year, month + 1, 0);
     const days: (Date | null)[] = [];
 
-    // Add empty slots for days before first day of month
-    const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1; // Monday = 0
+    const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
     for (let i = 0; i < startDay; i++) days.push(null);
 
-    // Add all days of month
     for (let d = 1; d <= lastDay.getDate(); d++) {
       days.push(new Date(year, month, d));
     }
 
     return days;
+  };
+
+  const getAppointmentsForSlot = (date: Date, hour: number) => {
+    return appointments.filter(apt => {
+      const aptDate = new Date(apt.start_time);
+      return aptDate.toDateString() === date.toDateString() && aptDate.getHours() === hour;
+    });
   };
 
   const getAppointmentsForDate = (date: Date) => {
@@ -131,12 +187,13 @@ export default function AppointmentsPage() {
     });
   };
 
-  const openCreateModal = (date?: Date) => {
+  const openCreateModal = (date: Date, time?: string) => {
     setEditingAppointment(null);
-    setSelectedDate(date || new Date());
+    setSelectedDate(date);
+    setSelectedTime(time || '09:00');
     setFormData({
       customer_name: '', customer_phone: '', customer_email: '',
-      start_time: '09:00', service_id: '', staff_id: '', status: 'scheduled', notes: '',
+      start_time: time || '09:00', service_id: '', staff_id: '', status: 'scheduled', notes: '',
     });
     setError('');
     setModalOpen(true);
@@ -210,7 +267,7 @@ export default function AppointmentsPage() {
       }
       await loadAppointments();
       closeModal();
-    } catch (err) {
+    } catch {
       setError('Er ging iets mis bij het opslaan');
     } finally {
       setSaving(false);
@@ -227,109 +284,389 @@ export default function AppointmentsPage() {
     setSaving(false);
   };
 
-  const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
-  const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  const navigate = (direction: number) => {
+    const newDate = new Date(currentDate);
+    if (viewMode === 'day') {
+      newDate.setDate(newDate.getDate() + direction);
+    } else if (viewMode === 'week') {
+      newDate.setDate(newDate.getDate() + (direction * 7));
+    } else {
+      newDate.setMonth(newDate.getMonth() + direction);
+    }
+    setCurrentDate(newDate);
+  };
+
+  const goToToday = () => setCurrentDate(new Date());
 
   const formatTime = (dateStr: string) => new Date(dateStr).toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit' });
   const monthNames = ['Januari', 'Februari', 'Maart', 'April', 'Mei', 'Juni', 'Juli', 'Augustus', 'September', 'Oktober', 'November', 'December'];
   const dayNames = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'];
+  const fullDayNames = ['Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag', 'Zondag'];
 
   const isToday = (date: Date) => date.toDateString() === new Date().toDateString();
 
+  const getHeaderTitle = () => {
+    if (viewMode === 'day') {
+      return currentDate.toLocaleDateString('nl-BE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    } else if (viewMode === 'week') {
+      const weekDays = getWeekDays();
+      return `${weekDays[0].getDate()} - ${weekDays[6].getDate()} ${monthNames[weekDays[6].getMonth()]} ${weekDays[6].getFullYear()}`;
+    } else {
+      return `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+    }
+  };
+
+  // Day View Component
+  const DayView = () => (
+    <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', borderTop: '1px solid #2a2a35' }}>
+      {getHours().map(hour => {
+        const slotAppointments = getAppointmentsForSlot(currentDate, hour);
+        const slotsAvailable = slotsPerHour - slotAppointments.length;
+        
+        return (
+          <div key={hour} style={{ display: 'contents' }}>
+            {/* Time column */}
+            <div style={{ padding: '12px 8px', borderBottom: '1px solid #2a2a35', borderRight: '1px solid #2a2a35', color: '#6b7280', fontSize: 13, textAlign: 'right' }}>
+              {hour.toString().padStart(2, '0')}:00
+            </div>
+            {/* Appointments column */}
+            <div 
+              onClick={() => slotsAvailable > 0 && openCreateModal(currentDate, `${hour.toString().padStart(2, '0')}:00`)}
+              style={{ 
+                minHeight: 60, 
+                padding: 8, 
+                borderBottom: '1px solid #2a2a35',
+                background: slotsAvailable > 0 ? 'transparent' : 'rgba(239, 68, 68, 0.05)',
+                cursor: slotsAvailable > 0 ? 'pointer' : 'not-allowed',
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 8,
+                alignItems: 'flex-start',
+              }}
+            >
+              {slotAppointments.map(apt => (
+                <div
+                  key={apt.id}
+                  onClick={(e) => { e.stopPropagation(); openEditModal(apt); }}
+                  style={{
+                    flex: `0 0 calc(${100 / slotsPerHour}% - 8px)`,
+                    padding: '8px 12px',
+                    borderRadius: 8,
+                    background: statusOptions.find(s => s.value === apt.status)?.color || '#6b7280',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontSize: 13,
+                  }}
+                >
+                  <div style={{ fontWeight: 600 }}>{apt.customer_name}</div>
+                  <div style={{ fontSize: 11, opacity: 0.9 }}>{formatTime(apt.start_time)}</div>
+                </div>
+              ))}
+              {slotsAvailable > 0 && slotAppointments.length > 0 && (
+                <div style={{ flex: `0 0 calc(${100 / slotsPerHour}% - 8px)`, padding: '8px 12px', borderRadius: 8, border: '2px dashed #3f3f4e', color: '#6b7280', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Plus size={14} style={{ marginRight: 4 }} /> Vrij
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  // Week View Component
+  const WeekView = () => {
+    const weekDays = getWeekDays();
+    
+    return (
+      <div style={{ overflowX: 'auto' }}>
+        {/* Day headers */}
+        <div style={{ display: 'grid', gridTemplateColumns: '80px repeat(7, 1fr)', borderBottom: '1px solid #2a2a35' }}>
+          <div style={{ padding: 12, borderRight: '1px solid #2a2a35' }} />
+          {weekDays.map((day, i) => (
+            <div 
+              key={i} 
+              onClick={() => { setCurrentDate(day); setViewMode('day'); }}
+              style={{ 
+                padding: 12, 
+                textAlign: 'center', 
+                borderRight: '1px solid #2a2a35',
+                background: isToday(day) ? 'rgba(249, 115, 22, 0.1)' : 'transparent',
+                cursor: 'pointer',
+              }}
+            >
+              <div style={{ color: '#6b7280', fontSize: 12 }}>{dayNames[i]}</div>
+              <div style={{ 
+                color: isToday(day) ? '#f97316' : 'white', 
+                fontSize: 18, 
+                fontWeight: isToday(day) ? 700 : 500 
+              }}>
+                {day.getDate()}
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {/* Hour rows */}
+        {getHours().map(hour => (
+          <div key={hour} style={{ display: 'grid', gridTemplateColumns: '80px repeat(7, 1fr)' }}>
+            <div style={{ padding: '8px', borderBottom: '1px solid #2a2a35', borderRight: '1px solid #2a2a35', color: '#6b7280', fontSize: 12, textAlign: 'right' }}>
+              {hour.toString().padStart(2, '0')}:00
+            </div>
+            {weekDays.map((day, i) => {
+              const slotAppointments = getAppointmentsForSlot(day, hour);
+              const slotsAvailable = slotsPerHour - slotAppointments.length;
+              
+              return (
+                <div 
+                  key={i}
+                  onClick={() => slotsAvailable > 0 && openCreateModal(day, `${hour.toString().padStart(2, '0')}:00`)}
+                  style={{ 
+                    minHeight: 50, 
+                    padding: 4, 
+                    borderBottom: '1px solid #2a2a35',
+                    borderRight: '1px solid #2a2a35',
+                    background: slotsAvailable <= 0 ? 'rgba(239, 68, 68, 0.05)' : (isToday(day) ? 'rgba(249, 115, 22, 0.05)' : 'transparent'),
+                    cursor: slotsAvailable > 0 ? 'pointer' : 'not-allowed',
+                  }}
+                >
+                  {slotAppointments.slice(0, 2).map(apt => (
+                    <div
+                      key={apt.id}
+                      onClick={(e) => { e.stopPropagation(); openEditModal(apt); }}
+                      style={{
+                        padding: '4px 6px',
+                        borderRadius: 4,
+                        marginBottom: 2,
+                        background: statusOptions.find(s => s.value === apt.status)?.color || '#6b7280',
+                        color: 'white',
+                        cursor: 'pointer',
+                        fontSize: 10,
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      {apt.customer_name}
+                    </div>
+                  ))}
+                  {slotAppointments.length > 2 && (
+                    <div style={{ fontSize: 10, color: '#6b7280', paddingLeft: 4 }}>+{slotAppointments.length - 2}</div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  // Month View Component
+  const MonthView = () => (
+    <>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid #2a2a35' }}>
+        {dayNames.map(day => (
+          <div key={day} style={{ padding: '12px 8px', textAlign: 'center', color: '#6b7280', fontSize: 12, fontWeight: 600 }}>
+            {day}
+          </div>
+        ))}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+        {getDaysInMonth().map((date, index) => {
+          if (!date) {
+            return <div key={`empty-${index}`} style={{ minHeight: 100, background: '#0a0a0f', borderRight: '1px solid #2a2a35', borderBottom: '1px solid #2a2a35' }} />;
+          }
+
+          const dayAppointments = getAppointmentsForDate(date);
+          const today = isToday(date);
+
+          return (
+            <div
+              key={date.toISOString()}
+              onClick={() => { setCurrentDate(date); setViewMode('day'); }}
+              style={{
+                minHeight: 100, padding: 8, cursor: 'pointer',
+                background: today ? 'rgba(249, 115, 22, 0.1)' : '#0a0a0f',
+                borderRight: '1px solid #2a2a35', borderBottom: '1px solid #2a2a35',
+              }}
+            >
+              <div style={{
+                width: 28, height: 28, borderRadius: '50%',
+                background: today ? '#f97316' : 'transparent',
+                color: today ? 'white' : '#9ca3af',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 13, fontWeight: today ? 600 : 400, marginBottom: 4,
+              }}>
+                {date.getDate()}
+              </div>
+              {dayAppointments.slice(0, 3).map(apt => (
+                <div
+                  key={apt.id}
+                  onClick={(e) => { e.stopPropagation(); openEditModal(apt); }}
+                  style={{
+                    fontSize: 11, padding: '3px 6px', borderRadius: 4, marginBottom: 2,
+                    background: statusOptions.find(s => s.value === apt.status)?.color || '#6b7280',
+                    color: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                  }}
+                >
+                  {formatTime(apt.start_time)} {apt.customer_name}
+                </div>
+              ))}
+              {dayAppointments.length > 3 && (
+                <div style={{ fontSize: 10, color: '#6b7280', paddingLeft: 6 }}>
+                  +{dayAppointments.length - 3} meer
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+
   return (
     <DashboardLayout>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32, flexWrap: 'wrap', gap: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
         <div>
           <h1 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>{t('appointments.title')}</h1>
           <p style={{ color: '#9ca3af', fontSize: 16 }}>{t('appointments.pageSubtitle')}</p>
         </div>
-        <button onClick={() => openCreateModal()} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f97316', color: 'white', border: 'none', borderRadius: 8, padding: '12px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-          <Plus size={18} /> {t('dashboard.newAppointment')}
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button onClick={() => setSettingsOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#1f1f2e', color: '#9ca3af', border: '1px solid #3f3f4e', borderRadius: 8, padding: '10px 16px', fontSize: 14, cursor: 'pointer' }}>
+            <Settings size={18} /> Instellingen
+          </button>
+          <button onClick={() => openCreateModal(currentDate)} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f97316', color: 'white', border: 'none', borderRadius: 8, padding: '12px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+            <Plus size={18} /> {t('dashboard.newAppointment')}
+          </button>
+        </div>
+      </div>
+
+      {/* View Mode Toggle */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        {(['day', 'week', 'month'] as ViewMode[]).map(mode => (
+          <button
+            key={mode}
+            onClick={() => setViewMode(mode)}
+            style={{
+              padding: '10px 20px',
+              borderRadius: 8,
+              border: 'none',
+              background: viewMode === mode ? '#f97316' : '#1f1f2e',
+              color: viewMode === mode ? 'white' : '#9ca3af',
+              fontSize: 14,
+              fontWeight: 500,
+              cursor: 'pointer',
+            }}
+          >
+            {mode === 'day' ? 'Dag' : mode === 'week' ? 'Week' : 'Maand'}
+          </button>
+        ))}
+        <button
+          onClick={goToToday}
+          style={{
+            padding: '10px 20px',
+            borderRadius: 8,
+            border: '1px solid #3f3f4e',
+            background: 'transparent',
+            color: '#f97316',
+            fontSize: 14,
+            fontWeight: 500,
+            cursor: 'pointer',
+            marginLeft: 'auto',
+          }}
+        >
+          Vandaag
         </button>
       </div>
 
       {/* Calendar */}
       <div style={{ background: '#16161f', borderRadius: 16, border: '1px solid #2a2a35', overflow: 'hidden' }}>
         {/* Calendar header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid #2a2a35' }}>
-          <button onClick={prevMonth} style={{ background: 'rgba(249, 115, 22, 0.15)', border: 'none', borderRadius: 8, padding: 10, color: '#f97316', cursor: 'pointer' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderBottom: '1px solid #2a2a35' }}>
+          <button onClick={() => navigate(-1)} style={{ background: 'rgba(249, 115, 22, 0.15)', border: 'none', borderRadius: 8, padding: 10, color: '#f97316', cursor: 'pointer' }}>
             <ChevronLeft size={20} />
           </button>
           <h2 style={{ color: 'white', fontSize: 18, fontWeight: 600 }}>
-            {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+            {getHeaderTitle()}
           </h2>
-          <button onClick={nextMonth} style={{ background: 'rgba(249, 115, 22, 0.15)', border: 'none', borderRadius: 8, padding: 10, color: '#f97316', cursor: 'pointer' }}>
+          <button onClick={() => navigate(1)} style={{ background: 'rgba(249, 115, 22, 0.15)', border: 'none', borderRadius: 8, padding: 10, color: '#f97316', cursor: 'pointer' }}>
             <ChevronRight size={20} />
           </button>
         </div>
 
-        {/* Day names */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid #2a2a35' }}>
-          {dayNames.map(day => (
-            <div key={day} style={{ padding: '12px 8px', textAlign: 'center', color: '#6b7280', fontSize: 12, fontWeight: 600 }}>
-              {day}
-            </div>
-          ))}
-        </div>
-
-        {/* Calendar grid */}
+        {/* Calendar content */}
         {loading ? (
           <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>{t('dashboard.loading')}</div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
-            {getDaysInMonth().map((date, index) => {
-              if (!date) {
-                return <div key={`empty-${index}`} style={{ minHeight: 100, background: '#0a0a0f', borderRight: '1px solid #2a2a35', borderBottom: '1px solid #2a2a35' }} />;
-              }
-
-              const dayAppointments = getAppointmentsForDate(date);
-              const today = isToday(date);
-
-              return (
-                <div
-                  key={date.toISOString()}
-                  onClick={() => openCreateModal(date)}
-                  style={{
-                    minHeight: 100, padding: 8, cursor: 'pointer',
-                    background: today ? 'rgba(249, 115, 22, 0.1)' : '#0a0a0f',
-                    borderRight: '1px solid #2a2a35', borderBottom: '1px solid #2a2a35',
-                  }}
-                >
-                  <div style={{
-                    width: 28, height: 28, borderRadius: '50%',
-                    background: today ? '#f97316' : 'transparent',
-                    color: today ? 'white' : '#9ca3af',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 13, fontWeight: today ? 600 : 400, marginBottom: 4,
-                  }}>
-                    {date.getDate()}
-                  </div>
-                  {dayAppointments.slice(0, 3).map(apt => (
-                    <div
-                      key={apt.id}
-                      onClick={(e) => { e.stopPropagation(); openEditModal(apt); }}
-                      style={{
-                        fontSize: 11, padding: '3px 6px', borderRadius: 4, marginBottom: 2,
-                        background: statusOptions.find(s => s.value === apt.status)?.color || '#6b7280',
-                        color: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                      }}
-                    >
-                      {formatTime(apt.start_time)} {apt.customer_name}
-                    </div>
-                  ))}
-                  {dayAppointments.length > 3 && (
-                    <div style={{ fontSize: 10, color: '#6b7280', paddingLeft: 6 }}>
-                      +{dayAppointments.length - 3} meer
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+          <>
+            {viewMode === 'day' && <DayView />}
+            {viewMode === 'week' && <WeekView />}
+            {viewMode === 'month' && <MonthView />}
+          </>
         )}
       </div>
 
-      {/* Modal */}
+      {/* Settings Modal */}
+      {settingsOpen && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 24 }}>
+          <div style={{ background: '#16161f', borderRadius: 16, border: '1px solid #2a2a35', width: '100%', maxWidth: 400, padding: 24 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+              <h2 style={{ color: 'white', fontSize: 18, fontWeight: 600 }}>Kalender Instellingen</h2>
+              <button onClick={() => setSettingsOpen(false)} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer' }}><X size={20} /></button>
+            </div>
+            
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Afspraken per uur (max)</label>
+              <select 
+                value={slotsPerHour} 
+                onChange={(e) => setSlotsPerHour(parseInt(e.target.value))}
+                style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }}
+              >
+                {[1, 2, 3, 4, 5, 6, 8, 10].map(n => (
+                  <option key={n} value={n}>{n} afspraken</option>
+                ))}
+              </select>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+              <div>
+                <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Start uur</label>
+                <select 
+                  value={startHour} 
+                  onChange={(e) => setStartHour(parseInt(e.target.value))}
+                  style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }}
+                >
+                  {Array.from({ length: 24 }, (_, i) => i).map(h => (
+                    <option key={h} value={h}>{h.toString().padStart(2, '0')}:00</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Eind uur</label>
+                <select 
+                  value={endHour} 
+                  onChange={(e) => setEndHour(parseInt(e.target.value))}
+                  style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }}
+                >
+                  {Array.from({ length: 24 }, (_, i) => i + 1).map(h => (
+                    <option key={h} value={h}>{h.toString().padStart(2, '0')}:00</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            
+            <button 
+              onClick={() => setSettingsOpen(false)}
+              style={{ width: '100%', padding: '12px 20px', background: '#f97316', border: 'none', borderRadius: 8, color: 'white', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+            >
+              Opslaan
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Appointment Modal */}
       {modalOpen && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 24 }}>
           <div style={{ background: '#16161f', borderRadius: 16, border: '1px solid #2a2a35', width: '100%', maxWidth: 500, maxHeight: '90vh', overflow: 'auto' }}>
