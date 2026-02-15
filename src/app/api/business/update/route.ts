@@ -1,49 +1,159 @@
-import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { 
+  createAdminClient, 
+  verifyBusinessAccess, 
+  unauthorizedResponse,
+  forbiddenResponse,
+  isValidUUID,
+  isValidEmail,
+  isValidPhone,
+  sanitizeString
+} from '@/lib/adminAuth';
 
-// Create admin client with service role key (bypasses RLS)
-function createAdminClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error('Missing Supabase environment variables');
-  }
-
-  return createClient(supabaseUrl, serviceRoleKey);
-}
+// Whitelist van velden die mogen worden bijgewerkt door eigenaar
+const ALLOWED_UPDATE_FIELDS = [
+  'name', 'description', 'phone', 'email', 'website',
+  'street', 'city', 'postal_code', 'country',
+  'voice_id', 'welcome_message', 'opening_hours'
+];
 
 // PUT - Update business
 export async function PUT(request: NextRequest) {
   try {
-    const body = await request.json();
-    console.log('Update request body:', JSON.stringify(body));
-    const { id, ...updates } = body;
-
-    if (!id) {
-      return NextResponse.json({ error: 'Business ID required' }, { status: 400 });
+    // Parse body
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Ongeldige JSON data' }, { status: 400 });
     }
 
-    console.log('Updating business:', id, 'with:', JSON.stringify(updates));
+    const { id, ...updates } = body;
+
+    // Validatie
+    if (!id) {
+      return NextResponse.json({ error: 'Business ID is verplicht' }, { status: 400 });
+    }
+
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: 'Ongeldig business ID formaat' }, { status: 400 });
+    }
+
+    // Autorisatie check - eigenaar of admin
+    const auth = await verifyBusinessAccess(request, id);
+    if (!auth.hasAccess) {
+      return auth.error === 'Niet ingelogd' || auth.error === 'Ongeldige sessie'
+        ? unauthorizedResponse(auth.error)
+        : forbiddenResponse(auth.error || 'Geen toegang');
+    }
+
+    // Filter updates naar alleen toegestane velden
+    const safeUpdates: Record<string, unknown> = {};
+    
+    for (const [key, value] of Object.entries(updates)) {
+      if (!ALLOWED_UPDATE_FIELDS.includes(key)) {
+        continue; // Skip niet-toegestane velden
+      }
+
+      // Valideer specifieke velden
+      if (key === 'name') {
+        const sanitized = sanitizeString(value as string, 200);
+        if (sanitized && sanitized.length >= 2) {
+          safeUpdates.name = sanitized;
+        }
+      } else if (key === 'email') {
+        if (value === null || value === '') {
+          safeUpdates.email = null;
+        } else if (isValidEmail(value as string)) {
+          safeUpdates.email = sanitizeString(value as string, 255);
+        }
+      } else if (key === 'phone') {
+        if (value === null || value === '') {
+          safeUpdates.phone = null;
+        } else if (isValidPhone(value as string)) {
+          safeUpdates.phone = sanitizeString(value as string, 20);
+        }
+      } else if (key === 'opening_hours') {
+        // Valideer structuur van opening_hours
+        if (value === null) {
+          safeUpdates.opening_hours = null;
+        } else if (typeof value === 'object' && value !== null) {
+          // Basis validatie - check of het een object is met dag keys
+          const validDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+          const validHours: Record<string, unknown> = {};
+          let isValid = true;
+
+          for (const [day, hours] of Object.entries(value as Record<string, unknown>)) {
+            if (!validDays.includes(day)) continue;
+            
+            if (typeof hours === 'object' && hours !== null) {
+              const h = hours as { open?: string; close?: string; closed?: boolean };
+              validHours[day] = {
+                open: typeof h.open === 'string' ? h.open : '09:00',
+                close: typeof h.close === 'string' ? h.close : '18:00',
+                closed: h.closed === true,
+              };
+            } else {
+              isValid = false;
+              break;
+            }
+          }
+
+          if (isValid) {
+            safeUpdates.opening_hours = validHours;
+          }
+        }
+      } else if (key === 'voice_id') {
+        // ElevenLabs voice ID - sanitize
+        if (value === null || value === '') {
+          safeUpdates.voice_id = null;
+        } else if (typeof value === 'string' && value.length <= 50) {
+          safeUpdates.voice_id = value.trim();
+        }
+      } else if (key === 'welcome_message') {
+        if (value === null || value === '') {
+          safeUpdates.welcome_message = null;
+        } else {
+          safeUpdates.welcome_message = sanitizeString(value as string, 500);
+        }
+      } else {
+        // Andere toegestane velden - sanitize strings
+        if (value === null) {
+          safeUpdates[key] = null;
+        } else if (typeof value === 'string') {
+          safeUpdates[key] = sanitizeString(value, 500);
+        }
+      }
+    }
+
+    if (Object.keys(safeUpdates).length === 0) {
+      return NextResponse.json({ error: 'Geen geldige updates opgegeven' }, { status: 400 });
+    }
+
+    // Voeg updated_at toe
+    safeUpdates.updated_at = new Date().toISOString();
+
     const supabase = createAdminClient();
 
     const { data, error } = await supabase
       .from('businesses')
-      .update(updates)
+      .update(safeUpdates)
       .eq('id', id)
       .select()
       .single();
 
     if (error) {
-      console.error('Update business error:', error);
-      return NextResponse.json({ error: error.message, details: error }, { status: 500 });
+      console.error('Update business DB error:', error);
+      return NextResponse.json({ error: 'Database fout bij bijwerken bedrijf' }, { status: 500 });
     }
 
-    console.log('Update success:', data?.id);
+    if (!data) {
+      return NextResponse.json({ error: 'Bedrijf niet gevonden' }, { status: 404 });
+    }
+
     return NextResponse.json(data);
-  } catch (error: unknown) {
-    console.error('API error:', error);
-    const message = error instanceof Error ? error.message : 'Server error';
-    return NextResponse.json({ error: message }, { status: 500 });
+  } catch (error) {
+    console.error('Business update error:', error);
+    return NextResponse.json({ error: 'Interne serverfout' }, { status: 500 });
   }
 }

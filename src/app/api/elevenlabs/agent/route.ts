@@ -1,13 +1,12 @@
-import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
-
-// Admin Supabase client
-function createAdminClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!supabaseUrl || !serviceRoleKey) throw new Error('Missing Supabase env vars');
-  return createClient(supabaseUrl, serviceRoleKey);
-}
+import { 
+  createAdminClient, 
+  verifyBusinessAccess, 
+  unauthorizedResponse,
+  forbiddenResponse,
+  isValidUUID,
+  sanitizeString
+} from '@/lib/adminAuth';
 
 interface BusinessData {
   id: string;
@@ -37,13 +36,18 @@ interface Service {
   price: number;
 }
 
+interface FAQ {
+  question: string;
+  answer: string;
+}
+
 // Build complete AI prompt with all business data
 function buildSystemPrompt(
   business: BusinessData,
   staff: StaffMember[],
   services: Service[],
   aiContext: string,
-  faqs: Array<{ question: string; answer: string }>
+  faqs: FAQ[]
 ): string {
   const dayNames: Record<string, string> = {
     monday: 'maandag', tuesday: 'dinsdag', wednesday: 'woensdag',
@@ -51,46 +55,58 @@ function buildSystemPrompt(
   };
 
   // Format opening hours
-  let openingHoursText = '';
-  if (business.opening_hours) {
+  let openingHoursText = 'Niet opgegeven';
+  if (business.opening_hours && typeof business.opening_hours === 'object') {
     const lines: string[] = [];
     for (const [day, hours] of Object.entries(business.opening_hours)) {
+      if (!hours || typeof hours !== 'object') continue;
       const dayNL = dayNames[day] || day;
       if (hours.closed) {
         lines.push(`${dayNL}: gesloten`);
-      } else {
+      } else if (hours.open && hours.close) {
         lines.push(`${dayNL}: ${hours.open} - ${hours.close}`);
       }
     }
-    openingHoursText = lines.join('\n');
+    if (lines.length > 0) {
+      openingHoursText = lines.join('\n');
+    }
   }
 
   // Format address
-  let addressText = '';
-  if (business.street || business.city) {
-    const parts = [business.street, business.postal_code, business.city].filter(Boolean);
-    addressText = parts.join(', ');
+  let addressText = 'Niet opgegeven';
+  const addressParts = [business.street, business.postal_code, business.city].filter(Boolean);
+  if (addressParts.length > 0) {
+    addressText = addressParts.join(', ');
   }
 
   // Format staff
-  const activeStaff = staff.filter(s => s.is_active);
+  const activeStaff = Array.isArray(staff) ? staff.filter(s => s && s.is_active && s.name) : [];
   const staffText = activeStaff.length > 0 
     ? activeStaff.map(s => s.name).join(', ')
     : 'Niet opgegeven';
 
   // Format services
-  const servicesText = services.length > 0
-    ? services.map(s => `- ${s.name} (${s.duration_minutes} min, €${s.price.toFixed(2)})`).join('\n')
+  const validServices = Array.isArray(services) ? services.filter(s => s && s.name) : [];
+  const servicesText = validServices.length > 0
+    ? validServices.map(s => {
+        const duration = s.duration_minutes ? `${s.duration_minutes} min` : '';
+        const price = typeof s.price === 'number' ? `€${s.price.toFixed(2)}` : '';
+        const details = [duration, price].filter(Boolean).join(', ');
+        return details ? `- ${s.name} (${details})` : `- ${s.name}`;
+      }).join('\n')
     : 'Niet opgegeven';
 
   // Format FAQs
-  const faqsText = faqs.length > 0
-    ? faqs.map(f => `V: ${f.question}\nA: ${f.answer}`).join('\n\n')
+  const validFaqs = Array.isArray(faqs) ? faqs.filter(f => f && f.question && f.answer) : [];
+  const faqsText = validFaqs.length > 0
+    ? validFaqs.map(f => `V: ${f.question}\nA: ${f.answer}`).join('\n\n')
     : '';
+
+  const businessName = business.name || 'ons bedrijf';
 
   // Build the complete prompt
   return `# OVER JOU
-Je bent de AI receptionist van ${business.name}. ${aiContext}
+Je bent de AI receptionist van ${businessName}. ${aiContext || ''}
 
 # BELANGRIJKE REGELS
 1. Wees ALTIJD vriendelijk, warm en behulpzaam
@@ -100,14 +116,14 @@ Je bent de AI receptionist van ${business.name}. ${aiContext}
 5. Bevestig altijd de afspraakdetails aan het einde
 
 # BEDRIJFSGEGEVENS
-Naam: ${business.name}
-Type: ${business.type}
-${addressText ? `Adres: ${addressText}` : ''}
+Naam: ${businessName}
+Type: ${business.type || 'Niet opgegeven'}
+Adres: ${addressText}
 ${business.phone ? `Telefoon: ${business.phone}` : ''}
 ${business.email ? `E-mail: ${business.email}` : ''}
 
 # OPENINGSUREN
-${openingHoursText || 'Niet opgegeven - vraag de klant om later terug te bellen'}
+${openingHoursText}
 
 # MEDEWERKERS / ARTSEN / SPECIALISTEN
 ${staffText}
@@ -121,10 +137,10 @@ ${faqsText}
 # VOORBEELDGESPREKKEN
 
 Klant: "Waar zijn jullie gevestigd?"
-Jij: "Wij zitten op ${addressText || '[adres niet ingesteld]'}. Heeft u verder nog vragen?"
+Jij: "Wij zitten op ${addressText}. Heeft u verder nog vragen?"
 
 Klant: "Wat zijn jullie openingsuren?"
-Jij: "Onze openingsuren zijn:\n${openingHoursText || '[niet ingesteld]'}\nKan ik u ergens mee helpen?"
+Jij: "Onze openingsuren zijn:\n${openingHoursText}\nKan ik u ergens mee helpen?"
 
 Klant: "Ik wil een afspraak maken"
 Jij: "Ja natuurlijk, dat regel ik graag voor u. Mag ik uw naam?"
@@ -138,15 +154,36 @@ Jij: "Ja hoor, geen probleem. Mag ik uw naam en telefoonnummer zodat ik uw afspr
 export async function POST(request: NextRequest) {
   try {
     const elevenLabsKey = process.env.ELEVENLABS_API_KEY;
-    if (!elevenLabsKey) {
-      return NextResponse.json({ error: 'ELEVENLABS_API_KEY niet ingesteld' }, { status: 500 });
+    if (!elevenLabsKey || elevenLabsKey.trim() === '') {
+      console.error('ELEVENLABS_API_KEY niet geconfigureerd');
+      return NextResponse.json({ error: 'ElevenLabs API niet geconfigureerd' }, { status: 503 });
     }
 
-    const body = await request.json();
+    // Parse body met error handling
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Ongeldige JSON data' }, { status: 400 });
+    }
+
     const { business_id, ai_context, faqs } = body;
 
+    // Validatie
     if (!business_id) {
       return NextResponse.json({ error: 'business_id is verplicht' }, { status: 400 });
+    }
+
+    if (!isValidUUID(business_id)) {
+      return NextResponse.json({ error: 'Ongeldig business_id formaat' }, { status: 400 });
+    }
+
+    // Autorisatie check
+    const auth = await verifyBusinessAccess(request, business_id);
+    if (!auth.hasAccess) {
+      return auth.error === 'Niet ingelogd' || auth.error === 'Ongeldige sessie'
+        ? unauthorizedResponse(auth.error)
+        : forbiddenResponse(auth.error || 'Geen toegang');
     }
 
     const supabase = createAdminClient();
@@ -154,34 +191,68 @@ export async function POST(request: NextRequest) {
     // Get business data
     const { data: business, error: bizError } = await supabase
       .from('businesses')
-      .select('*')
+      .select('id, name, type, phone, email, street, city, postal_code, opening_hours, voice_id, welcome_message, agent_id')
       .eq('id', business_id)
       .single();
 
-    if (bizError || !business) {
+    if (bizError) {
+      console.error('Business fetch DB error:', bizError);
+      return NextResponse.json({ error: 'Database fout bij ophalen bedrijf' }, { status: 500 });
+    }
+
+    if (!business) {
       return NextResponse.json({ error: 'Bedrijf niet gevonden' }, { status: 404 });
     }
 
+    // Valideer business.name
+    if (!business.name || business.name.trim() === '') {
+      return NextResponse.json({ error: 'Bedrijfsnaam is niet ingesteld' }, { status: 400 });
+    }
+
     // Get staff
-    const { data: staff } = await supabase
+    const { data: staff, error: staffError } = await supabase
       .from('staff')
       .select('id, name, is_active')
       .eq('business_id', business_id)
       .eq('is_active', true);
 
+    if (staffError) {
+      console.error('Staff fetch DB error:', staffError);
+      // Niet fataal - ga door zonder staff
+    }
+
     // Get services
-    const { data: services } = await supabase
+    const { data: services, error: servicesError } = await supabase
       .from('services')
       .select('id, name, duration_minutes, price')
       .eq('business_id', business_id);
+
+    if (servicesError) {
+      console.error('Services fetch DB error:', servicesError);
+      // Niet fataal - ga door zonder services
+    }
+
+    // Valideer en filter FAQs
+    const validFaqs: FAQ[] = [];
+    if (Array.isArray(faqs)) {
+      for (const faq of faqs) {
+        if (faq && typeof faq === 'object' && typeof faq.question === 'string' && typeof faq.answer === 'string') {
+          const q = sanitizeString(faq.question, 500);
+          const a = sanitizeString(faq.answer, 1000);
+          if (q && a) {
+            validFaqs.push({ question: q, answer: a });
+          }
+        }
+      }
+    }
 
     // Build system prompt
     const systemPrompt = buildSystemPrompt(
       business as BusinessData,
       (staff || []) as StaffMember[],
       (services || []) as Service[],
-      ai_context || '',
-      faqs || []
+      sanitizeString(ai_context, 2000),
+      validFaqs
     );
 
     // ElevenLabs agent config
@@ -201,46 +272,79 @@ export async function POST(request: NextRequest) {
       name: `${business.name} Receptionist`,
     };
 
-    let agentId = business.agent_id;
+    const agentId = business.agent_id;
     let response;
 
-    if (agentId) {
-      // Update existing agent
-      response = await fetch(`https://api.elevenlabs.io/v1/convai/agents/${agentId}`, {
-        method: 'PATCH',
-        headers: {
-          'xi-api-key': elevenLabsKey,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(agentConfig),
-      });
-    } else {
-      // Create new agent
-      response = await fetch('https://api.elevenlabs.io/v1/convai/agents/create', {
-        method: 'POST',
-        headers: {
-          'xi-api-key': elevenLabsKey,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(agentConfig),
-      });
+    try {
+      if (agentId) {
+        // Update existing agent
+        response = await fetch(`https://api.elevenlabs.io/v1/convai/agents/${agentId}`, {
+          method: 'PATCH',
+          headers: {
+            'xi-api-key': elevenLabsKey,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(agentConfig),
+        });
+      } else {
+        // Create new agent
+        response = await fetch('https://api.elevenlabs.io/v1/convai/agents/create', {
+          method: 'POST',
+          headers: {
+            'xi-api-key': elevenLabsKey,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(agentConfig),
+        });
+      }
+    } catch (fetchError) {
+      console.error('ElevenLabs fetch error:', fetchError);
+      return NextResponse.json({ error: 'Kon ElevenLabs niet bereiken' }, { status: 502 });
     }
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('ElevenLabs agent error:', errorText);
-      return NextResponse.json({ error: 'Kon agent niet aanmaken/updaten', details: errorText }, { status: 500 });
+      // Log error maar geef geen details aan client (security)
+      const errorText = await response.text().catch(() => 'Unknown error');
+      console.error('ElevenLabs API error:', response.status, errorText);
+      
+      // Map status codes
+      if (response.status === 401 || response.status === 403) {
+        return NextResponse.json({ error: 'ElevenLabs authenticatie mislukt' }, { status: 503 });
+      } else if (response.status === 404 && agentId) {
+        // Agent bestaat niet meer - maak nieuwe aan
+        console.log('Agent not found, will create new one');
+        // Clear agent_id en probeer opnieuw
+        await supabase.from('businesses').update({ agent_id: null }).eq('id', business_id);
+        return NextResponse.json({ error: 'Agent niet gevonden, probeer opnieuw' }, { status: 409 });
+      } else if (response.status === 429) {
+        return NextResponse.json({ error: 'Te veel verzoeken, probeer later opnieuw' }, { status: 429 });
+      }
+      
+      return NextResponse.json({ error: 'ElevenLabs agent aanmaken/updaten mislukt' }, { status: 502 });
     }
 
-    const agentData = await response.json();
+    // Parse response
+    let agentData;
+    try {
+      agentData = await response.json();
+    } catch {
+      console.error('ElevenLabs response parse error');
+      return NextResponse.json({ error: 'Ongeldige response van ElevenLabs' }, { status: 502 });
+    }
+
     const newAgentId = agentData.agent_id || agentId;
 
-    // Save agent_id to business
+    // Save agent_id to business als het nieuw is
     if (newAgentId && newAgentId !== agentId) {
-      await supabase
+      const { error: updateError } = await supabase
         .from('businesses')
-        .update({ agent_id: newAgentId })
+        .update({ agent_id: newAgentId, updated_at: new Date().toISOString() })
         .eq('id', business_id);
+
+      if (updateError) {
+        console.error('Agent ID save error:', updateError);
+        // Niet fataal - agent is wel aangemaakt
+      }
     }
 
     return NextResponse.json({
@@ -251,7 +355,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Agent API error:', error);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Interne serverfout' }, { status: 500 });
   }
 }
 
@@ -261,16 +365,35 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const businessId = searchParams.get('business_id');
 
+    // Validatie
     if (!businessId) {
       return NextResponse.json({ error: 'business_id is verplicht' }, { status: 400 });
     }
 
+    if (!isValidUUID(businessId)) {
+      return NextResponse.json({ error: 'Ongeldig business_id formaat' }, { status: 400 });
+    }
+
+    // Autorisatie check
+    const auth = await verifyBusinessAccess(request, businessId);
+    if (!auth.hasAccess) {
+      return auth.error === 'Niet ingelogd' || auth.error === 'Ongeldige sessie'
+        ? unauthorizedResponse(auth.error)
+        : forbiddenResponse(auth.error || 'Geen toegang');
+    }
+
     const supabase = createAdminClient();
-    const { data: business } = await supabase
+    
+    const { data: business, error } = await supabase
       .from('businesses')
       .select('agent_id, name')
       .eq('id', businessId)
       .single();
+
+    if (error) {
+      console.error('Agent status DB error:', error);
+      return NextResponse.json({ error: 'Database fout' }, { status: 500 });
+    }
 
     if (!business) {
       return NextResponse.json({ error: 'Bedrijf niet gevonden' }, { status: 404 });
@@ -278,11 +401,11 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       has_agent: !!business.agent_id,
-      agent_id: business.agent_id,
+      agent_id: business.agent_id || null,
     });
 
   } catch (error) {
     console.error('Agent GET error:', error);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Interne serverfout' }, { status: 500 });
   }
 }
