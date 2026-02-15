@@ -30,14 +30,16 @@ interface Business {
   updated_at: string;
 }
 
-const voiceOptions = [
-  { id: 'nl-BE-DenaNeural', name: 'Dena', accent: 'Belgisch', gender: 'Vrouw', sample: 'Goedendag, welkom bij ons bedrijf. Waarmee kan ik u helpen vandaag?' },
-  { id: 'nl-BE-ArnaudNeural', name: 'Arnaud', accent: 'Belgisch', gender: 'Man', sample: 'Goedendag, u spreekt met de receptie. Hoe kan ik u van dienst zijn?' },
-  { id: 'nl-NL-ColetteNeural', name: 'Colette', accent: 'Nederlands', gender: 'Vrouw', sample: 'Goedemiddag, fijn dat u belt. Kan ik een afspraak voor u inplannen?' },
-  { id: 'nl-NL-MaartenNeural', name: 'Maarten', accent: 'Nederlands', gender: 'Man', sample: 'Goedendag, welkom. Ik help u graag verder met uw vraag.' },
-  { id: 'fr-BE-CharlineNeural', name: 'Charline', accent: 'Frans (BE)', gender: 'Vrouw', sample: 'Bonjour, bienvenue. Comment puis-je vous aider aujourd\'hui?' },
-  { id: 'fr-BE-GerardNeural', name: 'Gerard', accent: 'Frans (BE)', gender: 'Man', sample: 'Bonjour, vous êtes bien chez nous. Que puis-je faire pour vous?' },
-];
+// ElevenLabs voices will be loaded dynamically
+interface ElevenLabsVoice {
+  voice_id: string;
+  name: string;
+  labels: {
+    accent?: string;
+    gender?: string;
+    description?: string;
+  };
+}
 
 const brancheTemplates: Record<string, { greeting: string; capabilities: string; style: string }> = {
   kapper: {
@@ -90,9 +92,11 @@ export default function AISettingsPage() {
   const [error, setError] = useState('');
   const [business, setBusiness] = useState<Business | null>(null);
   const [playingVoice, setPlayingVoice] = useState<string | null>(null);
+  const [voices, setVoices] = useState<ElevenLabsVoice[]>([]);
+  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
 
   const [config, setConfig] = useState({
-    voice_id: 'nl-BE-DenaNeural',
+    voice_id: 'EXAVITQu4vr4xnSDxMaL', // Default ElevenLabs voice (Sarah)
     language: 'nl-BE',
     greeting: '',
     capabilities: '',
@@ -123,7 +127,19 @@ export default function AISettingsPage() {
     faqs: [] as Array<{ question: string; answer: string }>,
   });
 
-  useEffect(() => { loadSettings(); }, []);
+  useEffect(() => { loadSettings(); loadVoices(); }, []);
+
+  const loadVoices = async () => {
+    try {
+      const res = await fetch('/api/elevenlabs/voices');
+      if (res.ok) {
+        const data = await res.json();
+        setVoices(data);
+      }
+    } catch (e) {
+      console.error('Failed to load voices:', e);
+    }
+  };
 
   const loadSettings = async () => {
     const supabase = createClient();
@@ -272,39 +288,40 @@ export default function AISettingsPage() {
     }
   };
 
-  const playVoiceSample = (voiceId: string) => {
-    // Stop any currently playing voice
-    window.speechSynthesis.cancel();
+  const playVoiceSample = async (voiceId: string) => {
+    // Stop any currently playing audio
+    if (audioElement) {
+      audioElement.pause();
+      audioElement.currentTime = 0;
+    }
     
-    const voice = voiceOptions.find(v => v.id === voiceId);
-    if (!voice) return;
-
     setPlayingVoice(voiceId);
     
-    const utterance = new SpeechSynthesisUtterance(voice.sample);
-    
-    // Set language based on voice
-    if (voiceId.startsWith('fr-')) {
-      utterance.lang = 'fr-BE';
-    } else if (voiceId.startsWith('nl-BE')) {
-      utterance.lang = 'nl-BE';
-    } else {
-      utterance.lang = 'nl-NL';
+    try {
+      const res = await fetch('/api/elevenlabs/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          voice_id: voiceId,
+          text: 'Goedendag, welkom bij ons bedrijf. Waarmee kan ik u helpen vandaag?',
+        }),
+      });
+      
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        setAudioElement(audio);
+        audio.onended = () => setPlayingVoice(null);
+        audio.onerror = () => setPlayingVoice(null);
+        audio.play();
+      } else {
+        setPlayingVoice(null);
+      }
+    } catch (e) {
+      console.error('Failed to play voice sample:', e);
+      setPlayingVoice(null);
     }
-    
-    // Adjust voice characteristics based on gender
-    if (voice.gender === 'Vrouw') {
-      utterance.pitch = 1.1;
-    } else {
-      utterance.pitch = 0.9;
-    }
-    
-    utterance.rate = 0.95;
-    
-    utterance.onend = () => setPlayingVoice(null);
-    utterance.onerror = () => setPlayingVoice(null);
-    
-    window.speechSynthesis.speak(utterance);
   };
 
   if (loading) {
@@ -330,33 +347,38 @@ export default function AISettingsPage() {
           </h2>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
-            {voiceOptions.map(voice => (
+            {voices.length === 0 ? (
+              <p style={{ color: '#6b7280' }}>Stemmen laden...</p>
+            ) : voices.map(voice => (
               <div
-                key={voice.id}
-                onClick={() => setConfig({ ...config, voice_id: voice.id })}
+                key={voice.voice_id}
+                onClick={() => setConfig({ ...config, voice_id: voice.voice_id })}
                 style={{
                   padding: 16, borderRadius: 12, cursor: 'pointer',
-                  background: config.voice_id === voice.id ? 'rgba(249, 115, 22, 0.15)' : '#0a0a0f',
-                  border: config.voice_id === voice.id ? '2px solid #f97316' : '1px solid #2a2a35',
+                  background: config.voice_id === voice.voice_id ? 'rgba(249, 115, 22, 0.15)' : '#0a0a0f',
+                  border: config.voice_id === voice.voice_id ? '2px solid #f97316' : '1px solid #2a2a35',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 8 }}>
                   <div>
                     <p style={{ color: 'white', fontWeight: 600, marginBottom: 4 }}>{voice.name}</p>
-                    <p style={{ color: '#6b7280', fontSize: 12 }}>{voice.gender} • {voice.accent}</p>
+                    <p style={{ color: '#6b7280', fontSize: 12 }}>
+                      {voice.labels.gender === 'female' ? 'Vrouw' : voice.labels.gender === 'male' ? 'Man' : ''} 
+                      {voice.labels.accent ? ` • ${voice.labels.accent}` : ''}
+                    </p>
                   </div>
                   <button
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); playVoiceSample(voice.id); }}
+                    onClick={(e) => { e.stopPropagation(); playVoiceSample(voice.voice_id); }}
                     style={{
                       background: 'rgba(249, 115, 22, 0.15)', border: 'none', borderRadius: 6,
                       padding: 8, color: '#f97316', cursor: 'pointer',
                     }}
                   >
-                    {playingVoice === voice.id ? <Volume2 size={16} /> : <Play size={16} />}
+                    {playingVoice === voice.voice_id ? <Volume2 size={16} /> : <Play size={16} />}
                   </button>
                 </div>
-                {config.voice_id === voice.id && (
+                {config.voice_id === voice.voice_id && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#f97316', fontSize: 12 }}>
                     <Check size={14} /> Geselecteerd
                   </div>
