@@ -211,7 +211,7 @@ function SettingsContent() {
         phone: formData.phone.trim() || null,
         email: formData.email.trim() || null,
         address: formData.address.trim() || null,
-        opening_hours: formData.opening_hours,
+        opening_hours: formData.opening_hours as unknown as Record<string, unknown>,
       })
       .eq('id', business.id);
 
