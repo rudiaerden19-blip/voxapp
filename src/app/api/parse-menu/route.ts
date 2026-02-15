@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
 
     // Initialize Gemini
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
     // Send image to Gemini
     const result = await model.generateContent([
@@ -81,6 +81,7 @@ Nu jij - lees ALLE producten uit de afbeelding:`,
     return NextResponse.json({ products });
   } catch (error) {
     console.error('Parse menu error:', error);
-    return NextResponse.json({ error: 'Verwerking mislukt' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Verwerking mislukt';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
