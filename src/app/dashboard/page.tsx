@@ -44,10 +44,11 @@ function DashboardContent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get admin_view from URL directly to avoid stale closure
-    const adminViewId = searchParams.get('admin_view');
+    // Get admin_view from URL directly (more reliable)
+    const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const adminViewId = urlParams?.get('admin_view') || searchParams.get('admin_view');
     loadDashboardData(adminViewId);
-  }, [searchParams]);
+  }, []);
 
   const loadDashboardData = async (adminViewId: string | null) => {
     const supabase = createClient();
