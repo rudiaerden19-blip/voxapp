@@ -5,10 +5,20 @@ import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useLanguage } from '@/lib/LanguageContext';
-import { Save, Building2, Clock, Phone, Mail, MapPin, Check, CreditCard, ExternalLink } from 'lucide-react';
+import { Save, Building2, Clock, Phone, Mail, MapPin, Check, CreditCard, ExternalLink, Plus, X } from 'lucide-react';
+
+interface Shift {
+  open: string;
+  close: string;
+}
+
+interface DaySchedule {
+  closed: boolean;
+  shifts: Shift[];
+}
 
 interface OpeningHours {
-  [key: string]: { open: string; close: string; closed: boolean };
+  [key: string]: DaySchedule;
 }
 
 interface Business {
@@ -25,13 +35,35 @@ interface Business {
 }
 
 const defaultOpeningHours: OpeningHours = {
-  monday: { open: '09:00', close: '17:00', closed: false },
-  tuesday: { open: '09:00', close: '17:00', closed: false },
-  wednesday: { open: '09:00', close: '17:00', closed: false },
-  thursday: { open: '09:00', close: '17:00', closed: false },
-  friday: { open: '09:00', close: '17:00', closed: false },
-  saturday: { open: '10:00', close: '14:00', closed: true },
-  sunday: { open: '10:00', close: '14:00', closed: true },
+  monday: { closed: false, shifts: [{ open: '09:00', close: '17:00' }] },
+  tuesday: { closed: false, shifts: [{ open: '09:00', close: '17:00' }] },
+  wednesday: { closed: false, shifts: [{ open: '09:00', close: '17:00' }] },
+  thursday: { closed: false, shifts: [{ open: '09:00', close: '17:00' }] },
+  friday: { closed: false, shifts: [{ open: '09:00', close: '17:00' }] },
+  saturday: { closed: true, shifts: [{ open: '10:00', close: '14:00' }] },
+  sunday: { closed: true, shifts: [{ open: '10:00', close: '14:00' }] },
+};
+
+// Convert old format to new format
+const migrateOpeningHours = (hours: any): OpeningHours => {
+  const result: OpeningHours = {};
+  for (const day of Object.keys(defaultOpeningHours)) {
+    if (hours[day]) {
+      // Check if it's already new format (has shifts array)
+      if (hours[day].shifts && Array.isArray(hours[day].shifts)) {
+        result[day] = hours[day];
+      } else {
+        // Old format - convert
+        result[day] = {
+          closed: hours[day].closed ?? false,
+          shifts: [{ open: hours[day].open || '09:00', close: hours[day].close || '17:00' }],
+        };
+      }
+    } else {
+      result[day] = defaultOpeningHours[day];
+    }
+  }
+  return result;
 };
 
 const dayLabels: Record<string, string> = {
@@ -100,17 +132,65 @@ function SettingsContent() {
         phone: biz.phone || '',
         email: biz.email || '',
         address: biz.address || '',
-        opening_hours: biz.opening_hours || defaultOpeningHours,
+        opening_hours: biz.opening_hours ? migrateOpeningHours(biz.opening_hours) : defaultOpeningHours,
       });
     }
     setLoading(false);
   };
 
-  const updateOpeningHours = (day: string, field: 'open' | 'close' | 'closed', value: string | boolean) => {
+  const toggleDayClosed = (day: string) => {
     setFormData(prev => ({
       ...prev,
-      opening_hours: { ...prev.opening_hours, [day]: { ...prev.opening_hours[day], [field]: value } },
+      opening_hours: { 
+        ...prev.opening_hours, 
+        [day]: { ...prev.opening_hours[day], closed: !prev.opening_hours[day].closed } 
+      },
     }));
+  };
+
+  const updateShift = (day: string, shiftIndex: number, field: 'open' | 'close', value: string) => {
+    setFormData(prev => {
+      const newShifts = [...prev.opening_hours[day].shifts];
+      newShifts[shiftIndex] = { ...newShifts[shiftIndex], [field]: value };
+      return {
+        ...prev,
+        opening_hours: { 
+          ...prev.opening_hours, 
+          [day]: { ...prev.opening_hours[day], shifts: newShifts } 
+        },
+      };
+    });
+  };
+
+  const addShift = (day: string) => {
+    setFormData(prev => {
+      const currentShifts = prev.opening_hours[day].shifts;
+      const lastShift = currentShifts[currentShifts.length - 1];
+      // Default new shift starts 2 hours after last shift ends
+      const newShift = { open: '17:00', close: '22:00' };
+      return {
+        ...prev,
+        opening_hours: { 
+          ...prev.opening_hours, 
+          [day]: { ...prev.opening_hours[day], shifts: [...currentShifts, newShift] } 
+        },
+      };
+    });
+  };
+
+  const removeShift = (day: string, shiftIndex: number) => {
+    setFormData(prev => {
+      const newShifts = prev.opening_hours[day].shifts.filter((_, i) => i !== shiftIndex);
+      // Always keep at least one shift
+      if (newShifts.length === 0) return prev;
+      return {
+        ...prev,
+        opening_hours: { 
+          ...prev.opening_hours, 
+          [day]: { ...prev.opening_hours[day], shifts: newShifts } 
+        },
+      };
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -402,51 +482,83 @@ function SettingsContent() {
           <div style={{ background: '#0a0a0f', borderRadius: 8, border: '1px solid #2a2a35', overflow: 'hidden' }}>
             {Object.entries(dayLabels).map(([day, label], index) => (
               <div key={day} style={{ 
-                display: 'flex', alignItems: 'center', gap: 16, padding: '14px 16px',
+                padding: '14px 16px',
                 borderBottom: index < 6 ? '1px solid #2a2a35' : 'none',
               }}>
-                <div
-                  onClick={() => updateOpeningHours(day, 'closed', !formData.opening_hours[day].closed)}
-                  style={{
-                    width: 40, height: 22, borderRadius: 11,
-                    background: formData.opening_hours[day].closed ? '#2a2a35' : '#22c55e',
-                    position: 'relative', cursor: 'pointer', flexShrink: 0,
-                  }}
-                >
-                  <div style={{
-                    width: 16, height: 16, borderRadius: '50%', background: 'white',
-                    position: 'absolute', top: 3,
-                    left: formData.opening_hours[day].closed ? 3 : 21,
-                    transition: 'left 0.2s',
-                  }} />
-                </div>
-
-                <span style={{ 
-                  width: 90, color: formData.opening_hours[day].closed ? '#6b7280' : 'white', 
-                  fontSize: 14, fontWeight: 500,
-                }}>
-                  {label}
-                </span>
-
-                {formData.opening_hours[day].closed ? (
-                  <span style={{ color: '#ef4444', fontSize: 14 }}>Gesloten</span>
-                ) : (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <input
-                      type="time"
-                      value={formData.opening_hours[day].open}
-                      onChange={(e) => updateOpeningHours(day, 'open', e.target.value)}
-                      style={{ padding: '6px 10px', background: '#16161f', border: '1px solid #2a2a35', borderRadius: 6, color: 'white', fontSize: 14 }}
-                    />
-                    <span style={{ color: '#6b7280' }}>tot</span>
-                    <input
-                      type="time"
-                      value={formData.opening_hours[day].close}
-                      onChange={(e) => updateOpeningHours(day, 'close', e.target.value)}
-                      style={{ padding: '6px 10px', background: '#16161f', border: '1px solid #2a2a35', borderRadius: 6, color: 'white', fontSize: 14 }}
-                    />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <div
+                    onClick={() => toggleDayClosed(day)}
+                    style={{
+                      width: 40, height: 22, borderRadius: 11,
+                      background: formData.opening_hours[day].closed ? '#2a2a35' : '#22c55e',
+                      position: 'relative', cursor: 'pointer', flexShrink: 0,
+                    }}
+                  >
+                    <div style={{
+                      width: 16, height: 16, borderRadius: '50%', background: 'white',
+                      position: 'absolute', top: 3,
+                      left: formData.opening_hours[day].closed ? 3 : 21,
+                      transition: 'left 0.2s',
+                    }} />
                   </div>
-                )}
+
+                  <span style={{ 
+                    width: 90, color: formData.opening_hours[day].closed ? '#6b7280' : 'white', 
+                    fontSize: 14, fontWeight: 500,
+                  }}>
+                    {label}
+                  </span>
+
+                  {formData.opening_hours[day].closed ? (
+                    <span style={{ color: '#ef4444', fontSize: 14 }}>Gesloten</span>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
+                      {formData.opening_hours[day].shifts.map((shift, shiftIndex) => (
+                        <div key={shiftIndex} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <input
+                            type="time"
+                            value={shift.open}
+                            onChange={(e) => updateShift(day, shiftIndex, 'open', e.target.value)}
+                            style={{ padding: '6px 10px', background: '#16161f', border: '1px solid #2a2a35', borderRadius: 6, color: 'white', fontSize: 14 }}
+                          />
+                          <span style={{ color: '#6b7280' }}>tot</span>
+                          <input
+                            type="time"
+                            value={shift.close}
+                            onChange={(e) => updateShift(day, shiftIndex, 'close', e.target.value)}
+                            style={{ padding: '6px 10px', background: '#16161f', border: '1px solid #2a2a35', borderRadius: 6, color: 'white', fontSize: 14 }}
+                          />
+                          {formData.opening_hours[day].shifts.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeShift(day, shiftIndex)}
+                              style={{ 
+                                background: 'rgba(239, 68, 68, 0.1)', border: 'none', borderRadius: 4, 
+                                padding: 4, cursor: 'pointer', display: 'flex', alignItems: 'center',
+                              }}
+                            >
+                              <X size={14} style={{ color: '#ef4444' }} />
+                            </button>
+                          )}
+                          {shiftIndex === formData.opening_hours[day].shifts.length - 1 && formData.opening_hours[day].shifts.length < 3 && (
+                            <button
+                              type="button"
+                              onClick={() => addShift(day)}
+                              style={{ 
+                                background: 'rgba(249, 115, 22, 0.1)', border: 'none', borderRadius: 4, 
+                                padding: 4, cursor: 'pointer', display: 'flex', alignItems: 'center',
+                                marginLeft: 4,
+                              }}
+                              title="Shift toevoegen"
+                            >
+                              <Plus size={14} style={{ color: '#f97316' }} />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
