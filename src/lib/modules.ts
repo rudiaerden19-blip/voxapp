@@ -27,6 +27,64 @@ export interface Module {
   };
 }
 
+// Veld configuratie per module
+export interface ModuleFieldConfig {
+  // Menu/Products module
+  menu?: {
+    showDuration?: boolean;        // Toon duur veld
+    showCategory?: boolean;        // Toon categorie
+    showDescription?: boolean;     // Toon beschrijving
+    showOptions?: boolean;         // Toon opties (sauzen, extra's)
+    defaultCategories?: string[];  // Standaard categorieën
+    namePlaceholder?: string;      // Placeholder voor naam
+    categoryPlaceholder?: string;  // Placeholder voor categorie
+  };
+  // Services module
+  services?: {
+    showDuration?: boolean;
+    showPrice?: boolean;
+    showStaffLink?: boolean;       // Koppel aan medewerker
+    defaultDurations?: number[];   // Standaard duraties in minuten
+    namePlaceholder?: string;
+  };
+  // Appointments module
+  appointments?: {
+    defaultSlotsPerHour?: number;
+    defaultStartHour?: number;
+    defaultEndHour?: number;
+    showService?: boolean;         // Toon dienst keuze
+    showStaff?: boolean;           // Toon medewerker keuze
+    showNotes?: boolean;           // Toon notities
+  };
+  // Staff module
+  staff?: {
+    showEmail?: boolean;
+    showPhone?: boolean;
+    showSpecialization?: boolean;  // Specialisatie (dokter, kapper)
+    showSchedule?: boolean;        // Werkrooster
+    specializationLabel?: string;  // "Specialisatie", "Functie", etc.
+  };
+  // Patients module
+  patients?: {
+    showBirthdate?: boolean;
+    showInsurance?: boolean;       // Zorgverzekering
+    showAllergies?: boolean;
+    showMedicalHistory?: boolean;
+  };
+  // Vehicles module
+  vehicles?: {
+    showLicensePlate?: boolean;
+    showMileage?: boolean;
+    showLastService?: boolean;
+  };
+  // Workorders module
+  workorders?: {
+    showVehicle?: boolean;         // Link naar voertuig
+    showParts?: boolean;           // Onderdelen
+    showLabor?: boolean;           // Arbeid/uren
+  };
+}
+
 export interface BusinessTypeConfig {
   id: string;
   name: string;
@@ -40,6 +98,8 @@ export interface BusinessTypeConfig {
     appointment?: string;  // "afspraak", "reservering", "consult"
     customer?: string;     // "klant", "patiënt", "gast"
   };
+  // Module-specifieke veld configuratie
+  fieldConfig?: ModuleFieldConfig;
 }
 
 // Alle beschikbare modules

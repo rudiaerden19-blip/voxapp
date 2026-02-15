@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import AdminLayout from '@/components/AdminLayout';
-import { Search, Ban, Check, Trash2, Eye, UserPlus, X } from 'lucide-react';
+import { Search, Ban, Check, Trash2, Eye, UserPlus, X, Settings, ExternalLink } from 'lucide-react';
+import { MODULES, BUSINESS_TYPES, getBusinessType, ModuleId } from '@/lib/modules';
 
 interface Tenant {
   id: string;
@@ -16,9 +17,13 @@ interface Tenant {
   blocked?: boolean;
   created_at: string;
   trial_ends_at?: string | null;
+  enabled_modules?: ModuleId[];  // Custom modules per tenant
 }
 
 const ITEMS_PER_PAGE = 25;
+
+// Alle beschikbare modules
+const ALL_MODULES: ModuleId[] = Object.keys(MODULES) as ModuleId[];
 
 export default function TenantsPage() {
   const [tenants, setTenants] = useState<Tenant[]>([]);
@@ -29,6 +34,8 @@ export default function TenantsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [editingModules, setEditingModules] = useState<ModuleId[]>([]);
+  const [savingModules, setSavingModules] = useState(false);
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredTenants.length / ITEMS_PER_PAGE);
@@ -106,7 +113,49 @@ export default function TenantsPage() {
     setTenants(prev => prev.map(t => 
       t.id === tenant.id ? { ...t, subscription_status: newStatus } : t
     ));
-    setSelectedTenant(null);
+    setSelectedTenant(prev => prev ? { ...prev, subscription_status: newStatus } : null);
+  };
+
+  // Open tenant detail and load their modules
+  const openTenantDetail = (tenant: Tenant) => {
+    setSelectedTenant(tenant);
+    // Load modules: either custom or default from business type
+    const defaultModules = tenant.type ? getBusinessType(tenant.type).modules : [];
+    setEditingModules(tenant.enabled_modules || defaultModules);
+  };
+
+  // Toggle module on/off
+  const toggleModule = (moduleId: ModuleId) => {
+    setEditingModules(prev => 
+      prev.includes(moduleId) 
+        ? prev.filter(m => m !== moduleId)
+        : [...prev, moduleId]
+    );
+  };
+
+  // Save modules for tenant
+  const saveModules = async () => {
+    if (!selectedTenant) return;
+    setSavingModules(true);
+    
+    const supabase = createClient();
+    await supabase
+      .from('businesses')
+      .update({ enabled_modules: editingModules } as any)
+      .eq('id', selectedTenant.id);
+    
+    setTenants(prev => prev.map(t => 
+      t.id === selectedTenant.id ? { ...t, enabled_modules: editingModules } : t
+    ));
+    setSelectedTenant(prev => prev ? { ...prev, enabled_modules: editingModules } : null);
+    setSavingModules(false);
+  };
+
+  // Reset to default modules for business type
+  const resetToDefaultModules = () => {
+    if (!selectedTenant?.type) return;
+    const defaultModules = getBusinessType(selectedTenant.type).modules;
+    setEditingModules(defaultModules);
   };
 
   const formatDate = (date: string) => {
@@ -212,7 +261,7 @@ export default function TenantsPage() {
                       <td style={{ padding: '16px' }}>
                         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                           <button
-                            onClick={() => setSelectedTenant(tenant)}
+                            onClick={() => openTenantDetail(tenant)}
                             style={{
                               padding: 8, background: 'rgba(59, 130, 246, 0.15)', border: 'none',
                               borderRadius: 6, color: '#3b82f6', cursor: 'pointer',
@@ -314,12 +363,17 @@ export default function TenantsPage() {
 
       {/* Tenant Detail Modal */}
       {selectedTenant && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 24 }}>
-          <div style={{ background: '#16161f', borderRadius: 16, border: '1px solid #2a2a35', padding: 32, maxWidth: 500, width: '100%' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 24, overflowY: 'auto' }}>
+          <div style={{ background: '#16161f', borderRadius: 16, border: '1px solid #2a2a35', padding: 32, maxWidth: 600, width: '100%', margin: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 24 }}>
-              <div>
-                <h2 style={{ color: 'white', fontSize: 20, fontWeight: 600 }}>{selectedTenant.name}</h2>
-                <p style={{ color: '#6b7280', fontSize: 14 }}>{selectedTenant.email}</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                {selectedTenant.type && (
+                  <span style={{ fontSize: 32 }}>{getBusinessType(selectedTenant.type).icon}</span>
+                )}
+                <div>
+                  <h2 style={{ color: 'white', fontSize: 20, fontWeight: 600 }}>{selectedTenant.name}</h2>
+                  <p style={{ color: '#6b7280', fontSize: 14 }}>{selectedTenant.email}</p>
+                </div>
               </div>
               <button onClick={() => setSelectedTenant(null)} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer' }}>
                 <X size={24} />
@@ -327,18 +381,17 @@ export default function TenantsPage() {
             </div>
 
             <div style={{ display: 'grid', gap: 16, marginBottom: 24 }}>
-              <div>
-                <label style={{ color: '#9ca3af', fontSize: 13 }}>Type</label>
-                <p style={{ color: 'white', textTransform: 'capitalize' }}>{selectedTenant.type}</p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div>
+                  <label style={{ color: '#9ca3af', fontSize: 13 }}>Type</label>
+                  <p style={{ color: 'white' }}>{selectedTenant.type ? getBusinessType(selectedTenant.type).name : 'Onbekend'}</p>
+                </div>
+                <div>
+                  <label style={{ color: '#9ca3af', fontSize: 13 }}>Telefoon</label>
+                  <p style={{ color: 'white' }}>{selectedTenant.phone || 'Niet ingevuld'}</p>
+                </div>
               </div>
-              <div>
-                <label style={{ color: '#9ca3af', fontSize: 13 }}>Telefoon</label>
-                <p style={{ color: 'white' }}>{selectedTenant.phone || 'Niet ingevuld'}</p>
-              </div>
-              <div>
-                <label style={{ color: '#9ca3af', fontSize: 13 }}>Aangemaakt</label>
-                <p style={{ color: 'white' }}>{formatDate(selectedTenant.created_at)}</p>
-              </div>
+              
               <div>
                 <label style={{ color: '#9ca3af', fontSize: 13, marginBottom: 8, display: 'block' }}>Abonnement Status</label>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -360,7 +413,83 @@ export default function TenantsPage() {
               </div>
             </div>
 
+            {/* MODULES SECTIE */}
+            <div style={{ background: '#0a0a0f', borderRadius: 12, padding: 20, marginBottom: 24 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Settings size={18} color="#f97316" />
+                  <h3 style={{ color: 'white', fontSize: 16, fontWeight: 600, margin: 0 }}>Modules</h3>
+                </div>
+                <button
+                  onClick={resetToDefaultModules}
+                  style={{ background: 'none', border: 'none', color: '#6b7280', fontSize: 12, cursor: 'pointer', textDecoration: 'underline' }}
+                >
+                  Reset naar standaard
+                </button>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+                {ALL_MODULES.map(moduleId => {
+                  const module = MODULES[moduleId];
+                  const isEnabled = editingModules.includes(moduleId);
+                  return (
+                    <div
+                      key={moduleId}
+                      onClick={() => toggleModule(moduleId)}
+                      style={{
+                        padding: '12px 14px', borderRadius: 8, cursor: 'pointer',
+                        background: isEnabled ? 'rgba(249, 115, 22, 0.15)' : '#16161f',
+                        border: isEnabled ? '2px solid #f97316' : '1px solid #2a2a35',
+                        display: 'flex', alignItems: 'center', gap: 10,
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      <span style={{ fontSize: 18 }}>{module.icon}</span>
+                      <div style={{ flex: 1 }}>
+                        <p style={{ color: isEnabled ? '#f97316' : '#9ca3af', fontWeight: isEnabled ? 600 : 400, fontSize: 13, margin: 0 }}>
+                          {module.name}
+                        </p>
+                      </div>
+                      <div style={{
+                        width: 20, height: 20, borderRadius: 4,
+                        background: isEnabled ? '#f97316' : 'transparent',
+                        border: isEnabled ? 'none' : '2px solid #4b5563',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        {isEnabled && <Check size={14} color="white" />}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              <button
+                onClick={saveModules}
+                disabled={savingModules}
+                style={{
+                  width: '100%', marginTop: 16, padding: '12px 16px', borderRadius: 8,
+                  background: savingModules ? '#4b5563' : '#f97316', border: 'none',
+                  color: 'white', fontWeight: 600, cursor: savingModules ? 'not-allowed' : 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                }}
+              >
+                {savingModules ? 'Opslaan...' : <><Check size={16} /> Modules Opslaan</>}
+              </button>
+            </div>
+
             <div style={{ display: 'flex', gap: 12 }}>
+              <a
+                href={`/dashboard?admin_view=${selectedTenant.id}`}
+                target="_blank"
+                style={{
+                  flex: 1, padding: '12px 16px', borderRadius: 8, border: 'none',
+                  background: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6',
+                  fontWeight: 500, textDecoration: 'none', textAlign: 'center',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                }}
+              >
+                <ExternalLink size={16} /> Bekijk Dashboard
+              </a>
               <button
                 onClick={() => toggleBlock(selectedTenant)}
                 style={{
@@ -371,15 +500,6 @@ export default function TenantsPage() {
                 }}
               >
                 {selectedTenant.blocked ? 'Deblokkeren' : 'Blokkeren'}
-              </button>
-              <button
-                onClick={() => setSelectedTenant(null)}
-                style={{
-                  flex: 1, padding: '12px 16px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                  background: '#2a2a35', color: 'white', fontWeight: 500,
-                }}
-              >
-                Sluiten
               </button>
             </div>
           </div>

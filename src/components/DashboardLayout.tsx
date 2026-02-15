@@ -15,6 +15,7 @@ interface Business {
   email: string | null;
   subscription_status: string;
   trial_ends_at: string | null;
+  enabled_modules?: ModuleId[];  // Custom modules per tenant (overrides default)
 }
 
 // Icon mapping voor modules
@@ -217,11 +218,15 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             <TrendingUp size={18} />{t('dashboard.nav.dashboard')}
           </Link>
 
-          {/* Module-specifieke items gebaseerd op business type */}
+          {/* Module-specifieke items gebaseerd op business type of custom modules */}
           {business?.type && (
             <>
               {Object.entries(moduleNavItems).map(([moduleId, item]) => {
-                if (!hasModule(business.type, moduleId as ModuleId)) return null;
+                // Check custom enabled_modules first, then fall back to default
+                const moduleEnabled = business.enabled_modules 
+                  ? business.enabled_modules.includes(moduleId as ModuleId)
+                  : hasModule(business.type, moduleId as ModuleId);
+                if (!moduleEnabled) return null;
                 const active = pathname.startsWith(item.href);
                 return (
                   <Link key={item.href} href={item.href} onClick={() => setSidebarOpen(false)} style={{

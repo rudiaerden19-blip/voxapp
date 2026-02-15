@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase';
 import { Package, Plus, Trash2, Check, X, Clock, Euro, Search, Filter, ArrowLeft, Upload } from 'lucide-react';
 import Link from 'next/link';
+import ModuleGuard from '@/components/ModuleGuard';
 
 interface Product {
   id?: string;
