@@ -731,7 +731,7 @@ export default function ProductenPage() {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="bijv. Grote Friet"
+                  placeholder="Naam van product/dienst"
                   style={{ width: '100%', padding: '14px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 10, color: 'white', fontSize: 14 }}
                 />
               </div>
@@ -744,7 +744,7 @@ export default function ProductenPage() {
                     type="text"
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    placeholder="bijv. Friet, Snacks"
+                    placeholder="Categorie"
                     style={{ width: '100%', padding: '14px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 10, color: 'white', fontSize: 14 }}
                     list="categories"
                   />
@@ -757,11 +757,15 @@ export default function ProductenPage() {
                   <div style={{ position: 'relative' }}>
                     <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }}>€</span>
                     <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={formData.price || ''}
-                      onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                      type="text"
+                      inputMode="decimal"
+                      value={formData.price === 0 ? '0' : formData.price.toString()}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(',', '.');
+                        if (val === '' || /^\d*\.?\d{0,2}$/.test(val)) {
+                          setFormData({ ...formData, price: val === '' ? 0 : parseFloat(val) || 0 });
+                        }
+                      }}
                       placeholder="0.00"
                       style={{ width: '100%', padding: '14px 16px 14px 32px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 10, color: 'white', fontSize: 14 }}
                     />
@@ -840,11 +844,15 @@ export default function ProductenPage() {
                     <div style={{ position: 'relative' }}>
                       <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#22c55e' }}>€</span>
                       <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={formData.promo_price || ''}
-                        onChange={(e) => setFormData({ ...formData, promo_price: parseFloat(e.target.value) || undefined })}
+                        type="text"
+                        inputMode="decimal"
+                        value={formData.promo_price !== undefined ? formData.promo_price.toString() : ''}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(',', '.');
+                          if (val === '' || /^\d*\.?\d{0,2}$/.test(val)) {
+                            setFormData({ ...formData, promo_price: val === '' ? undefined : parseFloat(val) || 0 });
+                          }
+                        }}
                         placeholder="0.00"
                         style={{ width: '100%', padding: '14px 16px 14px 32px', background: '#0a0a0f', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: 10, color: 'white', fontSize: 14 }}
                       />
