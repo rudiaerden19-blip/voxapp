@@ -32,7 +32,6 @@ interface Stats {
 function DashboardContent() {
   const { t, language } = useLanguage();
   const searchParams = useSearchParams();
-  const adminViewId = searchParams.get('admin_view');
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [businessName, setBusinessName] = useState('');
   const [isAdminView, setIsAdminView] = useState(false);
@@ -45,10 +44,12 @@ function DashboardContent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadDashboardData();
-  }, [adminViewId]);
+    // Get admin_view from URL directly to avoid stale closure
+    const adminViewId = searchParams.get('admin_view');
+    loadDashboardData(adminViewId);
+  }, [searchParams]);
 
-  const loadDashboardData = async () => {
+  const loadDashboardData = async (adminViewId: string | null) => {
     const supabase = createClient();
     let businessId: string | null = null;
     let businessNameValue: string = '';
