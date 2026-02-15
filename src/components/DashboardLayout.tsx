@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Phone, Calendar, Users, Settings, LogOut, TrendingUp, MessageSquare, Menu, X, Briefcase, Globe, ChevronDown } from 'lucide-react';
+import { Phone, Calendar, Users, Settings, LogOut, TrendingUp, MessageSquare, Menu, X, Briefcase, Globe, ChevronDown, Shield } from 'lucide-react';
 import { useLanguage, Language } from '@/lib/LanguageContext';
 
 interface Business {
@@ -38,13 +38,33 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+  const [isAdminView, setIsAdminView] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  useEffect(() => { checkAuth(); }, []);
+  useEffect(() => { checkAuth(); }, [searchParams]);
 
   const checkAuth = async () => {
     const supabase = createClient();
+    const adminViewId = searchParams.get('admin_view');
+    
+    // Check if admin is viewing a tenant dashboard
+    if (adminViewId) {
+      const adminSession = typeof window !== 'undefined' ? localStorage.getItem('voxapp_admin_session') : null;
+      if (adminSession === 'true') {
+        // Admin viewing tenant - load tenant data directly
+        const { data: businessData } = await supabase.from('businesses').select('*').eq('id', adminViewId).single();
+        if (businessData) {
+          setBusiness(businessData as Business);
+          setIsAdminView(true);
+        }
+        setLoading(false);
+        return;
+      }
+    }
+    
+    // Normal user auth flow
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) { router.push('/login'); return; }
@@ -92,6 +112,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <button onClick={() => setSidebarOpen(false)} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer' }} className="sidebar-close-btn"><X size={24} /></button>
         </div>
 
+        {isAdminView && (
+          <div style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)', borderRadius: 8, padding: 12, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Shield size={16} color="white" />
+            <p style={{ color: 'white', fontWeight: 600, fontSize: 12, margin: 0 }}>Admin Modus</p>
+          </div>
+        )}
         <div style={{ background: '#0a0a0f', borderRadius: 8, padding: 12, marginBottom: 24 }}>
           <p style={{ color: 'white', fontWeight: 600, fontSize: 14 }}>{business?.name}</p>
           <p style={{ color: '#6b7280', fontSize: 12, marginTop: 4 }}>
@@ -154,12 +180,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           ))}
         </nav>
 
-        <button onClick={handleLogout} style={{
-          display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: 'transparent',
-          border: 'none', borderRadius: 8, color: '#9ca3af', fontSize: 14, cursor: 'pointer', width: '100%', textAlign: 'left',
-        }}>
-          <LogOut size={18} />{t('dashboard.nav.logout')}
-        </button>
+        {isAdminView ? (
+          <Link href="/admin" style={{
+            display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: '#8b5cf620',
+            border: 'none', borderRadius: 8, color: '#8b5cf6', fontSize: 14, fontWeight: 600, width: '100%', textAlign: 'left', textDecoration: 'none',
+          }}>
+            <Shield size={18} />Terug naar Admin
+          </Link>
+        ) : (
+          <button onClick={handleLogout} style={{
+            display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: 'transparent',
+            border: 'none', borderRadius: 8, color: '#9ca3af', fontSize: 14, cursor: 'pointer', width: '100%', textAlign: 'left',
+          }}>
+            <LogOut size={18} />{t('dashboard.nav.logout')}
+          </button>
+        )}
       </aside>
 
       <main style={{ flex: 1, marginLeft: 260, minHeight: '100vh' }} className="main-content">
