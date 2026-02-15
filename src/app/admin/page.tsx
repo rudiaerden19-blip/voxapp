@@ -669,14 +669,39 @@ export default function AdminDashboard() {
                     onChange={(e) => setNewTenant(prev => ({ ...prev, type: e.target.value }))}
                     style={{ width: '100%', padding: '12px 16px', background: '#0f172a', border: '1px solid #334155', borderRadius: 8, color: 'white', fontSize: 14 }}
                   >
-                    <option value="restaurant">Restaurant</option>
-                    <option value="salon">Kapsalon</option>
-                    <option value="garage">Garage</option>
-                    <option value="takeaway">Frituur/Takeaway</option>
-                    <option value="doctor">Dokter</option>
-                    <option value="dentist">Tandarts</option>
-                    <option value="physio">Kinesist</option>
-                    <option value="other">Overig</option>
+                    <optgroup label="Horeca">
+                      <option value="restaurant">Restaurant</option>
+                      <option value="frituur">Frituur</option>
+                      <option value="pizzeria">Pizzeria</option>
+                      <option value="kebab">Kebabzaak</option>
+                      <option value="hotel">Hotel</option>
+                    </optgroup>
+                    <optgroup label="Zorg">
+                      <option value="dokter">Dokterspraktijk</option>
+                      <option value="tandarts">Tandarts</option>
+                      <option value="ziekenhuis">Ziekenhuis</option>
+                      <option value="opticien">Opticien</option>
+                      <option value="dierenkliniek">Dierenkliniek</option>
+                    </optgroup>
+                    <optgroup label="Beauty & Wellness">
+                      <option value="kapper">Kapsalon</option>
+                      <option value="beautysalon">Beautysalon</option>
+                      <option value="fitness">Fitnessstudio</option>
+                    </optgroup>
+                    <optgroup label="Diensten">
+                      <option value="garage">Garage</option>
+                      <option value="loodgieter">Loodgieter</option>
+                      <option value="schoonmaak">Schoonmaakbedrijf</option>
+                      <option value="advocaat">Advocatenkantoor</option>
+                      <option value="boekhouder">Boekhoudkantoor</option>
+                    </optgroup>
+                    <optgroup label="Retail">
+                      <option value="bloemenwinkel">Bloemenwinkel</option>
+                      <option value="immo">Immobiliënkantoor</option>
+                    </optgroup>
+                    <optgroup label="Overig">
+                      <option value="other">Overig</option>
+                    </optgroup>
                   </select>
                 </div>
                 <div>
@@ -845,14 +870,39 @@ export default function AdminDashboard() {
                         onChange={(e) => setEditData(prev => ({ ...prev, type: e.target.value }))}
                         style={{ width: '100%', padding: '12px 16px', background: '#0f172a', border: '1px solid #334155', borderRadius: 8, color: 'white', fontSize: 14 }}
                       >
-                        <option value="restaurant">Restaurant</option>
-                        <option value="salon">Kapsalon</option>
-                        <option value="garage">Garage</option>
-                        <option value="takeaway">Frituur/Takeaway</option>
-                        <option value="doctor">Dokter</option>
-                        <option value="dentist">Tandarts</option>
-                        <option value="physio">Kinesist</option>
-                        <option value="other">Overig</option>
+                        <optgroup label="Horeca">
+                          <option value="restaurant">Restaurant</option>
+                          <option value="frituur">Frituur</option>
+                          <option value="pizzeria">Pizzeria</option>
+                          <option value="kebab">Kebabzaak</option>
+                          <option value="hotel">Hotel</option>
+                        </optgroup>
+                        <optgroup label="Zorg">
+                          <option value="dokter">Dokterspraktijk</option>
+                          <option value="tandarts">Tandarts</option>
+                          <option value="ziekenhuis">Ziekenhuis</option>
+                          <option value="opticien">Opticien</option>
+                          <option value="dierenkliniek">Dierenkliniek</option>
+                        </optgroup>
+                        <optgroup label="Beauty & Wellness">
+                          <option value="kapper">Kapsalon</option>
+                          <option value="beautysalon">Beautysalon</option>
+                          <option value="fitness">Fitnessstudio</option>
+                        </optgroup>
+                        <optgroup label="Diensten">
+                          <option value="garage">Garage</option>
+                          <option value="loodgieter">Loodgieter</option>
+                          <option value="schoonmaak">Schoonmaakbedrijf</option>
+                          <option value="advocaat">Advocatenkantoor</option>
+                          <option value="boekhouder">Boekhoudkantoor</option>
+                        </optgroup>
+                        <optgroup label="Retail">
+                          <option value="bloemenwinkel">Bloemenwinkel</option>
+                          <option value="immo">Immobiliënkantoor</option>
+                        </optgroup>
+                        <optgroup label="Overig">
+                          <option value="other">Overig</option>
+                        </optgroup>
                       </select>
                     </div>
                     <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>

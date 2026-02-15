@@ -4,10 +4,8 @@ import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useLanguage } from '@/lib/LanguageContext';
 import { useBusiness } from '@/lib/BusinessContext';
+import { getBusinessType } from '@/lib/modules';
 import { Plus, ChevronLeft, ChevronRight, X, Clock, User, Check, Trash2, Settings, Calendar } from 'lucide-react';
-
-// Business types that use medical/professional appointment form
-const ZORG_TYPES = ['dokter', 'ziekenhuis', 'tandarts', 'opticien', 'dierenkliniek', 'advocaat', 'boekhouder', 'loodgieter'];
 
 interface Service {
   id: string;
@@ -67,13 +65,11 @@ export default function AppointmentsPage() {
   const [startHour, setStartHour] = useState(8);
   const [endHour, setEndHour] = useState(18);
 
-  // Determine if this is a zorg type from context (case insensitive)
-  const normalizedType = businessType?.toLowerCase() || '';
-  const isZorgType = ZORG_TYPES.includes(normalizedType);
+  // Check if business uses professional appointment form (zorg category + professional services)
+  const typeConfig = getBusinessType(businessType);
+  const PROFESSIONAL_TYPES = ['advocaat', 'boekhouder', 'loodgieter'];
+  const isZorgType = typeConfig?.category === 'zorg' || PROFESSIONAL_TYPES.includes(businessType?.toLowerCase() || '');
   const loading = businessLoading || dataLoading;
-  
-  // Debug log (remove after testing)
-  console.log('[Appointments] businessType:', businessType, 'normalized:', normalizedType, 'isZorgType:', isZorgType);
 
   const [formData, setFormData] = useState({
     customer_name: '',
