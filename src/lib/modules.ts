@@ -268,7 +268,7 @@ export const BUSINESS_TYPES: Record<string, BusinessTypeConfig> = {
     icon: '🏥',
     category: 'zorg',
     modules: ['appointments', 'services', 'staff', 'patients'],
-    aiContext: 'Je bent receptionist van een ziekenhuis. Je plant afspraken voor consultaties en onderzoeken. Vraag naar de afdeling en of er een verwijsbrief is. Bij spoed, verwijs naar de spoedafdeling.',
+    aiContext: 'Je bent receptionist van een ziekenhuis. Stel ALLEEN deze vragen: 1) Wat is uw voor- en achternaam? 2) Wat is uw telefoonnummer? 3) Wanneer wilt u langskomen? 4) Wat is de reden van uw bezoek? Als het te ingewikkeld wordt, zeg: "Ik ga u doorverbinden met een medewerker." Zeg NIETS anders.',
     terminology: { product: 'onderzoek', products: 'onderzoeken', appointment: 'afspraak', customer: 'patiënt' },
   },
   tandarts: {
@@ -277,7 +277,7 @@ export const BUSINESS_TYPES: Record<string, BusinessTypeConfig> = {
     icon: '🦷',
     category: 'zorg',
     modules: ['appointments', 'services', 'staff', 'patients'],
-    aiContext: 'Je bent receptionist van een tandartspraktijk. Je plant afspraken voor controle, vullingen, extracties, etc. Vraag naar klachten en of het dringend is. Geef door dat patiënten 15 min voor afspraak aanwezig moeten zijn.',
+    aiContext: 'Je bent receptionist van een tandartspraktijk. Stel ALLEEN deze vragen: 1) Wat is uw voor- en achternaam? 2) Wat is uw telefoonnummer? 3) Wanneer wilt u langskomen? 4) Wat is de reden van uw bezoek? Als het te ingewikkeld wordt, zeg: "Ik ga u doorverbinden met een medewerker." Zeg NIETS anders.',
     terminology: { product: 'behandeling', products: 'behandelingen', appointment: 'afspraak', customer: 'patiënt' },
   },
   dokter: {
@@ -286,7 +286,7 @@ export const BUSINESS_TYPES: Record<string, BusinessTypeConfig> = {
     icon: '👨‍⚕️',
     category: 'zorg',
     modules: ['appointments', 'services', 'staff', 'patients'],
-    aiContext: 'Je bent receptionist van een huisartsenpraktijk. Je plant consulten en vraagt kort naar de klacht om urgentie te bepalen. Verwijs bij noodgevallen naar 112.',
+    aiContext: 'Je bent receptionist van een dokterspraktijk. Stel ALLEEN deze vragen: 1) Wat is uw voor- en achternaam? 2) Wat is uw telefoonnummer? 3) Wanneer wilt u langskomen? 4) Wat is de reden van uw bezoek? Als het te ingewikkeld wordt, zeg: "Ik ga u doorverbinden met een medewerker." Zeg NIETS anders.',
     terminology: { appointment: 'consult', customer: 'patiënt' },
   },
   opticien: {
@@ -295,7 +295,7 @@ export const BUSINESS_TYPES: Record<string, BusinessTypeConfig> = {
     icon: '👓',
     category: 'zorg',
     modules: ['appointments', 'services', 'staff'],
-    aiContext: 'Je werkt bij een opticien. Je plant oogtesten, helpt met brillen en lenzen. Vraag of het om een controle gaat of nieuwe bril/lenzen.',
+    aiContext: 'Je bent receptionist bij een opticien. Stel ALLEEN deze vragen: 1) Wat is uw voor- en achternaam? 2) Wat is uw telefoonnummer? 3) Wanneer wilt u langskomen? 4) Wat is de reden van uw bezoek? Als het te ingewikkeld wordt, zeg: "Ik ga u doorverbinden met een medewerker." Zeg NIETS anders.',
     terminology: { product: 'product', products: 'producten', appointment: 'afspraak', customer: 'klant' },
   },
   dierenkliniek: {
@@ -304,7 +304,7 @@ export const BUSINESS_TYPES: Record<string, BusinessTypeConfig> = {
     icon: '🐕',
     category: 'zorg',
     modules: ['appointments', 'services', 'staff'],
-    aiContext: 'Je bent receptionist van een dierenkliniek. Vraag naar diersoort, naam van het dier, en reden van bezoek. Bij spoed, geef door dat ze direct kunnen langskomen.',
+    aiContext: 'Je bent receptionist van een dierenkliniek. Stel ALLEEN deze vragen: 1) Wat is uw voor- en achternaam? 2) Wat is uw telefoonnummer? 3) Wanneer wilt u langskomen? 4) Wat is de reden van uw bezoek? Als het te ingewikkeld wordt, zeg: "Ik ga u doorverbinden met een medewerker." Zeg NIETS anders.',
     terminology: { appointment: 'afspraak', customer: 'baasje' },
   },
 
@@ -324,7 +324,7 @@ export const BUSINESS_TYPES: Record<string, BusinessTypeConfig> = {
     icon: '🔧',
     category: 'diensten',
     modules: ['appointments', 'workorders'],
-    aiContext: 'Je bent receptionist van een loodgietersbedrijf. Vraag naar het probleem (lekkage, verstopping, etc.), adres, en of het dringend is. Plan een afspraak of geef door dat iemand terugbelt.',
+    aiContext: 'Je bent receptionist van een loodgietersbedrijf. Stel ALLEEN deze vragen: 1) Wat is uw voor- en achternaam? 2) Wat is uw telefoonnummer? 3) Wanneer wilt u dat we langskomen? 4) Wat is het probleem? Als het te ingewikkeld wordt, zeg: "Ik ga u doorverbinden met een medewerker." Zeg NIETS anders.',
     terminology: { appointment: 'afspraak', customer: 'klant' },
   },
   schoonmaak: {
@@ -342,7 +342,7 @@ export const BUSINESS_TYPES: Record<string, BusinessTypeConfig> = {
     icon: '⚖️',
     category: 'diensten',
     modules: ['appointments', 'staff', 'patients'],
-    aiContext: 'Je bent receptionist van een advocatenkantoor. Je plant consulten. Vraag kort naar het type zaak (familierecht, strafrecht, etc.) en of er al een dossier is. Eerste consult is vaak betaald.',
+    aiContext: 'Je bent receptionist van een advocatenkantoor. Stel ALLEEN deze vragen: 1) Wat is uw voor- en achternaam? 2) Wat is uw telefoonnummer? 3) Wanneer wilt u langskomen? 4) Wat is de reden van uw bezoek? Als het te ingewikkeld wordt, zeg: "Ik ga u doorverbinden met een medewerker." Zeg NIETS anders.',
     terminology: { appointment: 'consult', customer: 'cliënt' },
   },
   boekhouder: {
@@ -351,7 +351,7 @@ export const BUSINESS_TYPES: Record<string, BusinessTypeConfig> = {
     icon: '📊',
     category: 'diensten',
     modules: ['appointments', 'staff'],
-    aiContext: 'Je werkt bij een boekhoudkantoor. Je plant afspraken voor belastingaangifte, jaarrekening, BTW, etc. Vraag of het om particulier of zelfstandige/bedrijf gaat.',
+    aiContext: 'Je bent receptionist van een boekhoudkantoor. Stel ALLEEN deze vragen: 1) Wat is uw voor- en achternaam? 2) Wat is uw telefoonnummer? 3) Wanneer wilt u langskomen? 4) Wat is de reden van uw bezoek? Als het te ingewikkeld wordt, zeg: "Ik ga u doorverbinden met een medewerker." Zeg NIETS anders.',
     terminology: { appointment: 'afspraak', customer: 'klant' },
   },
 
