@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase';
-import { Package, Plus, Trash2, Check, X, Clock, Euro, Search, Filter, ArrowLeft } from 'lucide-react';
+import { Package, Plus, Trash2, Check, X, Clock, Euro, Search, Filter, ArrowLeft, Upload } from 'lucide-react';
 import Link from 'next/link';
 
 interface Product {
@@ -40,6 +40,8 @@ export default function ProductenPage() {
   const [business, setBusiness] = useState<Business | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -141,6 +143,76 @@ export default function ProductenPage() {
       setError('Kon gegevens niet laden');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Handle CSV/PDF upload
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !business?.id) return;
+
+    setUploading(true);
+    setError(null);
+
+    try {
+      const text = await file.text();
+      const lines = text.split('\n').filter(l => l.trim());
+      
+      // Parse CSV: expect "naam,prijs" or "naam;prijs"
+      const newProducts: { name: string; price: number }[] = [];
+      
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        // Skip header row if it contains "naam" or "product"
+        if (i === 0 && (line.toLowerCase().includes('naam') || line.toLowerCase().includes('product'))) {
+          continue;
+        }
+        
+        // Split by comma or semicolon
+        const parts = line.includes(';') ? line.split(';') : line.split(',');
+        if (parts.length >= 2) {
+          const name = parts[0].trim().replace(/^["']|["']$/g, '');
+          const priceStr = parts[1].trim().replace(/^["']|["']$/g, '').replace(',', '.').replace('€', '');
+          const price = parseFloat(priceStr);
+          
+          if (name && !isNaN(price)) {
+            newProducts.push({ name, price });
+          }
+        }
+      }
+
+      if (newProducts.length === 0) {
+        throw new Error('Geen producten gevonden in bestand. Gebruik formaat: naam,prijs');
+      }
+
+      // Save all products via API
+      let added = 0;
+      for (const prod of newProducts) {
+        const res = await fetch('/api/admin/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            business_id: business.id,
+            category: 'Producten',
+            name: prod.name,
+            price: prod.price,
+            is_available: true,
+          }),
+        });
+        if (res.ok) added++;
+      }
+
+      setSuccess(`${added} producten geïmporteerd!`);
+      setTimeout(() => setSuccess(null), 3000);
+      loadData(); // Refresh list
+    } catch (err) {
+      console.error('Upload error:', err);
+      setError(err instanceof Error ? err.message : 'Upload mislukt');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -340,12 +412,28 @@ export default function ProductenPage() {
             <p style={{ color: '#6b7280', marginTop: 4 }}>{products.length} {isServiceBusiness ? 'diensten' : 'producten'}</p>
           </div>
         </div>
-        <button
-          onClick={openAddModal}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 20px', background: '#f97316', border: 'none', borderRadius: 12, color: 'white', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}
-        >
-          <Plus size={18} /> Nieuw {isServiceBusiness ? 'Dienst' : 'Product'}
-        </button>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,.txt"
+            onChange={handleFileUpload}
+            style={{ display: 'none' }}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 20px', background: '#1f1f2e', border: '1px solid #3f3f4e', borderRadius: 12, color: 'white', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}
+          >
+            <Upload size={18} /> {uploading ? 'Uploaden...' : 'CSV Import'}
+          </button>
+          <button
+            onClick={openAddModal}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 20px', background: '#f97316', border: 'none', borderRadius: 12, color: 'white', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}
+          >
+            <Plus size={18} /> Nieuw {isServiceBusiness ? 'Dienst' : 'Product'}
+          </button>
+        </div>
       </div>
 
       {/* Success/Error Messages */}
