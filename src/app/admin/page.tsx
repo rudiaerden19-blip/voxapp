@@ -63,10 +63,10 @@ export default function AdminDashboard() {
 
   const loadTenants = async () => {
     try {
-      const res = await fetch('/api/admin/tenants');
+      // Force fresh data, no cache
+      const res = await fetch('/api/admin/tenants', { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
-        console.log('Loaded tenants:', data);
         setTenants(data || []);
       }
     } catch (e) {
