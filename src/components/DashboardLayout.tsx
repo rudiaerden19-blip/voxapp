@@ -4,8 +4,9 @@ import { useState, useEffect, Suspense } from 'react';
 import { createClient } from '@/lib/supabase';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Phone, Calendar, Users, Settings, LogOut, TrendingUp, MessageSquare, Menu, X, Briefcase, Globe, ChevronDown, Shield, Package, SlidersHorizontal } from 'lucide-react';
+import { Phone, Calendar, Users, Settings, LogOut, TrendingUp, MessageSquare, Menu, X, Briefcase, Globe, ChevronDown, Shield, Package, SlidersHorizontal, Wrench, CreditCard, Home, Car, FileText, ShoppingBag, UtensilsCrossed, CalendarCheck, Scissors } from 'lucide-react';
 import { useLanguage, Language } from '@/lib/LanguageContext';
+import { getBusinessType, hasModule, MODULES, ModuleId } from '@/lib/modules';
 
 interface Business {
   id: string;
@@ -16,17 +17,33 @@ interface Business {
   trial_ends_at: string | null;
 }
 
-const navItems = [
-  { href: '/dashboard', icon: TrendingUp, labelKey: 'dashboard.nav.dashboard' },
-  { href: '/dashboard/appointments', icon: Calendar, labelKey: 'dashboard.nav.appointments' },
-  { href: '/dashboard/services', icon: Briefcase, labelKey: 'dashboard.nav.services' },
-  { href: '/dashboard/producten', icon: Package, labelKey: 'dashboard.nav.products' },
-  { href: '/dashboard/opties', icon: SlidersHorizontal, labelKey: 'dashboard.nav.options' },
-  { href: '/dashboard/staff', icon: Users, labelKey: 'dashboard.nav.staff' },
-  { href: '/dashboard/conversations', icon: MessageSquare, labelKey: 'dashboard.nav.conversations' },
-  { href: '/dashboard/ai-settings', icon: Phone, labelKey: 'dashboard.nav.reception' },
-  { href: '/dashboard/settings', icon: Settings, labelKey: 'dashboard.nav.settings' },
+// Icon mapping voor modules
+const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
+  Calendar, UtensilsCrossed, ShoppingBag, CalendarCheck, Scissors, Users, Wrench, CreditCard, Home, Car, FileText,
+};
+
+// Basis nav items (altijd zichtbaar)
+const baseNavItems = [
+  { href: '/dashboard', icon: TrendingUp, labelKey: 'dashboard.nav.dashboard', always: true },
+  { href: '/dashboard/conversations', icon: MessageSquare, labelKey: 'dashboard.nav.conversations', always: true },
+  { href: '/dashboard/ai-settings', icon: Phone, labelKey: 'dashboard.nav.reception', always: true },
+  { href: '/dashboard/settings', icon: Settings, labelKey: 'dashboard.nav.settings', always: true },
 ];
+
+// Module-specifieke nav items
+const moduleNavItems: Record<ModuleId, { href: string; icon: React.ComponentType<{ size?: number }>; label: string }> = {
+  appointments: { href: '/dashboard/appointments', icon: Calendar, label: 'Afspraken' },
+  menu: { href: '/dashboard/producten', icon: Package, label: 'Menu' },
+  orders: { href: '/dashboard/orders', icon: ShoppingBag, label: 'Bestellingen' },
+  reservations: { href: '/dashboard/reservations', icon: CalendarCheck, label: 'Reserveringen' },
+  services: { href: '/dashboard/services', icon: Briefcase, label: 'Diensten' },
+  staff: { href: '/dashboard/staff', icon: Users, label: 'Team' },
+  workorders: { href: '/dashboard/workorders', icon: Wrench, label: 'Werkorders' },
+  members: { href: '/dashboard/members', icon: CreditCard, label: 'Leden' },
+  properties: { href: '/dashboard/properties', icon: Home, label: 'Panden' },
+  patients: { href: '/dashboard/patients', icon: FileText, label: 'Dossiers' },
+  vehicles: { href: '/dashboard/vehicles', icon: Car, label: 'Voertuigen' },
+};
 
 const languages: { code: Language; label: string; flag: string }[] = [
   { code: 'nl', label: 'Nederlands', flag: '🇳🇱' },
@@ -137,11 +154,15 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           </div>
         )}
         <div style={{ background: '#0a0a0f', borderRadius: 8, padding: 12, marginBottom: 24 }}>
-          <p style={{ color: 'white', fontWeight: 600, fontSize: 14 }}>{business?.name || business?.email || business?.type || 'Mijn Bedrijf'}</p>
-          <p style={{ color: '#6b7280', fontSize: 12, marginTop: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {business?.type && <span style={{ fontSize: 18 }}>{getBusinessType(business.type).icon}</span>}
+            <p style={{ color: 'white', fontWeight: 600, fontSize: 14, margin: 0 }}>{business?.name || business?.email || 'Mijn Bedrijf'}</p>
+          </div>
+          <p style={{ color: '#6b7280', fontSize: 12, marginTop: 6 }}>
+            {business?.type && <span style={{ color: '#9ca3af' }}>{getBusinessType(business.type).name} • </span>}
             {business?.subscription_status === 'trial' 
-              ? `${t('dashboard.trialPeriod')}: ${getDaysRemaining()} ${t('dashboard.trialDaysRemaining')}` 
-              : t('dashboard.activeSubscription')}
+              ? `${getDaysRemaining()} dagen trial` 
+              : 'Actief'}
           </p>
         </div>
 
@@ -185,17 +206,73 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         </div>
 
         <nav style={{ flex: 1 }}>
-          {navItems.map((item) => (
-            <Link key={item.href} href={item.href} onClick={() => setSidebarOpen(false)} style={{
-              display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
-              background: isActive(item.href) ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
-              border: 'none', borderRadius: 8, color: isActive(item.href) ? '#f97316' : '#9ca3af',
-              fontSize: 14, fontWeight: isActive(item.href) ? 600 : 400, cursor: 'pointer',
-              width: '100%', textAlign: 'left', marginBottom: 4, textDecoration: 'none',
-            }}>
-              <item.icon size={18} />{t(item.labelKey)}
-            </Link>
-          ))}
+          {/* Dashboard - altijd bovenaan */}
+          <Link href="/dashboard" onClick={() => setSidebarOpen(false)} style={{
+            display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
+            background: pathname === '/dashboard' ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
+            border: 'none', borderRadius: 8, color: pathname === '/dashboard' ? '#f97316' : '#9ca3af',
+            fontSize: 14, fontWeight: pathname === '/dashboard' ? 600 : 400, cursor: 'pointer',
+            width: '100%', textAlign: 'left', marginBottom: 4, textDecoration: 'none',
+          }}>
+            <TrendingUp size={18} />{t('dashboard.nav.dashboard')}
+          </Link>
+
+          {/* Module-specifieke items gebaseerd op business type */}
+          {business?.type && (
+            <>
+              {Object.entries(moduleNavItems).map(([moduleId, item]) => {
+                if (!hasModule(business.type, moduleId as ModuleId)) return null;
+                const active = pathname.startsWith(item.href);
+                return (
+                  <Link key={item.href} href={item.href} onClick={() => setSidebarOpen(false)} style={{
+                    display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
+                    background: active ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
+                    border: 'none', borderRadius: 8, color: active ? '#f97316' : '#9ca3af',
+                    fontSize: 14, fontWeight: active ? 600 : 400, cursor: 'pointer',
+                    width: '100%', textAlign: 'left', marginBottom: 4, textDecoration: 'none',
+                  }}>
+                    <item.icon size={18} />{item.label}
+                  </Link>
+                );
+              })}
+            </>
+          )}
+
+          {/* Separator */}
+          <div style={{ height: 1, background: '#2a2a35', margin: '12px 0' }} />
+
+          {/* Gesprekken */}
+          <Link href="/dashboard/conversations" onClick={() => setSidebarOpen(false)} style={{
+            display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
+            background: pathname.startsWith('/dashboard/conversations') ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
+            border: 'none', borderRadius: 8, color: pathname.startsWith('/dashboard/conversations') ? '#f97316' : '#9ca3af',
+            fontSize: 14, fontWeight: pathname.startsWith('/dashboard/conversations') ? 600 : 400, cursor: 'pointer',
+            width: '100%', textAlign: 'left', marginBottom: 4, textDecoration: 'none',
+          }}>
+            <MessageSquare size={18} />{t('dashboard.nav.conversations')}
+          </Link>
+
+          {/* AI Receptie */}
+          <Link href="/dashboard/ai-settings" onClick={() => setSidebarOpen(false)} style={{
+            display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
+            background: pathname.startsWith('/dashboard/ai-settings') ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
+            border: 'none', borderRadius: 8, color: pathname.startsWith('/dashboard/ai-settings') ? '#f97316' : '#9ca3af',
+            fontSize: 14, fontWeight: pathname.startsWith('/dashboard/ai-settings') ? 600 : 400, cursor: 'pointer',
+            width: '100%', textAlign: 'left', marginBottom: 4, textDecoration: 'none',
+          }}>
+            <Phone size={18} />{t('dashboard.nav.reception')}
+          </Link>
+
+          {/* Instellingen */}
+          <Link href="/dashboard/settings" onClick={() => setSidebarOpen(false)} style={{
+            display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
+            background: pathname.startsWith('/dashboard/settings') ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
+            border: 'none', borderRadius: 8, color: pathname.startsWith('/dashboard/settings') ? '#f97316' : '#9ca3af',
+            fontSize: 14, fontWeight: pathname.startsWith('/dashboard/settings') ? 600 : 400, cursor: 'pointer',
+            width: '100%', textAlign: 'left', marginBottom: 4, textDecoration: 'none',
+          }}>
+            <Settings size={18} />{t('dashboard.nav.settings')}
+          </Link>
         </nav>
 
         {isAdminView ? (
