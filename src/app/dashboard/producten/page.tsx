@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
-import { Package, Plus, Trash2, Check, X, Clock, Euro, Search, Filter } from 'lucide-react';
+import { Package, Plus, Trash2, Check, X, Clock, Euro, Search, Filter, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 
 interface Product {
   id?: string;
@@ -327,12 +328,17 @@ export default function ProductenPage() {
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: 24 }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
-        <div>
-          <h1 style={{ color: 'white', fontSize: 24, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 12 }}>
-            <Package size={28} style={{ color: '#f97316' }} />
-            {isServiceBusiness ? 'Diensten' : 'Producten'}
-          </h1>
-          <p style={{ color: '#6b7280', marginTop: 4 }}>{products.length} {isServiceBusiness ? 'diensten' : 'producten'}</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <Link href="/dashboard" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40, background: '#1f1f2e', borderRadius: 8, color: '#9ca3af', textDecoration: 'none' }}>
+            <ArrowLeft size={20} />
+          </Link>
+          <div>
+            <h1 style={{ color: 'white', fontSize: 24, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 12 }}>
+              <Package size={28} style={{ color: '#f97316' }} />
+              {isServiceBusiness ? 'Diensten' : 'Producten'}
+            </h1>
+            <p style={{ color: '#6b7280', marginTop: 4 }}>{products.length} {isServiceBusiness ? 'diensten' : 'producten'}</p>
+          </div>
         </div>
         <button
           onClick={openAddModal}
