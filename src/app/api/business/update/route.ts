@@ -17,12 +17,14 @@ function createAdminClient() {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
+    console.log('Update request body:', JSON.stringify(body));
     const { id, ...updates } = body;
 
     if (!id) {
       return NextResponse.json({ error: 'Business ID required' }, { status: 400 });
     }
 
+    console.log('Updating business:', id, 'with:', JSON.stringify(updates));
     const supabase = createAdminClient();
 
     const { data, error } = await supabase
@@ -34,12 +36,14 @@ export async function PUT(request: NextRequest) {
 
     if (error) {
       console.error('Update business error:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: error.message, details: error }, { status: 500 });
     }
 
+    console.log('Update success:', data?.id);
     return NextResponse.json(data);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('API error:', error);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Server error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

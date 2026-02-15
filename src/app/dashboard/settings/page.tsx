@@ -222,13 +222,18 @@ function SettingsContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!business) return;
+    console.log('Submit clicked, business:', business);
+    if (!business) {
+      setError('Business niet geladen');
+      return;
+    }
 
     setSaving(true);
     setError('');
     setSaved(false);
 
     try {
+      console.log('Saving with ID:', business.id);
       const res = await fetch('/api/business/update', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -243,13 +248,16 @@ function SettingsContent() {
         }),
       });
 
+      const data = await res.json();
       if (!res.ok) {
-        setError('Er ging iets mis bij het opslaan');
+        console.error('Save error:', data);
+        setError(data.error || 'Er ging iets mis bij het opslaan');
       } else {
         setSaved(true);
         setTimeout(() => setSaved(false), 3000);
       }
     } catch (err) {
+      console.error('Save exception:', err);
       setError('Er ging iets mis bij het opslaan');
     }
     setSaving(false);
