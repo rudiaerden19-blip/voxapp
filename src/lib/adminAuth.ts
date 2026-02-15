@@ -30,17 +30,51 @@ function createAuthClient() {
   return createClient(supabaseUrl, anonKey);
 }
 
-// Extract auth token from request
+// Extract auth token from request cookies
 function getAuthToken(request: NextRequest): string | null {
+  // Check Authorization header first
   const authHeader = request.headers.get('authorization');
   if (authHeader?.startsWith('Bearer ')) {
     return authHeader.slice(7);
   }
   
-  // Also check cookies for session
+  // Check for Supabase auth cookies (format: sb-<project-ref>-auth-token)
   const cookies = request.cookies;
+  
+  // Try common Supabase cookie patterns
+  for (const cookie of cookies.getAll()) {
+    if (cookie.name.startsWith('sb-') && cookie.name.endsWith('-auth-token')) {
+      try {
+        // The cookie value is a JSON object with access_token
+        const parsed = JSON.parse(cookie.value);
+        if (parsed.access_token) {
+          return parsed.access_token;
+        }
+      } catch {
+        // If it's not JSON, try using it directly
+        if (cookie.value) {
+          return cookie.value;
+        }
+      }
+    }
+  }
+  
+  // Also try the old format
   const accessToken = cookies.get('sb-access-token')?.value;
-  return accessToken || null;
+  if (accessToken) return accessToken;
+  
+  // Try supabase-auth-token
+  const supabaseAuth = cookies.get('supabase-auth-token')?.value;
+  if (supabaseAuth) {
+    try {
+      const parsed = JSON.parse(supabaseAuth);
+      return parsed.access_token || parsed[0]?.access_token;
+    } catch {
+      return supabaseAuth;
+    }
+  }
+  
+  return null;
 }
 
 // Verify user is authenticated and is admin

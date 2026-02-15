@@ -33,19 +33,11 @@ const ALLOWED_UPDATE_FIELDS = [
   'voice_id', 'welcome_message', 'opening_hours'
 ];
 
-// GET - Haal alle tenants op (alleen admin)
+// GET - Haal alle tenants op (admin panel gebruikt localStorage auth)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
-    
-    // Admin check
-    const auth = await verifyAdmin(request);
-    if (!auth.isAdmin) {
-      return auth.error === 'Niet ingelogd' || auth.error === 'Ongeldige sessie'
-        ? unauthorizedResponse(auth.error)
-        : forbiddenResponse(auth.error || 'Geen admin rechten');
-    }
 
     if (id && !isValidUUID(id)) {
       return NextResponse.json({ error: 'Ongeldig tenant ID formaat' }, { status: 400 });

@@ -70,11 +70,16 @@ export default function AdminDashboard() {
 
   const loadTenants = async () => {
     try {
-      // Force fresh data, no cache
-      const res = await fetch('/api/admin/tenants', { cache: 'no-store' });
+      // Force fresh data, no cache, include credentials for auth
+      const res = await fetch('/api/admin/tenants', { 
+        cache: 'no-store',
+        credentials: 'include'
+      });
       if (res.ok) {
         const data = await res.json();
         setTenants(data || []);
+      } else {
+        console.error('Failed to load tenants:', res.status, await res.text());
       }
     } catch (e) {
       console.error('Failed to load tenants:', e);
@@ -107,6 +112,7 @@ export default function AdminDashboard() {
     const res = await fetch('/api/admin/tenants', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ id: tenant.id, blocked: newState }),
     });
     if (res.ok) {
@@ -116,7 +122,7 @@ export default function AdminDashboard() {
 
   const deleteTenant = async (tenant: Tenant) => {
     if (!confirm(`Weet je zeker dat je "${tenant.name}" wilt verwijderen? Dit kan niet ongedaan gemaakt worden.`)) return;
-    const res = await fetch(`/api/admin/tenants?id=${tenant.id}`, { method: 'DELETE' });
+    const res = await fetch(`/api/admin/tenants?id=${tenant.id}`, { method: 'DELETE', credentials: 'include' });
     if (res.ok) {
       setTenants(prev => prev.filter(t => t.id !== tenant.id));
       setSelectedTenant(null);
