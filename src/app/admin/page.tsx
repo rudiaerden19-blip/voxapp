@@ -460,8 +460,9 @@ export default function AdminDashboard() {
                         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                           <button
                             onClick={() => {
-                              console.log('Opening dashboard for tenant:', tenant.id, tenant.name);
-                              window.open(`/dashboard?admin_view=${tenant.id}`, '_blank');
+                              const url = `/dashboard?admin_view=${tenant.id}`;
+                              alert(`Opening: ${url}\nTenant ID: ${tenant.id}\nTenant Name: ${tenant.name}`);
+                              window.open(url, '_blank');
                             }}
                             style={{ padding: 8, background: '#8b5cf620', border: 'none', borderRadius: 6, color: '#8b5cf6', cursor: 'pointer' }}
                             title="Dashboard bekijken"
