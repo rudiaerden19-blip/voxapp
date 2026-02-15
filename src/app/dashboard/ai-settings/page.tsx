@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useLanguage } from '@/lib/LanguageContext';
+import { useBusiness } from '@/lib/BusinessContext';
 import { Phone, Mic, Globe, Save, Check, Play, Volume2, Sparkles, MapPin, Clock, Euro, HelpCircle, Plus, Trash2, Upload, FileText, X } from 'lucide-react';
 import { getBusinessType, getAIContext, getTerminology, hasModule, getBrancheTemplate } from '@/lib/modules';
 
@@ -108,6 +109,7 @@ function VoiceCard({ voice, selectedVoiceId, onSelect, playVoiceSample, playingV
 
 export default function AISettingsPage() {
   const { t, language } = useLanguage();
+  const { business: contextBusiness, businessId, businessType, loading: businessLoading } = useBusiness();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -168,7 +170,8 @@ export default function AISettingsPage() {
     faqs: [] as Array<{ question: string; answer: string }>,
   });
 
-  useEffect(() => { loadSettings(); loadVoices(); }, []);
+  useEffect(() => { loadVoices(); }, []);
+  useEffect(() => { if (contextBusiness && businessId) loadSettings(); }, [contextBusiness, businessId]);
 
   const loadVoices = async () => {
     setVoicesLoading(true);
@@ -390,18 +393,10 @@ export default function AISettingsPage() {
   };
 
   const loadSettings = async () => {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user || !user.email) return;
-
-    // Gebruik API om business te laden (bypass RLS)
-    const bizRes = await fetch(`/api/business/by-email?email=${encodeURIComponent(user.email)}`);
-    if (!bizRes.ok) return;
+    // Use business from context (handles admin_view automatically)
+    if (!businessId || !contextBusiness) return;
     
-    const businessData = await bizRes.json();
-    if (!businessData || !businessData.id) return;
-
-    const biz = businessData as Business;
+    const biz = contextBusiness as unknown as Business;
     setBusiness(biz);
     
     // Laad producten nu business bekend is
@@ -564,7 +559,7 @@ export default function AISettingsPage() {
     audio.play().catch(() => setPlayingVoice(null));
   };
 
-  if (loading) {
+  if (loading || businessLoading) {
     return (
       <DashboardLayout>
         <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>Laden...</div>
