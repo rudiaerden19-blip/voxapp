@@ -1,7 +1,7 @@
 import { createClient as createSupabaseClient, SupabaseClient } from '@supabase/supabase-js'
 
 // Database types voor Supabase
-type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 interface Database {
   public: {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { createClient } from '@/lib/supabase';
+import { createClient, Json } from '@/lib/supabase';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useLanguage } from '@/lib/LanguageContext';
 import { Save, Building2, Clock, Phone, Mail, MapPin, Check, CreditCard, ExternalLink, Plus, X } from 'lucide-react';
@@ -211,7 +211,7 @@ function SettingsContent() {
         phone: formData.phone.trim() || null,
         email: formData.email.trim() || null,
         address: formData.address.trim() || null,
-        opening_hours: formData.opening_hours as unknown as Record<string, unknown>,
+        opening_hours: formData.opening_hours as unknown as Json,
       })
       .eq('id', business.id);
 
