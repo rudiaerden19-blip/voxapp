@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { createClient } from '@/lib/supabase';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Phone, Calendar, Users, Settings, LogOut, TrendingUp, MessageSquare, Menu, X, Briefcase, Globe, ChevronDown, Shield } from 'lucide-react';
+import { Phone, Calendar, Users, Settings, LogOut, TrendingUp, MessageSquare, Menu, X, Briefcase, Globe, ChevronDown, Shield, Package, SlidersHorizontal } from 'lucide-react';
 import { useLanguage, Language } from '@/lib/LanguageContext';
 
 interface Business {
@@ -20,6 +20,8 @@ const navItems = [
   { href: '/dashboard', icon: TrendingUp, labelKey: 'dashboard.nav.dashboard' },
   { href: '/dashboard/appointments', icon: Calendar, labelKey: 'dashboard.nav.appointments' },
   { href: '/dashboard/services', icon: Briefcase, labelKey: 'dashboard.nav.services' },
+  { href: '/dashboard/producten', icon: Package, labelKey: 'dashboard.nav.products' },
+  { href: '/dashboard/opties', icon: SlidersHorizontal, labelKey: 'dashboard.nav.options' },
   { href: '/dashboard/staff', icon: Users, labelKey: 'dashboard.nav.staff' },
   { href: '/dashboard/conversations', icon: MessageSquare, labelKey: 'dashboard.nav.conversations' },
   { href: '/dashboard/ai-settings', icon: Phone, labelKey: 'dashboard.nav.reception' },

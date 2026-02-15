@@ -554,6 +554,8 @@ export const translations = {
       dashboard: { nl: 'Dashboard', en: 'Dashboard', fr: 'Tableau de bord', de: 'Dashboard' },
       appointments: { nl: 'Afspraken', en: 'Appointments', fr: 'Rendez-vous', de: 'Termine' },
       services: { nl: 'Diensten', en: 'Services', fr: 'Services', de: 'Dienste' },
+      products: { nl: 'Producten', en: 'Products', fr: 'Produits', de: 'Produkte' },
+      options: { nl: 'Opties', en: 'Options', fr: 'Options', de: 'Optionen' },
       staff: { nl: 'Medewerkers', en: 'Staff', fr: 'Personnel', de: 'Mitarbeiter' },
       conversations: { nl: 'Gesprekken', en: 'Conversations', fr: 'Conversations', de: 'Gespräche' },
       reception: { nl: 'Receptie', en: 'Reception', fr: 'Réception', de: 'Rezeption' },
