@@ -1,29 +1,109 @@
 import { NextResponse } from 'next/server';
 
-// Welke voice IDs willen we tonen, per taal
-const voiceConfig: Record<string, { ids: string[]; accent: string }> = {
-  NL: { ids: ['pFZP5JQG7iQjIQuC4Bku', 'XB0fDUnXU5powFXDhCwa', 'onwK4e9ZLuTAKqWW03F9', 'TX3LPaxmHKxFdv7VOQHJ'], accent: 'Nederlands' },
-  FR: { ids: ['XrExE9yKIg1WjnnlVkGX', 'EXAVITQu4vr4xnSDxMaL', 'CYw3kZ02Hs0563khs1Fj', 'N2lVS1w4EtoT3dr4eOWO'], accent: 'Frans' },
-  DE: { ids: ['ThT5KcBeYPX3keUQqHPh', 'AZnzlk1XvdvUeBnXmlld', 'VR6AewLTigWG4xSOukaG', 'pNInz6obpgDQGcFmaJgB'], accent: 'Duits' },
-  EN: { ids: ['21m00Tcm4TlvDq8ikWAM', 'jBpfuIE2acCO8z3wKNLl', 'TxGEqnHWrfWFTfGW9XjX', 'ErXwobaYiN019PkySvjV'], accent: 'Engels' },
+interface ElevenLabsVoice {
+  voice_id: string;
+  name: string;
+  labels?: Record<string, string>;
+  preview_url?: string;
+  category?: string;
+}
+
+interface VoiceResponse {
+  voice_id: string;
+  name: string;
+  preview_url: string | null;
+  labels: {
+    gender: string;
+    language: string;
+    accent: string;
+  };
+}
+
+// Mapping van ElevenLabs language labels naar onze taalcodes
+const languageMapping: Record<string, { code: string; accent: string }> = {
+  // Nederlands
+  'dutch': { code: 'NL', accent: 'Nederlands' },
+  'nl': { code: 'NL', accent: 'Nederlands' },
+  'netherlands': { code: 'NL', accent: 'Nederlands' },
+  'flemish': { code: 'NL', accent: 'Nederlands' },
+  // Frans
+  'french': { code: 'FR', accent: 'Frans' },
+  'fr': { code: 'FR', accent: 'Frans' },
+  'france': { code: 'FR', accent: 'Frans' },
+  // Duits
+  'german': { code: 'DE', accent: 'Duits' },
+  'de': { code: 'DE', accent: 'Duits' },
+  'germany': { code: 'DE', accent: 'Duits' },
+  // Engels
+  'english': { code: 'EN', accent: 'Engels' },
+  'en': { code: 'EN', accent: 'Engels' },
+  'british': { code: 'EN', accent: 'Engels' },
+  'american': { code: 'EN', accent: 'Engels' },
+  'en-us': { code: 'EN', accent: 'Engels' },
+  'en-gb': { code: 'EN', accent: 'Engels' },
+  'en-au': { code: 'EN', accent: 'Engels' },
 };
 
-// Alle voice IDs die we willen
-const allVoiceIds = new Set(Object.values(voiceConfig).flatMap(c => c.ids));
+// Fallback stemmen als API faalt
+const fallbackVoices: VoiceResponse[] = [
+  // Nederlands
+  { voice_id: 'pFZP5JQG7iQjIQuC4Bku', name: 'Lily', preview_url: null, labels: { gender: 'female', language: 'NL', accent: 'Nederlands' } },
+  { voice_id: 'XB0fDUnXU5powFXDhCwa', name: 'Charlotte', preview_url: null, labels: { gender: 'female', language: 'NL', accent: 'Nederlands' } },
+  { voice_id: 'onwK4e9ZLuTAKqWW03F9', name: 'Daniel', preview_url: null, labels: { gender: 'male', language: 'NL', accent: 'Nederlands' } },
+  { voice_id: 'TX3LPaxmHKxFdv7VOQHJ', name: 'Liam', preview_url: null, labels: { gender: 'male', language: 'NL', accent: 'Nederlands' } },
+  // Frans
+  { voice_id: 'XrExE9yKIg1WjnnlVkGX', name: 'Matilda', preview_url: null, labels: { gender: 'female', language: 'FR', accent: 'Frans' } },
+  { voice_id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah', preview_url: null, labels: { gender: 'female', language: 'FR', accent: 'Frans' } },
+  { voice_id: 'CYw3kZ02Hs0563khs1Fj', name: 'Dave', preview_url: null, labels: { gender: 'male', language: 'FR', accent: 'Frans' } },
+  { voice_id: 'N2lVS1w4EtoT3dr4eOWO', name: 'Callum', preview_url: null, labels: { gender: 'male', language: 'FR', accent: 'Frans' } },
+  // Duits
+  { voice_id: 'ThT5KcBeYPX3keUQqHPh', name: 'Dorothy', preview_url: null, labels: { gender: 'female', language: 'DE', accent: 'Duits' } },
+  { voice_id: 'AZnzlk1XvdvUeBnXmlld', name: 'Domi', preview_url: null, labels: { gender: 'female', language: 'DE', accent: 'Duits' } },
+  { voice_id: 'VR6AewLTigWG4xSOukaG', name: 'Arnold', preview_url: null, labels: { gender: 'male', language: 'DE', accent: 'Duits' } },
+  { voice_id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam', preview_url: null, labels: { gender: 'male', language: 'DE', accent: 'Duits' } },
+  // Engels
+  { voice_id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel', preview_url: null, labels: { gender: 'female', language: 'EN', accent: 'Engels' } },
+  { voice_id: 'jBpfuIE2acCO8z3wKNLl', name: 'Gigi', preview_url: null, labels: { gender: 'female', language: 'EN', accent: 'Engels' } },
+  { voice_id: 'TxGEqnHWrfWFTfGW9XjX', name: 'Josh', preview_url: null, labels: { gender: 'male', language: 'EN', accent: 'Engels' } },
+  { voice_id: 'ErXwobaYiN019PkySvjV', name: 'Antoni', preview_url: null, labels: { gender: 'male', language: 'EN', accent: 'Engels' } },
+];
 
-// Mapping voice_id → taal
-const voiceToLang: Record<string, string> = {};
-for (const [lang, config] of Object.entries(voiceConfig)) {
-  for (const id of config.ids) {
-    voiceToLang[id] = lang;
+// Detecteer taal uit voice labels
+function detectLanguage(voice: ElevenLabsVoice): { code: string; accent: string } | null {
+  const labels = voice.labels || {};
+  
+  // Check alle label velden voor taalinformatie
+  const fieldsToCheck = ['language', 'accent', 'locale', 'description'];
+  
+  for (const field of fieldsToCheck) {
+    const value = labels[field]?.toLowerCase();
+    if (value) {
+      for (const [key, mapping] of Object.entries(languageMapping)) {
+        if (value.includes(key)) {
+          return mapping;
+        }
+      }
+    }
   }
+  
+  // Check voice name voor taalhinten
+  const nameLower = voice.name.toLowerCase();
+  for (const [key, mapping] of Object.entries(languageMapping)) {
+    if (nameLower.includes(key)) {
+      return mapping;
+    }
+  }
+  
+  return null;
 }
 
 export async function GET() {
   const apiKey = process.env.ELEVENLABS_API_KEY;
   
+  // Geen API key = gebruik fallback
   if (!apiKey) {
-    return NextResponse.json({ error: 'ELEVENLABS_API_KEY not set' }, { status: 500 });
+    console.log('No ELEVENLABS_API_KEY, using fallback voices');
+    return NextResponse.json(fallbackVoices);
   }
 
   try {
@@ -32,32 +112,86 @@ export async function GET() {
     });
 
     if (!response.ok) {
-      return NextResponse.json({ error: 'ElevenLabs API error' }, { status: 500 });
+      console.error('ElevenLabs API returned:', response.status);
+      return NextResponse.json(fallbackVoices);
     }
 
     const data = await response.json();
     
-    // Filter alleen de stemmen die we willen
-    const voices = data.voices
-      .filter((v: { voice_id: string }) => allVoiceIds.has(v.voice_id))
-      .map((v: { voice_id: string; name: string; labels?: Record<string, string>; preview_url?: string }) => {
-        const lang = voiceToLang[v.voice_id];
-        const config = voiceConfig[lang];
-        return {
-          voice_id: v.voice_id,
-          name: v.name,
-          preview_url: v.preview_url,
-          labels: {
-            gender: v.labels?.gender || 'unknown',
-            language: lang,
-            accent: config.accent,
-          },
-        };
-      });
+    if (!data.voices || !Array.isArray(data.voices)) {
+      console.error('Invalid response from ElevenLabs');
+      return NextResponse.json(fallbackVoices);
+    }
 
-    return NextResponse.json(voices);
+    // Categoriseer alle stemmen per taal
+    const voicesByLang: Record<string, VoiceResponse[]> = {
+      NL: [],
+      FR: [],
+      DE: [],
+      EN: [],
+    };
+
+    for (const voice of data.voices as ElevenLabsVoice[]) {
+      // Probeer taal te detecteren
+      const langInfo = detectLanguage(voice);
+      
+      // Als we een taal detecteren, voeg toe aan die categorie
+      if (langInfo && voicesByLang[langInfo.code]) {
+        voicesByLang[langInfo.code].push({
+          voice_id: voice.voice_id,
+          name: voice.name,
+          preview_url: voice.preview_url || null,
+          labels: {
+            gender: voice.labels?.gender || 'unknown',
+            language: langInfo.code,
+            accent: langInfo.accent,
+          },
+        });
+      }
+    }
+
+    // Als we geen stemmen vonden met taaldetectie, neem de eerste 16 stemmen
+    // en verdeel ze over de 4 talen (4 per taal)
+    const totalFound = Object.values(voicesByLang).reduce((sum, arr) => sum + arr.length, 0);
+    
+    if (totalFound === 0) {
+      console.log('No language-specific voices found, using all available voices');
+      
+      // Neem alle stemmen en verdeel ze
+      const allVoices = (data.voices as ElevenLabsVoice[]).slice(0, 16);
+      const languages = ['NL', 'FR', 'DE', 'EN'];
+      const accents = ['Nederlands', 'Frans', 'Duits', 'Engels'];
+      
+      allVoices.forEach((voice, index) => {
+        const langIndex = index % 4;
+        voicesByLang[languages[langIndex]].push({
+          voice_id: voice.voice_id,
+          name: voice.name,
+          preview_url: voice.preview_url || null,
+          labels: {
+            gender: voice.labels?.gender || 'unknown',
+            language: languages[langIndex],
+            accent: accents[langIndex],
+          },
+        });
+      });
+    }
+
+    // Limiteer tot 4 stemmen per taal
+    const result: VoiceResponse[] = [];
+    for (const lang of ['NL', 'FR', 'DE', 'EN']) {
+      result.push(...voicesByLang[lang].slice(0, 4));
+    }
+
+    // Als we nog steeds geen stemmen hebben, gebruik fallback
+    if (result.length === 0) {
+      console.log('No voices found, using fallback');
+      return NextResponse.json(fallbackVoices);
+    }
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error('ElevenLabs API error:', error);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    return NextResponse.json(fallbackVoices);
   }
 }

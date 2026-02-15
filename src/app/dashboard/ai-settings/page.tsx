@@ -143,6 +143,8 @@ export default function AISettingsPage() {
   const [business, setBusiness] = useState<Business | null>(null);
   const [playingVoice, setPlayingVoice] = useState<string | null>(null);
   const [voices, setVoices] = useState<ElevenLabsVoice[]>([]);
+  const [voicesLoading, setVoicesLoading] = useState(true);
+  const [voicesError, setVoicesError] = useState<string | null>(null);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
 
   const [config, setConfig] = useState({
@@ -180,16 +182,30 @@ export default function AISettingsPage() {
   useEffect(() => { loadSettings(); loadVoices(); }, []);
 
   const loadVoices = async () => {
+    setVoicesLoading(true);
+    setVoicesError(null);
+    
     try {
       const res = await fetch('/api/elevenlabs/voices');
       const data = await res.json();
-      if (Array.isArray(data)) {
+      
+      if (Array.isArray(data) && data.length > 0) {
         setVoices(data);
+      } else if (data.error) {
+        console.error('Voices API error:', data.error);
+        setVoicesError(data.error);
+        setVoices([]);
       } else {
         console.error('Invalid voices response:', data);
+        setVoicesError('Geen stemmen gevonden');
+        setVoices([]);
       }
     } catch (e) {
       console.error('Failed to load voices:', e);
+      setVoicesError('Kon stemmen niet laden');
+      setVoices([]);
+    } finally {
+      setVoicesLoading(false);
     }
   };
 
@@ -391,8 +407,21 @@ export default function AISettingsPage() {
             16 ElevenLabs stemmen in 4 talen - klik op play om te beluisteren
           </p>
 
-          {voices.length === 0 ? (
+          {voicesLoading ? (
             <p style={{ color: '#6b7280' }}>Stemmen laden...</p>
+          ) : voicesError ? (
+            <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 8, padding: 16 }}>
+              <p style={{ color: '#ef4444', marginBottom: 8 }}>{voicesError}</p>
+              <button
+                type="button"
+                onClick={loadVoices}
+                style={{ background: '#ef4444', color: 'white', border: 'none', borderRadius: 6, padding: '8px 16px', cursor: 'pointer' }}
+              >
+                Opnieuw proberen
+              </button>
+            </div>
+          ) : voices.length === 0 ? (
+            <p style={{ color: '#6b7280' }}>Geen stemmen beschikbaar</p>
           ) : (
             <>
               {/* Nederlands */}
