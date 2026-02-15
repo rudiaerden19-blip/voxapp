@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import Tesseract from 'tesseract.js';
 import { createClient } from '@/lib/supabase';
 import { Package, Plus, Trash2, Check, X, Clock, Euro, Search, Filter, ArrowLeft, Upload } from 'lucide-react';
 import Link from 'next/link';
@@ -147,61 +146,7 @@ export default function ProductenPage() {
     }
   };
 
-  // Preprocess image for better OCR (invert colors, increase contrast)
-  const preprocessImage = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('Canvas not supported'));
-          return;
-        }
-
-        // Scale up for better OCR
-        const scale = 2;
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
-
-        // Draw image
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-        // Get image data
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imageData.data;
-
-        // Process pixels: invert and increase contrast
-        for (let i = 0; i < data.length; i += 4) {
-          // Convert to grayscale
-          const gray = (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
-          
-          // Invert (for dark backgrounds with light text)
-          const inverted = 255 - gray;
-          
-          // Increase contrast
-          const contrast = 1.5;
-          const adjusted = ((inverted - 128) * contrast) + 128;
-          const final = Math.max(0, Math.min(255, adjusted));
-
-          // Threshold to black/white
-          const bw = final > 128 ? 255 : 0;
-
-          data[i] = bw;     // R
-          data[i + 1] = bw; // G
-          data[i + 2] = bw; // B
-          // Alpha stays the same
-        }
-
-        ctx.putImageData(imageData, 0, 0);
-        resolve(canvas.toDataURL('image/png'));
-      };
-      img.onerror = () => reject(new Error('Could not load image'));
-      img.src = URL.createObjectURL(file);
-    });
-  };
-
-  // Parse text for products (name + price pattern)
+  // Parse text for products (name + price pattern) - for CSV files
   const parseProductsFromText = (text: string): { name: string; price: number }[] => {
     const products: { name: string; price: number }[] = [];
     const lines = text.split('\n').filter(l => l.trim());
@@ -286,22 +231,50 @@ export default function ProductenPage() {
       const isImage = file.type.startsWith('image/') || file.name.match(/\.(jpg|jpeg|png|webp)$/i);
 
       if (isImage) {
-        // Preprocess image for better OCR
-        setSuccess('Afbeelding voorbereiden...');
-        const processedImage = await preprocessImage(file);
+        // Use Gemini AI for image recognition
+        setSuccess('Afbeelding analyseren met AI...');
         
-        // Use Tesseract OCR
-        setSuccess('Tekst herkennen...');
-        const result = await Tesseract.recognize(processedImage, 'nld+eng', {
-          logger: (m) => {
-            if (m.status === 'recognizing text') {
-              setSuccess(`Scannen: ${Math.round(m.progress * 100)}%`);
-            }
-          },
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const res = await fetch('/api/parse-menu', {
+          method: 'POST',
+          body: formData,
         });
-        text = result.data.text;
-        console.log('OCR result:', text); // Debug
-        setSuccess(null);
+        
+        const data = await res.json();
+        
+        if (!res.ok || data.error) {
+          throw new Error(data.error || 'Kon afbeelding niet verwerken');
+        }
+        
+        if (data.products && data.products.length > 0) {
+          // Save products directly from API response
+          let added = 0;
+          for (const prod of data.products) {
+            const saveRes = await fetch('/api/admin/products', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                business_id: business.id,
+                category: 'Producten',
+                name: prod.name,
+                price: prod.price,
+                is_available: true,
+              }),
+            });
+            if (saveRes.ok) added++;
+          }
+          
+          setSuccess(`${added} producten geïmporteerd!`);
+          setTimeout(() => setSuccess(null), 3000);
+          loadData();
+          setUploading(false);
+          if (fileInputRef.current) fileInputRef.current.value = '';
+          return;
+        } else {
+          throw new Error('Geen producten gevonden in afbeelding');
+        }
       } else {
         // Read CSV/TXT
         text = await file.text();
