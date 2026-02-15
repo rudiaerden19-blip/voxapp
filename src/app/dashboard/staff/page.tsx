@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useLanguage } from '@/lib/LanguageContext';
-import { Plus, Pencil, Trash2, X, User, Mail, Phone, Check, Users } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, User, Mail, Phone, Check, Users, Info } from 'lucide-react';
 
 interface WorkingHours {
   [key: string]: { start: string; end: string; working: boolean };
@@ -150,7 +150,7 @@ export default function StaffPage() {
 
   return (
     <DashboardLayout>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32, flexWrap: 'wrap', gap: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
         <div>
           <h1 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>{t('staff.title')}</h1>
           <p style={{ color: '#9ca3af', fontSize: 16 }}>{t('staff.subtitle')}</p>
@@ -158,6 +158,27 @@ export default function StaffPage() {
         <button onClick={openCreateModal} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f97316', color: 'white', border: 'none', borderRadius: 8, padding: '12px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
           <Plus size={18} /> {t('staff.addStaff')}
         </button>
+      </div>
+
+      {/* Info box */}
+      <div style={{ 
+        background: 'rgba(59, 130, 246, 0.1)', 
+        border: '1px solid rgba(59, 130, 246, 0.3)', 
+        borderRadius: 12, 
+        padding: 16, 
+        marginBottom: 24,
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: 12
+      }}>
+        <Info size={20} style={{ color: '#3b82f6', flexShrink: 0, marginTop: 2 }} />
+        <div>
+          <p style={{ color: '#3b82f6', fontWeight: 600, fontSize: 14, marginBottom: 4 }}>Waarom medewerkers toevoegen?</p>
+          <p style={{ color: '#9ca3af', fontSize: 13, lineHeight: 1.5 }}>
+            Wanneer je medewerkers toevoegt, kunnen klanten bij het maken van een afspraak kiezen bij welke medewerker ze willen boeken. 
+            Perfect voor kapsalons, schoonheidssalons of praktijken waar klanten een voorkeur hebben voor een specifieke medewerker.
+          </p>
+        </div>
       </div>
 
       <div style={{ background: '#16161f', borderRadius: 16, border: '1px solid #2a2a35', overflow: 'hidden' }}>
