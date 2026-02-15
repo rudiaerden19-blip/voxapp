@@ -371,7 +371,13 @@ export default function AISettingsPage() {
       
       if (error) throw error;
       
-      setMenuItems([...menuItems, { ...data, category: data.category || 'Overig' }]);
+      setMenuItems([...menuItems, { 
+        id: data.id,
+        name: data.name,
+        price: data.price,
+        category: data.category || 'Overig',
+        description: data.description || undefined,
+      }]);
       setNewProduct({ name: '', price: '', category: '', description: '' });
       setShowProductForm(false);
       setMenuSuccess('Product toegevoegd!');
