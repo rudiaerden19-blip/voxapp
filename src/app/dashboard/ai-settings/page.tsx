@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useLanguage } from '@/lib/LanguageContext';
 import { Phone, Mic, Globe, Save, Check, Play, Volume2, Sparkles, MapPin, Clock, Euro, HelpCircle, Plus, Trash2, Upload, FileText, X } from 'lucide-react';
+import { getBusinessType, getAIContext, getTerminology, hasModule } from '@/lib/modules';
 
 interface Business {
   id: string;
@@ -38,37 +39,44 @@ interface ElevenLabsVoice {
   preview_url?: string;
 }
 
+// Dynamische template generator op basis van business type
+function getBrancheTemplate(businessType: string, businessName: string): { greeting: string; capabilities: string; style: string } {
+  const config = getBusinessType(businessType);
+  const term = config.terminology;
+  
+  // Genereer greeting op basis van type
+  let greeting = `Goedendag, ${config.name.toLowerCase()} ${businessName}. Waarmee kan ik u helpen?`;
+  
+  // Specifieke greetings per categorie
+  if (config.category === 'horeca') {
+    greeting = `Hallo, welkom bij ${businessName}. Wilt u iets bestellen of heeft u een vraag?`;
+  } else if (config.category === 'zorg') {
+    greeting = `Goedendag, ${config.name.toLowerCase()} ${businessName}. Waarmee kan ik u van dienst zijn?`;
+  } else if (config.category === 'beauty') {
+    greeting = `Hallo, welkom bij ${businessName}. Wilt u een ${term.appointment || 'afspraak'} maken?`;
+  }
+  
+  // Capabilities op basis van actieve modules
+  const capabilities: string[] = [];
+  if (hasModule(businessType, 'appointments')) capabilities.push(`Ik plan ${term.appointment || 'afspraken'}`);
+  if (hasModule(businessType, 'menu')) capabilities.push(`Ik ken ons menu en prijzen`);
+  if (hasModule(businessType, 'orders')) capabilities.push(`Ik neem bestellingen aan`);
+  if (hasModule(businessType, 'reservations')) capabilities.push(`Ik maak reserveringen`);
+  if (hasModule(businessType, 'services')) capabilities.push(`Ik ken onze ${term.products || 'diensten'} en tarieven`);
+  
+  const capabilitiesText = capabilities.length > 0 
+    ? capabilities.join('. ') + '.'
+    : 'Ik help met vragen en verwijs door waar nodig.';
+  
+  return {
+    greeting,
+    capabilities: capabilitiesText,
+    style: config.aiContext,
+  };
+}
+
+// Fallback voor oude code
 const brancheTemplates: Record<string, { greeting: string; capabilities: string; style: string }> = {
-  kapper: {
-    greeting: 'Goedendag, welkom bij {bedrijfsnaam}. Waarmee kan ik u helpen? Wilt u een afspraak maken?',
-    capabilities: 'Ik kan afspraken inplannen voor knippen, kleuren, föhnen en andere behandelingen. Ik ken onze prijzen en beschikbaarheid.',
-    style: 'Vriendelijk en vlot, zoals een echte kapsalon receptionist. Gebruik informele taal tenzij de klant formeel is.',
-  },
-  tandarts: {
-    greeting: 'Goedendag, tandartspraktijk {bedrijfsnaam}. Waarmee kan ik u van dienst zijn?',
-    capabilities: 'Ik plan afspraken voor controles, behandelingen en spoedgevallen. Bij acute pijn probeer ik dezelfde dag nog in te plannen.',
-    style: 'Professioneel en geruststellend. Veel patiënten zijn nerveus, dus wees kalm en behulpzaam.',
-  },
-  restaurant: {
-    greeting: 'Goedemiddag, restaurant {bedrijfsnaam}. Wilt u reserveren of heeft u een vraag?',
-    capabilities: 'Ik neem reserveringen aan, geef info over ons menu en openingstijden. Ik kan dieetwensen noteren.',
-    style: 'Gastvrij en enthousiast. Maak de beller enthousiast over een bezoek.',
-  },
-  garage: {
-    greeting: 'Goedendag, garage {bedrijfsnaam}. Wat kan ik voor u betekenen?',
-    capabilities: 'Ik plan afspraken voor onderhoud, APK, reparaties en bandenwissel. Ik kan een indicatie geven van prijzen.',
-    style: 'Direct en zakelijk, maar vriendelijk. Automobilisten willen snel geholpen worden.',
-  },
-  schoonheid: {
-    greeting: 'Hallo, welkom bij {bedrijfsnaam}. Waarmee kan ik u helpen vandaag?',
-    capabilities: 'Ik plan behandelingen zoals gezichtsbehandelingen, manicure, pedicure en massages. Ik ken onze behandelingen en prijzen.',
-    style: 'Warm en verzorgend. Klanten komen voor ontspanning, dus creëer een rustgevende sfeer.',
-  },
-  fysiotherapie: {
-    greeting: 'Goedendag, fysiotherapiepraktijk {bedrijfsnaam}. Waarmee kan ik u helpen?',
-    capabilities: 'Ik plan afspraken voor behandelingen en intake gesprekken. Ik kan vragen over verwijzingen beantwoorden.',
-    style: 'Professioneel en empathisch. Patiënten hebben vaak pijn of beperkingen.',
-  },
   huisarts: {
     greeting: 'Goedendag, huisartsenpraktijk {bedrijfsnaam}. Waarmee kan ik u van dienst zijn?',
     capabilities: 'Ik plan reguliere afspraken en triage spoedgevallen. Bij ernstige klachten verwijs ik door naar spoed.',
@@ -436,7 +444,7 @@ export default function AISettingsPage() {
     loadMenuItemsForBusiness(biz.id);
 
     // Load saved data from database
-      const template = brancheTemplates[biz.type] || brancheTemplates.other;
+      const template = getBrancheTemplate(biz.type, biz.name);
       
       // Map English day names from DB to Dutch day names in UI
       const dayMapping: Record<string, string> = {
@@ -489,10 +497,11 @@ export default function AISettingsPage() {
 
   const applyTemplate = () => {
     if (!business) return;
-    const template = brancheTemplates[business.type] || brancheTemplates.other;
+    // Gebruik nieuwe dynamische template generator
+    const template = getBrancheTemplate(business.type, business.name);
     setConfig(prev => ({
       ...prev,
-      greeting: template.greeting.replace('{bedrijfsnaam}', business.name),
+      greeting: template.greeting,
       capabilities: template.capabilities,
       style: template.style,
     }));
