@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Tesseract from 'tesseract.js';
 import { createClient } from '@/lib/supabase';
 import { Package, Plus, Trash2, Check, X, Clock, Euro, Search, Filter, ArrowLeft, Upload } from 'lucide-react';
 import Link from 'next/link';
@@ -146,7 +147,61 @@ export default function ProductenPage() {
     }
   };
 
-  // Handle CSV/TXT upload
+  // Parse text for products (name + price pattern)
+  const parseProductsFromText = (text: string): { name: string; price: number }[] => {
+    const products: { name: string; price: number }[] = [];
+    const lines = text.split('\n').filter(l => l.trim());
+    
+    for (const line of lines) {
+      const cleanLine = line.trim();
+      if (!cleanLine) continue;
+      
+      // Skip headers
+      if (cleanLine.toLowerCase().includes('naam') || cleanLine.toLowerCase().includes('product')) {
+        continue;
+      }
+      
+      // Try CSV format first: naam,prijs or naam;prijs
+      if (cleanLine.includes(',') || cleanLine.includes(';')) {
+        const parts = cleanLine.includes(';') ? cleanLine.split(';') : cleanLine.split(',');
+        if (parts.length >= 2) {
+          const name = parts[0].trim().replace(/^["']|["']$/g, '').replace(/\.+$/g, '');
+          const priceStr = parts[1].trim().replace(/^["']|["']$/g, '').replace(',', '.').replace('€', '');
+          const price = parseFloat(priceStr);
+          if (name && !isNaN(price) && price > 0) {
+            products.push({ name, price });
+            continue;
+          }
+        }
+      }
+      
+      // Try OCR format: "Frikandel...2,40" or "Frikandel 2.40"
+      // Match: text followed by dots/spaces and then a price
+      const priceMatch = cleanLine.match(/^(.+?)[\s.…]+(\d+)[,.](\d{2})\s*€?$/);
+      if (priceMatch) {
+        const name = priceMatch[1].trim().replace(/\.+$/g, '');
+        const price = parseFloat(`${priceMatch[2]}.${priceMatch[3]}`);
+        if (name && !isNaN(price) && price > 0) {
+          products.push({ name, price });
+          continue;
+        }
+      }
+      
+      // Try format with € at end: "Cervela special 5,00 €"
+      const euroMatch = cleanLine.match(/^(.+?)[\s.…]+(\d+)[,.](\d{2})\s*€$/);
+      if (euroMatch) {
+        const name = euroMatch[1].trim().replace(/\.+$/g, '');
+        const price = parseFloat(`${euroMatch[2]}.${euroMatch[3]}`);
+        if (name && !isNaN(price) && price > 0) {
+          products.push({ name, price });
+        }
+      }
+    }
+    
+    return products;
+  };
+
+  // Handle CSV/TXT/Image upload
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !business?.id) return;
@@ -155,36 +210,30 @@ export default function ProductenPage() {
     setError(null);
 
     try {
-      const newProducts: { name: string; price: number }[] = [];
-      
-      // Parse CSV/TXT
-      const text = await file.text();
-      const lines = text.split('\n').filter(l => l.trim());
-      
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (!line) continue;
-        
-        // Skip header row
-        if (i === 0 && (line.toLowerCase().includes('naam') || line.toLowerCase().includes('product'))) {
-          continue;
-        }
-        
-        // Split by comma or semicolon
-        const parts = line.includes(';') ? line.split(';') : line.split(',');
-        if (parts.length >= 2) {
-          const name = parts[0].trim().replace(/^["']|["']$/g, '');
-          const priceStr = parts[1].trim().replace(/^["']|["']$/g, '').replace(',', '.').replace('€', '');
-          const price = parseFloat(priceStr);
-          
-          if (name && !isNaN(price)) {
-            newProducts.push({ name, price });
-          }
-        }
+      let text = '';
+      const isImage = file.type.startsWith('image/') || file.name.match(/\.(jpg|jpeg|png|webp)$/i);
+
+      if (isImage) {
+        // Use Tesseract OCR for images
+        setSuccess('Afbeelding wordt gescand...');
+        const result = await Tesseract.recognize(file, 'nld+eng', {
+          logger: (m) => {
+            if (m.status === 'recognizing text') {
+              setSuccess(`Scannen: ${Math.round(m.progress * 100)}%`);
+            }
+          },
+        });
+        text = result.data.text;
+        setSuccess(null);
+      } else {
+        // Read CSV/TXT
+        text = await file.text();
       }
 
+      const newProducts = parseProductsFromText(text);
+
       if (newProducts.length === 0) {
-        throw new Error('Geen producten gevonden. Gebruik formaat: naam,prijs');
+        throw new Error('Geen producten gevonden in bestand');
       }
 
       // Save all products via API
@@ -416,7 +465,7 @@ export default function ProductenPage() {
           <input
             ref={fileInputRef}
             type="file"
-            accept=".csv,.txt"
+            accept=".csv,.txt,.jpg,.jpeg,.png,.webp"
             onChange={handleFileUpload}
             style={{ display: 'none' }}
           />
@@ -425,7 +474,7 @@ export default function ProductenPage() {
             disabled={uploading}
             style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 20px', background: '#1f1f2e', border: '1px solid #3f3f4e', borderRadius: 12, color: 'white', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}
           >
-            <Upload size={18} /> {uploading ? 'Uploaden...' : 'CSV Import'}
+            <Upload size={18} /> {uploading ? 'Scannen...' : 'Menu Import'}
           </button>
           <button
             onClick={openAddModal}
