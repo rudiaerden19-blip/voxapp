@@ -243,6 +243,7 @@ function SettingsContent() {
           type: formData.type,
           phone: formData.phone.trim() || null,
           email: formData.email.trim() || null,
+          address: formData.address.trim() || null,
           opening_hours: formData.opening_hours,
         }),
       });
