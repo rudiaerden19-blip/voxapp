@@ -2440,15 +2440,15 @@ function PartnersSection() {
         </h2>
       </div>
       
-      <div style={{ position: 'relative', width: '100%', overflow: 'visible' }}>
+      <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
         <div 
           className="partners-slider"
           style={{ 
             display: 'flex', 
-            gap: 32,
-            animation: 'slideLeft 35s linear infinite',
+            gap: 24,
+            animation: 'slideLeft 40s linear infinite',
             width: 'fit-content',
-            paddingLeft: 16,
+            padding: '0 24px',
           }}
         >
           {allPartners.map((partner, i) => (
@@ -2457,14 +2457,14 @@ function PartnersSection() {
               className="partner-card"
               style={{ 
                 flexShrink: 0,
-                width: 260,
-                height: 150,
+                width: 300,
+                height: 180,
                 background: 'white',
                 borderRadius: 20,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: 28,
+                padding: 32,
               }}
             >
               <img 
@@ -2488,12 +2488,14 @@ function PartnersSection() {
         }
         @media (max-width: 768px) {
           .partner-card {
-            width: 280px !important;
-            height: 160px !important;
-            padding: 32px !important;
+            min-width: 85vw !important;
+            width: 85vw !important;
+            height: 220px !important;
+            padding: 40px !important;
           }
           .partners-slider {
-            gap: 24px !important;
+            gap: 20px !important;
+            padding: 0 16px !important;
           }
         }
       `}</style>
