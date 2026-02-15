@@ -105,18 +105,51 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// DELETE: Verwijder product
+// DELETE: Verwijder product of alle producten
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     const businessId = searchParams.get('business_id');
+    const deleteAll = searchParams.get('all') === 'true';
 
-    if (!id || !businessId) {
-      return NextResponse.json({ error: 'id and business_id required' }, { status: 400 });
+    if (!businessId) {
+      return NextResponse.json({ error: 'business_id required' }, { status: 400 });
     }
 
     const supabase = createAdminClient();
+
+    if (deleteAll) {
+      // Bulk delete: verwijder ALLE producten voor deze business
+      // Eerst alle product-optie koppelingen
+      const { data: products } = await supabase
+        .from('menu_items')
+        .select('id')
+        .eq('business_id', businessId);
+      
+      if (products && products.length > 0) {
+        const productIds = products.map(p => p.id);
+        await supabase
+          .from('product_option_links')
+          .delete()
+          .in('menu_item_id', productIds);
+      }
+
+      // Dan alle producten
+      const { error } = await supabase
+        .from('menu_items')
+        .delete()
+        .eq('business_id', businessId);
+
+      if (error) throw error;
+
+      return NextResponse.json({ success: true, deleted: products?.length || 0 });
+    }
+
+    // Single delete
+    if (!id) {
+      return NextResponse.json({ error: 'id required for single delete' }, { status: 400 });
+    }
 
     // Verwijder product-optie koppelingen eerst
     await supabase

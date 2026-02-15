@@ -462,14 +462,12 @@ export default function ProductenPage() {
     if (!business) return;
 
     try {
-      // Delete all products one by one
-      for (const product of products) {
-        if (product.id) {
-          await fetch(`/api/admin/products?id=${product.id}&business_id=${business.id}`, {
-            method: 'DELETE',
-          });
-        }
-      }
+      // Bulk delete in één call
+      const res = await fetch(`/api/admin/products?business_id=${business.id}&all=true`, {
+        method: 'DELETE',
+      });
+      
+      if (!res.ok) throw new Error('Verwijderen mislukt');
       
       setProducts([]);
       setSuccess('Alle producten verwijderd');
