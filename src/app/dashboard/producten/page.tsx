@@ -804,63 +804,6 @@ export default function ProductenPage() {
                 />
               </div>
 
-              {/* Status Options */}
-              <div>
-                <label style={{ color: '#9ca3af', fontSize: 13, marginBottom: 12, display: 'block' }}>Status</label>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: '#0a0a0f', borderRadius: 8, cursor: 'pointer', border: formData.is_available ? '1px solid #22c55e' : '1px solid #2a2a35' }}>
-                    <input
-                      type="checkbox"
-                      checked={formData.is_available ?? true}
-                      onChange={(e) => setFormData({ ...formData, is_available: e.target.checked })}
-                      style={{ accentColor: '#22c55e' }}
-                    />
-                    <span style={{ color: 'white', fontSize: 13 }}>Beschikbaar</span>
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: '#0a0a0f', borderRadius: 8, cursor: 'pointer', border: formData.is_popular ? '1px solid #3b82f6' : '1px solid #2a2a35' }}>
-                    <input
-                      type="checkbox"
-                      checked={formData.is_popular ?? false}
-                      onChange={(e) => setFormData({ ...formData, is_popular: e.target.checked })}
-                      style={{ accentColor: '#3b82f6' }}
-                    />
-                    <span style={{ color: 'white', fontSize: 13 }}>🔥 Populair</span>
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: '#0a0a0f', borderRadius: 8, cursor: 'pointer', border: formData.is_promo ? '1px solid #22c55e' : '1px solid #2a2a35' }}>
-                    <input
-                      type="checkbox"
-                      checked={formData.is_promo ?? false}
-                      onChange={(e) => setFormData({ ...formData, is_promo: e.target.checked })}
-                      style={{ accentColor: '#22c55e' }}
-                    />
-                    <span style={{ color: 'white', fontSize: 13 }}>🎁 Promo</span>
-                  </label>
-                </div>
-
-                {/* Promo Price */}
-                {formData.is_promo && (
-                  <div style={{ marginTop: 16, padding: 16, background: 'rgba(34, 197, 94, 0.1)', borderRadius: 10, border: '1px solid rgba(34, 197, 94, 0.3)' }}>
-                    <label style={{ color: '#22c55e', fontSize: 13, marginBottom: 8, display: 'block' }}>Actieprijs</label>
-                    <div style={{ position: 'relative' }}>
-                      <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#22c55e' }}>€</span>
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        value={formData.promo_price !== undefined ? formData.promo_price.toString() : ''}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(',', '.');
-                          if (val === '' || /^\d*\.?\d{0,2}$/.test(val)) {
-                            setFormData({ ...formData, promo_price: val === '' ? undefined : parseFloat(val) || 0 });
-                          }
-                        }}
-                        placeholder="0.00"
-                        style={{ width: '100%', padding: '14px 16px 14px 32px', background: '#0a0a0f', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: 10, color: 'white', fontSize: 14 }}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-
               {/* Link Options */}
               {optionGroups.length > 0 && (
                 <div>
