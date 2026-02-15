@@ -509,8 +509,10 @@ export default function AISettingsPage() {
           phone: config.phone_display || null,
           email: config.email || null,
           website: config.website || null,
-          // Address
-          street: config.address_street || null,
+          // Address (combine street + number)
+          street: config.address_number 
+            ? `${config.address_street} ${config.address_number}`.trim() 
+            : config.address_street || null,
           postal_code: config.address_postal || null,
           city: config.address_city || null,
           // AI settings
