@@ -66,6 +66,7 @@ export default function AdminDashboard() {
       const res = await fetch('/api/admin/tenants');
       if (res.ok) {
         const data = await res.json();
+        console.log('Loaded tenants:', data);
         setTenants(data || []);
       }
     } catch (e) {
@@ -458,7 +459,10 @@ export default function AdminDashboard() {
                       <td style={{ padding: '14px 16px' }}>
                         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                           <button
-                            onClick={() => window.open(`/dashboard?admin_view=${tenant.id}`, '_blank')}
+                            onClick={() => {
+                              console.log('Opening dashboard for tenant:', tenant.id, tenant.name);
+                              window.open(`/dashboard?admin_view=${tenant.id}`, '_blank');
+                            }}
                             style={{ padding: 8, background: '#8b5cf620', border: 'none', borderRadius: 6, color: '#8b5cf6', cursor: 'pointer' }}
                             title="Dashboard bekijken"
                           >
