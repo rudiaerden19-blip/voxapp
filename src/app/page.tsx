@@ -717,24 +717,6 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
               {t('hero.tagline')}
             </p>
 
-            {/* CTA Buttons */}
-            <div className="mobile-buttons" style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 48 }}>
-              <a href="/register" style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                background: '#f97316',
-                color: 'white',
-                padding: '16px 28px',
-                borderRadius: 8,
-                fontSize: 16,
-                fontWeight: 600,
-                textDecoration: 'none',
-              }}>
-                <Calendar size={18} />
-                {t('hero.cta')}
-              </a>
-            </div>
           </div>
         </div>
 
@@ -1806,25 +1788,6 @@ function OutboundSection() {
               {t('outbound.subtitle')}
             </p>
 
-            {/* CTA Buttons */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 32 }}>
-              <a href="/register" style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                background: '#f97316',
-                color: 'white',
-                padding: '12px 24px',
-                borderRadius: 8,
-                fontSize: 14,
-                fontWeight: 600,
-                textDecoration: 'none',
-              }}>
-                <Calendar size={16} />
-                {t('outbound.startFree')}
-              </a>
-            </div>
-
             {/* Feature list */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {[
@@ -1866,25 +1829,6 @@ function AutomationSection() {
             <p style={{ fontSize: 16, color: '#6b7280', lineHeight: 1.7, marginBottom: 32 }}>
               {t('automation.subtitle')}
             </p>
-
-            {/* CTA Buttons */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 32 }}>
-              <a href="/register" style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                background: '#f97316',
-                color: 'white',
-                padding: '12px 24px',
-                borderRadius: 8,
-                fontSize: 14,
-                fontWeight: 600,
-                textDecoration: 'none',
-              }}>
-                <Calendar size={16} />
-                {t('outbound.startFree')}
-              </a>
-            </div>
 
             {/* Feature list */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -2252,23 +2196,6 @@ function HowItWorksSection() {
               <p style={{ fontSize: 14, color: '#9ca3af', lineHeight: 1.6 }}>{t(`howItWorks.${step.descKey}`)}</p>
             </div>
           ))}
-        </div>
-
-        <div style={{ textAlign: 'center', marginTop: 48 }}>
-          <a href="/register" style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            background: '#f97316',
-            color: 'white',
-            padding: '16px 32px',
-            borderRadius: 8,
-            fontSize: 16,
-            fontWeight: 600,
-            textDecoration: 'none',
-          }}>
-            {t('howItWorks.startNow')} <ArrowRight size={18} />
-          </a>
         </div>
       </div>
     </section>
