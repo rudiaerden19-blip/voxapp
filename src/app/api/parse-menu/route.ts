@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
 
     // Initialize Gemini
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
 
     // Send image to Gemini
     const result = await model.generateContent([
@@ -33,18 +33,27 @@ export async function POST(request: NextRequest) {
         },
       },
       {
-        text: `Analyseer deze menukaart/prijslijst en extraheer ALLE producten met hun prijzen.
+        text: `Je ziet een menukaart of prijslijst van een snackbar/frituur/restaurant.
 
-Geef het resultaat als JSON array met objecten die "name" en "price" bevatten.
-- "name": productnaam (string)
-- "price": prijs als getal (number, bijv. 2.40 niet "2,40")
+OPDRACHT: Lees ELK product en zijn prijs APART. Elk product staat op een eigen regel met puntjes of spaties naar de prijs.
 
-ALLEEN de JSON array teruggeven, geen andere tekst of uitleg.
+REGELS:
+1. Lees ALLEEN de productnaam (links) en prijs (rechts getal met komma of punt)
+2. ELK product is EEN apart item - MIX NOOIT producten samen
+3. Negeer koppen zoals "SNACKS", "MENU", etc.
+4. Prijzen zijn meestal tussen 1.00 en 10.00 euro
 
-Voorbeeld output:
-[{"name": "Frikandel", "price": 2.40}, {"name": "Grote friet", "price": 3.50}]
+FORMAAT - Geef ALLEEN deze JSON array terug, niets anders:
+[{"name": "Frikandel", "price": 2.40}, {"name": "Frikandel special", "price": 3.60}]
 
-Als je geen producten kunt vinden, geef dan: []`,
+VOORBEELD wat je ziet:
+"Frikandel...............2,40"
+"Frikandel special.......3,60"
+
+Wordt:
+[{"name": "Frikandel", "price": 2.40}, {"name": "Frikandel special", "price": 3.60}]
+
+Nu jij - lees ALLE producten uit de afbeelding:`,
       },
     ]);
 
