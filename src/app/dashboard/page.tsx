@@ -63,9 +63,9 @@ function DashboardContent() {
         .single();
       
       if (businessData) {
-        const biz = businessData as { id: string; name: string };
+        const biz = businessData as { id: string; name: string; email: string | null; type: string };
         businessId = biz.id;
-        businessNameValue = biz.name || '';
+        businessNameValue = biz.name || biz.email || biz.type || '';
         setBusinessName(businessNameValue);
         setIsAdminView(true);
       }
@@ -101,9 +101,9 @@ function DashboardContent() {
         return;
       }
       
-      const biz = businessData as { id: string; name: string };
+      const biz = businessData as { id: string; name: string; email: string | null; type: string };
       businessId = biz.id;
-      businessNameValue = biz.name || '';
+      businessNameValue = biz.name || biz.email || biz.type || '';
       setBusinessName(businessNameValue);
     }
 
@@ -226,7 +226,7 @@ function DashboardContent() {
 
       <div style={{ marginBottom: 32 }}>
         <h1 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>
-          {t('dashboard.welcomeBack')}{!loading && businessName ? `, ${businessName}!` : '!'}
+          {t('dashboard.welcomeBack')}{businessName ? `, ${businessName}!` : '!'}
         </h1>
         <p style={{ color: '#9ca3af', fontSize: 16 }}>
           {t('dashboard.overview')}

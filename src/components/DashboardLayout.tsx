@@ -124,7 +124,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           </div>
         )}
         <div style={{ background: '#0a0a0f', borderRadius: 8, padding: 12, marginBottom: 24 }}>
-          <p style={{ color: 'white', fontWeight: 600, fontSize: 14 }}>{business?.name || 'Mijn Bedrijf'}</p>
+          <p style={{ color: 'white', fontWeight: 600, fontSize: 14 }}>{business?.name || business?.email || business?.type || 'Mijn Bedrijf'}</p>
           <p style={{ color: '#6b7280', fontSize: 12, marginTop: 4 }}>
             {business?.subscription_status === 'trial' 
               ? `${t('dashboard.trialPeriod')}: ${getDaysRemaining()} ${t('dashboard.trialDaysRemaining')}` 
