@@ -117,9 +117,9 @@ export default function AdminDashboard() {
     setSavingTenant(true);
     const supabase = createClient();
     
-    // Calculate trial end date (14 days from now)
+    // Calculate trial end date (7 days from now)
     const trialEndsAt = new Date();
-    trialEndsAt.setDate(trialEndsAt.getDate() + 14);
+    trialEndsAt.setDate(trialEndsAt.getDate() + 7);
     
     const { data, error } = await supabase.from('businesses').insert({
       name: newTenant.name.trim(),
@@ -629,7 +629,7 @@ export default function AdminDashboard() {
 
               <div style={{ marginTop: 24, padding: 16, background: '#0f172a', borderRadius: 8, border: '1px solid #334155' }}>
                 <p style={{ color: '#9ca3af', fontSize: 13, margin: 0 }}>
-                  De tenant krijgt automatisch een <strong style={{ color: '#f97316' }}>14-dagen trial</strong> periode.
+                  De tenant krijgt automatisch een <strong style={{ color: '#f97316' }}>7-dagen trial</strong> periode.
                 </p>
               </div>
 
