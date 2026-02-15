@@ -530,6 +530,27 @@ export default function AISettingsPage() {
         throw new Error(err.error || 'Opslaan mislukt');
       }
       
+      // Update ElevenLabs agent with ALL business data
+      const agentRes = await fetch('/api/elevenlabs/agent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          business_id: business.id,
+          ai_context: `${config.capabilities}\n\n${config.style}`,
+          faqs: config.faqs.filter(f => f.question && f.answer),
+        }),
+      });
+      
+      if (agentRes.ok) {
+        const agentData = await agentRes.json();
+        // Update local business state with new agent_id if created
+        if (agentData.agent_id && !business.agent_id) {
+          setBusiness({ ...business, agent_id: agentData.agent_id });
+        }
+      } else {
+        console.error('ElevenLabs agent update failed');
+      }
+      
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
