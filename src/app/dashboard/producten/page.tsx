@@ -71,11 +71,17 @@ export default function ProductenPage() {
 
   const loadData = async () => {
     setLoading(true);
+    setError(null);
     try {
       // Haal business info op
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      
+      if (!user) {
+        setError('Niet ingelogd');
+        setLoading(false);
+        return;
+      }
 
       const { data: businessData } = await supabase
         .from('businesses')
@@ -83,22 +89,69 @@ export default function ProductenPage() {
         .eq('user_id', user.id)
         .single();
 
-      if (businessData) {
-        setBusiness(businessData);
+      if (!businessData) {
+        setError('Geen bedrijf gevonden');
+        setLoading(false);
+        return;
+      }
+      
+      setBusiness(businessData);
+
+      // Haal producten direct uit Supabase
+      const { data: productsData, error: productsError } = await supabase
+        .from('menu_items')
+        .select('*')
+        .eq('business_id', businessData.id)
+        .order('sort_order', { ascending: true })
+        .order('name', { ascending: true });
+
+      if (productsError) {
+        console.error('Products error:', productsError);
+      } else if (productsData) {
+        setProducts(productsData.map(p => ({
+          id: p.id,
+          category: p.category || 'Overig',
+          name: p.name,
+          description: p.description || undefined,
+          price: p.price,
+          duration_minutes: p.duration_minutes || undefined,
+          sort_order: p.sort_order,
+          is_available: p.is_available,
+          is_popular: p.is_popular,
+          is_promo: p.is_promo,
+          promo_price: p.promo_price || undefined,
+        })));
       }
 
-      // Haal producten op
-      const productsRes = await fetch('/api/products');
-      const productsData = await productsRes.json();
-      if (Array.isArray(productsData)) {
-        setProducts(productsData);
-      }
-
-      // Haal optiegroepen op
-      const optionsRes = await fetch('/api/options');
-      const optionsData = await optionsRes.json();
-      if (Array.isArray(optionsData)) {
-        setOptionGroups(optionsData);
+      // Haal optiegroepen direct uit Supabase
+      const { data: optionsData, error: optionsError } = await supabase
+        .from('option_groups')
+        .select('*')
+        .eq('business_id', businessData.id)
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true });
+      
+      if (optionsError) {
+        console.error('Options error:', optionsError);
+      } else if (optionsData) {
+        // Haal choices voor elke optiegroep
+        const groupsWithChoices = await Promise.all(optionsData.map(async (group) => {
+          const { data: choices } = await supabase
+            .from('option_choices')
+            .select('id, name, price')
+            .eq('option_group_id', group.id)
+            .eq('is_active', true)
+            .order('sort_order', { ascending: true });
+          
+          return {
+            id: group.id,
+            name: group.name,
+            type: group.type as 'single' | 'multiple',
+            required: group.required,
+            choices: choices || [],
+          };
+        }));
+        setOptionGroups(groupsWithChoices);
       }
     } catch (e) {
       console.error('Failed to load data:', e);
@@ -162,49 +215,102 @@ export default function ProductenPage() {
       return;
     }
 
+    if (!business) {
+      setError('Geen bedrijf gevonden');
+      return;
+    }
+
     setSaving(true);
     setError(null);
 
     try {
-      // Sla product op
-      const res = await fetch('/api/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          id: editingProduct?.id,
-        }),
-      });
-
-      const savedProduct = await res.json();
+      const supabase = createClient();
       
-      if (!res.ok) {
-        throw new Error(savedProduct.error || 'Kon product niet opslaan');
+      const productData = {
+        business_id: business.id,
+        category: formData.category || 'Overig',
+        name: formData.name,
+        description: formData.description || null,
+        price: formData.price,
+        duration_minutes: formData.duration_minutes || null,
+        sort_order: formData.sort_order || 0,
+        is_available: formData.is_available ?? true,
+        is_popular: formData.is_popular ?? false,
+        is_promo: formData.is_promo ?? false,
+        promo_price: formData.is_promo ? formData.promo_price : null,
+      };
+
+      let savedProduct;
+      
+      if (editingProduct?.id) {
+        // Update
+        const { data, error } = await supabase
+          .from('menu_items')
+          .update(productData)
+          .eq('id', editingProduct.id)
+          .select()
+          .single();
+        
+        if (error) throw error;
+        savedProduct = data;
+      } else {
+        // Insert
+        const { data, error } = await supabase
+          .from('menu_items')
+          .insert(productData)
+          .select()
+          .single();
+        
+        if (error) throw error;
+        savedProduct = data;
       }
 
       // Sla optiekoppelingen op
-      if (savedProduct.id) {
-        await fetch('/api/products/options', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            product_id: savedProduct.id,
-            option_group_ids: selectedOptionIds,
-          }),
-        });
+      if (savedProduct?.id && selectedOptionIds.length > 0) {
+        // Verwijder oude koppelingen
+        await supabase
+          .from('product_option_links')
+          .delete()
+          .eq('menu_item_id', savedProduct.id);
+        
+        // Voeg nieuwe koppelingen toe
+        const links = selectedOptionIds.map(optionId => ({
+          menu_item_id: savedProduct.id,
+          option_group_id: optionId,
+          business_id: business.id,
+        }));
+        
+        await supabase
+          .from('product_option_links')
+          .insert(links);
       }
 
       // Update lokale state
+      const mappedProduct: Product = {
+        id: savedProduct.id,
+        category: savedProduct.category || 'Overig',
+        name: savedProduct.name,
+        description: savedProduct.description || undefined,
+        price: savedProduct.price,
+        duration_minutes: savedProduct.duration_minutes || undefined,
+        sort_order: savedProduct.sort_order,
+        is_available: savedProduct.is_available,
+        is_popular: savedProduct.is_popular,
+        is_promo: savedProduct.is_promo,
+        promo_price: savedProduct.promo_price || undefined,
+      };
+      
       if (editingProduct) {
-        setProducts(prev => prev.map(p => p.id === savedProduct.id ? savedProduct : p));
+        setProducts(prev => prev.map(p => p.id === mappedProduct.id ? mappedProduct : p));
       } else {
-        setProducts(prev => [...prev, savedProduct]);
+        setProducts(prev => [...prev, mappedProduct]);
       }
 
       setSuccess('Product opgeslagen!');
       setTimeout(() => setSuccess(null), 3000);
       closeModal();
     } catch (e) {
+      console.error('Save error:', e);
       setError(e instanceof Error ? e.message : 'Opslaan mislukt');
     } finally {
       setSaving(false);
@@ -215,28 +321,48 @@ export default function ProductenPage() {
     if (!confirm('Weet je zeker dat je dit product wilt verwijderen?')) return;
 
     try {
-      const res = await fetch(`/api/products?id=${productId}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Verwijderen mislukt');
+      const supabase = createClient();
+      
+      // Verwijder eerst optiekoppelingen
+      await supabase
+        .from('product_option_links')
+        .delete()
+        .eq('menu_item_id', productId);
+      
+      // Verwijder product
+      const { error } = await supabase
+        .from('menu_items')
+        .delete()
+        .eq('id', productId);
+      
+      if (error) throw error;
       
       setProducts(prev => prev.filter(p => p.id !== productId));
       setSuccess('Product verwijderd');
       setTimeout(() => setSuccess(null), 3000);
-    } catch {
+    } catch (e) {
+      console.error('Delete error:', e);
       setError('Kon product niet verwijderen');
     }
   };
 
   const toggleAvailable = async (product: Product) => {
+    if (!product.id) return;
+    
     try {
-      const res = await fetch('/api/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...product, is_available: !product.is_available }),
-      });
-      const updated = await res.json();
-      if (res.ok) {
-        setProducts(prev => prev.map(p => p.id === updated.id ? updated : p));
-      }
+      const supabase = createClient();
+      const newAvailable = !product.is_available;
+      
+      const { error } = await supabase
+        .from('menu_items')
+        .update({ is_available: newAvailable })
+        .eq('id', product.id);
+      
+      if (error) throw error;
+      
+      setProducts(prev => prev.map(p => 
+        p.id === product.id ? { ...p, is_available: newAvailable } : p
+      ));
     } catch {
       setError('Kon status niet wijzigen');
     }

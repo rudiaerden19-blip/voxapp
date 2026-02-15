@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Settings, Plus, Trash2, Check, X, GripVertical } from 'lucide-react';
+import { createClient } from '@/lib/supabase';
 
 interface OptionChoice {
   id?: string;
@@ -19,12 +20,17 @@ interface OptionGroup {
   choices?: OptionChoice[];
 }
 
+interface Business {
+  id: string;
+}
+
 export default function OptiesPage() {
   const [optionGroups, setOptionGroups] = useState<OptionGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [business, setBusiness] = useState<Business | null>(null);
   
   // Modal state
   const [showModal, setShowModal] = useState(false);
@@ -44,12 +50,65 @@ export default function OptiesPage() {
 
   const loadOptions = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const res = await fetch('/api/options');
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        setOptionGroups(data);
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        setError('Niet ingelogd');
+        setLoading(false);
+        return;
       }
+
+      const { data: businessData } = await supabase
+        .from('businesses')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!businessData) {
+        setError('Geen bedrijf gevonden');
+        setLoading(false);
+        return;
+      }
+      
+      setBusiness(businessData);
+
+      // Haal optiegroepen op
+      const { data: groups, error: groupsError } = await supabase
+        .from('option_groups')
+        .select('*')
+        .eq('business_id', businessData.id)
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true });
+
+      if (groupsError) {
+        console.error('Groups error:', groupsError);
+        setError('Kon opties niet laden');
+        return;
+      }
+
+      // Haal choices voor elke groep
+      const groupsWithChoices = await Promise.all((groups || []).map(async (group) => {
+        const { data: choices } = await supabase
+          .from('option_choices')
+          .select('id, name, price, sort_order')
+          .eq('option_group_id', group.id)
+          .eq('is_active', true)
+          .order('sort_order', { ascending: true });
+        
+        return {
+          id: group.id,
+          name: group.name,
+          type: group.type as 'single' | 'multiple',
+          required: group.required,
+          sort_order: group.sort_order,
+          choices: choices || [],
+        };
+      }));
+      
+      setOptionGroups(groupsWithChoices);
     } catch (e) {
       console.error('Failed to load options:', e);
       setError('Kon opties niet laden');
@@ -117,37 +176,97 @@ export default function OptiesPage() {
       return;
     }
 
+    if (!business) {
+      setError('Geen bedrijf gevonden');
+      return;
+    }
+
     setSaving(true);
     setError(null);
 
     try {
-      const res = await fetch('/api/options', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          id: editingGroup?.id,
-          choices: validChoices,
-        }),
-      });
+      const supabase = createClient();
+      
+      let savedGroup;
+      
+      if (editingGroup?.id) {
+        // Update bestaande groep
+        const { data, error } = await supabase
+          .from('option_groups')
+          .update({
+            name: formData.name,
+            type: formData.type,
+            required: formData.required,
+            sort_order: formData.sort_order || 0,
+          })
+          .eq('id', editingGroup.id)
+          .select()
+          .single();
+        
+        if (error) throw error;
+        savedGroup = data;
+        
+        // Verwijder oude choices
+        await supabase
+          .from('option_choices')
+          .delete()
+          .eq('option_group_id', editingGroup.id);
+      } else {
+        // Maak nieuwe groep
+        const { data, error } = await supabase
+          .from('option_groups')
+          .insert({
+            business_id: business.id,
+            name: formData.name,
+            type: formData.type,
+            required: formData.required,
+            sort_order: formData.sort_order || 0,
+            is_active: true,
+          })
+          .select()
+          .single();
+        
+        if (error) throw error;
+        savedGroup = data;
+      }
 
-      const savedGroup = await res.json();
-
-      if (!res.ok) {
-        throw new Error(savedGroup.error || 'Kon optiegroep niet opslaan');
+      // Voeg choices toe
+      if (savedGroup && validChoices.length > 0) {
+        const choicesData = validChoices.map((choice, index) => ({
+          option_group_id: savedGroup.id,
+          business_id: business.id,
+          name: choice.name,
+          price: choice.price || 0,
+          sort_order: index,
+          is_active: true,
+        }));
+        
+        await supabase
+          .from('option_choices')
+          .insert(choicesData);
       }
 
       // Update lokale state
+      const updatedGroup: OptionGroup = {
+        id: savedGroup.id,
+        name: savedGroup.name,
+        type: savedGroup.type as 'single' | 'multiple',
+        required: savedGroup.required,
+        sort_order: savedGroup.sort_order,
+        choices: validChoices,
+      };
+      
       if (editingGroup) {
-        setOptionGroups(prev => prev.map(g => g.id === savedGroup.id ? savedGroup : g));
+        setOptionGroups(prev => prev.map(g => g.id === updatedGroup.id ? updatedGroup : g));
       } else {
-        setOptionGroups(prev => [...prev, savedGroup]);
+        setOptionGroups(prev => [...prev, updatedGroup]);
       }
 
       setSuccess('Optiegroep opgeslagen!');
       setTimeout(() => setSuccess(null), 3000);
       closeModal();
     } catch (e) {
+      console.error('Save error:', e);
       setError(e instanceof Error ? e.message : 'Opslaan mislukt');
     } finally {
       setSaving(false);
@@ -158,13 +277,33 @@ export default function OptiesPage() {
     if (!confirm('Weet je zeker dat je deze optiegroep wilt verwijderen?')) return;
 
     try {
-      const res = await fetch(`/api/options?id=${groupId}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Verwijderen mislukt');
+      const supabase = createClient();
+      
+      // Verwijder eerst de choices
+      await supabase
+        .from('option_choices')
+        .delete()
+        .eq('option_group_id', groupId);
+      
+      // Verwijder product-optie koppelingen
+      await supabase
+        .from('product_option_links')
+        .delete()
+        .eq('option_group_id', groupId);
+      
+      // Verwijder de groep
+      const { error } = await supabase
+        .from('option_groups')
+        .delete()
+        .eq('id', groupId);
+      
+      if (error) throw error;
       
       setOptionGroups(prev => prev.filter(g => g.id !== groupId));
       setSuccess('Optiegroep verwijderd');
       setTimeout(() => setSuccess(null), 3000);
-    } catch {
+    } catch (e) {
+      console.error('Delete error:', e);
       setError('Kon optiegroep niet verwijderen');
     }
   };
