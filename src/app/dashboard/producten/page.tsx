@@ -147,52 +147,124 @@ export default function ProductenPage() {
     }
   };
 
+  // Preprocess image for better OCR (invert colors, increase contrast)
+  const preprocessImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Canvas not supported'));
+          return;
+        }
+
+        // Scale up for better OCR
+        const scale = 2;
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+
+        // Draw image
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        // Get image data
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+
+        // Process pixels: invert and increase contrast
+        for (let i = 0; i < data.length; i += 4) {
+          // Convert to grayscale
+          const gray = (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
+          
+          // Invert (for dark backgrounds with light text)
+          const inverted = 255 - gray;
+          
+          // Increase contrast
+          const contrast = 1.5;
+          const adjusted = ((inverted - 128) * contrast) + 128;
+          const final = Math.max(0, Math.min(255, adjusted));
+
+          // Threshold to black/white
+          const bw = final > 128 ? 255 : 0;
+
+          data[i] = bw;     // R
+          data[i + 1] = bw; // G
+          data[i + 2] = bw; // B
+          // Alpha stays the same
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = () => reject(new Error('Could not load image'));
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   // Parse text for products (name + price pattern)
   const parseProductsFromText = (text: string): { name: string; price: number }[] => {
     const products: { name: string; price: number }[] = [];
     const lines = text.split('\n').filter(l => l.trim());
+    const seen = new Set<string>(); // Avoid duplicates
     
     for (const line of lines) {
-      const cleanLine = line.trim();
-      if (!cleanLine) continue;
+      let cleanLine = line.trim();
+      if (!cleanLine || cleanLine.length < 3) continue;
       
-      // Skip headers
-      if (cleanLine.toLowerCase().includes('naam') || cleanLine.toLowerCase().includes('product')) {
+      // Skip headers and noise
+      const lower = cleanLine.toLowerCase();
+      if (lower.includes('naam') || lower.includes('product') || lower === 'snacks' || lower === 'menu') {
         continue;
       }
       
+      // Clean up OCR artifacts
+      cleanLine = cleanLine
+        .replace(/[|\\]/g, '')
+        .replace(/\s+/g, ' ')
+        .replace(/\.{2,}/g, '...')
+        .replace(/…/g, '...')
+        .trim();
+      
+      let name = '';
+      let price = 0;
+      
       // Try CSV format first: naam,prijs or naam;prijs
-      if (cleanLine.includes(',') || cleanLine.includes(';')) {
-        const parts = cleanLine.includes(';') ? cleanLine.split(';') : cleanLine.split(',');
-        if (parts.length >= 2) {
-          const name = parts[0].trim().replace(/^["']|["']$/g, '').replace(/\.+$/g, '');
-          const priceStr = parts[1].trim().replace(/^["']|["']$/g, '').replace(',', '.').replace('€', '');
-          const price = parseFloat(priceStr);
-          if (name && !isNaN(price) && price > 0) {
-            products.push({ name, price });
-            continue;
-          }
+      const csvMatch = cleanLine.match(/^([^,;]+)[,;]\s*(\d+)[,.](\d{2})/);
+      if (csvMatch) {
+        name = csvMatch[1].trim();
+        price = parseFloat(`${csvMatch[2]}.${csvMatch[3]}`);
+      }
+      
+      // Try OCR format: "Frikandel...2,40" or "Frikandel 2.40" or "Frikandel 2,40 €"
+      if (!name) {
+        const ocrMatch = cleanLine.match(/^(.+?)[\s.…_-]+(\d+)[,.](\d{2})\s*€?$/);
+        if (ocrMatch) {
+          name = ocrMatch[1].trim();
+          price = parseFloat(`${ocrMatch[2]}.${ocrMatch[3]}`);
         }
       }
       
-      // Try OCR format: "Frikandel...2,40" or "Frikandel 2.40"
-      // Match: text followed by dots/spaces and then a price
-      const priceMatch = cleanLine.match(/^(.+?)[\s.…]+(\d+)[,.](\d{2})\s*€?$/);
-      if (priceMatch) {
-        const name = priceMatch[1].trim().replace(/\.+$/g, '');
-        const price = parseFloat(`${priceMatch[2]}.${priceMatch[3]}`);
-        if (name && !isNaN(price) && price > 0) {
-          products.push({ name, price });
-          continue;
+      // Try just finding price anywhere in line
+      if (!name) {
+        const anyPriceMatch = cleanLine.match(/(\d+)[,.](\d{2})/);
+        if (anyPriceMatch) {
+          price = parseFloat(`${anyPriceMatch[1]}.${anyPriceMatch[2]}`);
+          name = cleanLine.replace(anyPriceMatch[0], '').replace(/[.…€\s]+$/g, '').trim();
         }
       }
       
-      // Try format with € at end: "Cervela special 5,00 €"
-      const euroMatch = cleanLine.match(/^(.+?)[\s.…]+(\d+)[,.](\d{2})\s*€$/);
-      if (euroMatch) {
-        const name = euroMatch[1].trim().replace(/\.+$/g, '');
-        const price = parseFloat(`${euroMatch[2]}.${euroMatch[3]}`);
-        if (name && !isNaN(price) && price > 0) {
+      // Clean name
+      name = name
+        .replace(/^["']|["']$/g, '')
+        .replace(/\.+$/g, '')
+        .replace(/^\d+\.\s*/, '')
+        .trim();
+      
+      // Validate and add
+      if (name && name.length >= 2 && price > 0 && price < 100) {
+        const key = name.toLowerCase();
+        if (!seen.has(key)) {
+          seen.add(key);
           products.push({ name, price });
         }
       }
@@ -214,9 +286,13 @@ export default function ProductenPage() {
       const isImage = file.type.startsWith('image/') || file.name.match(/\.(jpg|jpeg|png|webp)$/i);
 
       if (isImage) {
-        // Use Tesseract OCR for images
-        setSuccess('Afbeelding wordt gescand...');
-        const result = await Tesseract.recognize(file, 'nld+eng', {
+        // Preprocess image for better OCR
+        setSuccess('Afbeelding voorbereiden...');
+        const processedImage = await preprocessImage(file);
+        
+        // Use Tesseract OCR
+        setSuccess('Tekst herkennen...');
+        const result = await Tesseract.recognize(processedImage, 'nld+eng', {
           logger: (m) => {
             if (m.status === 'recognizing text') {
               setSuccess(`Scannen: ${Math.round(m.progress * 100)}%`);
@@ -224,6 +300,7 @@ export default function ProductenPage() {
           },
         });
         text = result.data.text;
+        console.log('OCR result:', text); // Debug
         setSuccess(null);
       } else {
         // Read CSV/TXT
