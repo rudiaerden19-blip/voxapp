@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       subscription_plan: plan || 'starter',
       subscription_status: 'trial',
       trial_ends_at: trialEndsAt.toISOString(),
-      user_id: crypto.randomUUID(), // Placeholder for admin-created tenants
+      user_id: null, // Admin-created tenants have no user yet
     }).select().single();
 
     if (error) {
