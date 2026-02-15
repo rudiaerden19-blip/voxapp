@@ -1,12 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useLanguage } from '@/lib/LanguageContext';
 import { Plus, ChevronLeft, ChevronRight, X, Clock, User, Check, Trash2, Settings, Calendar } from 'lucide-react';
 import { getBusinessType } from '@/lib/modules';
+
+// Force dynamic rendering to support useSearchParams
+export const dynamic = 'force-dynamic';
 
 // Business types that use medical/professional appointment form
 const ZORG_TYPES = ['dokter', 'ziekenhuis', 'tandarts', 'opticien', 'dierenkliniek', 'advocaat', 'boekhouder', 'loodgieter'];
