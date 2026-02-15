@@ -457,6 +457,29 @@ export default function ProductenPage() {
     }
   };
 
+  const deleteAllProducts = async () => {
+    if (!confirm('Weet je zeker dat je ALLE producten wilt verwijderen? Dit kan niet ongedaan worden gemaakt.')) return;
+    if (!business) return;
+
+    try {
+      // Delete all products one by one
+      for (const product of products) {
+        if (product.id) {
+          await fetch(`/api/admin/products?id=${product.id}&business_id=${business.id}`, {
+            method: 'DELETE',
+          });
+        }
+      }
+      
+      setProducts([]);
+      setSuccess('Alle producten verwijderd');
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (e) {
+      console.error('Delete all error:', e);
+      setError('Kon niet alle producten verwijderen');
+    }
+  };
+
   const toggleAvailable = async (product: Product) => {
     if (!product.id || !business) return;
     
@@ -519,6 +542,14 @@ export default function ProductenPage() {
             onChange={handleFileUpload}
             style={{ display: 'none' }}
           />
+          {products.length > 0 && (
+            <button
+              onClick={deleteAllProducts}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 20px', background: '#dc2626', border: 'none', borderRadius: 12, color: 'white', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}
+            >
+              <Trash2 size={18} /> Verwijder Alles
+            </button>
+          )}
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
