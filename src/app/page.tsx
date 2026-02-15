@@ -2440,29 +2440,31 @@ function PartnersSection() {
         </h2>
       </div>
       
-      <div style={{ position: 'relative', width: '100%', padding: '0 24px' }}>
+      <div style={{ position: 'relative', width: '100%', overflow: 'visible' }}>
         <div 
           className="partners-slider"
           style={{ 
             display: 'flex', 
-            gap: 24,
-            animation: 'slideLeft 30s linear infinite',
+            gap: 32,
+            animation: 'slideLeft 35s linear infinite',
             width: 'fit-content',
+            paddingLeft: 16,
           }}
         >
           {allPartners.map((partner, i) => (
             <div 
               key={i} 
+              className="partner-card"
               style={{ 
                 flexShrink: 0,
-                width: 220,
-                height: 120,
+                width: 260,
+                height: 150,
                 background: 'white',
-                borderRadius: 16,
+                borderRadius: 20,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: 24,
+                padding: 28,
               }}
             >
               <img 
@@ -2485,9 +2487,13 @@ function PartnersSection() {
           100% { transform: translateX(-50%); }
         }
         @media (max-width: 768px) {
-          .partners-slider > div {
-            width: 200px !important;
-            height: 110px !important;
+          .partner-card {
+            width: 280px !important;
+            height: 160px !important;
+            padding: 32px !important;
+          }
+          .partners-slider {
+            gap: 24px !important;
           }
         }
       `}</style>
