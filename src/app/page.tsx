@@ -2437,13 +2437,13 @@ function PartnersSection() {
         </h2>
       </div>
       
-      <div style={{ position: 'relative', width: '100%' }}>
+      <div style={{ position: 'relative', width: '100%', padding: '0 24px' }}>
         <div 
           className="partners-slider"
           style={{ 
             display: 'flex', 
-            gap: 60,
-            animation: 'slideLeft 25s linear infinite',
+            gap: 24,
+            animation: 'slideLeft 30s linear infinite',
             width: 'fit-content',
           }}
         >
@@ -2452,14 +2452,14 @@ function PartnersSection() {
               key={i} 
               style={{ 
                 flexShrink: 0,
-                width: 180,
-                height: 100,
+                width: 220,
+                height: 120,
                 background: 'white',
-                borderRadius: 12,
+                borderRadius: 16,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: 20,
+                padding: 24,
               }}
             >
               <img 
@@ -2480,6 +2480,12 @@ function PartnersSection() {
         @keyframes slideLeft {
           0% { transform: translateX(0); }
           100% { transform: translateX(-50%); }
+        }
+        @media (max-width: 768px) {
+          .partners-slider > div {
+            width: 200px !important;
+            height: 110px !important;
+          }
         }
       `}</style>
     </section>
