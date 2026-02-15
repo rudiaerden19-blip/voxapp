@@ -146,7 +146,7 @@ export default function ProductenPage() {
     }
   };
 
-  // Handle CSV/PDF upload
+  // Handle CSV/Image/PDF upload
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !business?.id) return;
@@ -155,36 +155,59 @@ export default function ProductenPage() {
     setError(null);
 
     try {
-      const text = await file.text();
-      const lines = text.split('\n').filter(l => l.trim());
-      
-      // Parse CSV: expect "naam,prijs" or "naam;prijs"
-      const newProducts: { name: string; price: number }[] = [];
-      
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (!line) continue;
-        
-        // Skip header row if it contains "naam" or "product"
-        if (i === 0 && (line.toLowerCase().includes('naam') || line.toLowerCase().includes('product'))) {
-          continue;
+      let newProducts: { name: string; price: number }[] = [];
+      const isImage = file.type.startsWith('image/') || file.name.match(/\.(jpg|jpeg|png|webp)$/i);
+      const isPdf = file.type === 'application/pdf' || file.name.endsWith('.pdf');
+
+      if (isImage || isPdf) {
+        // Use AI to extract products from image/PDF
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const res = await fetch('/api/parse-menu', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!res.ok) {
+          throw new Error('Kon bestand niet verwerken');
         }
+
+        const data = await res.json();
+        if (data.error && (!data.products || data.products.length === 0)) {
+          throw new Error(data.error);
+        }
+        newProducts = data.products || [];
+      } else {
+        // Parse CSV/TXT
+        const text = await file.text();
+        const lines = text.split('\n').filter(l => l.trim());
         
-        // Split by comma or semicolon
-        const parts = line.includes(';') ? line.split(';') : line.split(',');
-        if (parts.length >= 2) {
-          const name = parts[0].trim().replace(/^["']|["']$/g, '');
-          const priceStr = parts[1].trim().replace(/^["']|["']$/g, '').replace(',', '.').replace('€', '');
-          const price = parseFloat(priceStr);
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (!line) continue;
           
-          if (name && !isNaN(price)) {
-            newProducts.push({ name, price });
+          // Skip header row
+          if (i === 0 && (line.toLowerCase().includes('naam') || line.toLowerCase().includes('product'))) {
+            continue;
+          }
+          
+          // Split by comma or semicolon
+          const parts = line.includes(';') ? line.split(';') : line.split(',');
+          if (parts.length >= 2) {
+            const name = parts[0].trim().replace(/^["']|["']$/g, '');
+            const priceStr = parts[1].trim().replace(/^["']|["']$/g, '').replace(',', '.').replace('€', '');
+            const price = parseFloat(priceStr);
+            
+            if (name && !isNaN(price)) {
+              newProducts.push({ name, price });
+            }
           }
         }
       }
 
       if (newProducts.length === 0) {
-        throw new Error('Geen producten gevonden in bestand. Gebruik formaat: naam,prijs');
+        throw new Error('Geen producten gevonden in bestand');
       }
 
       // Save all products via API
@@ -416,7 +439,7 @@ export default function ProductenPage() {
           <input
             ref={fileInputRef}
             type="file"
-            accept=".csv,.txt"
+            accept=".csv,.txt,.pdf,.jpg,.jpeg,.png,.webp"
             onChange={handleFileUpload}
             style={{ display: 'none' }}
           />
@@ -425,7 +448,7 @@ export default function ProductenPage() {
             disabled={uploading}
             style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 20px', background: '#1f1f2e', border: '1px solid #3f3f4e', borderRadius: 12, color: 'white', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}
           >
-            <Upload size={18} /> {uploading ? 'Uploaden...' : 'CSV Import'}
+            <Upload size={18} /> {uploading ? 'Verwerken...' : 'Menu Import'}
           </button>
           <button
             onClick={openAddModal}
