@@ -148,7 +148,6 @@ export default function AISettingsPage() {
     transfer_number: '',
     // Bedrijfsgegevens
     address_street: '',
-    address_number: '',
     address_postal: '',
     address_city: '',
     phone_display: '',
@@ -509,10 +508,8 @@ export default function AISettingsPage() {
           phone: config.phone_display || null,
           email: config.email || null,
           website: config.website || null,
-          // Address (combine street + number)
-          street: config.address_number 
-            ? `${config.address_street} ${config.address_number}`.trim() 
-            : config.address_street || null,
+          // Address
+          street: config.address_street || null,
           postal_code: config.address_postal || null,
           city: config.address_city || null,
           // AI settings
@@ -716,23 +713,13 @@ export default function AISettingsPage() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 16 }}>
             <div>
-              <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Straatnaam</label>
+              <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Straat + huisnummer</label>
               <input
                 type="text"
                 value={config.address_street}
                 onChange={(e) => setConfig({ ...config, address_street: e.target.value })}
                 style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }}
-                placeholder="Kerkstraat"
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Huisnummer</label>
-              <input
-                type="text"
-                value={config.address_number}
-                onChange={(e) => setConfig({ ...config, address_number: e.target.value })}
-                style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }}
-                placeholder="15"
+                placeholder="Kerkstraat 15"
               />
             </div>
             <div>
