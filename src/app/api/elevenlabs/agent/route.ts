@@ -332,7 +332,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Te veel verzoeken, probeer later opnieuw' }, { status: 429 });
       }
       
-      return NextResponse.json({ error: 'ElevenLabs agent aanmaken/updaten mislukt' }, { status: 502 });
+      // Toon meer details voor debugging
+      return NextResponse.json({ error: `ElevenLabs fout (${response.status}): ${errorText.substring(0, 200)}` }, { status: 502 });
     }
 
     // Parse response
