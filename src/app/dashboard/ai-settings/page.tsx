@@ -340,81 +340,30 @@ export default function AISettingsPage() {
     }
   };
 
-  const playVoiceSample = async (voiceId: string) => {
+  const playVoiceSample = (voiceId: string) => {
     // Stop any currently playing audio
     if (audioElement) {
       audioElement.pause();
       audioElement.currentTime = 0;
     }
     
-    setPlayingVoice(voiceId);
-    
-    // Find the voice to get its preview URL
     const voice = voices.find(v => v.voice_id === voiceId);
     
-    try {
-      // Use ElevenLabs preview URL if available
-      if (voice?.preview_url) {
-        const audio = new Audio(voice.preview_url);
-        setAudioElement(audio);
-        audio.onended = () => setPlayingVoice(null);
-        audio.onerror = async () => {
-          // Fallback: generate preview via our API
-          await generatePreview(voiceId);
-        };
-        audio.play().catch(async () => {
-          // Fallback: generate preview via our API
-          await generatePreview(voiceId);
-        });
-      } else {
-        // No preview URL, generate via our API
-        await generatePreview(voiceId);
-      }
-    } catch (e) {
-      console.error('Failed to play voice sample:', e);
-      setPlayingVoice(null);
+    if (!voice?.preview_url) {
+      console.error('No preview URL for voice:', voiceId);
+      return;
     }
-  };
-
-  const generatePreview = async (voiceId: string) => {
-    try {
-      // Get language for this voice to use appropriate sample text
-      const voice = voices.find(v => v.voice_id === voiceId);
-      const lang = voice?.labels?.language || 'NL';
-      
-      const sampleTexts: Record<string, string> = {
-        'NL': 'Goedendag, waarmee kan ik u helpen?',
-        'FR': 'Bonjour, comment puis-je vous aider?',
-        'DE': 'Guten Tag, wie kann ich Ihnen helfen?',
-        'EN': 'Hello, how may I help you today?',
-      };
-      
-      const response = await fetch('/api/elevenlabs/preview', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          voice_id: voiceId,
-          text: sampleTexts[lang] || sampleTexts['NL'],
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Preview generation failed');
-      }
-
-      const audioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
-      const audio = new Audio(audioUrl);
-      setAudioElement(audio);
-      audio.onended = () => {
-        setPlayingVoice(null);
-        URL.revokeObjectURL(audioUrl);
-      };
-      audio.play();
-    } catch (e) {
-      console.error('Failed to generate preview:', e);
+    
+    setPlayingVoice(voiceId);
+    
+    const audio = new Audio(voice.preview_url);
+    setAudioElement(audio);
+    audio.onended = () => setPlayingVoice(null);
+    audio.onerror = () => {
+      console.error('Failed to play audio');
       setPlayingVoice(null);
-    }
+    };
+    audio.play().catch(() => setPlayingVoice(null));
   };
 
   if (loading) {
