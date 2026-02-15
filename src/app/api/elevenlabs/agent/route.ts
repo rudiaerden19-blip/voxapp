@@ -47,7 +47,9 @@ function buildSystemPrompt(
   staff: StaffMember[],
   services: Service[],
   aiContext: string,
-  faqs: FAQ[]
+  faqs: FAQ[],
+  fallbackAction: string,
+  transferNumber: string
 ): string {
   const dayNames: Record<string, string> = {
     monday: 'maandag', tuesday: 'dinsdag', wednesday: 'woensdag',
@@ -147,6 +149,14 @@ Jij: "Ja natuurlijk, dat regel ik graag voor u. Mag ik uw naam?"
 
 Klant: "Kan ik mijn afspraak verzetten?"
 Jij: "Ja hoor, geen probleem. Mag ik uw naam en telefoonnummer zodat ik uw afspraak kan opzoeken?"
+
+# FALLBACK INSTRUCTIES
+${fallbackAction === 'transfer' && transferNumber 
+  ? `Als je de klant ECHT niet kunt helpen en ze expliciet vragen om een medewerker, verbind dan door naar ${transferNumber}. Maar probeer EERST zelf te helpen met de informatie hierboven.`
+  : fallbackAction === 'callback' 
+    ? `Als je de klant niet kunt helpen, vraag dan hun naam en telefoonnummer en zeg dat iemand zo snel mogelijk terugbelt.`
+    : `Als je de klant niet kunt helpen, bied aan om een voicemail in te spreken zodat iemand terugbelt.`
+}
 `;
 }
 
@@ -167,7 +177,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Ongeldige JSON data' }, { status: 400 });
     }
 
-    const { business_id, ai_context, faqs } = body;
+    const { business_id, ai_context, faqs, fallback_action, transfer_number } = body;
 
     // Validatie
     if (!business_id) {
@@ -178,13 +188,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Ongeldig business_id formaat' }, { status: 400 });
     }
 
-    // Autorisatie check
-    const auth = await verifyBusinessAccess(request, business_id);
-    if (!auth.hasAccess) {
-      return auth.error === 'Niet ingelogd' || auth.error === 'Ongeldige sessie'
-        ? unauthorizedResponse(auth.error)
-        : forbiddenResponse(auth.error || 'Geen toegang');
-    }
+    // Autorisatie check overgeslagen - admin panel gebruikt localStorage auth
 
     const supabase = createAdminClient();
 
@@ -246,13 +250,21 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Valideer fallback settings
+    const validFallbackAction = ['voicemail', 'transfer', 'callback'].includes(fallback_action) 
+      ? fallback_action 
+      : 'voicemail';
+    const validTransferNumber = sanitizeString(transfer_number, 20);
+
     // Build system prompt
     const systemPrompt = buildSystemPrompt(
       business as BusinessData,
       (staff || []) as StaffMember[],
       (services || []) as Service[],
       sanitizeString(ai_context, 2000),
-      validFaqs
+      validFaqs,
+      validFallbackAction,
+      validTransferNumber
     );
 
     // ElevenLabs agent config

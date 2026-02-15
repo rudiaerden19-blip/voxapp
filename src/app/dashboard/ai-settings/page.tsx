@@ -530,7 +530,7 @@ export default function AISettingsPage() {
         throw new Error(err.error || 'Opslaan mislukt');
       }
       
-      // Update ElevenLabs agent with ALL business data
+      // Update ElevenLabs agent with ALL business data including fallback settings
       const agentRes = await fetch('/api/elevenlabs/agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -538,6 +538,8 @@ export default function AISettingsPage() {
           business_id: business.id,
           ai_context: `${config.capabilities}\n\n${config.style}`,
           faqs: config.faqs.filter(f => f.question && f.answer),
+          fallback_action: config.fallback_action,
+          transfer_number: config.transfer_number,
         }),
       });
       
