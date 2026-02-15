@@ -344,13 +344,25 @@ export default function AISettingsPage() {
     
     setPlayingVoice(voiceId);
     
+    // Find the voice to get its language
+    const voice = voices.find(v => v.voice_id === voiceId);
+    const lang = voice?.labels.language || 'NL';
+    
+    // Sample texts per language
+    const sampleTexts: Record<string, string> = {
+      NL: 'Goedendag, welkom. Waarmee kan ik u helpen vandaag?',
+      FR: 'Bonjour et bienvenue. Comment puis-je vous aider aujourd\'hui?',
+      DE: 'Guten Tag und herzlich willkommen. Wie kann ich Ihnen heute helfen?',
+      EN: 'Good day and welcome. How may I help you today?',
+    };
+    
     try {
       const res = await fetch('/api/elevenlabs/preview', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           voice_id: voiceId,
-          text: 'Goedendag, welkom bij ons bedrijf. Waarmee kan ik u helpen vandaag?',
+          text: sampleTexts[lang] || sampleTexts.NL,
         }),
       });
       
