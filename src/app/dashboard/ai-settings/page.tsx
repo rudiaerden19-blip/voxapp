@@ -34,12 +34,8 @@ interface Business {
 interface ElevenLabsVoice {
   voice_id: string;
   name: string;
-  labels: {
-    accent?: string;
-    gender?: string;
-    description?: string;
-    language?: string;
-  };
+  labels: Record<string, string>;
+  preview_url?: string;
 }
 
 const brancheTemplates: Record<string, { greeting: string; capabilities: string; style: string }> = {
@@ -95,6 +91,13 @@ interface VoiceCardProps {
 }
 
 function VoiceCard({ voice, selectedVoiceId, onSelect, playVoiceSample, playingVoice }: VoiceCardProps) {
+  // Build description from labels
+  const labelParts: string[] = [];
+  if (voice.labels.gender) labelParts.push(voice.labels.gender === 'female' ? 'Vrouw' : voice.labels.gender === 'male' ? 'Man' : voice.labels.gender);
+  if (voice.labels.accent) labelParts.push(voice.labels.accent);
+  if (voice.labels.age) labelParts.push(voice.labels.age);
+  if (voice.labels.use_case) labelParts.push(voice.labels.use_case);
+  
   return (
     <div
       onClick={() => onSelect(voice.voice_id)}
@@ -108,7 +111,7 @@ function VoiceCard({ voice, selectedVoiceId, onSelect, playVoiceSample, playingV
         <div>
           <p style={{ color: 'white', fontWeight: 600, marginBottom: 2, fontSize: 14 }}>{voice.name}</p>
           <p style={{ color: '#6b7280', fontSize: 11 }}>
-            {voice.labels.gender === 'female' ? 'Vrouw' : 'Man'}
+            {labelParts.join(' • ') || 'Premium stem'}
           </p>
         </div>
         <button
@@ -344,32 +347,13 @@ export default function AISettingsPage() {
     
     setPlayingVoice(voiceId);
     
-    // Find the voice to get its language
+    // Find the voice to get its preview URL
     const voice = voices.find(v => v.voice_id === voiceId);
-    const lang = voice?.labels.language || 'NL';
-    
-    // Sample texts per language
-    const sampleTexts: Record<string, string> = {
-      NL: 'Goedendag, welkom. Waarmee kan ik u helpen vandaag?',
-      FR: 'Bonjour et bienvenue. Comment puis-je vous aider aujourd\'hui?',
-      DE: 'Guten Tag und herzlich willkommen. Wie kann ich Ihnen heute helfen?',
-      EN: 'Good day and welcome. How may I help you today?',
-    };
     
     try {
-      const res = await fetch('/api/elevenlabs/preview', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          voice_id: voiceId,
-          text: sampleTexts[lang] || sampleTexts.NL,
-        }),
-      });
-      
-      if (res.ok) {
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        const audio = new Audio(url);
+      // Use ElevenLabs preview URL if available
+      if (voice?.preview_url) {
+        const audio = new Audio(voice.preview_url);
         setAudioElement(audio);
         audio.onended = () => setPlayingVoice(null);
         audio.onerror = () => setPlayingVoice(null);
@@ -405,45 +389,17 @@ export default function AISettingsPage() {
             <Mic size={20} style={{ color: '#f97316' }} /> Stem kiezen
           </h2>
           <p style={{ color: '#6b7280', fontSize: 14, marginBottom: 20 }}>
-            ElevenLabs stemmen - alle stemmen spreken Nederlands, Frans, Duits en Engels
+            Klik op play om de stem te beluisteren
           </p>
 
           {voices.length === 0 ? (
             <p style={{ color: '#6b7280' }}>Stemmen laden...</p>
           ) : (
-            <>
-              {/* Nederlands */}
-              <h3 style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 12, marginTop: 16 }}>🇳🇱 Nederlands</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12, marginBottom: 20 }}>
-                {voices.filter(v => v.labels.language === 'NL').map(voice => (
-                  <VoiceCard key={voice.voice_id} voice={voice} selectedVoiceId={config.voice_id} onSelect={(id) => setConfig({ ...config, voice_id: id })} playVoiceSample={playVoiceSample} playingVoice={playingVoice} />
-                ))}
-              </div>
-
-              {/* Frans */}
-              <h3 style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 12 }}>🇫🇷 Frans</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12, marginBottom: 20 }}>
-                {voices.filter(v => v.labels.language === 'FR').map(voice => (
-                  <VoiceCard key={voice.voice_id} voice={voice} selectedVoiceId={config.voice_id} onSelect={(id) => setConfig({ ...config, voice_id: id })} playVoiceSample={playVoiceSample} playingVoice={playingVoice} />
-                ))}
-              </div>
-
-              {/* Duits */}
-              <h3 style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 12 }}>🇩🇪 Duits</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12, marginBottom: 20 }}>
-                {voices.filter(v => v.labels.language === 'DE').map(voice => (
-                  <VoiceCard key={voice.voice_id} voice={voice} selectedVoiceId={config.voice_id} onSelect={(id) => setConfig({ ...config, voice_id: id })} playVoiceSample={playVoiceSample} playingVoice={playingVoice} />
-                ))}
-              </div>
-
-              {/* Engels */}
-              <h3 style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 12 }}>🇬🇧 Engels</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
-                {voices.filter(v => v.labels.language === 'EN').map(voice => (
-                  <VoiceCard key={voice.voice_id} voice={voice} selectedVoiceId={config.voice_id} onSelect={(id) => setConfig({ ...config, voice_id: id })} playVoiceSample={playVoiceSample} playingVoice={playingVoice} />
-                ))}
-              </div>
-            </>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
+              {voices.map(voice => (
+                <VoiceCard key={voice.voice_id} voice={voice} selectedVoiceId={config.voice_id} onSelect={(id) => setConfig({ ...config, voice_id: id })} playVoiceSample={playVoiceSample} playingVoice={playingVoice} />
+              ))}
+            </div>
           )}
         </div>
 
