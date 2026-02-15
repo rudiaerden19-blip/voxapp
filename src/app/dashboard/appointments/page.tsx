@@ -803,9 +803,9 @@ export default function AppointmentsPage() {
                   </div>
 
                   <div style={{ marginBottom: 20 }}>
-                    <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Met wie wil je een afspraak? *</label>
-                    <select value={formData.staff_id} onChange={(e) => setFormData({ ...formData, staff_id: e.target.value })} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }} required>
-                      <option value="">Selecteer...</option>
+                    <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>Met wie wil je een afspraak?</label>
+                    <select value={formData.staff_id} onChange={(e) => setFormData({ ...formData, staff_id: e.target.value })} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }}>
+                      <option value="">Geen voorkeur</option>
                       {staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                     </select>
                   </div>

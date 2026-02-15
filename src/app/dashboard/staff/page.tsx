@@ -57,9 +57,13 @@ export default function StaffPage() {
   const loadStaff = async () => {
     if (!businessId) return;
     
-    const supabase = createClient();
-    const { data: staffData } = await supabase.from('staff').select('*').eq('business_id', businessId).order('name');
-    if (staffData) setStaff(staffData as Staff[]);
+    try {
+      const res = await fetch(`/api/admin/staff?business_id=${businessId}&all=true`);
+      const data = await res.json();
+      if (Array.isArray(data)) setStaff(data as Staff[]);
+    } catch (err) {
+      console.error('Error loading staff:', err);
+    }
     setDataLoading(false);
   };
 
@@ -99,33 +103,50 @@ export default function StaffPage() {
 
     setSaving(true);
     setError('');
-    const supabase = createClient();
 
     try {
       if (editingStaff) {
-        const updateData = {
-          name: formData.name.trim(),
-          email: formData.email.trim() || null,
-          phone: formData.phone.trim() || null,
-          working_hours: formData.working_hours,
-          is_active: formData.is_active,
-        };
-        await supabase.from('staff').update(updateData).eq('id', editingStaff.id);
-        setStaff(staff.map(s => s.id === editingStaff.id ? { ...s, ...updateData, id: s.id } as Staff : s));
+        const res = await fetch('/api/admin/staff', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: editingStaff.id,
+            name: formData.name.trim(),
+            email: formData.email.trim() || null,
+            phone: formData.phone.trim() || null,
+            working_hours: formData.working_hours,
+            is_active: formData.is_active,
+          }),
+        });
+        const data = await res.json();
+        if (res.ok && data) {
+          setStaff(staff.map(s => s.id === editingStaff.id ? data as Staff : s));
+        } else {
+          throw new Error(data.error || 'Update failed');
+        }
       } else {
-        const insertData = {
-          business_id: businessId,
-          name: formData.name.trim(),
-          email: formData.email.trim() || null,
-          phone: formData.phone.trim() || null,
-          working_hours: formData.working_hours,
-          is_active: formData.is_active,
-        };
-        const { data } = await supabase.from('staff').insert(insertData).select().single();
-        if (data) setStaff([...staff, data as Staff]);
+        const res = await fetch('/api/admin/staff', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            business_id: businessId,
+            name: formData.name.trim(),
+            email: formData.email.trim() || null,
+            phone: formData.phone.trim() || null,
+            working_hours: formData.working_hours,
+            is_active: formData.is_active,
+          }),
+        });
+        const data = await res.json();
+        if (res.ok && data) {
+          setStaff([...staff, data as Staff]);
+        } else {
+          throw new Error(data.error || 'Insert failed');
+        }
       }
       closeModal();
     } catch (err) {
+      console.error('Staff save error:', err);
       setError('Er ging iets mis bij het opslaan');
     } finally {
       setSaving(false);
@@ -134,9 +155,12 @@ export default function StaffPage() {
 
   const handleDelete = async (id: string) => {
     setDeleting(true);
-    const supabase = createClient();
-    await supabase.from('staff').delete().eq('id', id);
-    setStaff(staff.filter(s => s.id !== id));
+    try {
+      await fetch(`/api/admin/staff?id=${id}`, { method: 'DELETE' });
+      setStaff(staff.filter(s => s.id !== id));
+    } catch (err) {
+      console.error('Staff delete error:', err);
+    }
     setDeleteConfirm(null);
     setDeleting(false);
   };
