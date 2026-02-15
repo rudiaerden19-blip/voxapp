@@ -69,7 +69,15 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     
     if (!user) { router.push('/login'); return; }
 
-    const { data: businessData } = await supabase.from('businesses').select('*').eq('user_id', user.id).single();
+    // First try to find by user_id
+    let { data: businessData } = await supabase.from('businesses').select('*').eq('user_id', user.id).single();
+    
+    // If not found, try to find by email (for admin-created tenants)
+    if (!businessData && user.email) {
+      const { data: emailBusiness } = await supabase.from('businesses').select('*').eq('email', user.email).single();
+      businessData = emailBusiness;
+    }
+    
     if (businessData) setBusiness(businessData as Business);
     setLoading(false);
   };

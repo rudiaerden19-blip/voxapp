@@ -51,6 +51,7 @@ function DashboardContent() {
   const loadDashboardData = async () => {
     const supabase = createClient();
     let businessId: string | null = null;
+    let businessNameValue: string = '';
 
     // Check if admin is viewing a tenant
     if (adminViewId) {
@@ -64,8 +65,10 @@ function DashboardContent() {
           .single();
         
         if (businessData) {
-          businessId = (businessData as { id: string }).id;
-          setBusinessName((businessData as { name: string }).name);
+          const biz = businessData as { id: string; name: string };
+          businessId = biz.id;
+          businessNameValue = biz.name || '';
+          setBusinessName(businessNameValue);
           setIsAdminView(true);
         }
       }
@@ -74,20 +77,37 @@ function DashboardContent() {
     // Normal user flow
     if (!businessId) {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
-      const { data: businessData } = await supabase
+      // First try to find by user_id
+      let { data: businessData } = await supabase
         .from('businesses')
         .select('*')
         .eq('user_id', user.id)
         .single();
 
+      // If not found, try to find by email (for admin-created tenants)
+      if (!businessData) {
+        const { data: emailBusiness } = await supabase
+          .from('businesses')
+          .select('*')
+          .eq('email', user.email)
+          .single();
+        businessData = emailBusiness;
+      }
+
       if (!businessData) {
         setLoading(false);
         return;
       }
-      businessId = (businessData as { id: string }).id;
-      setBusinessName((businessData as { name: string }).name);
+      
+      const biz = businessData as { id: string; name: string };
+      businessId = biz.id;
+      businessNameValue = biz.name || '';
+      setBusinessName(businessNameValue);
     }
 
     if (!businessId) {
@@ -209,7 +229,7 @@ function DashboardContent() {
 
       <div style={{ marginBottom: 32 }}>
         <h1 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>
-          {t('dashboard.welcomeBack')}{businessName && !loading ? `, ${businessName}` : ''}!
+          {t('dashboard.welcomeBack')}{!loading && businessName ? `, ${businessName}!` : '!'}
         </h1>
         <p style={{ color: '#9ca3af', fontSize: 16 }}>
           {t('dashboard.overview')}
