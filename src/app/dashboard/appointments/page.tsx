@@ -818,7 +818,7 @@ export default function AppointmentsPage() {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
                     <div>
                       <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}><Calendar size={14} style={{ marginRight: 6 }} />Datum</label>
-                      <input type="text" readOnly value={selectedDate?.toLocaleDateString('nl-BE', { weekday: 'short', day: 'numeric', month: 'long' }) || ''} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: '#9ca3af', fontSize: 16 }} />
+                      <input type="date" value={selectedDate?.toISOString().split('T')[0] || ''} onChange={(e) => setSelectedDate(new Date(e.target.value))} style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }} />
                     </div>
                     <div>
                       <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}><Clock size={14} style={{ marginRight: 6 }} />Tijd</label>
