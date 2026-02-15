@@ -67,9 +67,13 @@ export default function AppointmentsPage() {
   const [startHour, setStartHour] = useState(8);
   const [endHour, setEndHour] = useState(18);
 
-  // Determine if this is a zorg type from context
-  const isZorgType = ZORG_TYPES.includes(businessType);
+  // Determine if this is a zorg type from context (case insensitive)
+  const normalizedType = businessType?.toLowerCase() || '';
+  const isZorgType = ZORG_TYPES.includes(normalizedType);
   const loading = businessLoading || dataLoading;
+  
+  // Debug log (remove after testing)
+  console.log('[Appointments] businessType:', businessType, 'normalized:', normalizedType, 'isZorgType:', isZorgType);
 
   const [formData, setFormData] = useState({
     customer_name: '',

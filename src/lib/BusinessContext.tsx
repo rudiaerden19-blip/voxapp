@@ -188,6 +188,11 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
     }
   }, [pathname, initialized, adminViewId, getAdminViewId, loadBusiness]);
 
+  // Debug log (remove after testing)
+  if (business) {
+    console.log('[BusinessContext] business loaded:', business.name, 'type:', business.type, 'id:', business.id);
+  }
+
   const value: BusinessContextType = {
     business,
     businessId: business?.id || null,
