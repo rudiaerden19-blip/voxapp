@@ -73,29 +73,32 @@ export default function ProductenPage() {
     setLoading(true);
     setError(null);
     try {
-      // Haal business info op
+      // Haal business info op via API (bypass RLS)
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user) {
+      if (!user || !user.email) {
         setError('Niet ingelogd');
         setLoading(false);
         return;
       }
 
-      const { data: businessData } = await supabase
-        .from('businesses')
-        .select('id, type')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!businessData) {
+      // Gebruik API om business te laden (bypass RLS)
+      const bizRes = await fetch(`/api/business/by-email?email=${encodeURIComponent(user.email)}`);
+      if (!bizRes.ok) {
         setError('Geen bedrijf gevonden');
         setLoading(false);
         return;
       }
       
-      setBusiness(businessData);
+      const businessData = await bizRes.json();
+      if (!businessData || !businessData.id) {
+        setError('Geen bedrijf gevonden');
+        setLoading(false);
+        return;
+      }
+      
+      setBusiness({ id: businessData.id, type: businessData.type });
 
       // Haal producten direct uit Supabase
       const { data: productsData, error: productsError } = await supabase
