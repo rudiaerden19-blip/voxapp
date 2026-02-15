@@ -99,7 +99,6 @@ export default function AppointmentsPage() {
 
   const loadAppointments = async () => {
     if (!businessId) return;
-    const supabase = createClient();
 
     let rangeStart: Date, rangeEnd: Date;
     
@@ -122,15 +121,15 @@ export default function AppointmentsPage() {
       rangeEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59);
     }
 
-    const { data } = await supabase
-      .from('appointments')
-      .select('*')
-      .eq('business_id', businessId)
-      .gte('start_time', rangeStart.toISOString())
-      .lte('start_time', rangeEnd.toISOString())
-      .order('start_time');
-
-    if (data) setAppointments(data as Appointment[]);
+    try {
+      const res = await fetch(`/api/admin/appointments?business_id=${businessId}&start_date=${rangeStart.toISOString()}&end_date=${rangeEnd.toISOString()}`);
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setAppointments(data as Appointment[]);
+      }
+    } catch (e) {
+      console.error('Failed to load appointments:', e);
+    }
   };
 
   const getHours = () => {
@@ -225,7 +224,6 @@ export default function AppointmentsPage() {
 
     setSaving(true);
     setError('');
-    const supabase = createClient();
 
     const startDateTime = new Date(selectedDate);
     const [hours, minutes] = formData.start_time.split(':');
@@ -237,51 +235,58 @@ export default function AppointmentsPage() {
     const endDateTime = new Date(startDateTime.getTime() + duration * 60000);
 
     try {
-      if (editingAppointment) {
-        const updateData = {
-          customer_name: formData.customer_name.trim(),
-          customer_phone: formData.customer_phone.trim() || null,
-          customer_email: formData.customer_email.trim() || null,
-          start_time: startDateTime.toISOString(),
-          end_time: endDateTime.toISOString(),
-          service_id: formData.service_id || null,
-          staff_id: formData.staff_id || null,
-          status: formData.status,
-          notes: formData.notes.trim() || null,
-        };
-        await supabase.from('appointments').update(updateData).eq('id', editingAppointment.id);
-      } else {
-        const insertData = {
-          business_id: businessId,
-          customer_name: formData.customer_name.trim(),
-          customer_phone: formData.customer_phone.trim() || null,
-          customer_email: formData.customer_email.trim() || null,
-          start_time: startDateTime.toISOString(),
-          end_time: endDateTime.toISOString(),
-          service_id: formData.service_id || null,
-          staff_id: formData.staff_id || null,
-          status: formData.status,
-          notes: formData.notes.trim() || null,
-        };
-        await supabase.from('appointments').insert(insertData);
+      const appointmentData = {
+        id: editingAppointment?.id,
+        business_id: businessId,
+        customer_name: formData.customer_name.trim(),
+        customer_phone: formData.customer_phone.trim() || null,
+        customer_email: formData.customer_email.trim() || null,
+        start_time: startDateTime.toISOString(),
+        end_time: endDateTime.toISOString(),
+        service_id: formData.service_id || null,
+        staff_id: formData.staff_id || null,
+        status: formData.status,
+        notes: formData.notes.trim() || null,
+      };
+
+      const res = await fetch('/api/admin/appointments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(appointmentData),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Opslaan mislukt');
       }
+
       await loadAppointments();
       closeModal();
-    } catch {
-      setError('Er ging iets mis bij het opslaan');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Er ging iets mis bij het opslaan');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!editingAppointment) return;
+    if (!editingAppointment || !businessId) return;
     setSaving(true);
-    const supabase = createClient();
-    await supabase.from('appointments').delete().eq('id', editingAppointment.id);
-    await loadAppointments();
-    closeModal();
-    setSaving(false);
+    
+    try {
+      const res = await fetch(`/api/admin/appointments?id=${editingAppointment.id}&business_id=${businessId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!res.ok) throw new Error('Verwijderen mislukt');
+      
+      await loadAppointments();
+      closeModal();
+    } catch (e) {
+      setError('Kon afspraak niet verwijderen');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const navigate = (direction: number) => {
