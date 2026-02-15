@@ -88,20 +88,20 @@ const brancheTemplates: Record<string, { greeting: string; capabilities: string;
 // Voice card component
 interface VoiceCardProps {
   voice: ElevenLabsVoice;
-  config: { voice_id: string };
-  setConfig: (config: { voice_id: string } | ((prev: { voice_id: string }) => { voice_id: string })) => void;
+  selectedVoiceId: string;
+  onSelect: (voiceId: string) => void;
   playVoiceSample: (voiceId: string) => void;
   playingVoice: string | null;
 }
 
-function VoiceCard({ voice, config, setConfig, playVoiceSample, playingVoice }: VoiceCardProps) {
+function VoiceCard({ voice, selectedVoiceId, onSelect, playVoiceSample, playingVoice }: VoiceCardProps) {
   return (
     <div
-      onClick={() => setConfig((prev: { voice_id: string }) => ({ ...prev, voice_id: voice.voice_id }))}
+      onClick={() => onSelect(voice.voice_id)}
       style={{
         padding: 14, borderRadius: 12, cursor: 'pointer',
-        background: config.voice_id === voice.voice_id ? 'rgba(249, 115, 22, 0.15)' : '#0a0a0f',
-        border: config.voice_id === voice.voice_id ? '2px solid #f97316' : '1px solid #2a2a35',
+        background: selectedVoiceId === voice.voice_id ? 'rgba(249, 115, 22, 0.15)' : '#0a0a0f',
+        border: selectedVoiceId === voice.voice_id ? '2px solid #f97316' : '1px solid #2a2a35',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 6 }}>
@@ -122,7 +122,7 @@ function VoiceCard({ voice, config, setConfig, playVoiceSample, playingVoice }: 
           {playingVoice === voice.voice_id ? <Volume2 size={14} /> : <Play size={14} />}
         </button>
       </div>
-      {config.voice_id === voice.voice_id && (
+      {selectedVoiceId === voice.voice_id && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#f97316', fontSize: 11 }}>
           <Check size={12} /> Geselecteerd
         </div>
@@ -404,7 +404,7 @@ export default function AISettingsPage() {
               <h3 style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 12, marginTop: 16 }}>🇳🇱 Nederlands</h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12, marginBottom: 20 }}>
                 {voices.filter(v => v.labels.language === 'NL').map(voice => (
-                  <VoiceCard key={voice.voice_id} voice={voice} config={config} setConfig={setConfig} playVoiceSample={playVoiceSample} playingVoice={playingVoice} />
+                  <VoiceCard key={voice.voice_id} voice={voice} selectedVoiceId={config.voice_id} onSelect={(id) => setConfig({ ...config, voice_id: id })} playVoiceSample={playVoiceSample} playingVoice={playingVoice} />
                 ))}
               </div>
 
@@ -412,7 +412,7 @@ export default function AISettingsPage() {
               <h3 style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 12 }}>🇫🇷 Frans</h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12, marginBottom: 20 }}>
                 {voices.filter(v => v.labels.language === 'FR').map(voice => (
-                  <VoiceCard key={voice.voice_id} voice={voice} config={config} setConfig={setConfig} playVoiceSample={playVoiceSample} playingVoice={playingVoice} />
+                  <VoiceCard key={voice.voice_id} voice={voice} selectedVoiceId={config.voice_id} onSelect={(id) => setConfig({ ...config, voice_id: id })} playVoiceSample={playVoiceSample} playingVoice={playingVoice} />
                 ))}
               </div>
 
@@ -420,7 +420,7 @@ export default function AISettingsPage() {
               <h3 style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 12 }}>🇩🇪 Duits</h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12, marginBottom: 20 }}>
                 {voices.filter(v => v.labels.language === 'DE').map(voice => (
-                  <VoiceCard key={voice.voice_id} voice={voice} config={config} setConfig={setConfig} playVoiceSample={playVoiceSample} playingVoice={playingVoice} />
+                  <VoiceCard key={voice.voice_id} voice={voice} selectedVoiceId={config.voice_id} onSelect={(id) => setConfig({ ...config, voice_id: id })} playVoiceSample={playVoiceSample} playingVoice={playingVoice} />
                 ))}
               </div>
 
@@ -428,7 +428,7 @@ export default function AISettingsPage() {
               <h3 style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 12 }}>🇬🇧 Engels</h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
                 {voices.filter(v => v.labels.language === 'EN').map(voice => (
-                  <VoiceCard key={voice.voice_id} voice={voice} config={config} setConfig={setConfig} playVoiceSample={playVoiceSample} playingVoice={playingVoice} />
+                  <VoiceCard key={voice.voice_id} voice={voice} selectedVoiceId={config.voice_id} onSelect={(id) => setConfig({ ...config, voice_id: id })} playVoiceSample={playVoiceSample} playingVoice={playingVoice} />
                 ))}
               </div>
             </>
