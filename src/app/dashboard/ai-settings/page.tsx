@@ -839,84 +839,86 @@ export default function AISettingsPage() {
           </div>
         </div>
 
-        {/* Productenlijst */}
-        <div style={{ background: '#16161f', borderRadius: 16, border: '1px solid #2a2a35', padding: 24, marginBottom: 24 }}>
-          <h2 style={{ color: 'white', fontSize: 18, fontWeight: 600, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Euro size={20} style={{ color: '#f97316' }} /> Productenlijst
-          </h2>
-          <p style={{ color: '#6b7280', fontSize: 14, marginBottom: 16 }}>
-            Voeg je producten toe. De AI receptionist kent deze prijzen.
-          </p>
+        {/* Productenlijst - only for businesses with menu module */}
+        {hasModule(businessType, 'menu') && (
+          <div style={{ background: '#16161f', borderRadius: 16, border: '1px solid #2a2a35', padding: 24, marginBottom: 24 }}>
+            <h2 style={{ color: 'white', fontSize: 18, fontWeight: 600, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Euro size={20} style={{ color: '#f97316' }} /> Productenlijst
+            </h2>
+            <p style={{ color: '#6b7280', fontSize: 14, marginBottom: 16 }}>
+              Voeg je producten toe. De AI receptionist kent deze prijzen.
+            </p>
 
-          {menuError && (
-            <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 8, padding: 12, marginBottom: 16, color: '#ef4444', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <X size={16} /> {menuError}
-            </div>
-          )}
+            {menuError && (
+              <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 8, padding: 12, marginBottom: 16, color: '#ef4444', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <X size={16} /> {menuError}
+              </div>
+            )}
 
-          {menuSuccess && (
-            <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: 8, padding: 12, marginBottom: 16, color: '#22c55e', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Check size={16} /> {menuSuccess}
-            </div>
-          )}
+            {menuSuccess && (
+              <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: 8, padding: 12, marginBottom: 16, color: '#22c55e', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Check size={16} /> {menuSuccess}
+              </div>
+            )}
 
-          {/* Inline add form */}
-          <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-            <input
-              type="text"
-              value={newProduct.name}
-              onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-              placeholder="Product naam"
-              style={{ flex: 1, minWidth: 150, padding: '12px 14px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 14 }}
-            />
-            <div style={{ position: 'relative', width: 100 }}>
-              <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }}>€</span>
+            {/* Inline add form */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
               <input
                 type="text"
-                value={newProduct.price}
-                onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
-                placeholder="0.00"
-                style={{ width: '100%', padding: '12px 14px 12px 28px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 14 }}
+                value={newProduct.name}
+                onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                placeholder="Product naam"
+                style={{ flex: 1, minWidth: 150, padding: '12px 14px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 14 }}
               />
+              <div style={{ position: 'relative', width: 100 }}>
+                <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }}>€</span>
+                <input
+                  type="text"
+                  value={newProduct.price}
+                  onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+                  placeholder="0.00"
+                  style={{ width: '100%', padding: '12px 14px 12px 28px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 14 }}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={saveNewProduct}
+                disabled={productSaving || !newProduct.name || !newProduct.price}
+                style={{ padding: '12px 20px', background: (productSaving || !newProduct.name || !newProduct.price) ? '#4b5563' : '#f97316', border: 'none', borderRadius: 8, color: 'white', fontSize: 14, cursor: (productSaving || !newProduct.name || !newProduct.price) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+              >
+                <Plus size={16} /> {productSaving ? '...' : 'Toevoegen'}
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={saveNewProduct}
-              disabled={productSaving || !newProduct.name || !newProduct.price}
-              style={{ padding: '12px 20px', background: (productSaving || !newProduct.name || !newProduct.price) ? '#4b5563' : '#f97316', border: 'none', borderRadius: 8, color: 'white', fontSize: 14, cursor: (productSaving || !newProduct.name || !newProduct.price) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
-            >
-              <Plus size={16} /> {productSaving ? '...' : 'Toevoegen'}
-            </button>
-          </div>
 
-          {/* Product list */}
-          {menuLoading ? (
-            <p style={{ color: '#6b7280' }}>Laden...</p>
-          ) : menuItems.length === 0 ? (
-            <p style={{ color: '#6b7280', fontStyle: 'italic' }}>Nog geen producten. Voeg hierboven je eerste product toe.</p>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {menuItems.map(item => (
-                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#0a0a0f', borderRadius: 8 }}>
-                  <span style={{ color: 'white', fontSize: 14 }}>{item.name}</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <span style={{ color: '#f97316', fontSize: 14, fontWeight: 600 }}>€{item.price.toFixed(2)}</span>
-                    <button
-                      type="button"
-                      onClick={() => deleteMenuItem(item.id)}
-                      style={{ padding: 6, background: 'transparent', border: 'none', color: '#6b7280', cursor: 'pointer' }}
-                    >
-                      <Trash2 size={16} />
-                    </button>
+            {/* Product list */}
+            {menuLoading ? (
+              <p style={{ color: '#6b7280' }}>Laden...</p>
+            ) : menuItems.length === 0 ? (
+              <p style={{ color: '#6b7280', fontStyle: 'italic' }}>Nog geen producten. Voeg hierboven je eerste product toe.</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {menuItems.map(item => (
+                  <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#0a0a0f', borderRadius: 8 }}>
+                    <span style={{ color: 'white', fontSize: 14 }}>{item.name}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <span style={{ color: '#f97316', fontSize: 14, fontWeight: 600 }}>€{item.price.toFixed(2)}</span>
+                      <button
+                        type="button"
+                        onClick={() => deleteMenuItem(item.id)}
+                        style={{ padding: 6, background: 'transparent', border: 'none', color: '#6b7280', cursor: 'pointer' }}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
-              <p style={{ color: '#6b7280', fontSize: 13, marginTop: 8 }}>
-                {menuItems.length} product{menuItems.length !== 1 ? 'en' : ''}
-              </p>
-            </div>
-          )}
-        </div>
+                ))}
+                <p style={{ color: '#6b7280', fontSize: 13, marginTop: 8 }}>
+                  {menuItems.length} product{menuItems.length !== 1 ? 'en' : ''}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* FAQ's */}
         <div style={{ background: '#16161f', borderRadius: 16, border: '1px solid #2a2a35', padding: 24, marginBottom: 24 }}>
