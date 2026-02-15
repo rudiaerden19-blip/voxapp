@@ -480,8 +480,6 @@ export default function AISettingsPage() {
     setSaved(false);
 
     try {
-      const supabase = createClient();
-      
       // Map Dutch day names back to English for database
       const dayMapping: Record<string, string> = {
         maandag: 'monday',
@@ -506,10 +504,12 @@ export default function AISettingsPage() {
         }
       }
       
-      // Update business in database
-      const { error: updateError } = await supabase
-        .from('businesses')
-        .update({
+      // Update business via API (bypasses RLS)
+      const res = await fetch('/api/business/update', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: business.id,
           // Contact info
           phone: config.phone_display || null,
           email: config.email || null,
@@ -523,11 +523,12 @@ export default function AISettingsPage() {
           welcome_message: config.greeting,
           // Opening hours
           opening_hours: dbOpeningHours,
-        })
-        .eq('id', business.id);
+        }),
+      });
       
-      if (updateError) {
-        throw new Error(updateError.message);
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Opslaan mislukt');
       }
       
       setSaved(true);
