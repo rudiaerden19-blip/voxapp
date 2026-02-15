@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useLanguage } from '@/lib/LanguageContext';
@@ -46,6 +47,9 @@ type ViewMode = 'day' | 'week' | 'month';
 
 export default function AppointmentsPage() {
   const { t } = useLanguage();
+  const searchParams = useSearchParams();
+  const adminViewId = searchParams.get('admin_view');
+  
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
@@ -85,28 +89,36 @@ export default function AppointmentsPage() {
     reason: '',
   });
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadData(); }, [adminViewId]);
   useEffect(() => { if (businessId) loadAppointments(); }, [currentDate, businessId, viewMode]);
 
   const loadData = async () => {
     try {
-      // Get current user
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || !user.email) {
-        setLoading(false);
-        return;
+      let business;
+      
+      // Check if viewing as admin
+      if (adminViewId) {
+        // Load specific business by ID (admin view)
+        const bizRes = await fetch(`/api/admin/tenants?id=${adminViewId}`);
+        if (bizRes.ok) {
+          const data = await bizRes.json();
+          business = Array.isArray(data) ? data[0] : data;
+        }
+      } else {
+        // Get current user's business
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user || !user.email) {
+          setLoading(false);
+          return;
+        }
+
+        const bizRes = await fetch(`/api/business/by-email?email=${encodeURIComponent(user.email)}`);
+        if (bizRes.ok) {
+          business = await bizRes.json();
+        }
       }
 
-      // Load business via admin API (bypass RLS)
-      const bizRes = await fetch(`/api/business/by-email?email=${encodeURIComponent(user.email)}`);
-      if (!bizRes.ok) {
-        console.error('Failed to load business');
-        setLoading(false);
-        return;
-      }
-
-      const business = await bizRes.json();
       if (!business || !business.id) {
         setLoading(false);
         return;
