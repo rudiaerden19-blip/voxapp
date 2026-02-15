@@ -932,14 +932,15 @@ function InboundSection({ onOpenDemo }: { onOpenDemo: () => void }) {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 8,
-                background: 'transparent',
-                color: '#1a1a2e',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
                 padding: '12px 24px',
                 borderRadius: 8,
                 fontSize: 14,
                 fontWeight: 600,
-                border: '1px solid #e5e7eb',
+                border: 'none',
                 cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(102, 126, 234, 0.4)',
               }}>
                 <PhoneCall size={16} />
                 {t('inbound.listenDemo')}
@@ -1032,14 +1033,15 @@ function RestaurantSection({ onOpenDemo }: { onOpenDemo: () => void }) {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 8,
-                background: 'transparent',
-                color: '#1a1a2e',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
                 padding: '12px 24px',
                 borderRadius: 8,
                 fontSize: 14,
                 fontWeight: 600,
-                border: '1px solid #e5e7eb',
+                border: 'none',
                 cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(102, 126, 234, 0.4)',
               }}>
                 <PhoneCall size={16} />
                 {t('inbound.listenDemo')}
