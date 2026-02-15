@@ -1,15 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { createClient } from '@/lib/supabase';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useLanguage } from '@/lib/LanguageContext';
+import { useSearchParams } from 'next/navigation';
 import { 
   Calendar, 
   Phone, 
   Clock,
   TrendingUp,
   Plus,
+  Shield,
 } from 'lucide-react';
 
 interface Appointment {
@@ -27,9 +29,13 @@ interface Stats {
   monthlyAppointments: number;
 }
 
-export default function DashboardPage() {
+function DashboardContent() {
   const { t, language } = useLanguage();
+  const searchParams = useSearchParams();
+  const adminViewId = searchParams.get('admin_view');
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [businessName, setBusinessName] = useState('');
+  const [isAdminView, setIsAdminView] = useState(false);
   const [stats, setStats] = useState<Stats>({
     appointmentsToday: 0,
     conversationsToday: 0,
@@ -40,27 +46,54 @@ export default function DashboardPage() {
 
   useEffect(() => {
     loadDashboardData();
-  }, []);
+  }, [adminViewId]);
 
   const loadDashboardData = async () => {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    let businessId: string | null = null;
+
+    // Check if admin is viewing a tenant
+    if (adminViewId) {
+      const adminSession = typeof window !== 'undefined' ? localStorage.getItem('voxapp_admin_session') : null;
+      if (adminSession === 'true') {
+        // Admin viewing tenant dashboard
+        const { data: businessData } = await supabase
+          .from('businesses')
+          .select('*')
+          .eq('id', adminViewId)
+          .single();
+        
+        if (businessData) {
+          businessId = (businessData as { id: string }).id;
+          setBusinessName((businessData as { name: string }).name);
+          setIsAdminView(true);
+        }
+      }
+    }
     
-    if (!user) return;
+    // Normal user flow
+    if (!businessId) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-    // Get business
-    const { data: businessData } = await supabase
-      .from('businesses')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
+      const { data: businessData } = await supabase
+        .from('businesses')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
 
-    if (!businessData) {
+      if (!businessData) {
+        setLoading(false);
+        return;
+      }
+      businessId = (businessData as { id: string }).id;
+      setBusinessName((businessData as { name: string }).name);
+    }
+
+    if (!businessId) {
       setLoading(false);
       return;
     }
-
-    const businessId = (businessData as { id: string }).id;
 
     // Get today's appointments
     const today = new Date();
@@ -138,9 +171,45 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
+      {/* Admin View Banner */}
+      {isAdminView && (
+        <div style={{
+          background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
+          borderRadius: 12,
+          padding: 16,
+          marginBottom: 24,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+        }}>
+          <Shield size={24} color="white" />
+          <div>
+            <p style={{ color: 'white', fontWeight: 600, margin: 0 }}>Admin Modus</p>
+            <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13, margin: 0 }}>
+              Je bekijkt het dashboard van: <strong>{businessName}</strong>
+            </p>
+          </div>
+          <a 
+            href="/admin" 
+            style={{ 
+              marginLeft: 'auto', 
+              background: 'rgba(255,255,255,0.2)', 
+              color: 'white', 
+              padding: '8px 16px', 
+              borderRadius: 8, 
+              textDecoration: 'none',
+              fontSize: 14,
+              fontWeight: 500,
+            }}
+          >
+            Terug naar Admin
+          </a>
+        </div>
+      )}
+
       <div style={{ marginBottom: 32 }}>
         <h1 style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>
-          {t('dashboard.welcomeBack')}
+          {isAdminView ? businessName : t('dashboard.welcomeBack')}
         </h1>
         <p style={{ color: '#9ca3af', fontSize: 16 }}>
           {t('dashboard.overview')}
@@ -228,5 +297,23 @@ function StatCard({ icon: Icon, label, value, loading, loadingText }: {
       <p style={{ color: 'white', fontSize: 28, fontWeight: 700, marginBottom: 4 }}>{loading ? '-' : value}</p>
       <p style={{ color: '#6b7280', fontSize: 13 }}>{label}</p>
     </div>
+  );
+}
+
+// Loading fallback
+function DashboardLoading() {
+  return (
+    <DashboardLayout>
+      <div style={{ textAlign: 'center', padding: 60, color: '#9ca3af' }}>Laden...</div>
+    </DashboardLayout>
+  );
+}
+
+// Main export with Suspense
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<DashboardLoading />}>
+      <DashboardContent />
+    </Suspense>
   );
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/LanguageContext';
-import { LogOut, Plus, Monitor, RotateCcw, Eye, Ban, Check, Trash2, Phone, Users, CreditCard, AlertTriangle, Shield, Lock, X, ExternalLink, Calendar, Euro, TrendingUp } from 'lucide-react';
+import { LogOut, Plus, Monitor, RotateCcw, Eye, Ban, Check, Trash2, Phone, Users, CreditCard, AlertTriangle, Shield, Lock, X, ExternalLink, Calendar, Euro, TrendingUp, LayoutDashboard } from 'lucide-react';
 
 // Admin credentials - alleen jij hebt toegang
 const ADMIN_EMAIL = 'admin@voxapp.tech';
@@ -457,6 +457,13 @@ export default function AdminDashboard() {
                       </td>
                       <td style={{ padding: '14px 16px' }}>
                         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                          <button
+                            onClick={() => window.open(`/dashboard?admin_view=${tenant.id}`, '_blank')}
+                            style={{ padding: 8, background: '#8b5cf620', border: 'none', borderRadius: 6, color: '#8b5cf6', cursor: 'pointer' }}
+                            title="Dashboard bekijken"
+                          >
+                            <LayoutDashboard size={16} />
+                          </button>
                           <button
                             onClick={() => setSelectedTenant(tenant)}
                             style={{ padding: 8, background: '#3b82f620', border: 'none', borderRadius: 6, color: '#3b82f6', cursor: 'pointer' }}
@@ -949,13 +956,13 @@ export default function AdminDashboard() {
               </div>
 
               {/* Actions */}
-              <div style={{ display: 'flex', gap: 12 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <button
-                  onClick={() => { toggleBlock(selectedTenant); setSelectedTenant(prev => prev ? { ...prev, blocked: !prev.blocked } : null); }}
+                  onClick={() => window.open(`/dashboard?admin_view=${selectedTenant.id}`, '_blank')}
                   style={{
-                    flex: 1,
+                    width: '100%',
                     padding: '14px 24px',
-                    background: selectedTenant.blocked ? '#22c55e' : '#ef4444',
+                    background: '#8b5cf6',
                     border: 'none',
                     borderRadius: 8,
                     color: 'white',
@@ -968,29 +975,52 @@ export default function AdminDashboard() {
                     gap: 8,
                   }}
                 >
-                  {selectedTenant.blocked ? <Check size={18} /> : <Ban size={18} />}
-                  {selectedTenant.blocked ? 'Deblokkeren' : 'Blokkeren'}
+                  <LayoutDashboard size={18} />
+                  Dashboard Bekijken
                 </button>
-                <button
-                  onClick={() => { deleteTenant(selectedTenant); setSelectedTenant(null); }}
-                  style={{
-                    padding: '14px 24px',
-                    background: 'transparent',
-                    border: '1px solid #ef4444',
-                    borderRadius: 8,
-                    color: '#ef4444',
-                    fontSize: 14,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                  }}
-                >
-                  <Trash2 size={18} />
-                  Verwijderen
-                </button>
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <button
+                    onClick={() => { toggleBlock(selectedTenant); setSelectedTenant(prev => prev ? { ...prev, blocked: !prev.blocked } : null); }}
+                    style={{
+                      flex: 1,
+                      padding: '14px 24px',
+                      background: selectedTenant.blocked ? '#22c55e' : '#ef4444',
+                      border: 'none',
+                      borderRadius: 8,
+                      color: 'white',
+                      fontSize: 14,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                    }}
+                  >
+                    {selectedTenant.blocked ? <Check size={18} /> : <Ban size={18} />}
+                    {selectedTenant.blocked ? 'Deblokkeren' : 'Blokkeren'}
+                  </button>
+                  <button
+                    onClick={() => { deleteTenant(selectedTenant); setSelectedTenant(null); }}
+                    style={{
+                      padding: '14px 24px',
+                      background: 'transparent',
+                      border: '1px solid #ef4444',
+                      borderRadius: 8,
+                      color: '#ef4444',
+                      fontSize: 14,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                    }}
+                  >
+                    <Trash2 size={18} />
+                    Verwijderen
+                  </button>
+                </div>
               </div>
             </div>
           </div>
