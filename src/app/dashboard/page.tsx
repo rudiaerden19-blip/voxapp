@@ -90,7 +90,7 @@ function DashboardContent() {
         .single();
 
       // If not found, try to find by email (for admin-created tenants)
-      if (!businessData) {
+      if (!businessData && user.email) {
         const { data: emailBusiness } = await supabase
           .from('businesses')
           .select('*')
