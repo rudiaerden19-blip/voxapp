@@ -113,13 +113,13 @@ function SettingsContent() {
   useEffect(() => { loadBusiness(); }, []);
 
   const loadBusiness = async () => {
-    // Check for admin view
-    const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    const adminViewId = urlParams?.get('admin_view');
-    
-    if (adminViewId) {
-      // Load via API for admin view
-      try {
+    try {
+      // Check for admin view
+      const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+      const adminViewId = urlParams?.get('admin_view');
+      
+      if (adminViewId) {
+        // Load via API for admin view
         const res = await fetch(`/api/business/${adminViewId}`);
         if (res.ok) {
           const biz = await res.json() as Business;
@@ -133,41 +133,34 @@ function SettingsContent() {
             opening_hours: biz.opening_hours ? migrateOpeningHours(biz.opening_hours) : defaultOpeningHours,
           });
         }
-      } catch (e) {
-        console.error('Failed to load business:', e);
+        setLoading(false);
+        return;
       }
-      setLoading(false);
-      return;
-    }
-    
-    // Normal user flow
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+      
+      // Normal user flow - get user email first
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) {
+        setLoading(false);
+        return;
+      }
 
-    let { data: businessData } = await supabase
-      .from('businesses')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
-    
-    // Fallback to email
-    if (!businessData && user.email) {
-      const { data: emailBiz } = await supabase.from('businesses').select('*').eq('email', user.email).single();
-      businessData = emailBiz;
-    }
-
-    if (businessData) {
-      const biz = businessData as Business;
-      setBusiness(biz);
-      setFormData({
-        name: biz.name || '',
-        type: biz.type || 'other',
-        phone: biz.phone || '',
-        email: biz.email || '',
-        address: biz.address || '',
-        opening_hours: biz.opening_hours ? migrateOpeningHours(biz.opening_hours) : defaultOpeningHours,
-      });
+      // Use API to bypass RLS
+      const res = await fetch(`/api/business/by-email?email=${encodeURIComponent(user.email)}`);
+      if (res.ok) {
+        const biz = await res.json() as Business;
+        setBusiness(biz);
+        setFormData({
+          name: biz.name || '',
+          type: biz.type || 'other',
+          phone: biz.phone || '',
+          email: biz.email || '',
+          address: biz.address || '',
+          opening_hours: biz.opening_hours ? migrateOpeningHours(biz.opening_hours) : defaultOpeningHours,
+        });
+      }
+    } catch (e) {
+      console.error('Failed to load business:', e);
     }
     setLoading(false);
   };
