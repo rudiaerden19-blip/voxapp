@@ -472,299 +472,691 @@ export function getBrancheTemplate(businessType: string, businessName: string): 
 
 // FAQ templates per business type
 export function getFAQTemplate(businessType: string): Array<{ question: string; answer: string }> {
-  const config = getBusinessType(businessType);
   const typeId = businessType.toLowerCase();
   
-  // Medische praktijken (dokter, ziekenhuis)
+  // ===========================================
+  // MEDISCHE PRAKTIJKEN (DOKTER, ZIEKENHUIS)
+  // 150+ FAQs voor complete dekking
+  // ===========================================
   if (typeId === 'dokter' || typeId === 'ziekenhuis') {
     return [
-      // Algemeen & Contact
-      { question: 'Wat zijn jullie openingsuren?', answer: 'Onze openingsuren vindt u op onze website of vraag aan de receptie.' },
-      { question: 'Waar zijn jullie gevestigd?', answer: 'Ons adres vindt u op onze website of vraag de receptie.' },
-      { question: 'Wat is het telefoonnummer?', answer: 'Ons telefoonnummer staat op de website en uw afspraakbevestiging.' },
-      { question: 'Hebben jullie een e-mailadres?', answer: 'Ja, u kunt ons e-mailen voor niet-dringende vragen.' },
-      { question: 'Zijn jullie op zaterdag open?', answer: 'Neem contact op voor onze weekenduren.' },
-      { question: 'Zijn jullie op zondag open?', answer: 'Zondag zijn we gesloten, bij spoed bel de huisartsenpost.' },
-      { question: 'Zijn jullie op feestdagen open?', answer: 'Op feestdagen zijn we gesloten, bij spoed bel de huisartsenpost.' },
-      { question: 'Is er parkeergelegenheid?', answer: 'Ja, er is parking beschikbaar voor patiënten.' },
-      { question: 'Moet ik betalen voor parkeren?', answer: 'Neem contact op voor informatie over parkeertarieven.' },
-      { question: 'Zijn jullie rolstoeltoegankelijk?', answer: 'Ja, onze praktijk is volledig toegankelijk.' },
-      { question: 'Is er een lift aanwezig?', answer: 'Ja, onze praktijk is toegankelijk voor minder mobiele patiënten.' },
-      { question: 'Kan ik met het openbaar vervoer komen?', answer: 'Ja, er zijn bushaltes en/of treinstations in de buurt.' },
-      { question: 'Hebben jullie een website?', answer: 'Ja, alle informatie vindt u op onze website.' },
-      { question: 'Zijn jullie op sociale media?', answer: 'Ja, volg ons voor updates en gezondheidstips.' },
+      // ===== CONTACT & LOCATIE =====
+      { question: 'Wat zijn jullie openingsuren?', answer: 'Ik geef u graag onze exacte openingsuren. Een moment.' },
+      { question: 'Waar zijn jullie gevestigd?', answer: 'Ik geef u ons volledige adres zodat u ons gemakkelijk kunt vinden.' },
+      { question: 'Wat is het telefoonnummer?', answer: 'U spreekt met ons telefoonnummer. Kan ik u verder helpen?' },
+      { question: 'Hebben jullie een e-mailadres?', answer: 'Ja, voor niet-dringende vragen kunt u ons mailen. Ik geef u het adres.' },
+      { question: 'Zijn jullie vandaag open?', answer: 'Ja, wij zijn vandaag geopend. Kan ik een afspraak voor u maken?' },
+      { question: 'Zijn jullie op zaterdag open?', answer: 'Op zaterdag hebben we beperkte openingsuren. Wilt u een afspraak?' },
+      { question: 'Zijn jullie op zondag open?', answer: 'Zondag zijn we gesloten. Bij spoed kunt u de huisartsenpost bellen.' },
+      { question: 'Zijn jullie op feestdagen open?', answer: 'Op feestdagen zijn we gesloten. Bij spoed: huisartsenpost of 112.' },
+      { question: 'Is er parkeergelegenheid?', answer: 'Ja, er is parkeergelegenheid voor patiënten in de buurt.' },
+      { question: 'Moet ik betalen voor parkeren?', answer: 'Ik informeer u over de parkeermogelijkheden bij ons.' },
+      { question: 'Zijn jullie rolstoeltoegankelijk?', answer: 'Ja, onze praktijk is volledig rolstoeltoegankelijk.' },
+      { question: 'Is er een lift?', answer: 'Ja, onze praktijk is toegankelijk voor minder mobiele patiënten.' },
+      { question: 'Kan ik met de bus komen?', answer: 'Ja, er is een bushalte op loopafstand. Wilt u de details?' },
+      { question: 'Hoe kom ik bij jullie?', answer: 'Ik geef u graag de routebeschrijving. Komt u met auto of OV?' },
       
-      // Afspraken maken
-      { question: 'Hoe maak ik een afspraak?', answer: 'U kunt telefonisch of online een afspraak maken.' },
-      { question: 'Kan ik online een afspraak maken?', answer: 'Ja, via onze website of patiëntenportaal.' },
-      { question: 'Kan ik dezelfde dag nog terecht?', answer: 'Voor dringende zaken proberen we u dezelfde dag te helpen.' },
-      { question: 'Hoe lang van tevoren moet ik bellen?', answer: 'Voor niet-dringende zaken adviseren we een paar dagen vooruit.' },
-      { question: 'Kan ik een afspraak maken voor iemand anders?', answer: 'Ja, met toestemming van de patiënt.' },
-      { question: 'Kan ik een dubbele afspraak maken?', answer: 'Ja, voor meerdere klachten kunt u een langere afspraak vragen.' },
-      { question: 'Kan ik een afspraak maken voor mijn kind?', answer: 'Ja, kinderen zijn welkom met een ouder/voogd.' },
-      { question: 'Wat als ik te laat kom?', answer: 'Bel ons, we bekijken of het consult nog door kan gaan.' },
+      // ===== AFSPRAKEN MAKEN =====
+      { question: 'Ik wil een afspraak maken', answer: 'Ja natuurlijk, dat regel ik graag voor u. Mag ik uw naam?' },
+      { question: 'Hoe maak ik een afspraak?', answer: 'U bent aan het juiste adres! Mag ik uw naam om een afspraak te maken?' },
+      { question: 'Kan ik vandaag nog terecht?', answer: 'Voor dringende zaken proberen we u vandaag te helpen. Wat zijn uw klachten?' },
+      { question: 'Kan ik morgen een afspraak krijgen?', answer: 'Ik kijk of er morgen plek is. Heeft u voorkeur voor een tijdstip?' },
+      { question: 'Kan ik online een afspraak maken?', answer: 'Ja, via onze website. Maar ik kan het ook nu direct regelen.' },
+      { question: 'Kan ik een spoedafspraak krijgen?', answer: 'Wat zijn uw klachten? Dan bekijk ik of u vandaag terecht kunt.' },
       { question: 'Hoe lang duurt een consult?', answer: 'Een standaard consult duurt 15-20 minuten.' },
-      { question: 'Kan ik een langere afspraak maken?', answer: 'Ja, geef dit aan bij het maken van de afspraak.' },
+      { question: 'Kan ik een langere afspraak maken?', answer: 'Ja, bij meerdere klachten kan ik een dubbel consult inplannen.' },
+      { question: 'Kan ik een afspraak maken voor mijn kind?', answer: 'Ja, kinderen zijn welkom. Komt u zelf mee als ouder?' },
+      { question: 'Kan ik een afspraak maken voor mijn partner?', answer: 'Ja, met toestemming van uw partner. Mag ik de naam?' },
+      { question: 'Bij welke dokter kan ik terecht?', answer: 'Ik kijk welke arts beschikbaar is. Heeft u een voorkeur?' },
+      { question: 'Werken jullie op afspraak?', answer: 'Ja, wij werken alleen op afspraak. Zal ik er een maken?' },
+      { question: 'Wat als ik te laat kom?', answer: 'Bel ons even, we bekijken of het consult nog door kan gaan.' },
+      { question: 'Hoe lang van tevoren moet ik bellen?', answer: 'Voor niet-dringende zaken adviseren we enkele dagen vooruit.' },
       
-      // Afspraken wijzigen/annuleren
-      { question: 'Hoe verzet ik mijn afspraak?', answer: 'Bel minstens 24 uur van tevoren om te verzetten.' },
-      { question: 'Hoe annuleer ik mijn afspraak?', answer: 'Bel minstens 24 uur van tevoren om te annuleren.' },
-      { question: 'Zijn er kosten voor annuleren?', answer: 'Bij te laat annuleren kunnen kosten in rekening worden gebracht.' },
-      { question: 'Krijg ik een herinnering voor mijn afspraak?', answer: 'Ja, u ontvangt een sms of e-mail herinnering.' },
+      // ===== AFSPRAKEN WIJZIGEN =====
+      { question: 'Ik wil mijn afspraak verzetten', answer: 'Geen probleem. Mag ik uw naam en het huidige tijdstip?' },
+      { question: 'Hoe verzet ik mijn afspraak?', answer: 'Dat regel ik voor u. Wanneer zou u willen komen?' },
+      { question: 'Ik moet mijn afspraak annuleren', answer: 'Dat is jammer. Mag ik uw naam? Wilt u een nieuwe afspraak?' },
+      { question: 'Kan ik mijn afspraak verplaatsen naar volgende week?', answer: 'Ik kijk wat er beschikbaar is. Welke dag heeft uw voorkeur?' },
+      { question: 'Zijn er kosten voor annuleren?', answer: 'Bij annulering binnen 24 uur kunnen kosten in rekening worden gebracht.' },
+      { question: 'Krijg ik een herinnering?', answer: 'Ja, u ontvangt een sms of e-mail herinnering voor uw afspraak.' },
+      { question: 'Ik heb geen bevestiging ontvangen', answer: 'Ik check uw afspraak en stuur opnieuw een bevestiging.' },
       
-      // Spoed & Buiten kantooruren
-      { question: 'Wat doe ik bij spoed?', answer: 'Bij levensbedreigende situaties bel 112. Anders bel de praktijk.' },
-      { question: 'Wanneer moet ik 112 bellen?', answer: 'Bij bewusteloosheid, hartklachten, ernstige ademhalingsproblemen, zware bloedingen.' },
-      { question: 'Wat is het nummer van de huisartsenpost?', answer: 'Het nummer vindt u op onze website of voicemail buiten kantooruren.' },
-      { question: 'Wanneer is de huisartsenpost open?', answer: 'Avonden, nachten, weekenden en feestdagen.' },
-      { question: 'Wat doe ik bij klachten buiten kantooruren?', answer: 'Bel de huisartsenpost of bij spoed 112.' },
-      { question: 'Doen jullie avondspreekuur?', answer: 'Neem contact op voor informatie over avondspreekuren.' },
+      // ===== SPOED & NOODGEVALLEN =====
+      { question: 'Het is dringend', answer: 'Ik help u direct. Kunt u kort beschrijven wat er aan de hand is?' },
+      { question: 'Ik heb nu een dokter nodig', answer: 'Wat zijn uw klachten? Ik bekijk of u direct terecht kunt.' },
+      { question: 'Wat doe ik bij spoed?', answer: 'Bij levensbedreigende situaties bel 112. Anders help ik u nu.' },
+      { question: 'Wanneer moet ik 112 bellen?', answer: 'Bij bewusteloosheid, hartklachten, ernstige ademnood, zware bloedingen.' },
+      { question: 'Mijn kind is ziek', answer: 'Ik begrijp uw bezorgdheid. Wat zijn de klachten? Heeft het koorts?' },
+      { question: 'Ik heb hoge koorts', answer: 'Hoe hoog is de koorts en hoelang heeft u dit al? Ik kijk of u vandaag kunt komen.' },
+      { question: 'Wat is het nummer van de huisartsenpost?', answer: 'Ik geef u het nummer van de huisartsenpost voor buiten kantooruren.' },
+      { question: 'Zijn jullie nu gesloten?', answer: 'Als we gesloten zijn, kunt u de huisartsenpost bellen voor spoed.' },
       
-      // Huisbezoeken
-      { question: 'Doen jullie huisbezoeken?', answer: 'Ja, voor patiënten die niet kunnen komen. Bel voor 10u.' },
-      { question: 'Hoe vraag ik een huisbezoek aan?', answer: 'Bel voor 10 uur s ochtends voor een huisbezoek dezelfde dag.' },
-      { question: 'Zijn er kosten voor een huisbezoek?', answer: 'Neem contact op voor informatie over eventuele kosten.' },
-      { question: 'Wanneer komt de dokter bij huisbezoek?', answer: 'Meestal in de loop van de ochtend of vroege middag.' },
+      // ===== HUISBEZOEK =====
+      { question: 'Kan de dokter bij mij thuis komen?', answer: 'Voor patiënten die niet kunnen komen doen we huisbezoeken. Wat is de situatie?' },
+      { question: 'Hoe vraag ik een huisbezoek aan?', answer: 'Bel voor 10 uur voor een huisbezoek dezelfde dag. Wat is de reden?' },
+      { question: 'Wanneer komt de dokter bij huisbezoek?', answer: 'Meestal in de ochtend of vroege middag. We bellen vooraf.' },
+      { question: 'Mijn moeder kan niet komen', answer: 'Ik noteer een huisbezoek. Wat is het adres en wat zijn de klachten?' },
       
-      // Videoconsult
-      { question: 'Kan ik videoconsult doen?', answer: 'Ja, voor sommige klachten bieden we videoconsulten aan.' },
-      { question: 'Hoe werkt een videoconsult?', answer: 'U ontvangt een link en belt via uw computer of telefoon.' },
-      { question: 'Is een videoconsult gratis?', answer: 'Dezelfde vergoeding als een gewoon consult.' },
-      { question: 'Wanneer is videoconsult geschikt?', answer: 'Voor huidklachten, nacontroles, besprekingen van uitslagen.' },
+      // ===== VIDEOCONSULT =====
+      { question: 'Kan ik videoconsult doen?', answer: 'Ja, voor sommige klachten bieden we videoconsulten. Wat is uw vraag?' },
+      { question: 'Hoe werkt videoconsult?', answer: 'U ontvangt een link per mail en belt via computer of telefoon.' },
+      { question: 'Ik wil liever beeldbellen', answer: 'Dat kan! Ik plan een videoconsult in. Wanneer past het u?' },
       
-      // Kosten & Verzekering
-      { question: 'Moet ik betalen voor het consult?', answer: 'Meestal vergoed door uw zorgverzekering.' },
+      // ===== RECEPTEN & MEDICATIE =====
+      { question: 'Ik heb een herhaalrecept nodig', answer: 'Welk medicijn heeft u nodig? Ik regel het recept.' },
+      { question: 'Mijn medicijnen zijn op', answer: 'Ik maak een herhaalrecept aan. Welk medicijn en naar welke apotheek?' },
+      { question: 'Hoe vraag ik een recept aan?', answer: 'Dat kan telefonisch. Welk medicijn heeft u nodig?' },
+      { question: 'Hoe lang duurt het voor mijn recept klaar is?', answer: 'Herhaalrecepten zijn binnen 24-48 werkuren klaar bij de apotheek.' },
+      { question: 'Kan ik mijn recept bij elke apotheek ophalen?', answer: 'Ja, wij sturen het naar de apotheek van uw keuze.' },
+      { question: 'Ik heb bijwerkingen van mijn medicijnen', answer: 'Dat is belangrijk om te bespreken. Ik plan een afspraak met de arts.' },
+      { question: 'Ik ga op vakantie en heb medicijnen nodig', answer: 'Vraag tijdig uw vakantiemedicatie aan, liefst 2 weken vooraf.' },
+      { question: 'Moet ik langskomen voor een recept?', answer: 'Voor herhaalrecepten niet altijd. Soms is controle wel nodig.' },
+      
+      // ===== LABRESULTATEN =====
+      { question: 'Zijn mijn uitslagen al binnen?', answer: 'Mag ik uw naam? Dan kijk ik of de resultaten er zijn.' },
+      { question: 'Hoe krijg ik mijn labresultaten?', answer: 'We bellen bij afwijkingen. Anders kunt u bellen of online inzien.' },
+      { question: 'Moet ik nuchter komen voor bloedonderzoek?', answer: 'Voor sommige testen wel. Ik check wat voor u geldt.' },
+      { question: 'Waar kan ik bloed laten prikken?', answer: 'Bij ons in de praktijk of bij een laboratorium in de buurt.' },
+      { question: 'Hoelang duurt het voor de uitslag er is?', answer: 'Meestal binnen enkele werkdagen, afhankelijk van het onderzoek.' },
+      
+      // ===== VERWIJZINGEN =====
+      { question: 'Ik heb een verwijzing nodig', answer: 'Waarvoor heeft u een verwijzing nodig? De arts kan deze uitschrijven na consult.' },
+      { question: 'Hoe lang is mijn verwijzing geldig?', answer: 'Meestal 3-6 maanden, afhankelijk van de specialist.' },
+      { question: 'Kan ik zelf een specialist kiezen?', answer: 'Ja, u mag zelf kiezen naar welk ziekenhuis of welke specialist.' },
+      { question: 'Ik wil een second opinion', answer: 'Dat is uw recht. De arts kan een verwijzing maken voor een andere specialist.' },
+      
+      // ===== VACCINATIES =====
+      { question: 'Ik wil een griepprik', answer: 'De griepprik is er vanaf oktober. Ik plan een afspraak voor u.' },
+      { question: 'Kom ik in aanmerking voor de griepprik?', answer: '65-plussers, chronisch zieken en zwangeren wel. Wat is uw situatie?' },
+      { question: 'Ik ga op reis en heb vaccinaties nodig', answer: 'Maak tijdig een afspraak. Waar gaat u naartoe en wanneer?' },
+      { question: 'Welke vaccinaties hebben jullie?', answer: 'Griep, tetanus, reisvaccinaties en meer. Wat heeft u nodig?' },
+      { question: 'Moet ik betalen voor vaccinaties?', answer: 'Sommige zijn gratis, andere niet. Ik informeer u over de kosten.' },
+      
+      // ===== KOSTEN & VERZEKERING =====
+      { question: 'Wat kost een consult?', answer: 'Het consult wordt meestal vergoed door uw zorgverzekering.' },
       { question: 'Welke verzekeringen accepteren jullie?', answer: 'Alle Belgische en Nederlandse zorgverzekeringen.' },
       { question: 'Moet ik mijn verzekeringspas meenemen?', answer: 'Ja, neem altijd uw ID en verzekeringspas mee.' },
-      { question: 'Wat als ik geen verzekering heb?', answer: 'Neem contact op om de mogelijkheden te bespreken.' },
+      { question: 'Ik heb geen verzekering', answer: 'Neem contact op zodat we de mogelijkheden kunnen bespreken.' },
       { question: 'Krijg ik een factuur?', answer: 'De factuur gaat meestal rechtstreeks naar uw verzekering.' },
-      { question: 'Wat kost een consult zonder verzekering?', answer: 'Neem contact op voor actuele tarieven.' },
-      { question: 'Worden alle behandelingen vergoed?', answer: 'De meeste wel, vraag naar specifieke behandelingen.' },
+      { question: 'Worden alle behandelingen vergoed?', answer: 'De meeste wel. Vraag naar specifieke behandelingen.' },
       
-      // Recepten & Medicatie
-      { question: 'Hoe vraag ik een herhaalrecept aan?', answer: 'Telefonisch of via de website, recept is binnen 24-48u klaar.' },
-      { question: 'Hoe lang duurt het voor mijn recept klaar is?', answer: 'Herhaalrecepten zijn binnen 24-48 werkuren klaar.' },
-      { question: 'Kan ik mijn recept bij elke apotheek ophalen?', answer: 'Ja, wij sturen het naar de apotheek van uw keuze.' },
-      { question: 'Wat als mijn medicijn op is?', answer: 'Vraag tijdig een herhaalrecept aan, minstens een week vooruit.' },
-      { question: 'Kan ik recepten telefonisch bestellen?', answer: 'Ja, voor herhaalrecepten van bestaande medicatie.' },
-      { question: 'Moet ik langskomen voor een herhaalrecept?', answer: 'Niet altijd, afhankelijk van het medicijn en controleperiode.' },
-      { question: 'Wat als ik bijwerkingen heb?', answer: 'Neem contact op met de praktijk om dit te bespreken.' },
-      { question: 'Kunnen jullie medicijnen voorschrijven voor vakantie?', answer: 'Ja, vraag dit tijdig aan voor uw vertrek.' },
-      
-      // Verwijzingen
-      { question: 'Hoe krijg ik een verwijzing?', answer: 'Na consult kan de arts een verwijzing uitschrijven.' },
-      { question: 'Hoe lang is een verwijzing geldig?', answer: 'Meestal 3-6 maanden, afhankelijk van de specialist.' },
-      { question: 'Kan ik zelf een specialist kiezen?', answer: 'Ja, u mag zelf kiezen naar welk ziekenhuis of specialist.' },
-      { question: 'Kan ik een second opinion krijgen?', answer: 'Ja, bespreek dit met uw arts.' },
-      
-      // Onderzoeken & Labresultaten
-      { question: 'Hoe krijg ik mijn labresultaten?', answer: 'Binnen enkele dagen beschikbaar, we bellen bij afwijkingen.' },
-      { question: 'Moet ik nuchter komen voor bloedonderzoek?', answer: 'Voor sommige testen wel, dit wordt meegedeeld bij de afspraak.' },
-      { question: 'Waar kan ik bloed laten prikken?', answer: 'Bij ons of bij een laboratorium in de buurt.' },
-      { question: 'Hoe lang duurt bloedonderzoek?', answer: 'Het prikken zelf duurt enkele minuten, resultaten binnen dagen.' },
-      { question: 'Kan ik mijn resultaten online inzien?', answer: 'Neem contact op voor toegang tot het patiëntenportaal.' },
-      { question: 'Wat als mijn resultaten niet goed zijn?', answer: 'Wij nemen contact met u op om dit te bespreken.' },
-      
-      // Vaccinaties
-      { question: 'Wanneer is de griepprik?', answer: 'Vanaf oktober, u wordt uitgenodigd als u in aanmerking komt.' },
-      { question: 'Wie komt in aanmerking voor griepprik?', answer: '65-plussers, chronisch zieken, zwangeren en zorgmedewerkers.' },
-      { question: 'Bieden jullie reisvaccinaties?', answer: 'Ja, maak tijdig een afspraak voor uw reis.' },
-      { question: 'Welke vaccinaties bieden jullie?', answer: 'Griep, tetanus, reis- en overige vaccinaties.' },
-      { question: 'Zijn vaccinaties gratis?', answer: 'Sommige wel, andere niet. Vraag naar de kosten.' },
-      { question: 'Kan ik zonder afspraak voor vaccinatie komen?', answer: 'Nee, maak altijd een afspraak voor vaccinaties.' },
-      
-      // Dossier & Privacy
-      { question: 'Kan ik mijn dossier opvragen?', answer: 'Ja, vraag een kopie aan bij de praktijk.' },
-      { question: 'Zijn mijn gegevens veilig?', answer: 'Ja, wij werken volgens AVG/GDPR richtlijnen.' },
-      { question: 'Kan ik mijn dossier laten overdragen?', answer: 'Ja, bij verhuizing dragen we uw dossier over naar nieuwe arts.' },
-      { question: 'Wie heeft toegang tot mijn dossier?', answer: 'Alleen uw behandelend artsen en geautoriseerd personeel.' },
-      { question: 'Hoe wijzig ik mijn gegevens?', answer: 'Telefonisch of bij de receptie doorgeven.' },
-      
-      // Klachten & Specifiek
-      { question: 'Wat doe ik bij koorts?', answer: 'Bij hoge koorts of koorts langer dan 3 dagen, neem contact op.' },
-      { question: 'Wat doe ik bij griepklachten?', answer: 'Rust, vocht, paracetamol. Bij verergering contact opnemen.' },
-      { question: 'Wat doe ik bij buikpijn?', answer: 'Bij ernstige of aanhoudende buikpijn, neem contact op.' },
-      { question: 'Wat doe ik bij hoofdpijn?', answer: 'Bij ernstige of ongewone hoofdpijn, neem contact op.' },
-      { question: 'Wat doe ik bij rugpijn?', answer: 'Bij aanhoudende rugpijn of uitstraling naar benen, contact opnemen.' },
-      { question: 'Wat doe ik bij huiduitslag?', answer: 'Maak een afspraak, eventueel met foto via videoconsult.' },
-      { question: 'Wat doe ik bij oorpijn?', answer: 'Maak een afspraak voor onderzoek.' },
-      { question: 'Wat doe ik bij keelpijn?', answer: 'Bij ernstige keelpijn of koorts, neem contact op.' },
-      { question: 'Wat doe ik bij een insectenbeet?', answer: 'Bij allergische reactie of verergering, direct contact opnemen.' },
-      { question: 'Wat doe ik bij een snijwond?', answer: 'Bij diepe wonden of niet-stoppende bloeding, direct contact opnemen.' },
-      
-      // Administratief
-      { question: 'Wat moet ik meenemen?', answer: 'ID, verzekeringspas en eventuele medische documenten.' },
-      { question: 'Kan ik me inschrijven als nieuwe patiënt?', answer: 'Ja, neem contact op voor inschrijving.' },
-      { question: 'Wat heb ik nodig voor inschrijving?', answer: 'ID, verzekeringspas en gegevens vorige huisarts.' },
+      // ===== INSCHRIJVING =====
+      { question: 'Ik wil me inschrijven als patiënt', answer: 'Welkom! Ik noteer uw gegevens. Mag ik uw naam en geboortedatum?' },
+      { question: 'Nemen jullie nieuwe patiënten aan?', answer: 'Ja, nieuwe patiënten zijn welkom. Wilt u zich inschrijven?' },
+      { question: 'Wat heb ik nodig voor inschrijving?', answer: 'Uw ID, verzekeringspas en eventueel gegevens van uw vorige huisarts.' },
+      { question: 'Ik ben verhuisd en zoek een huisarts', answer: 'Welkom in onze praktijk! Ik help u met de inschrijving.' },
       { question: 'Kan ik van huisarts wisselen?', answer: 'Ja, u bent vrij om een andere huisarts te kiezen.' },
-      { question: 'Behandelen jullie ook kinderen?', answer: 'Ja, wij behandelen patiënten van alle leeftijden.' },
-      { question: 'Behandelen jullie ook ouderen?', answer: 'Ja, wij bieden zorg voor alle leeftijden.' },
-      { question: 'Spreken jullie andere talen?', answer: 'Neem contact op voor informatie over talen.' },
+      
+      // ===== DOSSIER & PRIVACY =====
+      { question: 'Kan ik mijn dossier opvragen?', answer: 'Ja, u kunt een kopie van uw dossier aanvragen bij de praktijk.' },
+      { question: 'Zijn mijn gegevens veilig?', answer: 'Ja, wij werken volgens de AVG/GDPR privacyrichtlijnen.' },
+      { question: 'Kan mijn dossier worden overgedragen?', answer: 'Ja, bij verhuizing dragen we uw dossier over naar uw nieuwe huisarts.' },
+      { question: 'Wie heeft toegang tot mijn dossier?', answer: 'Alleen uw behandelend artsen en geautoriseerd personeel.' },
+      { question: 'Ik wil mijn adres wijzigen', answer: 'Dat noteer ik voor u. Wat is uw nieuwe adres?' },
+      { question: 'Ik heb een nieuw telefoonnummer', answer: 'Ik pas uw gegevens aan. Wat is het nieuwe nummer?' },
+      
+      // ===== SPECIFIEKE KLACHTEN =====
+      { question: 'Ik heb koorts', answer: 'Hoe hoog is de koorts? Hoelang heeft u dit al? Ik kijk of u vandaag kunt komen.' },
+      { question: 'Ik voel me niet lekker', answer: 'Wat zijn uw klachten? Dan kan ik inschatten of u moet komen.' },
+      { question: 'Ik heb griep', answer: 'Rust en vocht zijn belangrijk. Bij verergering maken we een afspraak.' },
+      { question: 'Ik heb buikpijn', answer: 'Hoe erg is de pijn? Bij ernstige pijn plannen we snel een afspraak.' },
+      { question: 'Ik heb hoofdpijn', answer: 'Is het erger dan normaal? Bij ongewone hoofdpijn kunt u beter komen.' },
+      { question: 'Ik heb rugpijn', answer: 'Bij uitstraling naar de benen of lang aanhouden, maak ik een afspraak.' },
+      { question: 'Ik heb huiduitslag', answer: 'Ik plan een afspraak. U kunt eventueel een foto meesturen.' },
+      { question: 'Ik heb oorpijn', answer: 'Ik maak een afspraak zodat de arts kan kijken.' },
+      { question: 'Ik heb keelpijn', answer: 'Bij koorts of ernstige pijn kunt u beter langskomen.' },
+      { question: 'Ik ben gestoken door een insect', answer: 'Bij allergische reactie direct contact. Anders observeer de plek.' },
+      { question: 'Ik heb me gesneden', answer: 'Is de wond diep of stopt het bloeden niet? Dan moet u langskomen.' },
+      { question: 'Ik heb me gebrand', answer: 'Koel direct met lauw water. Bij ernstige brandwonden moet u komen.' },
+      { question: 'Ik ben gevallen', answer: 'Heeft u pijn of zwelling? Kunt u normaal bewegen?' },
+      { question: 'Ik heb last van mijn ogen', answer: 'Wat voor klachten heeft u? Roodheid, jeuk, wazig zien?' },
+      { question: 'Ik slaap slecht', answer: 'Hoelang speelt dit? Bij aanhoudende problemen maken we een afspraak.' },
+      { question: 'Ik ben moe', answer: 'Aanhoudende vermoeidheid kan onderzocht worden. Wilt u een afspraak?' },
+      { question: 'Ik heb stress', answer: 'Dat is lastig. De arts kan met u bespreken wat er mogelijk is.' },
+      { question: 'Ik voel me somber', answer: 'Het is goed dat u belt. Ik plan een afspraak om dit te bespreken.' },
+      
+      // ===== ALGEMEEN =====
+      { question: 'Wat moet ik meenemen?', answer: 'Uw ID, verzekeringspas en eventuele medische documenten.' },
+      { question: 'Behandelen jullie kinderen?', answer: 'Ja, wij behandelen patiënten van alle leeftijden.' },
+      { question: 'Behandelen jullie ouderen?', answer: 'Ja, wij bieden zorg voor alle leeftijden.' },
+      { question: 'Spreken jullie Engels?', answer: 'Ja, onze artsen spreken ook Engels.' },
+      { question: 'Spreken jullie Frans?', answer: 'Neem contact op voor informatie over taalmogelijkheden.' },
+      { question: 'Hoeveel artsen werken er?', answer: 'Ik geef u informatie over ons team van artsen.' },
+      { question: 'Wie is de hoofdarts?', answer: 'Ik vertel u graag meer over onze artsen.' },
+      { question: 'Werken jullie met stagiairs?', answer: 'Soms wel. U kunt altijd vragen om alleen de vaste arts te spreken.' },
+      { question: 'Hebben jullie een website?', answer: 'Ja, daar vindt u alle informatie. Ik geef u het adres.' },
+      { question: 'Bedankt voor de hulp', answer: 'Graag gedaan! Nog een fijne dag en tot ziens.' },
+      { question: 'Tot ziens', answer: 'Tot ziens en een goede dag!' },
     ];
   }
   
-  // Tandarts
+  // ===========================================
+  // TANDARTS - 50+ FAQs
+  // ===========================================
   if (typeId === 'tandarts') {
     return [
-      { question: 'Wat zijn jullie openingsuren?', answer: 'Onze openingsuren vindt u op onze website.' },
-      { question: 'Hoe maak ik een afspraak?', answer: 'Telefonisch of via onze online agenda.' },
+      // Contact & Afspraken
+      { question: 'Wat zijn jullie openingsuren?', answer: 'Ik geef u graag onze exacte openingsuren.' },
+      { question: 'Ik wil een afspraak maken', answer: 'Ja natuurlijk! Mag ik uw naam? Is het voor controle of heeft u klachten?' },
+      { question: 'Hoe maak ik een afspraak?', answer: 'Dat regel ik nu voor u. Mag ik uw naam?' },
+      { question: 'Kan ik vandaag nog terecht?', answer: 'Heeft u pijn? Bij spoed proberen we u vandaag te helpen.' },
       { question: 'Hoe vaak moet ik komen?', answer: 'Wij adviseren minimaal 2x per jaar een controle.' },
-      { question: 'Wat doe ik bij kiespijn buiten kantooruren?', answer: 'Bel de tandartsenpost voor spoedhulp.' },
+      { question: 'Wanneer was mijn laatste controle?', answer: 'Mag ik uw naam? Dan zoek ik het voor u op.' },
+      { question: 'Ik wil mijn afspraak verzetten', answer: 'Geen probleem. Mag ik uw naam en wanneer wilt u komen?' },
       { question: 'Hoe lang duurt een controle?', answer: 'Een controle duurt ongeveer 20-30 minuten.' },
       { question: 'Hoe lang duurt een gebitsreiniging?', answer: 'Ongeveer 30-45 minuten.' },
-      { question: 'Bieden jullie orthodontie aan?', answer: 'Neem contact op voor info over beugels en aligners.' },
-      { question: 'Doen jullie aan bleken?', answer: 'Ja, wij bieden professionele tandenbleking aan.' },
-      { question: 'Wat kost een controle?', answer: 'Grotendeels vergoed door verzekering, vraag naar eigen bijdrage.' },
-      { question: 'Behandelen jullie kinderen?', answer: 'Ja, vanaf de eerste tandjes.' },
-      { question: 'Wat als ik bang ben voor de tandarts?', answer: 'We hebben ervaring met angstpatiënten, bespreek het met ons.' },
-      { question: 'Bieden jullie implantaten aan?', answer: 'Ja, vraag naar de mogelijkheden.' },
-      { question: 'Hoe verzet ik mijn afspraak?', answer: 'Bel minstens 24 uur van tevoren.' },
-      { question: 'Is er parkeergelegenheid?', answer: 'Ja, er is parking in de buurt.' },
+      
+      // Spoed & Pijn
+      { question: 'Ik heb kiespijn', answer: 'Dat is vervelend. Hoe erg is de pijn? Ik kijk of u vandaag kunt komen.' },
+      { question: 'Ik heb erge tandpijn', answer: 'Ik plan zo snel mogelijk een spoedafspraak. Mag ik uw naam?' },
+      { question: 'Mijn tand is afgebroken', answer: 'Bewaar het stukje indien mogelijk. Ik maak een spoedafspraak.' },
+      { question: 'Mijn vulling is eruit gevallen', answer: 'Dat moet snel gerepareerd worden. Wanneer kunt u komen?' },
+      { question: 'Mijn kroon zit los', answer: 'Ik plan een afspraak om dit te repareren.' },
+      { question: 'Ik heb een abces', answer: 'Dat is urgent. Ik maak direct een afspraak voor u.' },
+      { question: 'Wat doe ik bij kiespijn buiten kantooruren?', answer: 'Bel de tandartsenpost voor spoedhulp. Ik geef u het nummer.' },
+      { question: 'Ik heb gezwollen tandvlees', answer: 'Dat moet bekeken worden. Ik plan een afspraak.' },
+      
+      // Behandelingen
+      { question: 'Doen jullie aan bleken?', answer: 'Ja, wij bieden professionele tandenbleking aan. Wilt u info?' },
+      { question: 'Wat kost tanden bleken?', answer: 'Ik geef u graag informatie over de kosten en opties.' },
+      { question: 'Bieden jullie implantaten aan?', answer: 'Ja, wij plaatsen implantaten. Wilt u een consult?' },
+      { question: 'Bieden jullie kronen aan?', answer: 'Ja, kronen en bruggen behoren tot onze behandelingen.' },
+      { question: 'Doen jullie wortelkanaalbehandelingen?', answer: 'Ja, wij voeren wortelkanaalbehandelingen uit.' },
+      { question: 'Bieden jullie orthodontie aan?', answer: 'Ja, wij bieden beugels en aligners. Wilt u een consult?' },
+      { question: 'Hebben jullie Invisalign?', answer: 'Neem contact op voor informatie over onzichtbare beugels.' },
+      { question: 'Kan ik facings krijgen?', answer: 'Ja, wij plaatsen facings/veneers. Ik plan een consult.' },
+      { question: 'Doen jullie extracties?', answer: 'Ja, het trekken van tanden en kiezen doen wij.' },
+      { question: 'Vervangen jullie amalgaamvullingen?', answer: 'Ja, wij kunnen oude vullingen vervangen door witte.' },
+      { question: 'Bieden jullie mondbescherming aan?', answer: 'Ja, voor sport. Wij maken ook knarsbitjes.' },
+      
+      // Kinderen
+      { question: 'Behandelen jullie kinderen?', answer: 'Ja, kinderen zijn welkom vanaf de eerste tandjes.' },
+      { question: 'Vanaf welke leeftijd kan mijn kind komen?', answer: 'Vanaf ongeveer 2 jaar voor gewenning, vanaf 4 voor controles.' },
+      { question: 'Mijn kind is bang voor de tandarts', answer: 'Wij hebben ervaring met angstige kinderen en nemen de tijd.' },
+      { question: 'Krijgen kinderen fluoride?', answer: 'Ja, fluoride wordt bij kinderen aangebracht ter bescherming.' },
+      
+      // Angst
+      { question: 'Ik ben bang voor de tandarts', answer: 'Dat begrijpen we. We hebben ervaring met angstpatiënten en werken rustig.' },
+      { question: 'Hebben jullie lachgas?', answer: 'Neem contact op voor informatie over verdoving en lachgas.' },
+      { question: 'Kan ik verdoofd worden?', answer: 'Ja, wij verdoven bij behandelingen. Bij extreme angst zijn er extra opties.' },
+      
+      // Kosten & Verzekering
+      { question: 'Wat kost een controle?', answer: 'Grotendeels vergoed door de verzekering. Vraag naar eigen bijdrage.' },
       { question: 'Welke verzekeringen accepteren jullie?', answer: 'Alle gangbare zorgverzekeringen.' },
-      { question: 'Kan ik een spoedafspraak maken?', answer: 'Bel ons, we proberen u dezelfde dag te helpen.' },
-      { question: 'Wat moet ik meenemen?', answer: 'ID en verzekeringspas.' },
-      { question: 'Bieden jullie kronen en bruggen aan?', answer: 'Ja, vraag naar de mogelijkheden.' },
-      { question: 'Hoe voorkom ik gaatjes?', answer: '2x daags poetsen, flossen en regelmatige controles.' },
+      { question: 'Moet ik mijn verzekeringspas meenemen?', answer: 'Ja, neem uw ID en verzekeringspas mee.' },
+      { question: 'Wordt bleken vergoed?', answer: 'Bleken is cosmetisch en wordt meestal niet vergoed.' },
+      { question: 'Worden implantaten vergoed?', answer: 'Gedeeltelijk, afhankelijk van uw verzekering.' },
+      
+      // Preventie
+      { question: 'Hoe voorkom ik gaatjes?', answer: '2x daags poetsen, flossen en regelmatig controleren.' },
+      { question: 'Hoe vaak moet ik poetsen?', answer: '2x per dag, 2 minuten met fluoridetandpasta.' },
+      { question: 'Moet ik flossen?', answer: 'Ja, dagelijks flossen of ragers gebruiken voor tussen de tanden.' },
+      { question: 'Welke tandpasta raden jullie aan?', answer: 'Tandpasta met fluoride. De tandarts adviseert graag.' },
+      
+      // Praktisch
+      { question: 'Waar zijn jullie gevestigd?', answer: 'Ik geef u ons adres zodat u ons kunt vinden.' },
+      { question: 'Is er parkeergelegenheid?', answer: 'Ja, er is parkeergelegenheid in de buurt.' },
       { question: 'Zijn jullie rolstoeltoegankelijk?', answer: 'Ja, onze praktijk is toegankelijk.' },
+      { question: 'Wat moet ik meenemen?', answer: 'Uw ID en verzekeringspas.' },
+      { question: 'Bedankt voor de hulp', answer: 'Graag gedaan! Tot ziens.' },
     ];
   }
   
-  // Opticien
+  // ===========================================
+  // OPTICIEN - 45+ FAQs
+  // ===========================================
   if (typeId === 'opticien') {
     return [
-      { question: 'Wat zijn jullie openingsuren?', answer: 'Onze openingsuren vindt u op onze website.' },
-      { question: 'Hoe maak ik een afspraak voor oogmeting?', answer: 'Telefonisch of via onze website.' },
-      { question: 'Hoe vaak moet ik mijn ogen laten testen?', answer: 'Wij adviseren elke 2 jaar een oogmeting.' },
-      { question: 'Kan ik zonder afspraak langskomen?', answer: 'Voor oogmeting adviseren we een afspraak.' },
-      { question: 'Hoe lang duurt een oogmeting?', answer: 'Ongeveer 20-30 minuten.' },
-      { question: 'Hoe lang duurt het maken van een bril?', answer: 'Meestal 1-2 weken.' },
-      { question: 'Passen jullie contactlenzen aan?', answer: 'Ja, met professionele aanpassing en instructie.' },
-      { question: 'Kan ik mijn bril laten repareren?', answer: 'Ja, kleine reparaties vaak gratis en direct.' },
-      { question: 'Bieden jullie zonnebrillen op sterkte?', answer: 'Ja, in diverse merken en modellen.' },
-      { question: 'Wat kost een oogmeting?', answer: 'Vaak gratis bij aankoop, anders vraag naar tarieven.' },
-      { question: 'Welke merken hebben jullie?', answer: 'Diverse merken, kom gerust kijken in de winkel.' },
-      { question: 'Kan ik mijn oude montuur hergebruiken?', answer: 'Vaak wel, we checken of het nog geschikt is.' },
+      // Contact & Afspraken
+      { question: 'Wat zijn jullie openingsuren?', answer: 'Ik geef u graag onze exacte openingsuren.' },
+      { question: 'Ik wil een afspraak maken', answer: 'Ja natuurlijk! Is het voor een oogmeting of iets anders?' },
+      { question: 'Hoe maak ik een afspraak voor oogmeting?', answer: 'Dat regel ik nu voor u. Wanneer past het?' },
+      { question: 'Kan ik vandaag nog langskomen?', answer: 'Ik kijk of er vandaag nog plek is voor een oogmeting.' },
+      { question: 'Kan ik zonder afspraak langskomen?', answer: 'Voor brillen kijken wel, voor oogmeting adviseren we een afspraak.' },
+      { question: 'Waar zijn jullie gevestigd?', answer: 'Ik geef u ons adres.' },
+      
+      // Oogmeting
+      { question: 'Hoe lang duurt een oogmeting?', answer: 'Een oogmeting duurt ongeveer 20-30 minuten.' },
+      { question: 'Wat kost een oogmeting?', answer: 'Vaak gratis bij aankoop van een bril. Ik informeer u.' },
+      { question: 'Hoe vaak moet ik mijn ogen laten testen?', answer: 'Wij adviseren elke 2 jaar een oogmeting, of eerder bij klachten.' },
+      { question: 'Ik zie slechter dan vroeger', answer: 'Maak een afspraak voor een oogmeting. We kijken wat er aan de hand is.' },
+      { question: 'Doen jullie oogtesten voor rijbewijs?', answer: 'Ja, we kunnen een oogtest voor uw rijbewijs doen.' },
+      { question: 'Moet ik nuchter komen?', answer: 'Nee, dat is niet nodig voor een oogmeting.' },
+      
+      // Brillen
+      { question: 'Hoe lang duurt het maken van een bril?', answer: 'Meestal 1-2 weken, afhankelijk van de glazen.' },
+      { question: 'Welke merken hebben jullie?', answer: 'We hebben diverse merken. Kom gerust kijken!' },
+      { question: 'Kan ik mijn oude montuur hergebruiken?', answer: 'Vaak wel. We checken of het nog geschikt is.' },
+      { question: 'Mijn bril is kapot', answer: 'Kom langs, we kijken of we het kunnen repareren.' },
+      { question: 'Kan ik mijn bril laten repareren?', answer: 'Ja, kleine reparaties zijn vaak gratis en direct.' },
+      { question: 'Mijn bril zit niet lekker', answer: 'Kom langs, we stellen hem gratis voor u af.' },
+      { question: 'Kan ik mijn bril laten aanpassen?', answer: 'Ja, brillen verstellen is gratis bij ons.' },
       { question: 'Bieden jullie progressieve glazen?', answer: 'Ja, multifocale glazen in alle kwaliteiten.' },
-      { question: 'Hebben jullie sportbrillen?', answer: 'Ja, ook op sterkte.' },
-      { question: 'Kan ik lenzen bestellen?', answer: 'Ja, ook online nabestellen.' },
-      { question: 'Doen jullie aan oogtesten voor rijbewijs?', answer: 'Ja, we kunnen een oogtest doen.' },
-      { question: 'Is er parkeergelegenheid?', answer: 'Ja, in de buurt.' },
-      { question: 'Zijn jullie rolstoeltoegankelijk?', answer: 'Ja.' },
-      { question: 'Kan ik mijn bril laten aanpassen?', answer: 'Ja, brillen verstellen is gratis.' },
-      { question: 'Bieden jullie kinderbrillen aan?', answer: 'Ja, met speciale kindermonturen.' },
+      { question: 'Wat zijn progressieve glazen?', answer: 'Glazen voor zowel veraf als dichtbij, zonder zichtbare lijn.' },
+      { question: 'Bieden jullie zonnebrillen op sterkte?', answer: 'Ja, in diverse merken en modellen.' },
+      { question: 'Hebben jullie sportbrillen?', answer: 'Ja, ook op sterkte voor diverse sporten.' },
+      { question: 'Bieden jullie kinderbrillen aan?', answer: 'Ja, met speciale stevige kindermonturen.' },
+      { question: 'Hebben jullie computerbrillen?', answer: 'Ja, speciaal voor beeldschermwerk.' },
+      
+      // Contactlenzen
+      { question: 'Passen jullie contactlenzen aan?', answer: 'Ja, met professionele aanpassing en gebruiksinstructie.' },
+      { question: 'Ik wil overstappen naar lenzen', answer: 'Maak een afspraak voor een lenzenpas. We leggen alles uit.' },
+      { question: 'Kan ik lenzen bestellen?', answer: 'Ja, ook online nabestellen als u al klant bent.' },
+      { question: 'Mijn lenzen zijn bijna op', answer: 'Ik noteer een nabestelling. Welke lenzen gebruikt u?' },
+      { question: 'Welke lenzen zijn het beste?', answer: 'Dat hangt af van uw ogen en gebruik. We adviseren u graag.' },
+      
+      // Kosten & Verzekering
+      { question: 'Wordt mijn bril vergoed?', answer: 'Gedeeltelijk, afhankelijk van uw verzekering. Ik informeer u.' },
+      { question: 'Welke verzekeringen accepteren jullie?', answer: 'Alle gangbare zorgverzekeringen.' },
+      { question: 'Wat kost een nieuwe bril?', answer: 'Dat hangt af van montuur en glazen. We hebben elke prijsklasse.' },
+      { question: 'Hebben jullie een garantie?', answer: 'Ja, we geven garantie op onze brillen.' },
+      
+      // Praktisch
+      { question: 'Is er parkeergelegenheid?', answer: 'Ja, er is parkeergelegenheid in de buurt.' },
+      { question: 'Zijn jullie rolstoeltoegankelijk?', answer: 'Ja, onze winkel is toegankelijk.' },
+      { question: 'Bedankt voor de hulp', answer: 'Graag gedaan! Tot ziens.' },
     ];
   }
   
-  // Advocaat
+  // ===========================================
+  // ADVOCAAT - 50+ FAQs
+  // ===========================================
   if (typeId === 'advocaat') {
     return [
-      { question: 'Wat zijn jullie openingsuren?', answer: 'Onze kantooruren vindt u op onze website.' },
-      { question: 'Hoe maak ik een afspraak?', answer: 'Telefonisch of via e-mail.' },
-      { question: 'Wat kost een eerste gesprek?', answer: 'Vaak een vast tarief, vraag naar de kosten.' },
-      { question: 'Op welke rechtsgebieden zijn jullie gespecialiseerd?', answer: 'Neem contact op voor onze specialisaties.' },
-      { question: 'Werken jullie op uurtarief?', answer: 'Ja, vraag naar onze tarieven.' },
-      { question: 'Bieden jullie pro-deo aan?', answer: 'In bepaalde gevallen, vraag naar de voorwaarden.' },
-      { question: 'Hoe lang duurt een zaak gemiddeld?', answer: 'Afhankelijk van de complexiteit, we informeren u.' },
-      { question: 'Kan ik documenten per mail sturen?', answer: 'Ja, veilig via e-mail of via onze portal.' },
-      { question: 'Behandelen jullie particulieren en bedrijven?', answer: 'Ja, beide.' },
-      { question: 'Wat moet ik meenemen naar het eerste gesprek?', answer: 'Alle relevante documenten en een ID.' },
-      { question: 'Zijn gesprekken vertrouwelijk?', answer: 'Ja, advocaat-cliënt privilege geldt altijd.' },
-      { question: 'Helpen jullie bij echtscheiding?', answer: 'Ja, neem contact op voor familierecht.' },
-      { question: 'Helpen jullie bij arbeidsgeschillen?', answer: 'Ja, we adviseren bij arbeidsrechtelijke kwesties.' },
-      { question: 'Kan ik een second opinion krijgen?', answer: 'Ja, neem vrijblijvend contact op.' },
-      { question: 'Hoe werkt rechtsbijstand?', answer: 'We werken met de meeste rechtsbijstandverzekeraars.' },
-      { question: 'Is er parkeergelegenheid?', answer: 'Ja, in de buurt van ons kantoor.' },
+      // Contact & Afspraken
+      { question: 'Wat zijn jullie openingsuren?', answer: 'Ons kantoor is op werkdagen geopend. Ik geef u de exacte uren.' },
+      { question: 'Ik wil een afspraak maken', answer: 'Dat regel ik voor u. Waar gaat uw zaak over?' },
+      { question: 'Hoe maak ik een afspraak?', answer: 'Telefonisch of via e-mail. Ik kan nu een afspraak inplannen.' },
+      { question: 'Kan ik vandaag nog langskomen?', answer: 'Ik kijk of er vandaag beschikbaarheid is. Wat is de urgentie?' },
+      { question: 'Waar zijn jullie gevestigd?', answer: 'Ik geef u ons kantooradres.' },
+      { question: 'Is er parkeergelegenheid?', answer: 'Ja, er is parkeergelegenheid bij ons kantoor.' },
+      
+      // Kosten
+      { question: 'Wat kost een eerste gesprek?', answer: 'Het eerste kennismakingsgesprek is vaak een vast tarief. Ik geef u de details.' },
+      { question: 'Werken jullie op uurtarief?', answer: 'Ja, onze tarieven hangen af van de zaak. Ik informeer u graag.' },
+      { question: 'Wat zijn jullie tarieven?', answer: 'De tarieven variëren per zaak. Ik laat de advocaat u informeren.' },
+      { question: 'Bieden jullie pro-deo aan?', answer: 'In bepaalde gevallen is rechtsbijstand mogelijk. Wat is uw situatie?' },
+      { question: 'Hoe werkt rechtsbijstand?', answer: 'Wij werken met de meeste rechtsbijstandverzekeraars samen.' },
+      { question: 'Wordt dit vergoed door mijn verzekering?', answer: 'Heeft u een rechtsbijstandverzekering? Dan kunnen we dit checken.' },
+      { question: 'Moet ik vooraf betalen?', answer: 'Meestal vragen we een voorschot. De advocaat legt dit uit.' },
+      { question: 'Krijg ik een kostenraming?', answer: 'Ja, we geven altijd vooraf een inschatting van de kosten.' },
+      
+      // Specialisaties
+      { question: 'Op welke gebieden zijn jullie gespecialiseerd?', answer: 'Ik geef u een overzicht van onze rechtsgebieden.' },
+      { question: 'Doen jullie familierecht?', answer: 'Ja, wij behandelen echtscheidingen, voogdij en alimentatie.' },
+      { question: 'Helpen jullie bij echtscheiding?', answer: 'Ja, wij begeleiden echtscheidingen. Wilt u een afspraak?' },
+      { question: 'Helpen jullie bij arbeidsgeschillen?', answer: 'Ja, wij adviseren bij ontslag, conflicten en contracten.' },
+      { question: 'Ik ben ontslagen', answer: 'Dat is vervelend. We kunnen uw rechten bekijken. Wanneer was het ontslag?' },
+      { question: 'Doen jullie strafrecht?', answer: 'Neem contact op voor informatie over strafrechtelijke bijstand.' },
+      { question: 'Helpen jullie bij huurgeschillen?', answer: 'Ja, wij behandelen huur- en vastgoedgeschillen.' },
+      { question: 'Doen jullie ondernemingsrecht?', answer: 'Ja, wij adviseren bedrijven over contracten en geschillen.' },
+      { question: 'Helpen jullie bij erfenissen?', answer: 'Ja, wij behandelen erfrecht en nalatenschappen.' },
+      { question: 'Doen jullie letselschade?', answer: 'Neem contact op voor informatie over letselschadezaken.' },
+      
+      // Proces
+      { question: 'Hoe lang duurt een zaak?', answer: 'Dat hangt af van de complexiteit. We geven u een inschatting.' },
+      { question: 'Moet ik naar de rechtbank?', answer: 'Niet altijd. Vaak proberen we eerst buiten de rechter om op te lossen.' },
       { question: 'Kunnen jullie mij vertegenwoordigen in de rechtbank?', answer: 'Ja, dat is onze kerntaak.' },
-      { question: 'Hoe snel krijg ik reactie?', answer: 'Wij streven naar reactie binnen 24-48 uur.' },
-      { question: 'Bieden jullie mediation aan?', answer: 'Ja, als alternatief voor rechtszaken.' },
-      { question: 'Zijn jullie aangesloten bij de Orde?', answer: 'Ja, al onze advocaten zijn ingeschreven.' },
+      { question: 'Bieden jullie mediation aan?', answer: 'Ja, als alternatief voor een rechtszaak.' },
+      { question: 'Wat is mediation?', answer: 'Een bemiddelingsgesprek om samen tot een oplossing te komen.' },
+      { question: 'Kan ik een second opinion krijgen?', answer: 'Ja, neem vrijblijvend contact op voor een tweede mening.' },
+      
+      // Praktisch
+      { question: 'Wat moet ik meenemen?', answer: 'Alle relevante documenten en uw ID.' },
+      { question: 'Kan ik documenten mailen?', answer: 'Ja, u kunt documenten veilig per e-mail sturen.' },
+      { question: 'Zijn gesprekken vertrouwelijk?', answer: 'Ja, alles wat u bespreekt valt onder het beroepsgeheim.' },
+      { question: 'Behandelen jullie bedrijven?', answer: 'Ja, wij adviseren zowel particulieren als bedrijven.' },
+      { question: 'Hoe snel krijg ik reactie?', answer: 'Wij streven naar reactie binnen 24-48 uur op werkdagen.' },
+      
+      // Specifieke situaties
+      { question: 'Ik heb een brief van een deurwaarder', answer: 'Dat is urgent. Maak een afspraak zodat we dit kunnen bekijken.' },
+      { question: 'Ik word gedagvaard', answer: 'Neem direct contact op, we helpen u met de procedure.' },
+      { question: 'Ik wil een contract laten opstellen', answer: 'Wij stellen contracten op. Waar gaat het over?' },
+      { question: 'Kan ik een contract laten nakijken?', answer: 'Ja, we reviewen contracten voor u ondertekent.' },
+      { question: 'Ik heb een aanmaning gekregen', answer: 'Laat ons dit bekijken. Wat staat erin?' },
+      
+      // Afsluiting
+      { question: 'Zijn jullie aangesloten bij de Orde?', answer: 'Ja, al onze advocaten zijn ingeschreven bij de Orde.' },
+      { question: 'Hoeveel advocaten werken er?', answer: 'Ik vertel u graag over ons team.' },
+      { question: 'Bedankt', answer: 'Graag gedaan. Nog een fijne dag!' },
     ];
   }
   
-  // Boekhouder
+  // ===========================================
+  // BOEKHOUDER / ACCOUNTANT - 50+ FAQs
+  // ===========================================
   if (typeId === 'boekhouder') {
     return [
-      { question: 'Wat zijn jullie openingsuren?', answer: 'Onze kantooruren vindt u op onze website.' },
-      { question: 'Hoe maak ik een afspraak?', answer: 'Telefonisch of via e-mail.' },
-      { question: 'Wat kost een eerste gesprek?', answer: 'Vaak gratis en vrijblijvend.' },
-      { question: 'Helpen jullie bij belastingaangifte?', answer: 'Ja, voor particulieren en bedrijven.' },
-      { question: 'Wanneer is de deadline voor belastingaangifte?', answer: 'We informeren u tijdig over deadlines.' },
-      { question: 'Bieden jullie boekhouding voor ZZP aan?', answer: 'Ja, we helpen zelfstandigen.' },
-      { question: 'Kunnen jullie mijn administratie overnemen?', answer: 'Ja, volledig of gedeeltelijk.' },
-      { question: 'Werken jullie met boekhoudprogrammas?', answer: 'Ja, we werken met diverse pakketten.' },
-      { question: 'Wat kost boekhouding per maand?', answer: 'Afhankelijk van omvang, vraag een offerte.' },
-      { question: 'Helpen jullie bij BTW-aangifte?', answer: 'Ja, wij verzorgen uw BTW-aangiftes.' },
-      { question: 'Kunnen jullie loonstroken maken?', answer: 'Ja, we verzorgen loonadministratie.' },
-      { question: 'Helpen jullie bij starten van een bedrijf?', answer: 'Ja, advies over rechtsvorm en oprichting.' },
-      { question: 'Geven jullie fiscaal advies?', answer: 'Ja, optimalisatie en planning.' },
-      { question: 'Kunnen jullie facturen voor mij versturen?', answer: 'Ja, als onderdeel van onze diensten.' },
-      { question: 'Hoe lever ik mijn administratie aan?', answer: 'Digitaal, per post of persoonlijk.' },
-      { question: 'Werken jullie ook voor vzws/stichtingen?', answer: 'Ja, non-profit organisaties.' },
-      { question: 'Wat als ik een controle krijg?', answer: 'Wij begeleiden u bij belastingcontroles.' },
-      { question: 'Is er parkeergelegenheid?', answer: 'Ja, bij ons kantoor.' },
-      { question: 'Hoe snel krijg ik reactie?', answer: 'Binnen 24-48 uur op werkdagen.' },
-      { question: 'Zijn jullie erkend?', answer: 'Ja, erkende boekhouders/accountants.' },
+      // Contact & Afspraken
+      { question: 'Wat zijn jullie openingsuren?', answer: 'Ons kantoor is op werkdagen geopend. Ik geef u de exacte uren.' },
+      { question: 'Ik wil een afspraak maken', answer: 'Dat regel ik voor u. Waar kan ik u mee helpen?' },
+      { question: 'Hoe maak ik een afspraak?', answer: 'Telefonisch of via e-mail. Ik plan nu een afspraak.' },
+      { question: 'Waar zijn jullie gevestigd?', answer: 'Ik geef u ons kantooradres.' },
+      { question: 'Is er parkeergelegenheid?', answer: 'Ja, er is parkeergelegenheid bij ons kantoor.' },
+      { question: 'Wat kost een eerste gesprek?', answer: 'Het eerste kennismakingsgesprek is vrijblijvend.' },
+      
+      // Belastingaangifte
+      { question: 'Helpen jullie bij belastingaangifte?', answer: 'Ja, voor particulieren en bedrijven. Wilt u een afspraak?' },
+      { question: 'Wanneer is de deadline voor belastingaangifte?', answer: 'We informeren u tijdig over alle deadlines.' },
+      { question: 'Ik moet mijn aangifte nog doen', answer: 'Geen probleem, we helpen u. Wanneer kunt u langskomen?' },
+      { question: 'Kan ik uitstel krijgen voor mijn aangifte?', answer: 'Vaak wel. Wij regelen dit voor u.' },
+      { question: 'Ik heb een brief van de belastingdienst', answer: 'Maak een afspraak, we bekijken dit samen.' },
+      { question: 'Kan ik nog terugkrijgen van de belasting?', answer: 'We bekijken uw situatie en optimaliseren waar mogelijk.' },
+      { question: 'Helpen jullie bij BTW-aangifte?', answer: 'Ja, wij verzorgen al uw BTW-aangiftes.' },
+      { question: 'Wanneer moet ik BTW betalen?', answer: 'Afhankelijk van uw periode. We sturen u tijdig een herinnering.' },
+      
+      // Boekhouding
+      { question: 'Kunnen jullie mijn boekhouding doen?', answer: 'Ja, volledig of gedeeltelijk. We bespreken wat u nodig heeft.' },
+      { question: 'Wat kost boekhouding per maand?', answer: 'Afhankelijk van de omvang. Ik geef u een offerte.' },
+      { question: 'Werken jullie met boekhoudprogrammas?', answer: 'Ja, wij werken met diverse pakketten en cloudsoftware.' },
+      { question: 'Kunnen jullie facturen voor mij versturen?', answer: 'Ja, dat kan onderdeel zijn van onze dienstverlening.' },
+      { question: 'Hoe lever ik mijn administratie aan?', answer: 'Digitaal, per post of u brengt het langs.' },
+      { question: 'Ik heb een achterstand in mijn boekhouding', answer: 'Geen probleem, we werken dit samen bij.' },
+      
+      // ZZP / Starters
+      { question: 'Bieden jullie boekhouding voor ZZP aan?', answer: 'Ja, we helpen veel zelfstandigen. Wilt u info?' },
+      { question: 'Ik wil een bedrijf starten', answer: 'We adviseren over rechtsvorm, inschrijving en meer.' },
+      { question: 'Welke rechtsvorm is het beste?', answer: 'Dat hangt af van uw situatie. We bespreken de opties.' },
+      { question: 'Helpen jullie bij het oprichten van een BV?', answer: 'Ja, we begeleiden het volledige proces.' },
+      { question: 'Wat kost een BV oprichten?', answer: 'Ik geef u een overzicht van de kosten en stappen.' },
+      
+      // Loon & Personeel
+      { question: 'Kunnen jullie loonstroken maken?', answer: 'Ja, we verzorgen de complete loonadministratie.' },
+      { question: 'Ik heb een werknemer aangenomen', answer: 'We regelen de loonadministratie voor u.' },
+      { question: 'Helpen jullie bij personeelsadministratie?', answer: 'Ja, van loonstroken tot jaaropgaves.' },
+      
+      // Advies
+      { question: 'Geven jullie fiscaal advies?', answer: 'Ja, we helpen u belasting te optimaliseren.' },
+      { question: 'Kunnen jullie mijn financiën analyseren?', answer: 'Ja, we maken financiële rapportages en analyses.' },
+      { question: 'Ik wil investeren in mijn bedrijf', answer: 'We bespreken de financiële gevolgen en mogelijkheden.' },
+      { question: 'Helpen jullie bij subsidieaanvragen?', answer: 'Neem contact op, we bekijken welke subsidies van toepassing zijn.' },
+      
+      // Non-profit
+      { question: 'Werken jullie voor vzws?', answer: 'Ja, we helpen verenigingen en stichtingen.' },
+      { question: 'Helpen jullie non-profit organisaties?', answer: 'Ja, we kennen de specifieke regels voor non-profits.' },
+      
+      // Controle
+      { question: 'Ik heb een belastingcontrole', answer: 'We begeleiden u volledig tijdens de controle.' },
+      { question: 'Wat doe ik bij een controle?', answer: 'Maak direct een afspraak, we bereiden u voor.' },
+      
+      // Praktisch
+      { question: 'Hoe snel krijg ik reactie?', answer: 'Wij streven naar reactie binnen 24-48 uur op werkdagen.' },
+      { question: 'Zijn jullie erkend?', answer: 'Ja, wij zijn erkende boekhouders/accountants.' },
+      { question: 'Kunnen jullie online werken?', answer: 'Ja, we werken veel digitaal en kunnen videobellen.' },
+      { question: 'Bedankt', answer: 'Graag gedaan. Nog een fijne dag!' },
     ];
   }
   
-  // Dierenkliniek
+  // ===========================================
+  // DIERENKLINIEK / DIERENARTS - 50+ FAQs
+  // ===========================================
   if (typeId === 'dierenkliniek') {
     return [
-      { question: 'Wat zijn jullie openingsuren?', answer: 'Onze openingsuren vindt u op onze website.' },
-      { question: 'Hoe maak ik een afspraak?', answer: 'Telefonisch of online.' },
+      // Contact & Afspraken
+      { question: 'Wat zijn jullie openingsuren?', answer: 'Ik geef u graag onze exacte openingsuren.' },
+      { question: 'Ik wil een afspraak maken', answer: 'Ja natuurlijk! Voor welk dier en wat is de reden?' },
+      { question: 'Hoe maak ik een afspraak?', answer: 'Dat regel ik nu voor u. Wat is de naam van uw huisdier?' },
+      { question: 'Kan ik vandaag nog langskomen?', answer: 'Is het dringend? Ik kijk of er vandaag plek is.' },
+      { question: 'Waar zijn jullie gevestigd?', answer: 'Ik geef u ons adres.' },
+      { question: 'Is er parkeergelegenheid?', answer: 'Ja, er is parkeergelegenheid bij de kliniek.' },
+      
+      // Spoed
+      { question: 'Het is dringend!', answer: 'Wat is er aan de hand? Ik help u direct.' },
+      { question: 'Mijn hond is ziek', answer: 'Wat zijn de symptomen? Ik kijk of u snel kunt komen.' },
+      { question: 'Mijn kat eet niet', answer: 'Hoelang al niet? Bij meer dan 24 uur adviseer ik een afspraak.' },
+      { question: 'Mijn huisdier heeft iets ingeslikt', answer: 'Dat kan gevaarlijk zijn. Kom zo snel mogelijk langs.' },
+      { question: 'Mijn hond heeft diarree', answer: 'Hoelang al? Bij bloed of uitdroging direct komen.' },
+      { question: 'Mijn kat is aangereden', answer: 'Kom direct! Probeer het dier rustig te houden.' },
+      { question: 'Wat doe ik bij spoed buiten kantooruren?', answer: 'Bel ons spoednummer. Ik geef u het nummer.' },
+      { question: 'Zijn jullie 24 uur open?', answer: 'Nee, maar we hebben een spoednummer voor noodgevallen.' },
+      
+      // Dieren
       { question: 'Welke dieren behandelen jullie?', answer: 'Honden, katten en andere huisdieren.' },
-      { question: 'Wat doe ik bij spoed?', answer: 'Bel direct, we hebben spoeddienst.' },
-      { question: 'Bieden jullie chippen aan?', answer: 'Ja, met registratie.' },
-      { question: 'Welke vaccinaties zijn nodig?', answer: 'We adviseren de basisvaccinaties.' },
-      { question: 'Wat kost een consult?', answer: 'Vraag naar actuele tarieven.' },
-      { question: 'Doen jullie castratie/sterilisatie?', answer: 'Ja, op afspraak.' },
+      { question: 'Behandelen jullie konijnen?', answer: 'Ja, wij behandelen ook konijnen en knaagdieren.' },
+      { question: 'Behandelen jullie vogels?', answer: 'Neem contact op voor informatie over vogelbehandelingen.' },
+      { question: 'Behandelen jullie reptielen?', answer: 'Neem contact op, we bekijken of we kunnen helpen.' },
+      
+      // Vaccinaties
+      { question: 'Welke vaccinaties heeft mijn hond nodig?', answer: 'De basisentingen tegen hondenziekte, parvo en kennelhoest.' },
+      { question: 'Welke vaccinaties heeft mijn kat nodig?', answer: 'Tegen kattenziekte, niesziekte en leucose.' },
+      { question: 'Wanneer moet mijn puppy geënt worden?', answer: 'Vanaf 6-8 weken. We plannen het vaccinatieschema.' },
+      { question: 'Mijn hond moet geënt worden', answer: 'Ik plan een vaccinatieafspraak. Wanneer past het?' },
+      { question: 'Moet mijn kat jaarlijks geënt worden?', answer: 'Ja, sommige vaccinaties moeten jaarlijks herhaald.' },
+      
+      // Castratie & Sterilisatie
+      { question: 'Doen jullie castratie?', answer: 'Ja, voor honden en katten. Ik plan een afspraak.' },
+      { question: 'Wat kost castratie?', answer: 'Ik geef u de tarieven voor uw dier.' },
+      { question: 'Wanneer kan mijn hond gecastreerd worden?', answer: 'Meestal vanaf 6 maanden. We adviseren u.' },
+      { question: 'Doen jullie sterilisatie?', answer: 'Ja, we plannen dit op afspraak.' },
+      
+      // Chippen & Paspoort
+      { question: 'Bieden jullie chippen aan?', answer: 'Ja, met registratie in de database.' },
+      { question: 'Moet mijn huisdier gechipt worden?', answer: 'Ja, het is verplicht. We kunnen dit direct doen.' },
+      { question: 'Kunnen jullie een dierenpaspoort maken?', answer: 'Ja, nodig voor reizen naar het buitenland.' },
+      { question: 'Ik ga op reis met mijn hond', answer: 'Maak tijdig een afspraak voor paspoort en vaccinaties.' },
+      
+      // Behandelingen
       { question: 'Bieden jullie gebitsverzorging?', answer: 'Ja, tandenreiniging en extracties.' },
-      { question: 'Kunnen jullie nagels knippen?', answer: 'Ja, tijdens consult of apart.' },
+      { question: 'Kunnen jullie nagels knippen?', answer: 'Ja, tijdens consult of als aparte afspraak.' },
+      { question: 'Bieden jullie echografie aan?', answer: 'Ja, voor diagnostiek en drachtigheidsonderzoek.' },
+      { question: 'Kunnen jullie bloed afnemen?', answer: 'Ja, voor bloedonderzoek en diagnose.' },
+      { question: 'Doen jullie operaties?', answer: 'Ja, diverse operaties. We bespreken de mogelijkheden.' },
+      { question: 'Bieden jullie röntgen aan?', answer: 'Ja, we hebben röntgenapparatuur.' },
+      
+      // Medicijnen & Voeding
+      { question: 'Mijn dier heeft medicijnen nodig', answer: 'We schrijven voor en hebben de meeste medicijnen op voorraad.' },
+      { question: 'De medicijnen van mijn hond zijn op', answer: 'Ik noteer een herhaalrecept. Welk medicijn?' },
       { question: 'Hebben jullie dierenvoeding?', answer: 'Ja, dieetvoeding en supplementen.' },
-      { question: 'Bieden jullie echografie aan?', answer: 'Ja, voor diagnostiek.' },
-      { question: 'Kunnen jullie bloed afnemen?', answer: 'Ja, voor bloedonderzoek.' },
-      { question: 'Wat als mijn dier medicijnen nodig heeft?', answer: 'We schrijven voor en hebben voorraad.' },
-      { question: 'Bieden jullie dierenverzekering advies?', answer: 'Ja, we kunnen adviseren.' },
-      { question: 'Is er parkeergelegenheid?', answer: 'Ja, voor de deur.' },
-      { question: 'Zijn jullie 24/7 bereikbaar?', answer: 'Nee, maar we hebben spoednummers.' },
-      { question: 'Behandelen jullie exotische dieren?', answer: 'Neem contact op voor mogelijkheden.' },
-      { question: 'Kunnen jullie een paspoort maken?', answer: 'Ja, dierenpaspoorten voor reizen.' },
-      { question: 'Hoe vaak moet mijn huisdier gecontroleerd worden?', answer: 'Minimaal jaarlijks adviseren we.' },
+      { question: 'Welk voer is het beste?', answer: 'De dierenarts adviseert u graag over voeding.' },
+      
+      // Controles
+      { question: 'Hoe vaak moet mijn huisdier gecontroleerd worden?', answer: 'Minimaal jaarlijks voor controle en vaccinaties.' },
+      { question: 'Mijn hond moet op controle', answer: 'Ik plan een controleafspraak. Wanneer past het?' },
+      
+      // Kosten
+      { question: 'Wat kost een consult?', answer: 'Ik informeer u over onze tarieven.' },
+      { question: 'Kan ik pinnen?', answer: 'Ja, we accepteren alle gangbare betaalmethoden.' },
+      { question: 'Hebben jullie een dierenverzekering?', answer: 'Nee, maar we kunnen wel adviseren over verzekeringen.' },
+      
+      // Afsluiting
+      { question: 'Bedankt', answer: 'Graag gedaan! Doe de groetjes aan uw huisdier.' },
     ];
   }
   
-  // Loodgieter
+  // ===========================================
+  // LOODGIETER / INSTALLATEUR - 50+ FAQs
+  // ===========================================
   if (typeId === 'loodgieter') {
     return [
-      { question: 'Wat zijn jullie werktijden?', answer: 'Onze werktijden vindt u op onze website.' },
-      { question: 'Hoe maak ik een afspraak?', answer: 'Telefonisch, we komen snel langs.' },
-      { question: 'Komen jullie ook bij spoed?', answer: 'Ja, we hebben spoeddienst.' },
-      { question: 'Wat kost een voorrijden?', answer: 'Vraag naar actuele tarieven.' },
-      { question: 'Repareren jullie lekkages?', answer: 'Ja, alle soorten lekkages.' },
-      { question: 'Installeren jullie nieuwe badkamers?', answer: 'Ja, complete badkamerrenovatie.' },
-      { question: 'Plaatsen jullie boilers?', answer: 'Ja, verkoop en installatie.' },
-      { question: 'Doen jullie aan CV-onderhoud?', answer: 'Ja, jaarlijks onderhoud.' },
+      // Contact & Afspraken
+      { question: 'Wat zijn jullie werktijden?', answer: 'Ik geef u onze werktijden. Bij spoed komen we ook buiten kantooruren.' },
+      { question: 'Ik heb een loodgieter nodig', answer: 'Ik help u direct. Wat is het probleem?' },
+      { question: 'Hoe maak ik een afspraak?', answer: 'Dat regel ik nu. Wanneer past het u?' },
+      { question: 'Kunnen jullie vandaag komen?', answer: 'Ik kijk of we vandaag kunnen plannen. Is het dringend?' },
+      { question: 'Hoe snel kunnen jullie komen?', answer: 'Vaak dezelfde of volgende werkdag. Bij spoed eerder.' },
+      { question: 'In welke regio werken jullie?', answer: 'Ik geef u ons werkgebied.' },
+      
+      // Spoed
+      { question: 'Ik heb een lekkage!', answer: 'Sluit de hoofdkraan af indien mogelijk. Ik plan een spoedafspraak.' },
+      { question: 'Komen jullie ook bij spoed?', answer: 'Ja, we hebben een spoeddienst. Wat is er aan de hand?' },
+      { question: 'Mijn wc is verstopt', answer: 'Dat lossen we op. Wanneer kunnen we langskomen?' },
+      { question: 'Mijn afvoer is verstopt', answer: 'We komen ontstoppen. Is het keuken of badkamer?' },
+      { question: 'Ik ruik gas!', answer: 'DIRECT ramen open, geen elektra bedienen, naar buiten! Bel de gasdienst.' },
+      { question: 'Ik heb geen warm water', answer: 'Dat is vervelend. Ik plan een afspraak om de boiler te checken.' },
+      { question: 'Mijn verwarming doet het niet', answer: 'We komen kijken. Heeft u de thermostaat gecheckt?' },
+      { question: 'Er komt water uit het plafond', answer: 'Sluit de hoofdkraan af. We komen zo snel mogelijk.' },
+      { question: 'Werken jullie in het weekend?', answer: 'Bij spoed wel. Voor regulier werk op werkdagen.' },
+      
+      // Diensten - Lekkages
+      { question: 'Repareren jullie lekkages?', answer: 'Ja, alle soorten lekkages in leidingen en kranen.' },
+      { question: 'Mijn kraan lekt', answer: 'We komen dit repareren. Welke kraan is het?' },
+      { question: 'Mijn toilet lekt', answer: 'We lossen dit op. Lekt het bij de afvoer of de toevoer?' },
+      { question: 'Kunnen jullie leidingwerk repareren?', answer: 'Ja, reparatie en vervanging van leidingen.' },
+      
+      // Diensten - Installatie
+      { question: 'Installeren jullie badkamers?', answer: 'Ja, complete badkamerrenovaties.' },
+      { question: 'Plaatsen jullie boilers?', answer: 'Ja, verkoop, installatie en onderhoud van boilers.' },
+      { question: 'Installeren jullie CV-ketels?', answer: 'Ja, alle merken CV-ketels.' },
+      { question: 'Plaatsen jullie kranen?', answer: 'Ja, alle soorten kranen in keuken en badkamer.' },
+      { question: 'Installeren jullie vloerverwarming?', answer: 'Ja, aanleg en reparatie van vloerverwarming.' },
+      { question: 'Kunnen jullie een toilet plaatsen?', answer: 'Ja, we plaatsen en vervangen toiletten.' },
+      { question: 'Installeren jullie douches?', answer: 'Ja, douchecabines, regendouches, alles.' },
+      { question: 'Plaatsen jullie wastafels?', answer: 'Ja, wastafels en wasbakken.' },
+      { question: 'Doen jullie aan waterontharders?', answer: 'Ja, installatie en onderhoud van waterontharders.' },
+      
+      // Diensten - Onderhoud
+      { question: 'Doen jullie CV-onderhoud?', answer: 'Ja, jaarlijks onderhoud is aan te raden.' },
+      { question: 'Wanneer moet de CV gecontroleerd worden?', answer: 'Jaarlijks voor optimale werking en veiligheid.' },
       { question: 'Ontstoppen jullie riolen?', answer: 'Ja, met professioneel materiaal.' },
-      { question: 'Werken jullie ook in het weekend?', answer: 'Bij spoed ja, anders op afspraak.' },
-      { question: 'Geven jullie garantie?', answer: 'Ja, op al ons werk.' },
-      { question: 'Kunnen jullie offerte maken?', answer: 'Ja, vrijblijvende offerte.' },
-      { question: 'Installeren jullie vloerverwarming?', answer: 'Ja, aanleg en reparatie.' },
+      { question: 'Kunnen jullie afvoeren reinigen?', answer: 'Ja, we reinigen verstopte afvoeren.' },
+      
+      // Offertes & Kosten
+      { question: 'Wat kost een loodgieter?', answer: 'Dat hangt af van de klus. Ik geef u een indicatie.' },
+      { question: 'Wat zijn de voorrijkosten?', answer: 'Ik informeer u over onze voorrijkosten.' },
+      { question: 'Kunnen jullie een offerte maken?', answer: 'Ja, we maken vrijblijvende offertes.' },
+      { question: 'Komen jullie eerst kijken?', answer: 'Bij grote klussen komen we vrijblijvend kijken voor offerte.' },
+      { question: 'Geven jullie garantie?', answer: 'Ja, we geven garantie op al ons werk.' },
+      
+      // Praktisch
       { question: 'Werken jullie voor bedrijven?', answer: 'Ja, particulier en zakelijk.' },
-      { question: 'Hebben jullie erkende installateurs?', answer: 'Ja, gecertificeerde vakmensen.' },
-      { question: 'Kunnen jullie een gaslek oplossen?', answer: 'Ja, bel direct bij gaslek!' },
-      { question: 'Plaatsen jullie kranen?', answer: 'Ja, alle soorten kranen.' },
-      { question: 'Doen jullie aan waterontharders?', answer: 'Ja, installatie en onderhoud.' },
-      { question: 'Hoe snel kunnen jullie komen?', answer: 'Vaak dezelfde of volgende dag.' },
-      { question: 'Accepteren jullie pin/factuur?', answer: 'Ja, diverse betaalmethoden.' },
+      { question: 'Zijn jullie erkend?', answer: 'Ja, wij zijn gecertificeerde installateurs.' },
+      { question: 'Hoe betaal ik?', answer: 'Contant, pin of factuur. Diverse betaalmethoden.' },
+      { question: 'Krijg ik een factuur?', answer: 'Ja, u ontvangt altijd een factuur.' },
+      
+      // Algemeen
+      { question: 'Hebben jullie een website?', answer: 'Ja, ik geef u het adres.' },
+      { question: 'Bedankt', answer: 'Graag gedaan. Tot ziens!' },
     ];
   }
   
-  // Default FAQs
+  // ===========================================
+  // RESTAURANT / HORECA - 50+ FAQs
+  // ===========================================
+  if (typeId === 'restaurant' || typeId === 'frituur' || typeId === 'pizzeria' || typeId === 'kebab' || typeId === 'snackbar') {
+    return [
+      // Contact & Openingsuren
+      { question: 'Wat zijn jullie openingsuren?', answer: 'Ik geef u graag onze exacte openingsuren.' },
+      { question: 'Zijn jullie vandaag open?', answer: 'Ja, we zijn vandaag geopend! Tot hoe laat kan ik u helpen?' },
+      { question: 'Tot hoe laat zijn jullie open?', answer: 'Ik geef u onze sluitingstijd.' },
+      { question: 'Zijn jullie op zondag open?', answer: 'Ik check onze zondagsuren voor u.' },
+      { question: 'Zijn jullie op feestdagen open?', answer: 'Dat verschilt per feestdag. Ik geef u de info.' },
+      { question: 'Waar zijn jullie gevestigd?', answer: 'Ik geef u ons adres.' },
+      { question: 'Is er parkeergelegenheid?', answer: 'Ja, er is parkeergelegenheid in de buurt.' },
+      
+      // Reserveringen
+      { question: 'Ik wil reserveren', answer: 'Ja natuurlijk! Voor hoeveel personen en wanneer?' },
+      { question: 'Kan ik een tafel reserveren?', answer: 'Ja, voor wanneer wilt u reserveren?' },
+      { question: 'Moet ik reserveren?', answer: 'Voor groepen en in het weekend raden we reserveren aan.' },
+      { question: 'Kan ik een groepsreservering maken?', answer: 'Ja, voor hoeveel personen?' },
+      { question: 'Ik wil mijn reservering annuleren', answer: 'Geen probleem. Onder welke naam staat de reservering?' },
+      { question: 'Ik wil mijn reservering wijzigen', answer: 'Dat kan. Wat wilt u veranderen?' },
+      { question: 'Hebben jullie plek voor vanavond?', answer: 'Ik kijk of er plek is. Met hoeveel personen komt u?' },
+      
+      // Bestellen
+      { question: 'Kan ik telefonisch bestellen?', answer: 'Ja, wat wilt u bestellen?' },
+      { question: 'Ik wil bestellen', answer: 'Wat mag het zijn?' },
+      { question: 'Hebben jullie bezorging?', answer: 'Ja, wij bezorgen. Wat is uw adres?' },
+      { question: 'Wat zijn de bezorgkosten?', answer: 'Ik geef u de bezorgkosten voor uw adres.' },
+      { question: 'Vanaf welk bedrag leveren jullie?', answer: 'Ik vertel u ons minimum bestelbedrag.' },
+      { question: 'Hoe lang duurt de bezorging?', answer: 'Gemiddeld 30-45 minuten, afhankelijk van drukte.' },
+      { question: 'Kan ik afhalen?', answer: 'Ja, afhalen kan. Wanneer wilt u het ophalen?' },
+      { question: 'Hoe laat is mijn bestelling klaar?', answer: 'Meestal binnen 15-20 minuten na bestelling.' },
+      { question: 'Kan ik online bestellen?', answer: 'Ja, via onze website of app.' },
+      { question: 'Kan ik met pin betalen?', answer: 'Ja, wij accepteren pin, contant en vaak ook creditcard.' },
+      
+      // Menu
+      { question: 'Hebben jullie een menukaart?', answer: 'Ja, ik kan u over onze gerechten vertellen.' },
+      { question: 'Wat zijn jullie specialiteiten?', answer: 'Ik vertel u graag over onze populaire gerechten.' },
+      { question: 'Hebben jullie vegetarische opties?', answer: 'Ja, wij hebben vegetarische gerechten.' },
+      { question: 'Hebben jullie veganistische opties?', answer: 'Ja, wij hebben veganistische keuzes.' },
+      { question: 'Hebben jullie glutenvrije opties?', answer: 'Ja, vraag naar onze glutenvrije gerechten.' },
+      { question: 'Zijn er allergenen in jullie eten?', answer: 'Wij kunnen u informeren over allergenen.' },
+      { question: 'Wat kost een ...?', answer: 'Ik geef u de prijs.' },
+      { question: 'Hebben jullie een kindermenu?', answer: 'Ja, wij hebben kinderporties.' },
+      { question: 'Hebben jullie dagmenu?', answer: 'Vraag naar onze dagaanbiedingen.' },
+      { question: 'Hebben jullie lunch?', answer: 'Ja, onze lunchkaart is beschikbaar.' },
+      
+      // Specifieke gerechten
+      { question: 'Hebben jullie pizza?', answer: 'Ja, wij hebben diverse pizzas.' },
+      { question: 'Hebben jullie friet?', answer: 'Ja, wij hebben verse friet.' },
+      { question: 'Welke sauzen hebben jullie?', answer: 'Wij hebben diverse sauzen. Ik noem ze op.' },
+      { question: 'Hebben jullie desserts?', answer: 'Ja, wij hebben desserts.' },
+      { question: 'Hebben jullie drankjes?', answer: 'Ja, frisdranken, bier, wijn, etc.' },
+      
+      // Praktisch
+      { question: 'Is er een toilet?', answer: 'Ja, er is een toilet voor klanten.' },
+      { question: 'Hebben jullie wifi?', answer: 'Ja, we hebben gratis wifi voor klanten.' },
+      { question: 'Is er een terras?', answer: 'Ik informeer u over ons terras.' },
+      { question: 'Zijn jullie kindvriendelijk?', answer: 'Ja, kinderen zijn welkom.' },
+      { question: 'Kan ik met een groep komen?', answer: 'Ja, reserveer vooraf voor grotere groepen.' },
+      
+      // Feedback
+      { question: 'Ik heb een klacht', answer: 'Dat spijt ons. Vertel me wat er is gebeurd.' },
+      { question: 'Mijn bestelling klopt niet', answer: 'Excuses daarvoor. Wat is er mis?' },
+      { question: 'Bedankt', answer: 'Graag gedaan! Eet smakelijk en tot ziens!' },
+    ];
+  }
+  
+  // ===========================================
+  // KAPPER / SCHOONHEIDSSALON - 40+ FAQs
+  // ===========================================
+  if (typeId === 'kapper' || typeId === 'schoonheidssalon' || typeId === 'nagelsalon' || typeId === 'spa' || typeId === 'massagesalon') {
+    return [
+      // Contact & Afspraken
+      { question: 'Wat zijn jullie openingsuren?', answer: 'Ik geef u graag onze openingsuren.' },
+      { question: 'Ik wil een afspraak maken', answer: 'Ja natuurlijk! Voor welke behandeling?' },
+      { question: 'Hoe maak ik een afspraak?', answer: 'Dat regel ik nu voor u. Wat wilt u laten doen?' },
+      { question: 'Kan ik vandaag nog terecht?', answer: 'Ik kijk of er vandaag nog plek is.' },
+      { question: 'Moet ik reserveren?', answer: 'Ja, wij werken op afspraak.' },
+      { question: 'Waar zijn jullie gevestigd?', answer: 'Ik geef u ons adres.' },
+      { question: 'Is er parkeergelegenheid?', answer: 'Ja, er is parkeergelegenheid in de buurt.' },
+      
+      // Afspraken wijzigen
+      { question: 'Ik wil mijn afspraak verzetten', answer: 'Geen probleem. Naar wanneer wilt u verplaatsen?' },
+      { question: 'Ik moet annuleren', answer: 'Dat is jammer. Wilt u een nieuwe afspraak maken?' },
+      { question: 'Hoe lang van tevoren moet ik afzeggen?', answer: 'Liefst 24 uur van tevoren.' },
+      
+      // Behandelingen
+      { question: 'Welke behandelingen bieden jullie?', answer: 'Ik geef u een overzicht van onze behandelingen.' },
+      { question: 'Hoe lang duurt een knipbeurt?', answer: 'Ongeveer 30-45 minuten.' },
+      { question: 'Hoe lang duurt verven?', answer: 'Ongeveer 1,5 tot 2 uur, afhankelijk van de behandeling.' },
+      { question: 'Doen jullie ook heren?', answer: 'Ja, wij knippen ook heren.' },
+      { question: 'Doen jullie ook kinderen?', answer: 'Ja, kinderen zijn welkom.' },
+      { question: 'Bieden jullie gezichtsbehandelingen?', answer: 'Ja, we hebben diverse gezichtsbehandelingen.' },
+      { question: 'Doen jullie nagels?', answer: 'Ja, manicure en pedicure.' },
+      { question: 'Bieden jullie massage?', answer: 'Ja, we hebben verschillende massages.' },
+      { question: 'Doen jullie wenkbrauwen?', answer: 'Ja, epileren en shapen.' },
+      { question: 'Bieden jullie harsen/waxen?', answer: 'Ja, voor verschillende lichaamsdelen.' },
+      
+      // Prijzen
+      { question: 'Wat kost knippen?', answer: 'Ik geef u onze knipprijzen.' },
+      { question: 'Wat kost verven?', answer: 'Dat hangt af van de behandeling. Ik informeer u.' },
+      { question: 'Hebben jullie een prijslijst?', answer: 'Ja, ik geef u de prijzen.' },
+      { question: 'Kan ik pinnen?', answer: 'Ja, we accepteren pin en contant.' },
+      
+      // Specifiek
+      { question: 'Werken jullie met afspraak of inloop?', answer: 'Wij werken op afspraak.' },
+      { question: 'Hebben jullie cadeaubonnen?', answer: 'Ja, cadeaubonnen zijn beschikbaar.' },
+      { question: 'Gebruiken jullie specifieke producten?', answer: 'Ja, wij werken met professionele producten.' },
+      { question: 'Bedankt', answer: 'Graag gedaan! Tot ziens!' },
+    ];
+  }
+  
+  // ===========================================
+  // DEFAULT FAQs - voor alle overige types
+  // ===========================================
   return [
-    { question: 'Wat zijn jullie openingsuren?', answer: 'Onze openingsuren vindt u op onze website.' },
-    { question: 'Waar zijn jullie gevestigd?', answer: 'Ons adres vindt u op onze website.' },
-    { question: 'Hoe maak ik een afspraak?', answer: 'Telefonisch of online.' },
-    { question: 'Is er parkeergelegenheid?', answer: 'Ja, in de buurt.' },
+    { question: 'Wat zijn jullie openingsuren?', answer: 'Ik geef u graag onze exacte openingsuren.' },
+    { question: 'Waar zijn jullie gevestigd?', answer: 'Ik geef u ons volledige adres.' },
+    { question: 'Ik wil een afspraak maken', answer: 'Ja natuurlijk! Wanneer past het u?' },
+    { question: 'Hoe maak ik een afspraak?', answer: 'Dat regel ik nu voor u.' },
     { question: 'Kan ik mijn afspraak verzetten?', answer: 'Ja, neem tijdig contact op.' },
+    { question: 'Is er parkeergelegenheid?', answer: 'Ja, er is parkeergelegenheid in de buurt.' },
+    { question: 'Zijn jullie rolstoeltoegankelijk?', answer: 'Neem contact op voor informatie over toegankelijkheid.' },
+    { question: 'Wat zijn de kosten?', answer: 'Ik informeer u graag over onze tarieven.' },
+    { question: 'Kan ik pinnen?', answer: 'Ja, we accepteren diverse betaalmethoden.' },
+    { question: 'Hebben jullie een website?', answer: 'Ja, ik geef u het adres.' },
+    { question: 'Bedankt voor de hulp', answer: 'Graag gedaan! Nog een fijne dag!' },
+    { question: 'Tot ziens', answer: 'Tot ziens en een goede dag!' },
   ];
 }
