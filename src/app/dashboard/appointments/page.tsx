@@ -1,15 +1,11 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useLanguage } from '@/lib/LanguageContext';
 import { Plus, ChevronLeft, ChevronRight, X, Clock, User, Check, Trash2, Settings, Calendar } from 'lucide-react';
 import { getBusinessType } from '@/lib/modules';
-
-// Force dynamic rendering to support useSearchParams
-export const dynamic = 'force-dynamic';
 
 // Business types that use medical/professional appointment form
 const ZORG_TYPES = ['dokter', 'ziekenhuis', 'tandarts', 'opticien', 'dierenkliniek', 'advocaat', 'boekhouder', 'loodgieter'];
@@ -50,12 +46,19 @@ type ViewMode = 'day' | 'week' | 'month';
 
 export default function AppointmentsPage() {
   const { t } = useLanguage();
-  const searchParams = useSearchParams();
-  const adminViewId = searchParams.get('admin_view');
+  const [adminViewId, setAdminViewId] = useState<string | null>(null);
   
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
+  
+  // Get admin_view from URL on client side
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      setAdminViewId(params.get('admin_view'));
+    }
+  }, []);
   const [loading, setLoading] = useState(true);
   const [businessId, setBusinessId] = useState<string | null>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
