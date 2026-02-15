@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useLanguage } from '@/lib/LanguageContext';
+import { useBusiness } from '@/lib/BusinessContext';
 import { Plus, ChevronLeft, ChevronRight, X, Clock, User, Check, Trash2, Settings, Calendar } from 'lucide-react';
-import { getBusinessType } from '@/lib/modules';
 
 // Business types that use medical/professional appointment form
 const ZORG_TYPES = ['dokter', 'ziekenhuis', 'tandarts', 'opticien', 'dierenkliniek', 'advocaat', 'boekhouder', 'loodgieter'];
@@ -46,21 +45,12 @@ type ViewMode = 'day' | 'week' | 'month';
 
 export default function AppointmentsPage() {
   const { t } = useLanguage();
-  const [adminViewId, setAdminViewId] = useState<string | null>(null);
+  const { business, businessId, businessType, loading: businessLoading } = useBusiness();
   
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
-  
-  // Get admin_view from URL on client side
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      setAdminViewId(params.get('admin_view'));
-    }
-  }, []);
-  const [loading, setLoading] = useState(true);
-  const [businessId, setBusinessId] = useState<string | null>(null);
+  const [dataLoading, setDataLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string>('09:00');
@@ -77,8 +67,9 @@ export default function AppointmentsPage() {
   const [startHour, setStartHour] = useState(8);
   const [endHour, setEndHour] = useState(18);
 
-  const [businessType, setBusinessType] = useState<string>('');
+  // Determine if this is a zorg type from context
   const isZorgType = ZORG_TYPES.includes(businessType);
+  const loading = businessLoading || dataLoading;
 
   const [formData, setFormData] = useState({
     customer_name: '',
@@ -95,49 +86,28 @@ export default function AppointmentsPage() {
     reason: '',
   });
 
-  useEffect(() => { loadData(); }, [adminViewId]);
-  useEffect(() => { if (businessId) loadAppointments(); }, [currentDate, businessId, viewMode]);
+  // Load services and staff when businessId becomes available
+  useEffect(() => {
+    if (businessId) {
+      loadServicesAndStaff();
+    }
+  }, [businessId]);
 
-  const loadData = async () => {
+  // Load appointments when date/view changes
+  useEffect(() => { 
+    if (businessId) loadAppointments(); 
+  }, [currentDate, businessId, viewMode]);
+
+  const loadServicesAndStaff = async () => {
+    if (!businessId) return;
+    
     try {
-      let business;
+      setDataLoading(true);
       
-      // Check if viewing as admin
-      if (adminViewId) {
-        // Load specific business by ID (admin view)
-        const bizRes = await fetch(`/api/admin/tenants?id=${adminViewId}`);
-        if (bizRes.ok) {
-          const data = await bizRes.json();
-          business = Array.isArray(data) ? data[0] : data;
-        }
-      } else {
-        // Get current user's business
-        const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user || !user.email) {
-          setLoading(false);
-          return;
-        }
-
-        const bizRes = await fetch(`/api/business/by-email?email=${encodeURIComponent(user.email)}`);
-        if (bizRes.ok) {
-          business = await bizRes.json();
-        }
-      }
-
-      if (!business || !business.id) {
-        setLoading(false);
-        return;
-      }
-
-      const bizId = business.id;
-      setBusinessId(bizId);
-      setBusinessType(business.type || '');
-
       // Load services and staff via admin APIs (parallel)
       const [servicesRes, staffRes] = await Promise.all([
-        fetch(`/api/admin/services?business_id=${bizId}`),
-        fetch(`/api/admin/staff?business_id=${bizId}`),
+        fetch(`/api/admin/services?business_id=${businessId}`),
+        fetch(`/api/admin/staff?business_id=${businessId}`),
       ]);
 
       if (servicesRes.ok) {
@@ -149,11 +119,10 @@ export default function AppointmentsPage() {
         const staffData = await staffRes.json();
         if (Array.isArray(staffData)) setStaff(staffData);
       }
-
-      setLoading(false);
     } catch (err) {
-      console.error('Failed to load data:', err);
-      setLoading(false);
+      console.error('Failed to load services/staff:', err);
+    } finally {
+      setDataLoading(false);
     }
   };
 

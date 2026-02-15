@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { createClient } from '@/lib/supabase';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useLanguage } from '@/lib/LanguageContext';
-import { useSearchParams } from 'next/navigation';
+import { useBusiness } from '@/lib/BusinessContext';
 import { 
   Calendar, 
   Phone, 
@@ -31,87 +31,31 @@ interface Stats {
 
 function DashboardContent() {
   const { t, language } = useLanguage();
-  const searchParams = useSearchParams();
+  const { business, businessId, isAdminView, loading: businessLoading } = useBusiness();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [businessName, setBusinessName] = useState('');
-  const [isAdminView, setIsAdminView] = useState(false);
   const [stats, setStats] = useState<Stats>({
     appointmentsToday: 0,
     conversationsToday: 0,
     missedCalls: 0,
     monthlyAppointments: 0,
   });
-  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
+  const loading = businessLoading || dataLoading;
+  const businessName = business?.name || business?.email || '';
 
   useEffect(() => {
-    // Get admin_view from URL directly (more reliable)
-    const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    const adminViewId = urlParams?.get('admin_view') || searchParams.get('admin_view');
-    loadDashboardData(adminViewId);
-  }, []);
-
-  const loadDashboardData = async (adminViewId: string | null) => {
-    const supabase = createClient();
-    let businessId: string | null = null;
-    let businessNameValue: string = '';
-
-    // Check if admin is viewing a tenant (via URL parameter)
-    if (adminViewId) {
-      // Load tenant via API (bypasses RLS)
-      try {
-        const res = await fetch(`/api/business/${adminViewId}`);
-        if (res.ok) {
-          const biz = await res.json();
-          businessId = biz.id;
-          businessNameValue = biz.name || biz.email || biz.type || '';
-          setBusinessName(businessNameValue);
-          setIsAdminView(true);
-        }
-      } catch (e) {
-        console.error('Failed to load business:', e);
-      }
+    if (businessId) {
+      loadDashboardData();
     }
-    
-    // Normal user flow
+  }, [businessId]);
+
+  const loadDashboardData = async () => {
     if (!businessId) {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
-      // First try to find by user_id
-      let { data: businessData } = await supabase
-        .from('businesses')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      // If not found, try to find by email (for admin-created tenants)
-      if (!businessData && user.email) {
-        const { data: emailBusiness } = await supabase
-          .from('businesses')
-          .select('*')
-          .eq('email', user.email)
-          .single();
-        businessData = emailBusiness;
-      }
-
-      if (!businessData) {
-        setLoading(false);
-        return;
-      }
-      
-      const biz = businessData as { id: string; name: string; email: string | null; type: string };
-      businessId = biz.id;
-      businessNameValue = biz.name || biz.email || biz.type || '';
-      setBusinessName(businessNameValue);
-    }
-
-    if (!businessId) {
-      setLoading(false);
+      setDataLoading(false);
       return;
     }
+    
+    const supabase = createClient();
 
     // Get today's appointments
     const today = new Date();
@@ -155,7 +99,7 @@ function DashboardContent() {
       setStats(prev => ({ ...prev, conversationsToday: conversationsCount }));
     }
 
-    setLoading(false);
+    setDataLoading(false);
   };
 
   const formatTime = (dateString: string) => {

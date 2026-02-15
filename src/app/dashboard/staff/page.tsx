@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useLanguage } from '@/lib/LanguageContext';
+import { useBusiness } from '@/lib/BusinessContext';
 import { Plus, Pencil, Trash2, X, User, Mail, Phone, Check, Users, Info } from 'lucide-react';
 
 interface WorkingHours {
@@ -36,9 +37,9 @@ const dayLabels: Record<string, string> = {
 
 export default function StaffPage() {
   const { t, language } = useLanguage();
+  const { businessId, loading: businessLoading } = useBusiness();
   const [staff, setStaff] = useState<Staff[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [businessId, setBusinessId] = useState<string | null>(null);
+  const [dataLoading, setDataLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', working_hours: defaultWorkingHours, is_active: true });
@@ -46,23 +47,20 @@ export default function StaffPage() {
   const [error, setError] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  
+  const loading = businessLoading || dataLoading;
 
-  useEffect(() => { loadStaff(); }, []);
+  useEffect(() => { 
+    if (businessId) loadStaff(); 
+  }, [businessId]);
 
   const loadStaff = async () => {
+    if (!businessId) return;
+    
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data: businessData } = await supabase.from('businesses').select('*').eq('user_id', user.id).single();
-    if (!businessData) { setLoading(false); return; }
-
-    const bizId = (businessData as { id: string }).id;
-    setBusinessId(bizId);
-
-    const { data: staffData } = await supabase.from('staff').select('*').eq('business_id', bizId).order('name');
+    const { data: staffData } = await supabase.from('staff').select('*').eq('business_id', businessId).order('name');
     if (staffData) setStaff(staffData as Staff[]);
-    setLoading(false);
+    setDataLoading(false);
   };
 
   const openCreateModal = () => {

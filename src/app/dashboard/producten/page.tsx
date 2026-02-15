@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { createClient } from '@/lib/supabase';
 import { Package, Plus, Trash2, Check, X, Clock, Euro, Search, Filter, ArrowLeft, Upload } from 'lucide-react';
 import Link from 'next/link';
 import ModuleGuard from '@/components/ModuleGuard';
+import { useBusiness } from '@/lib/BusinessContext';
 
 interface Product {
   id?: string;
@@ -28,21 +28,18 @@ interface OptionGroup {
   choices?: { id: string; name: string; price: number }[];
 }
 
-interface Business {
-  id: string;
-  type: string;
-}
-
 export default function ProductenPage() {
+  const { business, businessId, businessType, loading: businessLoading } = useBusiness();
   const [products, setProducts] = useState<Product[]>([]);
   const [optionGroups, setOptionGroups] = useState<OptionGroup[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [business, setBusiness] = useState<Business | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const loading = businessLoading || dataLoading;
   
   // Filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,45 +64,22 @@ export default function ProductenPage() {
   });
 
   // Bepaal of dit een dienst-type bedrijf is (kapper, salon, etc.)
-  const isServiceBusiness = business?.type && ['salon', 'kapper', 'barbier', 'schoonheid', 'massage', 'fitness'].includes(business.type.toLowerCase());
+  const isServiceBusiness = businessType && ['salon', 'kapper', 'barbier', 'schoonheid', 'massage', 'fitness'].includes(businessType.toLowerCase());
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (businessId) {
+      loadData();
+    }
+  }, [businessId]);
 
   const loadData = async () => {
-    setLoading(true);
+    if (!businessId) return;
+    
+    setDataLoading(true);
     setError(null);
     try {
-      // Haal business info op via API (bypass RLS)
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user || !user.email) {
-        setError('Niet ingelogd');
-        setLoading(false);
-        return;
-      }
-
-      // Gebruik API om business te laden (bypass RLS)
-      const bizRes = await fetch(`/api/business/by-email?email=${encodeURIComponent(user.email)}`);
-      if (!bizRes.ok) {
-        setError('Geen bedrijf gevonden');
-        setLoading(false);
-        return;
-      }
-      
-      const businessData = await bizRes.json();
-      if (!businessData || !businessData.id) {
-        setError('Geen bedrijf gevonden');
-        setLoading(false);
-        return;
-      }
-      
-      setBusiness({ id: businessData.id, type: businessData.type });
-
       // Haal producten via admin API (bypass RLS)
-      const productsRes = await fetch(`/api/admin/products?business_id=${businessData.id}`);
+      const productsRes = await fetch(`/api/admin/products?business_id=${businessId}`);
       if (productsRes.ok) {
         const productsData = await productsRes.json();
         if (Array.isArray(productsData)) {
@@ -126,7 +100,7 @@ export default function ProductenPage() {
       }
 
       // Haal optiegroepen via admin API (bypass RLS)
-      const optionsRes = await fetch(`/api/admin/options?business_id=${businessData.id}`);
+      const optionsRes = await fetch(`/api/admin/options?business_id=${businessId}`);
       if (optionsRes.ok) {
         const optionsData = await optionsRes.json();
         if (Array.isArray(optionsData)) {
@@ -143,7 +117,7 @@ export default function ProductenPage() {
       console.error('Failed to load data:', e);
       setError('Kon gegevens niet laden');
     } finally {
-      setLoading(false);
+      setDataLoading(false);
     }
   };
 
@@ -257,7 +231,7 @@ export default function ProductenPage() {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                business_id: business.id,
+                business_id: businessId,
                 category: 'Producten',
                 name: prod.name,
                 price: prod.price,
@@ -294,7 +268,7 @@ export default function ProductenPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            business_id: business.id,
+            business_id: businessId,
             category: 'Producten',
             name: prod.name,
             price: prod.price,
@@ -384,7 +358,7 @@ export default function ProductenPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          business_id: business.id,
+          business_id: businessId,
           id: editingProduct?.id,
           category: formData.category || 'Overig',
           name: formData.name,
@@ -443,7 +417,7 @@ export default function ProductenPage() {
     if (!business) return;
 
     try {
-      const res = await fetch(`/api/admin/products?id=${productId}&business_id=${business.id}`, {
+      const res = await fetch(`/api/admin/products?id=${productId}&business_id=${businessId}`, {
         method: 'DELETE',
       });
       
@@ -464,7 +438,7 @@ export default function ProductenPage() {
 
     try {
       // Bulk delete in één call
-      const res = await fetch(`/api/admin/products?business_id=${business.id}&all=true`, {
+      const res = await fetch(`/api/admin/products?business_id=${businessId}&all=true`, {
         method: 'DELETE',
       });
       
@@ -489,7 +463,7 @@ export default function ProductenPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          business_id: business.id,
+          business_id: businessId,
           id: product.id,
           ...product,
           is_available: newAvailable,

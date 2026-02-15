@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase';
 import { hasModule, getBusinessType, ModuleId, MODULES } from '@/lib/modules';
+import { useBusiness } from '@/lib/BusinessContext';
 import Link from 'next/link';
 import { Lock, ArrowLeft } from 'lucide-react';
 
@@ -11,42 +10,10 @@ interface ModuleGuardProps {
   children: React.ReactNode;
 }
 
-interface Business {
-  id: string;
-  type: string;
-  name: string;
-}
-
 export default function ModuleGuard({ moduleId, children }: ModuleGuardProps) {
-  const [business, setBusiness] = useState<Business | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [hasAccess, setHasAccess] = useState(false);
-
-  useEffect(() => {
-    loadBusiness();
-  }, []);
-
-  const loadBusiness = async () => {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user?.email) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const res = await fetch(`/api/business/by-email?email=${encodeURIComponent(user.email)}`);
-      if (res.ok) {
-        const biz = await res.json();
-        setBusiness(biz);
-        setHasAccess(hasModule(biz.type, moduleId));
-      }
-    } catch (e) {
-      console.error('Failed to load business:', e);
-    }
-    setLoading(false);
-  };
+  const { business, businessType, loading, getHref } = useBusiness();
+  
+  const hasAccess = businessType ? hasModule(businessType, moduleId) : false;
 
   if (loading) {
     return (
@@ -57,7 +24,7 @@ export default function ModuleGuard({ moduleId, children }: ModuleGuardProps) {
   }
 
   if (!hasAccess && business) {
-    const businessConfig = getBusinessType(business.type);
+    const businessConfig = getBusinessType(businessType);
     const moduleConfig = MODULES[moduleId];
     
     return (
@@ -85,7 +52,7 @@ export default function ModuleGuard({ moduleId, children }: ModuleGuardProps) {
             Jouw actieve modules: {businessConfig.modules.map(m => MODULES[m]?.name).join(', ')}
           </p>
           
-          <Link href="/dashboard" style={{
+          <Link href={getHref('/dashboard')} style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
             padding: '12px 24px', background: '#f97316', borderRadius: 8,
             color: 'white', fontWeight: 600, textDecoration: 'none',

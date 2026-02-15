@@ -1,35 +1,18 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
-import { createClient } from '@/lib/supabase';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Phone, Calendar, Users, Settings, LogOut, TrendingUp, MessageSquare, Menu, X, Briefcase, Globe, ChevronDown, Shield, Package, SlidersHorizontal, Wrench, CreditCard, Home, Car, FileText, ShoppingBag, UtensilsCrossed, CalendarCheck, Scissors } from 'lucide-react';
+import { Phone, Calendar, Users, Settings, LogOut, TrendingUp, MessageSquare, Menu, X, Briefcase, Globe, ChevronDown, Shield, Package, Wrench, CreditCard, Home, Car, FileText, ShoppingBag, UtensilsCrossed, CalendarCheck, Scissors } from 'lucide-react';
 import { useLanguage, Language } from '@/lib/LanguageContext';
-import { getBusinessType, hasModule, MODULES, ModuleId } from '@/lib/modules';
-
-interface Business {
-  id: string;
-  name: string;
-  type: string;
-  email: string | null;
-  subscription_status: string;
-  trial_ends_at: string | null;
-  enabled_modules?: ModuleId[];  // Custom modules per tenant (overrides default)
-}
+import { useBusiness } from '@/lib/BusinessContext';
+import { getBusinessType, hasModule, ModuleId } from '@/lib/modules';
+import { createClient } from '@/lib/supabase';
 
 // Icon mapping voor modules
 const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
   Calendar, UtensilsCrossed, ShoppingBag, CalendarCheck, Scissors, Users, Wrench, CreditCard, Home, Car, FileText,
 };
-
-// Basis nav items (altijd zichtbaar)
-const baseNavItems = [
-  { href: '/dashboard', icon: TrendingUp, labelKey: 'dashboard.nav.dashboard', always: true },
-  { href: '/dashboard/conversations', icon: MessageSquare, labelKey: 'dashboard.nav.conversations', always: true },
-  { href: '/dashboard/ai-settings', icon: Phone, labelKey: 'dashboard.nav.reception', always: true },
-  { href: '/dashboard/settings', icon: Settings, labelKey: 'dashboard.nav.settings', always: true },
-];
 
 // Module-specifieke nav items
 const moduleNavItems: Record<ModuleId, { href: string; icon: React.ComponentType<{ size?: number }>; label: string }> = {
@@ -55,77 +38,25 @@ const languages: { code: Language; label: string; flag: string }[] = [
 
 function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const { t, language, setLanguage } = useLanguage();
-  const [business, setBusiness] = useState<Business | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { business, isAdminView, loading, getHref, clearAdminView } = useBusiness();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
-  const [isAdminView, setIsAdminView] = useState(false);
-  const [adminViewId, setAdminViewId] = useState<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  // Helper to add admin_view to links - read directly from URL for immediate availability
-  const getHref = (path: string) => {
-    // Use state if available, otherwise read from URL directly
-    const viewId = adminViewId || (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('admin_view') : null);
-    if (viewId) {
-      return `${path}?admin_view=${viewId}`;
-    }
-    return path;
-  };
-
-  useEffect(() => { checkAuth(); }, []);
-
-  const checkAuth = async () => {
-    const supabase = createClient();
-    
-    // Get admin_view from URL directly (more reliable than useSearchParams)
-    const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    const viewId = urlParams?.get('admin_view') || searchParams.get('admin_view');
-    
-    // Check if admin is viewing a tenant dashboard (via URL parameter)
-    if (viewId) {
-      setAdminViewId(viewId);
-      // Load tenant via API (bypasses RLS)
-      try {
-        const res = await fetch(`/api/business/${viewId}`);
-        if (res.ok) {
-          const businessData = await res.json();
-          setBusiness(businessData as Business);
-          setIsAdminView(true);
-        }
-      } catch (e) {
-        console.error('Failed to load business:', e);
-      }
-      setLoading(false);
-      return;
-    }
-    
-    // Normal user auth flow
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) { router.push('/login'); return; }
-
-    // Use API to bypass RLS (works for all tenants)
-    if (user.email) {
-      try {
-        const res = await fetch(`/api/business/by-email?email=${encodeURIComponent(user.email)}`);
-        if (res.ok) {
-          const businessData = await res.json();
-          setBusiness(businessData as Business);
-        }
-      } catch (e) {
-        console.error('Failed to load business:', e);
-      }
-    }
-    setLoading(false);
-  };
 
   const handleLogout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
+    // Clear admin view on logout
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('vox_admin_view');
+    }
     router.push('/login');
+  };
+
+  const handleBackToAdmin = () => {
+    clearAdminView();
+    router.push('/admin');
   };
 
   const getDaysRemaining = () => {
@@ -133,8 +64,6 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     const diff = Math.ceil((new Date(business.trial_ends_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
     return Math.max(0, diff);
   };
-
-  const isActive = (href: string) => href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(href);
 
   const currentLang = languages.find(l => l.code === language) || languages[0];
 
@@ -293,12 +222,12 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         </nav>
 
         {isAdminView ? (
-          <Link href="/admin" style={{
+          <button onClick={handleBackToAdmin} style={{
             display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: '#8b5cf620',
-            border: 'none', borderRadius: 8, color: '#8b5cf6', fontSize: 14, fontWeight: 600, width: '100%', textAlign: 'left', textDecoration: 'none',
+            border: 'none', borderRadius: 8, color: '#8b5cf6', fontSize: 14, fontWeight: 600, width: '100%', textAlign: 'left', cursor: 'pointer',
           }}>
             <Shield size={18} />Terug naar Admin
-          </Link>
+          </button>
         ) : (
           <button onClick={handleLogout} style={{
             display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: 'transparent',
