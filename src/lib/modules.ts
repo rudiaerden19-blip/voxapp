@@ -262,6 +262,15 @@ export const BUSINESS_TYPES: Record<string, BusinessTypeConfig> = {
   },
 
   // ========== ZORG ==========
+  ziekenhuis: {
+    id: 'ziekenhuis',
+    name: 'Ziekenhuis',
+    icon: '🏥',
+    category: 'zorg',
+    modules: ['appointments', 'services', 'staff', 'patients'],
+    aiContext: 'Je bent receptionist van een ziekenhuis. Je plant afspraken voor consultaties en onderzoeken. Vraag naar de afdeling en of er een verwijsbrief is. Bij spoed, verwijs naar de spoedafdeling.',
+    terminology: { product: 'onderzoek', products: 'onderzoeken', appointment: 'afspraak', customer: 'patiënt' },
+  },
   tandarts: {
     id: 'tandarts',
     name: 'Tandarts',
@@ -285,7 +294,7 @@ export const BUSINESS_TYPES: Record<string, BusinessTypeConfig> = {
     name: 'Opticien',
     icon: '👓',
     category: 'zorg',
-    modules: ['appointments', 'services', 'menu'],
+    modules: ['appointments', 'services', 'staff'],
     aiContext: 'Je werkt bij een opticien. Je plant oogtesten, helpt met brillen en lenzen. Vraag of het om een controle gaat of nieuwe bril/lenzen.',
     terminology: { product: 'product', products: 'producten', appointment: 'afspraak', customer: 'klant' },
   },
