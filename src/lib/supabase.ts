@@ -41,9 +41,9 @@ interface Database {
         Relationships: []
       }
       menu_items: {
-        Row: { id: string; business_id: string; name: string; description: string | null; price: number; category: string | null; is_available: boolean; created_at: string; updated_at: string }
-        Insert: { id?: string; business_id: string; name: string; description?: string | null; price: number; category?: string | null; is_available?: boolean; created_at?: string; updated_at?: string }
-        Update: { id?: string; business_id?: string; name?: string; description?: string | null; price?: number; category?: string | null; is_available?: boolean; created_at?: string; updated_at?: string }
+        Row: { id: string; business_id: string; name: string; description: string | null; price: number; category: string | null; is_available: boolean; sort_order: number; is_popular: boolean; is_promo: boolean; promo_price: number | null; duration_minutes: number | null; image_url: string | null; created_at: string; updated_at: string }
+        Insert: { id?: string; business_id: string; name: string; description?: string | null; price: number; category?: string | null; is_available?: boolean; sort_order?: number; is_popular?: boolean; is_promo?: boolean; promo_price?: number | null; duration_minutes?: number | null; image_url?: string | null; created_at?: string; updated_at?: string }
+        Update: { id?: string; business_id?: string; name?: string; description?: string | null; price?: number; category?: string | null; is_available?: boolean; sort_order?: number; is_popular?: boolean; is_promo?: boolean; promo_price?: number | null; duration_minutes?: number | null; image_url?: string | null; created_at?: string; updated_at?: string }
         Relationships: []
       }
       orders: {
@@ -56,6 +56,24 @@ interface Database {
         Row: { id: string; order_id: string; menu_item_id: string; quantity: number; unit_price: number; created_at: string }
         Insert: { id?: string; order_id: string; menu_item_id: string; quantity: number; unit_price: number; created_at?: string }
         Update: { id?: string; order_id?: string; menu_item_id?: string; quantity?: number; unit_price?: number; created_at?: string }
+        Relationships: []
+      }
+      option_groups: {
+        Row: { id: string; business_id: string; name: string; type: string; required: boolean; sort_order: number; is_active: boolean; created_at: string; updated_at: string }
+        Insert: { id?: string; business_id: string; name: string; type?: string; required?: boolean; sort_order?: number; is_active?: boolean; created_at?: string; updated_at?: string }
+        Update: { id?: string; business_id?: string; name?: string; type?: string; required?: boolean; sort_order?: number; is_active?: boolean; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      option_choices: {
+        Row: { id: string; option_group_id: string; business_id: string; name: string; price: number; sort_order: number; is_active: boolean; created_at: string; updated_at: string }
+        Insert: { id?: string; option_group_id: string; business_id: string; name: string; price?: number; sort_order?: number; is_active?: boolean; created_at?: string; updated_at?: string }
+        Update: { id?: string; option_group_id?: string; business_id?: string; name?: string; price?: number; sort_order?: number; is_active?: boolean; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      product_option_links: {
+        Row: { id: string; menu_item_id: string; option_group_id: string; business_id: string; created_at: string }
+        Insert: { id?: string; menu_item_id: string; option_group_id: string; business_id: string; created_at?: string }
+        Update: { id?: string; menu_item_id?: string; option_group_id?: string; business_id?: string; created_at?: string }
         Relationships: []
       }
     }
