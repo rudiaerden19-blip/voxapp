@@ -454,6 +454,9 @@ export default function AISettingsPage() {
         opening_hours: openingHours,
         // Always load FAQ template for business type
         faqs: faqTemplate,
+        // Load fallback settings
+        fallback_action: biz.fallback_action || 'voicemail',
+        transfer_number: biz.transfer_number || '',
       }));
     setLoading(false);
   };
@@ -522,6 +525,9 @@ export default function AISettingsPage() {
           welcome_message: config.greeting,
           // Opening hours
           opening_hours: dbOpeningHours,
+          // Fallback settings
+          fallback_action: config.fallback_action,
+          transfer_number: config.transfer_number || null,
         }),
       });
       

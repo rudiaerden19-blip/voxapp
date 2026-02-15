@@ -14,7 +14,8 @@ import {
 const ALLOWED_UPDATE_FIELDS = [
   'name', 'description', 'phone', 'email', 'website',
   'street', 'city', 'postal_code', 'country',
-  'voice_id', 'welcome_message', 'opening_hours'
+  'voice_id', 'welcome_message', 'opening_hours',
+  'fallback_action', 'transfer_number'
 ];
 
 // PUT - Update business
