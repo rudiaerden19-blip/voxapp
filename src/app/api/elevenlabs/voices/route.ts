@@ -1,5 +1,13 @@
 import { NextResponse } from 'next/server';
 
+// Sample texts per language
+export const sampleTexts: Record<string, string> = {
+  NL: 'Goedendag, welkom. Waarmee kan ik u helpen vandaag?',
+  FR: 'Bonjour et bienvenue. Comment puis-je vous aider aujourd\'hui?',
+  DE: 'Guten Tag und herzlich willkommen. Wie kann ich Ihnen heute helfen?',
+  EN: 'Good day and welcome. How may I help you today?',
+};
+
 // Curated multilingual voices for NL/FR/DE/EN
 const multilingualVoices = [
   // Nederlands / Belgisch

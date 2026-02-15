@@ -75,16 +75,18 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     
     if (!user) { router.push('/login'); return; }
 
-    // First try to find by user_id
-    let { data: businessData } = await supabase.from('businesses').select('*').eq('user_id', user.id).single();
-    
-    // If not found, try to find by email (for admin-created tenants)
-    if (!businessData && user.email) {
-      const { data: emailBusiness } = await supabase.from('businesses').select('*').eq('email', user.email).single();
-      businessData = emailBusiness;
+    // Use API to bypass RLS (works for all tenants)
+    if (user.email) {
+      try {
+        const res = await fetch(`/api/business/by-email?email=${encodeURIComponent(user.email)}`);
+        if (res.ok) {
+          const businessData = await res.json();
+          setBusiness(businessData as Business);
+        }
+      } catch (e) {
+        console.error('Failed to load business:', e);
+      }
     }
-    
-    if (businessData) setBusiness(businessData as Business);
     setLoading(false);
   };
 
