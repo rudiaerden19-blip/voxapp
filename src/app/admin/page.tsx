@@ -3,11 +3,15 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/LanguageContext';
-import { LogOut, Plus, Monitor, RotateCcw, Eye, Ban, Check, Trash2, Phone, Users, CreditCard, AlertTriangle, Shield, Lock, X, ExternalLink, Calendar, Euro, TrendingUp, LayoutDashboard } from 'lucide-react';
+import { LogOut, Plus, Monitor, RotateCcw, Eye, Ban, Check, Trash2, Phone, Users, CreditCard, AlertTriangle, Shield, Lock, X, ExternalLink, Calendar, Euro, TrendingUp, LayoutDashboard, Settings } from 'lucide-react';
+import { MODULES, getBusinessType, ModuleId } from '@/lib/modules';
 
 // Admin credentials - alleen jij hebt toegang
 const ADMIN_EMAIL = 'admin@voxapp.tech';
 const ADMIN_PASSWORD = 'VoxAdmin2024!';
+
+// Alle beschikbare modules
+const ALL_MODULES: ModuleId[] = Object.keys(MODULES) as ModuleId[];
 
 // Plan pricing for MRR calculation
 const planPricing: Record<string, number> = {
@@ -32,6 +36,7 @@ interface Tenant {
   stripe_customer_id?: string;
   stripe_subscription_id?: string;
   elevenlabs_agent_id?: string;
+  enabled_modules?: ModuleId[];  // Custom modules per tenant
 }
 
 export default function AdminDashboard() {
@@ -48,6 +53,8 @@ export default function AdminDashboard() {
   const [savingTenant, setSavingTenant] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editData, setEditData] = useState({ name: '', email: '', phone: '', type: '' });
+  const [editingModules, setEditingModules] = useState<ModuleId[]>([]);
+  const [savingModules, setSavingModules] = useState(false);
   const router = useRouter();
 
   useEffect(() => { 
@@ -242,6 +249,50 @@ export default function AdminDashboard() {
       setTenants(prev => prev.map(t => t.id === tenant.id ? { ...t, subscription_status: newStatus } : t));
       setSelectedTenant(prev => prev ? { ...prev, subscription_status: newStatus } : null);
     }
+  };
+
+  // Open tenant detail and load modules
+  const openTenantDetail = (tenant: Tenant) => {
+    setSelectedTenant(tenant);
+    // Load modules: custom or default from business type
+    const defaultModules = tenant.type ? getBusinessType(tenant.type).modules : [];
+    setEditingModules(tenant.enabled_modules || defaultModules);
+  };
+
+  // Toggle module
+  const toggleModule = (moduleId: ModuleId) => {
+    setEditingModules(prev => 
+      prev.includes(moduleId) 
+        ? prev.filter(m => m !== moduleId)
+        : [...prev, moduleId]
+    );
+  };
+
+  // Save modules
+  const saveModules = async () => {
+    if (!selectedTenant) return;
+    setSavingModules(true);
+    
+    const res = await fetch('/api/admin/tenants', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: selectedTenant.id, enabled_modules: editingModules }),
+    });
+    
+    if (res.ok) {
+      setTenants(prev => prev.map(t => 
+        t.id === selectedTenant.id ? { ...t, enabled_modules: editingModules } : t
+      ));
+      setSelectedTenant(prev => prev ? { ...prev, enabled_modules: editingModules } : null);
+    }
+    setSavingModules(false);
+  };
+
+  // Reset to default modules
+  const resetToDefaultModules = () => {
+    if (!selectedTenant?.type) return;
+    const defaultModules = getBusinessType(selectedTenant.type).modules;
+    setEditingModules(defaultModules);
   };
 
   const formatDate = (date: string) => {
@@ -466,7 +517,7 @@ export default function AdminDashboard() {
                             <LayoutDashboard size={16} />
                           </button>
                           <button
-                            onClick={() => setSelectedTenant(tenant)}
+                            onClick={() => openTenantDetail(tenant)}
                             style={{ padding: 8, background: '#3b82f620', border: 'none', borderRadius: 6, color: '#3b82f6', cursor: 'pointer' }}
                             title="Details bekijken"
                           >
@@ -954,6 +1005,59 @@ export default function AdminDashboard() {
                     </p>
                   </div>
                 </div>
+              </div>
+
+              {/* MODULES SECTIE */}
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <h3 style={{ color: '#9ca3af', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Settings size={14} /> Modules
+                  </h3>
+                  <button
+                    onClick={resetToDefaultModules}
+                    style={{ background: 'none', border: 'none', color: '#6b7280', fontSize: 11, cursor: 'pointer', textDecoration: 'underline' }}
+                  >
+                    Reset standaard
+                  </button>
+                </div>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                  {ALL_MODULES.map(moduleId => {
+                    const module = MODULES[moduleId];
+                    const isEnabled = editingModules.includes(moduleId);
+                    return (
+                      <div
+                        key={moduleId}
+                        onClick={() => toggleModule(moduleId)}
+                        style={{
+                          padding: '10px 12px', borderRadius: 8, cursor: 'pointer',
+                          background: isEnabled ? '#f9731620' : '#0f172a',
+                          border: isEnabled ? '2px solid #f97316' : '1px solid #334155',
+                          display: 'flex', alignItems: 'center', gap: 8,
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        <span style={{ fontSize: 16 }}>{module.icon}</span>
+                        <span style={{ color: isEnabled ? '#f97316' : '#9ca3af', fontWeight: isEnabled ? 600 : 400, fontSize: 12 }}>
+                          {module.name}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                <button
+                  onClick={saveModules}
+                  disabled={savingModules}
+                  style={{
+                    width: '100%', marginTop: 12, padding: '10px 16px', borderRadius: 8,
+                    background: savingModules ? '#4b5563' : '#22c55e', border: 'none',
+                    color: 'white', fontWeight: 600, fontSize: 13, cursor: savingModules ? 'not-allowed' : 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  }}
+                >
+                  {savingModules ? 'Opslaan...' : <><Check size={14} /> Modules Opslaan</>}
+                </button>
               </div>
 
               {/* Actions */}
