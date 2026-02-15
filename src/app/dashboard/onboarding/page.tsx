@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/LanguageContext';
 import { Building2, Briefcase, Users, Phone, ChevronRight, Check, Plus, X, Sparkles } from 'lucide-react';
+import { BUSINESS_TYPES, CATEGORY_NAMES, getBusinessTypesByCategory, getBrancheTemplate } from '@/lib/modules';
 
 interface Step {
   id: number;
@@ -19,16 +20,8 @@ const steps: Step[] = [
   { id: 4, title: 'AI Setup', icon: Phone },
 ];
 
-const businessTypes = [
-  { value: 'kapper', label: 'Kapsalon', icon: '💇' },
-  { value: 'tandarts', label: 'Tandarts', icon: '🦷' },
-  { value: 'restaurant', label: 'Restaurant', icon: '🍽️' },
-  { value: 'garage', label: 'Garage', icon: '🚗' },
-  { value: 'schoonheid', label: 'Schoonheidssalon', icon: '💅' },
-  { value: 'fysiotherapie', label: 'Fysiotherapie', icon: '💪' },
-  { value: 'huisarts', label: 'Huisarts', icon: '🏥' },
-  { value: 'other', label: 'Anders', icon: '🏢' },
-];
+// Business types uit module systeem
+const businessTypesByCategory = getBusinessTypesByCategory();
 
 const voiceOptions = [
   { id: 'nl-BE-DenaNeural', name: 'Dena', accent: 'Belgisch', gender: 'Vrouw' },
@@ -257,22 +250,31 @@ export default function OnboardingPage() {
 
               <div style={{ marginBottom: 20 }}>
                 <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 12 }}>Type bedrijf *</label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
-                  {businessTypes.map(type => (
-                    <div
-                      key={type.value}
-                      onClick={() => setBusinessData({ ...businessData, type: type.value })}
-                      style={{
-                        padding: '14px 16px', borderRadius: 8, cursor: 'pointer',
-                        background: businessData.type === type.value ? 'rgba(249, 115, 22, 0.15)' : '#0a0a0f',
-                        border: businessData.type === type.value ? '2px solid #f97316' : '1px solid #2a2a35',
-                        display: 'flex', alignItems: 'center', gap: 10,
-                      }}
-                    >
-                      <span style={{ fontSize: 20 }}>{type.icon}</span>
-                      <span style={{ color: businessData.type === type.value ? '#f97316' : '#9ca3af', fontWeight: businessData.type === type.value ? 600 : 400 }}>
-                        {type.label}
-                      </span>
+                <div style={{ maxHeight: 400, overflowY: 'auto', paddingRight: 8 }}>
+                  {Object.entries(businessTypesByCategory).map(([category, types]) => (
+                    <div key={category} style={{ marginBottom: 16 }}>
+                      <p style={{ color: '#6b7280', fontSize: 12, fontWeight: 600, marginBottom: 8, textTransform: 'uppercase' }}>
+                        {CATEGORY_NAMES[category] || category}
+                      </p>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+                        {types.map(type => (
+                          <div
+                            key={type.id}
+                            onClick={() => setBusinessData({ ...businessData, type: type.id })}
+                            style={{
+                              padding: '12px 14px', borderRadius: 8, cursor: 'pointer',
+                              background: businessData.type === type.id ? 'rgba(249, 115, 22, 0.15)' : '#0a0a0f',
+                              border: businessData.type === type.id ? '2px solid #f97316' : '1px solid #2a2a35',
+                              display: 'flex', alignItems: 'center', gap: 10,
+                            }}
+                          >
+                            <span style={{ fontSize: 18 }}>{type.icon}</span>
+                            <span style={{ color: businessData.type === type.id ? '#f97316' : '#9ca3af', fontWeight: businessData.type === type.id ? 600 : 400, fontSize: 13 }}>
+                              {type.name}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ))}
                 </div>

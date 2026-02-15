@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useLanguage } from '@/lib/LanguageContext';
 import { Phone, Mic, Globe, Save, Check, Play, Volume2, Sparkles, MapPin, Clock, Euro, HelpCircle, Plus, Trash2, Upload, FileText, X } from 'lucide-react';
-import { getBusinessType, getAIContext, getTerminology, hasModule } from '@/lib/modules';
+import { getBusinessType, getAIContext, getTerminology, hasModule, getBrancheTemplate } from '@/lib/modules';
 
 interface Business {
   id: string;
@@ -39,43 +39,7 @@ interface ElevenLabsVoice {
   preview_url?: string;
 }
 
-// Dynamische template generator op basis van business type
-function getBrancheTemplate(businessType: string, businessName: string): { greeting: string; capabilities: string; style: string } {
-  const config = getBusinessType(businessType);
-  const term = config.terminology;
-  
-  // Genereer greeting op basis van type
-  let greeting = `Goedendag, ${config.name.toLowerCase()} ${businessName}. Waarmee kan ik u helpen?`;
-  
-  // Specifieke greetings per categorie
-  if (config.category === 'horeca') {
-    greeting = `Hallo, welkom bij ${businessName}. Wilt u iets bestellen of heeft u een vraag?`;
-  } else if (config.category === 'zorg') {
-    greeting = `Goedendag, ${config.name.toLowerCase()} ${businessName}. Waarmee kan ik u van dienst zijn?`;
-  } else if (config.category === 'beauty') {
-    greeting = `Hallo, welkom bij ${businessName}. Wilt u een ${term.appointment || 'afspraak'} maken?`;
-  }
-  
-  // Capabilities op basis van actieve modules
-  const capabilities: string[] = [];
-  if (hasModule(businessType, 'appointments')) capabilities.push(`Ik plan ${term.appointment || 'afspraken'}`);
-  if (hasModule(businessType, 'menu')) capabilities.push(`Ik ken ons menu en prijzen`);
-  if (hasModule(businessType, 'orders')) capabilities.push(`Ik neem bestellingen aan`);
-  if (hasModule(businessType, 'reservations')) capabilities.push(`Ik maak reserveringen`);
-  if (hasModule(businessType, 'services')) capabilities.push(`Ik ken onze ${term.products || 'diensten'} en tarieven`);
-  
-  const capabilitiesText = capabilities.length > 0 
-    ? capabilities.join('. ') + '.'
-    : 'Ik help met vragen en verwijs door waar nodig.';
-  
-  return {
-    greeting,
-    capabilities: capabilitiesText,
-    style: config.aiContext,
-  };
-}
-
-// Fallback voor oude code
+// Fallback voor oude code (brancheTemplates wordt nog gebruikt als backup)
 const brancheTemplates: Record<string, { greeting: string; capabilities: string; style: string }> = {
   huisarts: {
     greeting: 'Goedendag, huisartsenpraktijk {bedrijfsnaam}. Waarmee kan ik u van dienst zijn?',

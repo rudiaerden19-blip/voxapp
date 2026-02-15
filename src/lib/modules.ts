@@ -364,3 +364,39 @@ export const CATEGORY_NAMES: Record<string, string> = {
   vastgoed: 'Vastgoed',
   overig: 'Overig',
 };
+
+// Genereer AI template op basis van business type
+export function getBrancheTemplate(businessType: string, businessName: string): { greeting: string; capabilities: string; style: string } {
+  const config = getBusinessType(businessType);
+  const term = config.terminology;
+  
+  // Genereer greeting op basis van type
+  let greeting = `Goedendag, ${config.name.toLowerCase()} ${businessName}. Waarmee kan ik u helpen?`;
+  
+  // Specifieke greetings per categorie
+  if (config.category === 'horeca') {
+    greeting = `Hallo, welkom bij ${businessName}. Wilt u iets bestellen of heeft u een vraag?`;
+  } else if (config.category === 'zorg') {
+    greeting = `Goedendag, ${config.name.toLowerCase()} ${businessName}. Waarmee kan ik u van dienst zijn?`;
+  } else if (config.category === 'beauty') {
+    greeting = `Hallo, welkom bij ${businessName}. Wilt u een ${term.appointment || 'afspraak'} maken?`;
+  }
+  
+  // Capabilities op basis van actieve modules
+  const capabilities: string[] = [];
+  if (hasModule(businessType, 'appointments')) capabilities.push(`Ik plan ${term.appointment || 'afspraken'}`);
+  if (hasModule(businessType, 'menu')) capabilities.push(`Ik ken ons menu en prijzen`);
+  if (hasModule(businessType, 'orders')) capabilities.push(`Ik neem bestellingen aan`);
+  if (hasModule(businessType, 'reservations')) capabilities.push(`Ik maak reserveringen`);
+  if (hasModule(businessType, 'services')) capabilities.push(`Ik ken onze ${term.products || 'diensten'} en tarieven`);
+  
+  const capabilitiesText = capabilities.length > 0 
+    ? capabilities.join('. ') + '.'
+    : 'Ik help met vragen en verwijs door waar nodig.';
+  
+  return {
+    greeting,
+    capabilities: capabilitiesText,
+    style: config.aiContext,
+  };
+}
