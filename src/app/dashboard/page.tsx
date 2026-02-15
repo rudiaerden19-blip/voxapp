@@ -47,36 +47,29 @@ function DashboardContent() {
     // Get admin_view from URL directly (more reliable)
     const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
     const adminViewId = urlParams?.get('admin_view') || searchParams.get('admin_view');
-    const adminName = urlParams?.get('admin_name') || searchParams.get('admin_name');
-    loadDashboardData(adminViewId, adminName ? decodeURIComponent(adminName) : null);
+    loadDashboardData(adminViewId);
   }, []);
 
-  const loadDashboardData = async (adminViewId: string | null, adminName: string | null) => {
+  const loadDashboardData = async (adminViewId: string | null) => {
     const supabase = createClient();
     let businessId: string | null = null;
     let businessNameValue: string = '';
 
     // Check if admin is viewing a tenant (via URL parameter)
     if (adminViewId) {
-      // Load tenant directly by ID
-      const { data: businessData } = await supabase
-        .from('businesses')
-        .select('*')
-        .eq('id', adminViewId)
-        .single();
-      
-      if (businessData) {
-        const biz = businessData as { id: string; name: string; email: string | null; type: string };
-        businessId = biz.id;
-        businessNameValue = biz.name || biz.email || biz.type || '';
-      } else if (adminName) {
-        // Fallback: use name from URL if database query fails
-        businessId = adminViewId;
-        businessNameValue = adminName;
+      // Load tenant via API (bypasses RLS)
+      try {
+        const res = await fetch(`/api/business/${adminViewId}`);
+        if (res.ok) {
+          const biz = await res.json();
+          businessId = biz.id;
+          businessNameValue = biz.name || biz.email || biz.type || '';
+          setBusinessName(businessNameValue);
+          setIsAdminView(true);
+        }
+      } catch (e) {
+        console.error('Failed to load business:', e);
       }
-      
-      setBusinessName(businessNameValue);
-      setIsAdminView(true);
     }
     
     // Normal user flow

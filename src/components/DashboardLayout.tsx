@@ -52,20 +52,20 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     // Get admin_view from URL directly (more reliable than useSearchParams)
     const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
     const adminViewId = urlParams?.get('admin_view') || searchParams.get('admin_view');
-    const adminName = urlParams?.get('admin_name') || searchParams.get('admin_name');
     
     // Check if admin is viewing a tenant dashboard (via URL parameter)
     if (adminViewId) {
-      // Load tenant directly by ID
-      const { data: businessData, error } = await supabase.from('businesses').select('*').eq('id', adminViewId).single();
-      
-      if (businessData) {
-        setBusiness(businessData as Business);
-      } else if (adminName) {
-        // Fallback: use name from URL if database query fails
-        setBusiness({ id: adminViewId, name: decodeURIComponent(adminName), type: '', email: null, subscription_status: 'active', trial_ends_at: null } as Business);
+      // Load tenant via API (bypasses RLS)
+      try {
+        const res = await fetch(`/api/business/${adminViewId}`);
+        if (res.ok) {
+          const businessData = await res.json();
+          setBusiness(businessData as Business);
+          setIsAdminView(true);
+        }
+      } catch (e) {
+        console.error('Failed to load business:', e);
       }
-      setIsAdminView(true);
       setLoading(false);
       return;
     }
