@@ -2441,19 +2441,21 @@ function PricingSection() {
                 ))}
               </ul>
 
-              <a href="/register" style={{
+              <a href={`/register?plan=${plan.key}`} style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 8,
                 background: plan.popular ? '#f97316' : 'transparent',
                 color: plan.popular ? 'white' : '#1a1a2e',
-                padding: '14px 24px',
-                borderRadius: 8,
-                fontSize: 14,
+                padding: '16px 24px',
+                borderRadius: 12,
+                fontSize: 16,
                 fontWeight: 600,
                 textDecoration: 'none',
                 border: plan.popular ? 'none' : '1px solid #d1d5db',
+                minHeight: 52,
+                transition: 'all 0.2s ease',
               }}>
                 {t('pricing.startTrial')}
               </a>
@@ -3276,6 +3278,8 @@ function Footer() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <a href="#faq" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>{t('footer.helpCenter')}</a>
               <a href="#faq" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>{t('footer.faq')}</a>
+              <a href="/login" style={{ color: '#6b7280', textDecoration: 'none', fontSize: 14 }}>{t('nav.login')}</a>
+              <a href="/register" style={{ color: '#f97316', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>{t('nav.tryFree')}</a>
             </div>
           </div>
         </div>

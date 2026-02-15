@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useLanguage, Language } from '@/lib/LanguageContext';
-import { Globe, ChevronDown } from 'lucide-react';
+import { Globe, ChevronDown, Check } from 'lucide-react';
 
 const languages: { code: Language; label: string; flag: string }[] = [
   { code: 'nl', label: 'NL', flag: '🇳🇱' },
@@ -16,8 +16,17 @@ const languages: { code: Language; label: string; flag: string }[] = [
 
 const businessTypeKeys = ['salon', 'garage', 'restaurant', 'takeaway', 'doctor', 'dentist', 'physio', 'other'] as const;
 
+// Plan info for display
+const planInfo: Record<string, { name: string; price: string; minutes: string }> = {
+  starter: { name: 'Starter', price: '99', minutes: '300' },
+  pro: { name: 'Professional', price: '149', minutes: '750' },
+  business: { name: 'Business', price: '249', minutes: '1500' },
+};
+
 export default function RegisterPage() {
   const { t, language, setLanguage } = useLanguage();
+  const searchParams = useSearchParams();
+  const selectedPlan = searchParams.get('plan') || 'starter';
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,6 +37,9 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const router = useRouter();
+  
+  // Get plan details
+  const plan = planInfo[selectedPlan] || planInfo.starter;
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,7 +62,7 @@ export default function RegisterPage() {
       }
 
       if (authData.user) {
-        // 2. Create business record
+        // 2. Create business record with selected plan
         const { error: businessError } = await supabase
           .from('businesses')
           .insert([{
@@ -59,6 +71,8 @@ export default function RegisterPage() {
             type: businessType,
             phone: phone,
             email: email,
+            subscription_status: 'trial',
+            subscription_plan: selectedPlan,
             trial_ends_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
           }] as any);
 
@@ -139,7 +153,7 @@ export default function RegisterPage() {
         border: '1px solid #2a2a35',
       }}>
         {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <Link href="/" style={{ textDecoration: 'none' }}>
             <span style={{ fontSize: 28, fontWeight: 700 }}>
               <span style={{ color: '#f97316' }}>Vox</span>
@@ -149,6 +163,27 @@ export default function RegisterPage() {
           <p style={{ color: '#9ca3af', marginTop: 8, fontSize: 14 }}>
             {t('auth.startTrial')}
           </p>
+        </div>
+
+        {/* Selected Plan Badge */}
+        <div style={{
+          background: 'rgba(249, 115, 22, 0.1)',
+          border: '1px solid rgba(249, 115, 22, 0.3)',
+          borderRadius: 12,
+          padding: '16px 20px',
+          marginBottom: 24,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
+          <div>
+            <p style={{ color: '#9ca3af', fontSize: 12, marginBottom: 4 }}>Gekozen plan</p>
+            <p style={{ color: 'white', fontSize: 16, fontWeight: 600, margin: 0 }}>{plan.name}</p>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <p style={{ color: '#f97316', fontSize: 24, fontWeight: 700, margin: 0 }}>€{plan.price}</p>
+            <p style={{ color: '#9ca3af', fontSize: 12, margin: 0 }}>/maand na trial</p>
+          </div>
         </div>
 
         {/* Progress */}
