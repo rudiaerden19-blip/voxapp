@@ -65,10 +65,12 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Helper to add admin_view to links
+  // Helper to add admin_view to links - read directly from URL for immediate availability
   const getHref = (path: string) => {
-    if (adminViewId) {
-      return `${path}?admin_view=${adminViewId}`;
+    // Use state if available, otherwise read from URL directly
+    const viewId = adminViewId || (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('admin_view') : null);
+    if (viewId) {
+      return `${path}?admin_view=${viewId}`;
     }
     return path;
   };
