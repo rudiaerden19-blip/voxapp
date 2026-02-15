@@ -632,8 +632,22 @@ export default function AISettingsPage() {
             <p style={{ color: '#6b7280' }}>Geen stemmen beschikbaar</p>
           ) : (
             <>
-              {/* Nederlands */}
-              <h3 style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 12 }}>🇳🇱 Nederlands</h3>
+              {/* Eigen stem optie */}
+              <div style={{ marginBottom: 24, padding: 16, background: '#1a1a24', borderRadius: 12, border: '1px solid #2a2a35' }}>
+                <h3 style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 12 }}>🎙️ Eigen Stem</h3>
+                <p style={{ color: '#9ca3af', fontSize: 13, marginBottom: 12 }}>
+                  Wil je je eigen stem gebruiken? Neem contact op om je stem te laten klonen.
+                </p>
+                <a
+                  href="mailto:support@voxapp.be?subject=Eigen stem klonen"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: '#f97316', border: 'none', borderRadius: 8, color: 'white', fontSize: 13, fontWeight: 500, textDecoration: 'none', cursor: 'pointer' }}
+                >
+                  📧 Contacteer ons
+                </a>
+              </div>
+
+              {/* Belgisch */}
+              <h3 style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 12 }}>🇧🇪 Belgisch</h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12, marginBottom: 20 }}>
                 {voices.filter(v => v.labels.language === 'NL').map(voice => (
                   <VoiceCard key={voice.voice_id} voice={voice} selectedVoiceId={config.voice_id} onSelect={(id) => setConfig({ ...config, voice_id: id })} playVoiceSample={playVoiceSample} playingVoice={playingVoice} />

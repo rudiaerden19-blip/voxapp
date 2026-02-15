@@ -12,6 +12,7 @@ interface VoiceResponse {
   voice_id: string;
   name: string;
   preview_url: string | null;
+  priority?: number;
   labels: {
     gender: string;
     language: string;
@@ -20,61 +21,82 @@ interface VoiceResponse {
 }
 
 // Mapping van ElevenLabs language labels naar onze taalcodes
-const languageMapping: Record<string, { code: string; accent: string }> = {
-  // Nederlands
-  'dutch': { code: 'NL', accent: 'Nederlands' },
-  'nl': { code: 'NL', accent: 'Nederlands' },
-  'netherlands': { code: 'NL', accent: 'Nederlands' },
-  'flemish': { code: 'NL', accent: 'Nederlands' },
-  // Frans
-  'french': { code: 'FR', accent: 'Frans' },
-  'fr': { code: 'FR', accent: 'Frans' },
-  'france': { code: 'FR', accent: 'Frans' },
+// PRIORITEIT: Belgisch/Vlaams eerst, dan pas Nederlands
+const languageMapping: Record<string, { code: string; accent: string; priority: number }> = {
+  // Belgisch/Vlaams - HOOGSTE PRIORITEIT
+  'flemish': { code: 'NL', accent: 'Belgisch', priority: 1 },
+  'belgian': { code: 'NL', accent: 'Belgisch', priority: 1 },
+  'belgium': { code: 'NL', accent: 'Belgisch', priority: 1 },
+  'vlaams': { code: 'NL', accent: 'Belgisch', priority: 1 },
+  'be-nl': { code: 'NL', accent: 'Belgisch', priority: 1 },
+  // Nederlands - lagere prioriteit
+  'dutch': { code: 'NL', accent: 'Nederlands', priority: 2 },
+  'nl': { code: 'NL', accent: 'Nederlands', priority: 2 },
+  'netherlands': { code: 'NL', accent: 'Nederlands', priority: 2 },
+  'nl-nl': { code: 'NL', accent: 'Nederlands', priority: 2 },
+  // Frans - Belgisch Frans eerst
+  'belgian french': { code: 'FR', accent: 'Belgisch Frans', priority: 1 },
+  'be-fr': { code: 'FR', accent: 'Belgisch Frans', priority: 1 },
+  'french': { code: 'FR', accent: 'Frans', priority: 2 },
+  'fr': { code: 'FR', accent: 'Frans', priority: 2 },
+  'france': { code: 'FR', accent: 'Frans', priority: 2 },
   // Duits
-  'german': { code: 'DE', accent: 'Duits' },
-  'de': { code: 'DE', accent: 'Duits' },
-  'germany': { code: 'DE', accent: 'Duits' },
+  'german': { code: 'DE', accent: 'Duits', priority: 2 },
+  'de': { code: 'DE', accent: 'Duits', priority: 2 },
+  'germany': { code: 'DE', accent: 'Duits', priority: 2 },
   // Engels
-  'english': { code: 'EN', accent: 'Engels' },
-  'en': { code: 'EN', accent: 'Engels' },
-  'british': { code: 'EN', accent: 'Engels' },
-  'american': { code: 'EN', accent: 'Engels' },
-  'en-us': { code: 'EN', accent: 'Engels' },
-  'en-gb': { code: 'EN', accent: 'Engels' },
-  'en-au': { code: 'EN', accent: 'Engels' },
+  'english': { code: 'EN', accent: 'Engels', priority: 2 },
+  'en': { code: 'EN', accent: 'Engels', priority: 2 },
+  'british': { code: 'EN', accent: 'Engels', priority: 2 },
+  'american': { code: 'EN', accent: 'Engels', priority: 2 },
+  'en-us': { code: 'EN', accent: 'Engels', priority: 2 },
+  'en-gb': { code: 'EN', accent: 'Engels', priority: 2 },
+  'en-au': { code: 'EN', accent: 'Engels', priority: 2 },
 };
 
-// Fallback stemmen als API faalt
+// Fallback stemmen als API faalt - Belgische stemmen
 const fallbackVoices: VoiceResponse[] = [
-  // Nederlands
-  { voice_id: 'pFZP5JQG7iQjIQuC4Bku', name: 'Lily', preview_url: null, labels: { gender: 'female', language: 'NL', accent: 'Nederlands' } },
-  { voice_id: 'XB0fDUnXU5powFXDhCwa', name: 'Charlotte', preview_url: null, labels: { gender: 'female', language: 'NL', accent: 'Nederlands' } },
-  { voice_id: 'onwK4e9ZLuTAKqWW03F9', name: 'Daniel', preview_url: null, labels: { gender: 'male', language: 'NL', accent: 'Nederlands' } },
-  { voice_id: 'TX3LPaxmHKxFdv7VOQHJ', name: 'Liam', preview_url: null, labels: { gender: 'male', language: 'NL', accent: 'Nederlands' } },
+  // Belgisch/Vlaams
+  { voice_id: 'pFZP5JQG7iQjIQuC4Bku', name: 'Lily', preview_url: null, labels: { gender: 'Vrouw', language: 'NL', accent: 'Belgisch' } },
+  { voice_id: 'XB0fDUnXU5powFXDhCwa', name: 'Charlotte', preview_url: null, labels: { gender: 'Vrouw', language: 'NL', accent: 'Belgisch' } },
+  { voice_id: 'onwK4e9ZLuTAKqWW03F9', name: 'Daniel', preview_url: null, labels: { gender: 'Man', language: 'NL', accent: 'Belgisch' } },
+  { voice_id: 'TX3LPaxmHKxFdv7VOQHJ', name: 'Liam', preview_url: null, labels: { gender: 'Man', language: 'NL', accent: 'Belgisch' } },
   // Frans
-  { voice_id: 'XrExE9yKIg1WjnnlVkGX', name: 'Matilda', preview_url: null, labels: { gender: 'female', language: 'FR', accent: 'Frans' } },
-  { voice_id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah', preview_url: null, labels: { gender: 'female', language: 'FR', accent: 'Frans' } },
-  { voice_id: 'CYw3kZ02Hs0563khs1Fj', name: 'Dave', preview_url: null, labels: { gender: 'male', language: 'FR', accent: 'Frans' } },
-  { voice_id: 'N2lVS1w4EtoT3dr4eOWO', name: 'Callum', preview_url: null, labels: { gender: 'male', language: 'FR', accent: 'Frans' } },
+  { voice_id: 'XrExE9yKIg1WjnnlVkGX', name: 'Matilda', preview_url: null, labels: { gender: 'Vrouw', language: 'FR', accent: 'Frans' } },
+  { voice_id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah', preview_url: null, labels: { gender: 'Vrouw', language: 'FR', accent: 'Frans' } },
+  { voice_id: 'CYw3kZ02Hs0563khs1Fj', name: 'Dave', preview_url: null, labels: { gender: 'Man', language: 'FR', accent: 'Frans' } },
+  { voice_id: 'N2lVS1w4EtoT3dr4eOWO', name: 'Callum', preview_url: null, labels: { gender: 'Man', language: 'FR', accent: 'Frans' } },
   // Duits
-  { voice_id: 'ThT5KcBeYPX3keUQqHPh', name: 'Dorothy', preview_url: null, labels: { gender: 'female', language: 'DE', accent: 'Duits' } },
-  { voice_id: 'AZnzlk1XvdvUeBnXmlld', name: 'Domi', preview_url: null, labels: { gender: 'female', language: 'DE', accent: 'Duits' } },
-  { voice_id: 'VR6AewLTigWG4xSOukaG', name: 'Arnold', preview_url: null, labels: { gender: 'male', language: 'DE', accent: 'Duits' } },
-  { voice_id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam', preview_url: null, labels: { gender: 'male', language: 'DE', accent: 'Duits' } },
+  { voice_id: 'ThT5KcBeYPX3keUQqHPh', name: 'Dorothy', preview_url: null, labels: { gender: 'Vrouw', language: 'DE', accent: 'Duits' } },
+  { voice_id: 'AZnzlk1XvdvUeBnXmlld', name: 'Domi', preview_url: null, labels: { gender: 'Vrouw', language: 'DE', accent: 'Duits' } },
+  { voice_id: 'VR6AewLTigWG4xSOukaG', name: 'Arnold', preview_url: null, labels: { gender: 'Man', language: 'DE', accent: 'Duits' } },
+  { voice_id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam', preview_url: null, labels: { gender: 'Man', language: 'DE', accent: 'Duits' } },
   // Engels
-  { voice_id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel', preview_url: null, labels: { gender: 'female', language: 'EN', accent: 'Engels' } },
-  { voice_id: 'jBpfuIE2acCO8z3wKNLl', name: 'Gigi', preview_url: null, labels: { gender: 'female', language: 'EN', accent: 'Engels' } },
-  { voice_id: 'TxGEqnHWrfWFTfGW9XjX', name: 'Josh', preview_url: null, labels: { gender: 'male', language: 'EN', accent: 'Engels' } },
-  { voice_id: 'ErXwobaYiN019PkySvjV', name: 'Antoni', preview_url: null, labels: { gender: 'male', language: 'EN', accent: 'Engels' } },
+  { voice_id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel', preview_url: null, labels: { gender: 'Vrouw', language: 'EN', accent: 'Engels' } },
+  { voice_id: 'jBpfuIE2acCO8z3wKNLl', name: 'Gigi', preview_url: null, labels: { gender: 'Vrouw', language: 'EN', accent: 'Engels' } },
+  { voice_id: 'TxGEqnHWrfWFTfGW9XjX', name: 'Josh', preview_url: null, labels: { gender: 'Man', language: 'EN', accent: 'Engels' } },
+  { voice_id: 'ErXwobaYiN019PkySvjV', name: 'Antoni', preview_url: null, labels: { gender: 'Man', language: 'EN', accent: 'Engels' } },
 ];
 
-// Detecteer taal uit voice labels
-function detectLanguage(voice: ElevenLabsVoice): { code: string; accent: string } | null {
+// Detecteer taal uit voice labels - prioriteit voor Belgisch/Vlaams
+function detectLanguage(voice: ElevenLabsVoice): { code: string; accent: string; priority: number } | null {
   const labels = voice.labels || {};
   
   // Check alle label velden voor taalinformatie
   const fieldsToCheck = ['language', 'accent', 'locale', 'description'];
   
+  // Eerst zoeken naar Belgisch/Vlaams (hoogste prioriteit)
+  for (const field of fieldsToCheck) {
+    const value = labels[field]?.toLowerCase();
+    if (value) {
+      // Check specifiek voor Belgisch/Vlaams eerst
+      if (value.includes('flemish') || value.includes('belgian') || value.includes('belgium') || value.includes('vlaams') || value.includes('be-nl')) {
+        return { code: 'NL', accent: 'Belgisch', priority: 1 };
+      }
+    }
+  }
+  
+  // Dan andere talen
   for (const field of fieldsToCheck) {
     const value = labels[field]?.toLowerCase();
     if (value) {
@@ -88,6 +110,10 @@ function detectLanguage(voice: ElevenLabsVoice): { code: string; accent: string 
   
   // Check voice name voor taalhinten
   const nameLower = voice.name.toLowerCase();
+  if (nameLower.includes('flemish') || nameLower.includes('belgian') || nameLower.includes('vlaams')) {
+    return { code: 'NL', accent: 'Belgisch', priority: 1 };
+  }
+  
   for (const [key, mapping] of Object.entries(languageMapping)) {
     if (nameLower.includes(key)) {
       return mapping;
@@ -137,17 +163,29 @@ export async function GET() {
       
       // Als we een taal detecteren, voeg toe aan die categorie
       if (langInfo && voicesByLang[langInfo.code]) {
+        // Map gender to Dutch
+        let genderNL = 'Onbekend';
+        const genderLower = (voice.labels?.gender || '').toLowerCase();
+        if (genderLower === 'female' || genderLower === 'vrouw') genderNL = 'Vrouw';
+        else if (genderLower === 'male' || genderLower === 'man') genderNL = 'Man';
+        
         voicesByLang[langInfo.code].push({
           voice_id: voice.voice_id,
           name: voice.name,
           preview_url: voice.preview_url || null,
+          priority: langInfo.priority,
           labels: {
-            gender: voice.labels?.gender || 'unknown',
+            gender: genderNL,
             language: langInfo.code,
             accent: langInfo.accent,
           },
         });
       }
+    }
+    
+    // Sorteer elke taal op prioriteit (Belgisch eerst)
+    for (const lang of Object.keys(voicesByLang)) {
+      voicesByLang[lang].sort((a, b) => (a.priority || 99) - (b.priority || 99));
     }
 
     // Als we geen stemmen vonden met taaldetectie, neem de eerste 16 stemmen
