@@ -2470,9 +2470,10 @@ function PartnersSection() {
               <img 
                 src={partner.logo} 
                 alt={partner.name}
+                loading="eager"
                 style={{ 
-                  maxWidth: '100%', 
-                  maxHeight: '100%', 
+                  width: '100%', 
+                  height: '100%', 
                   objectFit: 'contain',
                 }}
               />
