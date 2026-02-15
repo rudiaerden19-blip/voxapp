@@ -267,12 +267,13 @@ export async function POST(request: NextRequest) {
       validTransferNumber
     );
 
-    // ElevenLabs agent config
+    // ElevenLabs agent config - Dutch requires turbo/flash model
     const agentConfig = {
       conversation_config: {
         agent: {
           prompt: {
             prompt: systemPrompt,
+            llm: 'gemini-2.0-flash-001', // Required for non-English languages
           },
           first_message: business.welcome_message || `Goedendag, welkom bij ${business.name}. Waarmee kan ik u helpen?`,
           language: 'nl',
