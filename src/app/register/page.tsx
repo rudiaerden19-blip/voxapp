@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, Suspense } from 'react';
 import { createClient } from '@/lib/supabase';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useLanguage, Language } from '@/lib/LanguageContext';
-import { Globe, ChevronDown, Check } from 'lucide-react';
+import { Globe, ChevronDown } from 'lucide-react';
 
 const languages: { code: Language; label: string; flag: string }[] = [
   { code: 'nl', label: 'NL', flag: '🇳🇱' },
@@ -23,7 +23,8 @@ const planInfo: Record<string, { name: string; price: string; minutes: string }>
   business: { name: 'Business', price: '249', minutes: '1500' },
 };
 
-export default function RegisterPage() {
+// Inner component that uses useSearchParams
+function RegisterForm() {
   const { t, language, setLanguage } = useLanguage();
   const searchParams = useSearchParams();
   const selectedPlan = searchParams.get('plan') || 'starter';
@@ -418,5 +419,35 @@ export default function RegisterPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+// Loading fallback for Suspense
+function RegisterLoading() {
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: '#0a0a0f',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: 28, fontWeight: 700, marginBottom: 16 }}>
+          <span style={{ color: '#f97316' }}>Vox</span>
+          <span style={{ color: 'white' }}>App</span>
+        </div>
+        <p style={{ color: '#9ca3af' }}>Laden...</p>
+      </div>
+    </div>
+  );
+}
+
+// Main export with Suspense boundary
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<RegisterLoading />}>
+      <RegisterForm />
+    </Suspense>
   );
 }
