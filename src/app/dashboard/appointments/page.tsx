@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useLanguage } from '@/lib/LanguageContext';
-import { Plus, ChevronLeft, ChevronRight, X, Clock, User, Check, Trash2, Calendar, Settings } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, X, Clock, User, Check, Trash2, Settings } from 'lucide-react';
 
 interface Service {
   id: string;
@@ -55,6 +55,7 @@ export default function AppointmentsPage() {
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('day');
   
   // Configurable settings
@@ -77,24 +78,53 @@ export default function AppointmentsPage() {
   useEffect(() => { if (businessId) loadAppointments(); }, [currentDate, businessId, viewMode]);
 
   const loadData = async () => {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    try {
+      // Get current user
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !user.email) {
+        setLoading(false);
+        return;
+      }
 
-    const { data: business } = await supabase.from('businesses').select('*').eq('user_id', user.id).single();
-    if (!business) { setLoading(false); return; }
+      // Load business via admin API (bypass RLS)
+      const bizRes = await fetch(`/api/business/by-email?email=${encodeURIComponent(user.email)}`);
+      if (!bizRes.ok) {
+        console.error('Failed to load business');
+        setLoading(false);
+        return;
+      }
 
-    const bizId = (business as { id: string }).id;
-    setBusinessId(bizId);
+      const business = await bizRes.json();
+      if (!business || !business.id) {
+        setLoading(false);
+        return;
+      }
 
-    const [servicesRes, staffRes] = await Promise.all([
-      supabase.from('services').select('id, name, duration_minutes').eq('business_id', bizId).eq('is_active', true),
-      supabase.from('staff').select('id, name').eq('business_id', bizId).eq('is_active', true),
-    ]);
+      const bizId = business.id;
+      setBusinessId(bizId);
 
-    if (servicesRes.data) setServices(servicesRes.data as Service[]);
-    if (staffRes.data) setStaff(staffRes.data as Staff[]);
-    setLoading(false);
+      // Load services and staff via admin APIs (parallel)
+      const [servicesRes, staffRes] = await Promise.all([
+        fetch(`/api/admin/services?business_id=${bizId}`),
+        fetch(`/api/admin/staff?business_id=${bizId}`),
+      ]);
+
+      if (servicesRes.ok) {
+        const servicesData = await servicesRes.json();
+        if (Array.isArray(servicesData)) setServices(servicesData);
+      }
+
+      if (staffRes.ok) {
+        const staffData = await staffRes.json();
+        if (Array.isArray(staffData)) setStaff(staffData);
+      }
+
+      setLoading(false);
+    } catch (err) {
+      console.error('Failed to load data:', err);
+      setLoading(false);
+    }
   };
 
   const loadAppointments = async () => {
@@ -262,6 +292,8 @@ export default function AppointmentsPage() {
 
       await loadAppointments();
       closeModal();
+      setSuccess(editingAppointment ? 'Afspraak bijgewerkt' : 'Afspraak aangemaakt');
+      setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Er ging iets mis bij het opslaan');
     } finally {
@@ -271,6 +303,8 @@ export default function AppointmentsPage() {
 
   const handleDelete = async () => {
     if (!editingAppointment || !businessId) return;
+    if (!confirm('Weet je zeker dat je deze afspraak wilt verwijderen?')) return;
+    
     setSaving(true);
     
     try {
@@ -282,6 +316,8 @@ export default function AppointmentsPage() {
       
       await loadAppointments();
       closeModal();
+      setSuccess('Afspraak verwijderd');
+      setTimeout(() => setSuccess(''), 3000);
     } catch (e) {
       setError('Kon afspraak niet verwijderen');
     } finally {
@@ -546,6 +582,18 @@ export default function AppointmentsPage() {
           </button>
         </div>
       </div>
+
+      {/* Success/Error Messages */}
+      {success && (
+        <div style={{ background: 'rgba(34, 197, 94, 0.15)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: 12, padding: '12px 16px', marginBottom: 16, color: '#22c55e', fontSize: 14 }}>
+          ✓ {success}
+        </div>
+      )}
+      {error && !modalOpen && (
+        <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 12, padding: '12px 16px', marginBottom: 16, color: '#ef4444', fontSize: 14 }}>
+          {error}
+        </div>
+      )}
 
       {/* View Mode Toggle */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
