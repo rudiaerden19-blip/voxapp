@@ -6,7 +6,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { useLanguage } from '@/lib/LanguageContext';
 import { useBusiness } from '@/lib/BusinessContext';
 import { Phone, Mic, Globe, Save, Check, Play, Volume2, Sparkles, MapPin, Clock, Euro, HelpCircle, Plus, Trash2, Upload, FileText, X } from 'lucide-react';
-import { getBusinessType, getAIContext, getTerminology, hasModule, getBrancheTemplate } from '@/lib/modules';
+import { getBusinessType, getAIContext, getTerminology, hasModule, getBrancheTemplate, getFAQTemplate } from '@/lib/modules';
 
 interface Business {
   id: string;
@@ -431,6 +431,9 @@ export default function AISettingsPage() {
         }
       }
       
+      // Get FAQ template for this business type
+      const faqTemplate = getFAQTemplate(biz.type);
+      
       setConfig(prev => ({
         ...prev,
         // Load saved voice or default
@@ -449,6 +452,8 @@ export default function AISettingsPage() {
         address_city: biz.city || '',
         // Load opening hours
         opening_hours: openingHours,
+        // Load FAQs (use template if empty)
+        faqs: prev.faqs.length > 0 ? prev.faqs : faqTemplate,
       }));
     setLoading(false);
   };
