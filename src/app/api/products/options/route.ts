@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase';
 
 // GET: Haal gekoppelde optiegroepen op voor een product
 export async function GET(request: NextRequest) {

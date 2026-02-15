@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase';
 import { Package, Plus, Trash2, Check, X, Clock, Euro, Search, Filter } from 'lucide-react';
 
 interface Product {
