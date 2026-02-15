@@ -2440,29 +2440,25 @@ function PartnersSection() {
         </h2>
       </div>
       
-      <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', padding: '20px 0' }}>
+      <div style={{ width: '100%', padding: '20px 24px', overflowX: 'scroll', WebkitOverflowScrolling: 'touch' }}>
         <div 
-          className="partners-slider"
           style={{ 
             display: 'flex', 
-            gap: 48,
-            animation: 'slideLeft 40s linear infinite',
-            width: 'fit-content',
-            padding: '0 24px',
-            alignItems: 'center',
+            gap: 32,
+            width: 'max-content',
           }}
         >
-          {allPartners.map((partner, i) => (
+          {partners.map((partner, i) => (
             <div 
               key={i} 
-              className="partner-card"
               style={{ 
                 flexShrink: 0,
-                width: 180,
-                height: 100,
+                width: 320,
+                height: 200,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                padding: 24,
               }}
             >
               <img 
@@ -2474,31 +2470,13 @@ function PartnersSection() {
                   height: '100%', 
                   objectFit: 'contain',
                   filter: 'grayscale(100%) brightness(2)',
-                  opacity: 0.8,
+                  opacity: 0.9,
                 }}
               />
             </div>
           ))}
         </div>
       </div>
-
-      <style>{`
-        @keyframes slideLeft {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-        @media (max-width: 768px) {
-          .partner-card {
-            min-width: 200px !important;
-            width: 200px !important;
-            height: 120px !important;
-          }
-          .partners-slider {
-            gap: 40px !important;
-            padding: 0 20px !important;
-          }
-        }
-      `}</style>
     </section>
   );
 }
