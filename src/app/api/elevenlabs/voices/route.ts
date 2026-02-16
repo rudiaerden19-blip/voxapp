@@ -145,20 +145,18 @@ export async function GET() {
       }
     }
 
-    // Voeg fallback stemmen toe als categorieën leeg zijn
-    // Deze ElevenLabs stemmen zijn multilingual en werken voor alle talen
+    // Voeg ECHTE Franse en Duitse ElevenLabs stemmen toe
     if (voicesByLang.FR.length === 0) {
-      // Gebruik multilingual stemmen die Frans kunnen spreken
-      const multilingualForFrench = [
-        { voice_id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah', gender: 'Vrouw' },
-        { voice_id: 'XrExE9yKIg1WjnnlVkGX', name: 'Matilda', gender: 'Vrouw' },
-        { voice_id: 'onwK4e9ZLuTAKqWW03F9', name: 'Daniel', gender: 'Man' },
-        { voice_id: 'N2lVS1w4EtoT3dr4eOWO', name: 'Callum', gender: 'Man' },
+      const frenchVoices = [
+        { voice_id: 'imRmmzTqlLHt9Do1HufF', name: 'Hélène', gender: 'Vrouw' },
+        { voice_id: 'glDtoWIoIgk38YbycCwG', name: 'Clara Dupont', gender: 'Vrouw' },
+        { voice_id: 'PjN1x5uqQvyU3DO0gdJz', name: 'Antoine', gender: 'Man' },
+        { voice_id: '1ns94GwK9YDCJoL6Nglv', name: 'Nicolas', gender: 'Man' },
       ];
-      for (const v of multilingualForFrench) {
+      for (const v of frenchVoices) {
         voicesByLang.FR.push({
           voice_id: v.voice_id,
-          name: v.name + ' (Multilingual)',
+          name: v.name,
           preview_url: null,
           labels: { gender: v.gender, language: 'FR', accent: 'Frans' },
         });
@@ -166,17 +164,16 @@ export async function GET() {
     }
     
     if (voicesByLang.DE.length === 0) {
-      // Gebruik multilingual stemmen die Duits kunnen spreken
-      const multilingualForGerman = [
-        { voice_id: 'ThT5KcBeYPX3keUQqHPh', name: 'Dorothy', gender: 'Vrouw' },
-        { voice_id: 'AZnzlk1XvdvUeBnXmlld', name: 'Domi', gender: 'Vrouw' },
-        { voice_id: 'VR6AewLTigWG4xSOukaG', name: 'Arnold', gender: 'Man' },
-        { voice_id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam', gender: 'Man' },
+      const germanVoices = [
+        { voice_id: 'XqTEUeXvEbbL4e30WfT0', name: 'Lena', gender: 'Vrouw' },
+        { voice_id: 'z0gdR3nhVl1Ig2kiEigL', name: 'Luisa', gender: 'Vrouw' },
+        { voice_id: 'f2yUVfK5jdm78zlpcZ8C', name: 'Albert', gender: 'Man' },
+        { voice_id: 'SfXg52J54dixBlOl016v', name: 'Marc', gender: 'Man' },
       ];
-      for (const v of multilingualForGerman) {
+      for (const v of germanVoices) {
         voicesByLang.DE.push({
           voice_id: v.voice_id,
-          name: v.name + ' (Multilingual)',
+          name: v.name,
           preview_url: null,
           labels: { gender: v.gender, language: 'DE', accent: 'Duits' },
         });
