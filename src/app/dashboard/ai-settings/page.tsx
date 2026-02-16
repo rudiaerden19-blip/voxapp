@@ -439,7 +439,7 @@ export default function AISettingsPage() {
       setConfig(prev => ({
         ...prev,
         // Load saved voice or default
-        voice_id: biz.voice_id || 'nl-BE-DenaNeural',
+        voice_id: biz.voice_id || 'pFZP5JQG7iQjIQuC4Bku', // Default: Lily (ElevenLabs multilingual)
         // Load greeting from DB or use template
         greeting: biz.welcome_message || template.greeting.replace('{bedrijfsnaam}', biz.name),
         capabilities: template.capabilities,

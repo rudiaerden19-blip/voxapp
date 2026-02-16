@@ -279,7 +279,10 @@ export async function POST(request: NextRequest) {
           language: 'nl',
         },
         tts: {
-          voice_id: business.voice_id || 'pFZP5JQG7iQjIQuC4Bku', // Default Belgian voice
+          // Only use voice_id if it looks like an ElevenLabs ID (not Azure)
+          voice_id: (business.voice_id && !business.voice_id.includes('-')) 
+            ? business.voice_id 
+            : 'pFZP5JQG7iQjIQuC4Bku', // Default: Lily (multilingual)
           model_id: 'eleven_turbo_v2_5', // Required for non-English (32 languages)
         },
       },
