@@ -74,13 +74,26 @@ const dayLabels: Record<string, string> = {
 };
 
 const businessTypes = [
-  { value: 'kapper', label: 'Kapsalon' },
+  // Horeca
+  { value: 'frituur', label: 'Frituur / Snackbar' },
+  { value: 'pizzeria', label: 'Pizzeria' },
+  { value: 'kebab', label: 'Kebabzaak' },
+  { value: 'restaurant', label: 'Restaurant' },
+  // Zorg
   { value: 'tandarts', label: 'Tandartspraktijk' },
-  { value: 'restaurant', label: 'Restaurant / Horeca' },
-  { value: 'garage', label: 'Garage / Autoservice' },
-  { value: 'schoonheid', label: 'Schoonheidssalon' },
-  { value: 'fysiotherapie', label: 'Fysiotherapie' },
   { value: 'huisarts', label: 'Huisartsenpraktijk' },
+  { value: 'dokter', label: 'Dokterspraktijk' },
+  { value: 'opticien', label: 'Opticien' },
+  { value: 'dierenkliniek', label: 'Dierenkliniek' },
+  { value: 'fysiotherapie', label: 'Fysiotherapie' },
+  // Beauty
+  { value: 'kapper', label: 'Kapsalon' },
+  { value: 'schoonheid', label: 'Schoonheidssalon' },
+  // Diensten
+  { value: 'garage', label: 'Garage / Autoservice' },
+  { value: 'loodgieter', label: 'Loodgieter' },
+  { value: 'advocaat', label: 'Advocatenkantoor' },
+  { value: 'boekhouder', label: 'Boekhoudkantoor' },
   { value: 'other', label: 'Anders' },
 ];
 
