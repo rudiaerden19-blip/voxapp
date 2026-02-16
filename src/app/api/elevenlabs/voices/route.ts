@@ -12,13 +12,52 @@ interface VoiceResponse {
   voice_id: string;
   name: string;
   preview_url: string | null;
-  description: string;
   labels: {
     gender: string;
+    language: string;
     accent: string;
-    age: string;
-    use_case: string;
   };
+}
+
+// Detecteer taal op basis van naam en labels
+function detectLanguage(voice: ElevenLabsVoice): string | null {
+  const name = voice.name.toLowerCase();
+  const labels = voice.labels || {};
+  const allText = `${name} ${Object.values(labels).join(' ')}`.toLowerCase();
+  
+  // Nederlands/Vlaams
+  if (allText.includes('dutch') || allText.includes('flemish') || allText.includes('vlaams') || 
+      allText.includes('belgian') || allText.includes('nederland') || allText.includes('nl-') ||
+      name.includes('diederik') || name.includes('schevenels') || name.includes('vlaamse') ||
+      name.includes('roos') || name.includes('jerry') || name.includes('dynamische')) {
+    return 'NL';
+  }
+  
+  // Frans
+  if (allText.includes('french') || allText.includes('français') || allText.includes('france') ||
+      allText.includes('fr-') || allText.includes('parisian')) {
+    return 'FR';
+  }
+  
+  // Duits
+  if (allText.includes('german') || allText.includes('deutsch') || allText.includes('germany') ||
+      allText.includes('de-') || allText.includes('austrian')) {
+    return 'DE';
+  }
+  
+  // Engels
+  if (allText.includes('english') || allText.includes('british') || allText.includes('american') ||
+      allText.includes('australian') || allText.includes('en-') || allText.includes('uk') ||
+      allText.includes('us accent')) {
+    return 'EN';
+  }
+  
+  // Multilingual stemmen tellen als NL (ze ondersteunen alles)
+  if (allText.includes('multilingual') || allText.includes('multi-lingual')) {
+    return 'NL';
+  }
+  
+  return null;
 }
 
 export async function GET() {
@@ -46,53 +85,67 @@ export async function GET() {
       return NextResponse.json({ error: 'Ongeldige response' }, { status: 502 });
     }
 
-    // Map all voices to our format
-    const voices: VoiceResponse[] = data.voices.map((voice: ElevenLabsVoice) => {
-      const labels = voice.labels || {};
+    // Categoriseer stemmen per taal
+    const voicesByLang: Record<string, VoiceResponse[]> = {
+      NL: [],
+      FR: [],
+      DE: [],
+      EN: [],
+    };
+
+    for (const voice of data.voices as ElevenLabsVoice[]) {
+      const lang = detectLanguage(voice);
       
-      // Get gender in Dutch
-      let gender = 'Onbekend';
-      const genderLower = (labels.gender || '').toLowerCase();
-      if (genderLower === 'female') gender = 'Vrouw';
-      else if (genderLower === 'male') gender = 'Man';
-      
-      // Get accent/description
-      const accent = labels.accent || labels.description || '';
-      const age = labels.age || '';
-      const useCase = labels.use_case || labels['use case'] || '';
-      
-      // Build description
-      let description = gender;
-      if (accent) description += ` • ${accent}`;
-      
-      return {
-        voice_id: voice.voice_id,
-        name: voice.name,
-        preview_url: voice.preview_url || null,
-        description,
-        labels: {
-          gender,
-          accent,
-          age,
-          use_case: useCase,
-        },
-      };
+      if (lang && voicesByLang[lang]) {
+        const labels = voice.labels || {};
+        
+        // Gender naar Nederlands
+        let gender = 'Onbekend';
+        const genderLower = (labels.gender || '').toLowerCase();
+        if (genderLower === 'female') gender = 'Vrouw';
+        else if (genderLower === 'male') gender = 'Man';
+        
+        // Accent
+        let accent = labels.accent || labels.description || '';
+        if (lang === 'NL') accent = 'Vlaams/Nederlands';
+        else if (lang === 'FR') accent = 'Frans';
+        else if (lang === 'DE') accent = 'Duits';
+        else if (lang === 'EN') accent = 'Engels';
+        
+        voicesByLang[lang].push({
+          voice_id: voice.voice_id,
+          name: voice.name,
+          preview_url: voice.preview_url || null,
+          labels: {
+            gender,
+            language: lang,
+            accent,
+          },
+        });
+      }
+    }
+
+    // Log wat we gevonden hebben
+    console.log('Voices found:', {
+      NL: voicesByLang.NL.length,
+      FR: voicesByLang.FR.length,
+      DE: voicesByLang.DE.length,
+      EN: voicesByLang.EN.length,
     });
 
-    // Sort: premade voices first, then by name
-    voices.sort((a, b) => {
-      // Put professional/premade voices first based on common ElevenLabs voice names
-      const premadeNames = ['Rachel', 'Domi', 'Bella', 'Antoni', 'Elli', 'Josh', 'Arnold', 'Adam', 'Sam', 'Charlotte', 'Alice', 'Matilda', 'Sarah', 'Laura', 'Charlie', 'George', 'Emily', 'Nicole', 'Lily', 'Daniel', 'Brian', 'Callum', 'Liam', 'Dorothy', 'Gigi'];
-      const aIsPremade = premadeNames.some(n => a.name.includes(n));
-      const bIsPremade = premadeNames.some(n => b.name.includes(n));
-      
-      if (aIsPremade && !bIsPremade) return -1;
-      if (!aIsPremade && bIsPremade) return 1;
-      
-      return a.name.localeCompare(b.name);
-    });
+    // Combineer alle stemmen, gesorteerd per taal
+    const result: VoiceResponse[] = [
+      ...voicesByLang.NL,
+      ...voicesByLang.FR,
+      ...voicesByLang.DE,
+      ...voicesByLang.EN.slice(0, 8), // Limiteer Engels tot 8
+    ];
 
-    return NextResponse.json(voices);
+    if (result.length === 0) {
+      return NextResponse.json({ error: 'Geen stemmen gevonden' }, { status: 404 });
+    }
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error('ElevenLabs API error:', error);
     return NextResponse.json({ error: 'Fout bij ophalen stemmen' }, { status: 500 });

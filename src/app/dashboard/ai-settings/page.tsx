@@ -651,15 +651,53 @@ export default function AISettingsPage() {
                 </a>
               </div>
 
-              {/* Alle stemmen - met eleven_turbo_v2_5 spreken ze alle 32 talen */}
-              <p style={{ color: '#6b7280', fontSize: 13, marginBottom: 16 }}>
-                Alle stemmen ondersteunen Nederlands, Frans, Duits, Engels en 28 andere talen.
-              </p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
-                {voices.map(voice => (
-                  <VoiceCard key={voice.voice_id} voice={voice} selectedVoiceId={config.voice_id} onSelect={(id) => setConfig({ ...config, voice_id: id })} playVoiceSample={playVoiceSample} playingVoice={playingVoice} />
-                ))}
-              </div>
+              {/* Nederlands/Vlaams */}
+              {voices.filter(v => v.labels.language === 'NL').length > 0 && (
+                <>
+                  <h3 style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 12 }}>🇧🇪 Nederlands / Vlaams</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12, marginBottom: 24 }}>
+                    {voices.filter(v => v.labels.language === 'NL').map(voice => (
+                      <VoiceCard key={voice.voice_id} voice={voice} selectedVoiceId={config.voice_id} onSelect={(id) => setConfig({ ...config, voice_id: id })} playVoiceSample={playVoiceSample} playingVoice={playingVoice} />
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {/* Frans */}
+              {voices.filter(v => v.labels.language === 'FR').length > 0 && (
+                <>
+                  <h3 style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 12 }}>🇫🇷 Frans</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12, marginBottom: 24 }}>
+                    {voices.filter(v => v.labels.language === 'FR').map(voice => (
+                      <VoiceCard key={voice.voice_id} voice={voice} selectedVoiceId={config.voice_id} onSelect={(id) => setConfig({ ...config, voice_id: id })} playVoiceSample={playVoiceSample} playingVoice={playingVoice} />
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {/* Duits */}
+              {voices.filter(v => v.labels.language === 'DE').length > 0 && (
+                <>
+                  <h3 style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 12 }}>🇩🇪 Duits</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12, marginBottom: 24 }}>
+                    {voices.filter(v => v.labels.language === 'DE').map(voice => (
+                      <VoiceCard key={voice.voice_id} voice={voice} selectedVoiceId={config.voice_id} onSelect={(id) => setConfig({ ...config, voice_id: id })} playVoiceSample={playVoiceSample} playingVoice={playingVoice} />
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {/* Engels */}
+              {voices.filter(v => v.labels.language === 'EN').length > 0 && (
+                <>
+                  <h3 style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 12 }}>🇬🇧 Engels</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
+                    {voices.filter(v => v.labels.language === 'EN').map(voice => (
+                      <VoiceCard key={voice.voice_id} voice={voice} selectedVoiceId={config.voice_id} onSelect={(id) => setConfig({ ...config, voice_id: id })} playVoiceSample={playVoiceSample} playingVoice={playingVoice} />
+                    ))}
+                  </div>
+                </>
+              )}
             </>
           )}
         </div>
