@@ -15,7 +15,8 @@ const ALLOWED_UPDATE_FIELDS = [
   'name', 'description', 'phone', 'email', 'website',
   'street', 'city', 'postal_code', 'country',
   'voice_id', 'welcome_message', 'opening_hours',
-  'fallback_action', 'transfer_number'
+  'fallback_action', 'transfer_number',
+  'delivery_fee', 'minimum_order'
 ];
 
 // PUT - Update business

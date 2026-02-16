@@ -32,6 +32,8 @@ interface Business {
   subscription_status: string;
   trial_ends_at: string | null;
   stripe_customer_id: string | null;
+  delivery_fee: number | null;
+  minimum_order: number | null;
 }
 
 const defaultOpeningHours: OpeningHours = {
@@ -100,6 +102,8 @@ function SettingsContent() {
     email: '',
     address: '',
     opening_hours: defaultOpeningHours,
+    delivery_fee: '',
+    minimum_order: '',
   });
 
   // Check for success/canceled from Stripe
@@ -131,6 +135,8 @@ function SettingsContent() {
             email: biz.email || '',
             address: biz.address || '',
             opening_hours: biz.opening_hours ? migrateOpeningHours(biz.opening_hours) : defaultOpeningHours,
+            delivery_fee: biz.delivery_fee?.toString() || '',
+            minimum_order: biz.minimum_order?.toString() || '',
           });
         }
         setLoading(false);
@@ -157,6 +163,8 @@ function SettingsContent() {
           email: biz.email || '',
           address: biz.address || '',
           opening_hours: biz.opening_hours ? migrateOpeningHours(biz.opening_hours) : defaultOpeningHours,
+          delivery_fee: biz.delivery_fee?.toString() || '',
+          minimum_order: biz.minimum_order?.toString() || '',
         });
       }
     } catch (e) {
@@ -245,6 +253,8 @@ function SettingsContent() {
           email: formData.email.trim() || null,
           address: formData.address.trim() || null,
           opening_hours: formData.opening_hours,
+          delivery_fee: formData.delivery_fee ? parseFloat(formData.delivery_fee) : null,
+          minimum_order: formData.minimum_order ? parseFloat(formData.minimum_order) : null,
         }),
       });
 
@@ -509,6 +519,40 @@ function SettingsContent() {
                 placeholder="Straatnaam 123, 1000 Stad"
               />
             </div>
+
+            {/* Leveringskosten - alleen voor horeca */}
+            {['frituur', 'pizzeria', 'kebab', 'restaurant', 'snackbar'].includes(formData.type) && (
+              <>
+                <div>
+                  <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>
+                    Leveringskosten (€)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.delivery_fee}
+                    onChange={(e) => setFormData({ ...formData, delivery_fee: e.target.value })}
+                    style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }}
+                    placeholder="2.50"
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>
+                    Minimale bestelling (€)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.minimum_order}
+                    onChange={(e) => setFormData({ ...formData, minimum_order: e.target.value })}
+                    style={{ width: '100%', padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }}
+                    placeholder="15.00"
+                  />
+                </div>
+              </>
+            )}
           </div>
         </div>
 

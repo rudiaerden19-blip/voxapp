@@ -21,6 +21,8 @@ interface BusinessData {
   voice_id: string | null;
   welcome_message: string | null;
   agent_id: string | null;
+  delivery_fee: number | null;
+  minimum_order: number | null;
 }
 
 interface StaffMember {
@@ -137,7 +139,11 @@ Type: ${business.type || 'Niet opgegeven'}
 Adres: ${addressText}
 ${business.phone ? `Telefoon: ${business.phone}` : ''}
 ${business.email ? `E-mail: ${business.email}` : ''}
-
+${['frituur', 'pizzeria', 'kebab', 'restaurant', 'snackbar'].includes(business.type || '') ? `
+# LEVERING & BESTELLING
+${business.delivery_fee !== null ? `Leveringskosten: €${business.delivery_fee.toFixed(2)}` : 'Leveringskosten: Niet opgegeven'}
+${business.minimum_order !== null ? `Minimale bestelling: €${business.minimum_order.toFixed(2)}` : 'Minimale bestelling: Niet opgegeven'}
+` : ''}
 # OPENINGSUREN
 ${openingHoursText}
 
