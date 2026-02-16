@@ -215,15 +215,23 @@ export async function GET() {
       });
     }
 
-    // Limiteer tot 4 stemmen per taal
+    // Limiteer tot 4 stemmen per taal, vul aan met fallback indien nodig
     const result: VoiceResponse[] = [];
     for (const lang of ['NL', 'FR', 'DE', 'EN']) {
-      result.push(...voicesByLang[lang].slice(0, 4));
+      const langVoices = voicesByLang[lang].slice(0, 4);
+      
+      // Als een taal leeg is, gebruik fallback stemmen voor die taal
+      if (langVoices.length === 0) {
+        const fallbackForLang = fallbackVoices.filter(v => v.labels.language === lang);
+        result.push(...fallbackForLang);
+      } else {
+        result.push(...langVoices);
+      }
     }
 
-    // Als we nog steeds geen stemmen hebben, gebruik fallback
+    // Als we nog steeds geen stemmen hebben, gebruik alle fallbacks
     if (result.length === 0) {
-      console.log('No voices found, using fallback');
+      console.log('No voices found, using all fallback voices');
       return NextResponse.json(fallbackVoices);
     }
 
