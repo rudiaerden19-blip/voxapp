@@ -677,6 +677,9 @@ export default function AdminDashboard() {
                   >
                     <optgroup label="Horeca">
                       <option value="restaurant">Restaurant</option>
+                      <option value="frituur">Frituur</option>
+                      <option value="pizzeria">Pizzeria</option>
+                      <option value="kebab">Kebabzaak</option>
                       <option value="hotel">Hotel</option>
                     </optgroup>
                     <optgroup label="Zorg">
@@ -872,6 +875,9 @@ export default function AdminDashboard() {
                       >
                         <optgroup label="Horeca">
                           <option value="restaurant">Restaurant</option>
+                          <option value="frituur">Frituur</option>
+                          <option value="pizzeria">Pizzeria</option>
+                          <option value="kebab">Kebabzaak</option>
                           <option value="hotel">Hotel</option>
                         </optgroup>
                         <optgroup label="Zorg">
