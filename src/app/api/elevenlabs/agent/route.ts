@@ -273,7 +273,7 @@ export async function POST(request: NextRequest) {
         agent: {
           prompt: {
             prompt: systemPrompt,
-            llm: 'gemini-2.0-flash-001', // Required for non-English languages
+            llm: 'gemini-2.5-flash', // Required for non-English languages
           },
           first_message: business.welcome_message || `Goedendag, welkom bij ${business.name}. Waarmee kan ik u helpen?`,
           language: 'nl',
