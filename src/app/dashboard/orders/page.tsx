@@ -110,7 +110,7 @@ export default function OrdersPage() {
   }
 
   return (
-    <ModuleGuard requiredModule="orders">
+    <ModuleGuard moduleId="orders">
       <DashboardLayout>
         {/* Header */}
         <div style={{ marginBottom: 24 }}>

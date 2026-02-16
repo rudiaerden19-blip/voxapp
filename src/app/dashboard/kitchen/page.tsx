@@ -122,7 +122,7 @@ export default function KitchenPage() {
   }
 
   return (
-    <ModuleGuard requiredModule="kitchen">
+    <ModuleGuard moduleId="kitchen">
       <DashboardLayout>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>

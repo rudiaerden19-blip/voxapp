@@ -128,7 +128,7 @@ export default function DeliverySlotsPage() {
   }
 
   return (
-    <ModuleGuard requiredModule="delivery_slots">
+    <ModuleGuard moduleId="delivery_slots">
       <DashboardLayout>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
