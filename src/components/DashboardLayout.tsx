@@ -212,6 +212,17 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             <Phone size={18} />{t('dashboard.nav.reception')}
           </Link>
 
+          {/* Telefoonnummer */}
+          <Link href={getHref('/dashboard/phone')} onClick={() => setSidebarOpen(false)} style={{
+            display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
+            background: pathname.startsWith('/dashboard/phone') ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
+            border: 'none', borderRadius: 8, color: pathname.startsWith('/dashboard/phone') ? '#f97316' : '#9ca3af',
+            fontSize: 14, fontWeight: pathname.startsWith('/dashboard/phone') ? 600 : 400, cursor: 'pointer',
+            width: '100%', textAlign: 'left', marginBottom: 4, textDecoration: 'none',
+          }}>
+            <Phone size={18} />Telefoonnummer
+          </Link>
+
           {/* Instellingen */}
           <Link href={getHref('/dashboard/settings')} onClick={() => setSidebarOpen(false)} style={{
             display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
