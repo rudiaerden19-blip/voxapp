@@ -43,6 +43,15 @@ interface FAQ {
   answer: string;
 }
 
+interface Product {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  description?: string;
+  is_available: boolean;
+}
+
 // Get greeting based on language
 function getGreeting(language: string, businessName: string): string {
   switch (language) {
@@ -62,6 +71,7 @@ function buildSystemPrompt(
   business: BusinessData,
   staff: StaffMember[],
   services: Service[],
+  products: Product[],
   aiContext: string,
   faqs: FAQ[],
   fallbackAction: string,
@@ -114,6 +124,28 @@ function buildSystemPrompt(
       }).join('\n')
     : 'Niet opgegeven';
 
+  // Format products (for horeca)
+  const validProducts = Array.isArray(products) ? products.filter(p => p && p.name && p.is_available !== false) : [];
+  const productsByCategory: Record<string, Product[]> = {};
+  validProducts.forEach(p => {
+    const cat = p.category || 'Overig';
+    if (!productsByCategory[cat]) productsByCategory[cat] = [];
+    productsByCategory[cat].push(p);
+  });
+  
+  let productsText = '';
+  if (validProducts.length > 0) {
+    const lines: string[] = [];
+    for (const [category, items] of Object.entries(productsByCategory)) {
+      lines.push(`\n## ${category}`);
+      items.forEach(p => {
+        const price = typeof p.price === 'number' ? `€${p.price.toFixed(2)}` : '';
+        lines.push(`- ${p.name}: ${price}`);
+      });
+    }
+    productsText = lines.join('\n');
+  }
+
   // Format FAQs
   const validFaqs = Array.isArray(faqs) ? faqs.filter(f => f && f.question && f.answer) : [];
   const faqsText = validFaqs.length > 0
@@ -145,6 +177,9 @@ ${['frituur', 'pizzeria', 'kebab', 'restaurant', 'snackbar'].includes(business.t
 # LEVERING & BESTELLING
 ${business.delivery_fee !== null ? `Leveringskosten: €${business.delivery_fee.toFixed(2)}` : 'Leveringskosten: Niet opgegeven'}
 ${business.minimum_order !== null ? `Minimale bestelling: €${business.minimum_order.toFixed(2)}` : 'Minimale bestelling: Niet opgegeven'}
+
+# MENU / PRODUCTEN
+${productsText || 'Geen producten ingevoerd - vraag de klant wat ze willen en noteer het'}
 ` : ''}
 # OPENINGSUREN
 ${openingHoursText}
@@ -258,6 +293,24 @@ export async function POST(request: NextRequest) {
       // Niet fataal - ga door zonder services
     }
 
+    // Get products (for horeca)
+    let products: Product[] = [];
+    if (['frituur', 'pizzeria', 'kebab', 'restaurant', 'snackbar'].includes(business.type || '')) {
+      const { data: productsData, error: productsError } = await supabase
+        .from('products')
+        .select('id, name, category, price, description, is_available')
+        .eq('business_id', business_id)
+        .eq('is_available', true)
+        .order('category')
+        .order('name');
+
+      if (productsError) {
+        console.error('Products fetch DB error:', productsError);
+      } else {
+        products = productsData || [];
+      }
+    }
+
     // Valideer en filter FAQs
     const validFaqs: FAQ[] = [];
     if (Array.isArray(faqs)) {
@@ -283,6 +336,7 @@ export async function POST(request: NextRequest) {
       business as BusinessData,
       (staff || []) as StaffMember[],
       (services || []) as Service[],
+      products,
       sanitizeString(ai_context, 2000),
       validFaqs,
       validFallbackAction,
