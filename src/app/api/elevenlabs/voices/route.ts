@@ -145,36 +145,43 @@ export async function GET() {
       }
     }
 
-    // Voeg ALTIJD echte Franse en Duitse ElevenLabs stemmen toe (als ze nog niet bestaan)
-    const frenchVoices = [
-      { voice_id: 'm5U7XCsc8v988k2RJAqN', name: 'Franse Stem 1', gender: 'Onbekend' },
-      { voice_id: 'aF9wTE4apSrh9D2pdwwI', name: 'Franse Stem 2', gender: 'Onbekend' },
-      { voice_id: '5opxviIE64D8KxYYJKpx', name: 'Franse Stem 3', gender: 'Onbekend' },
-    ];
-    for (const v of frenchVoices) {
-      if (!voicesByLang.FR.some(existing => existing.voice_id === v.voice_id)) {
-        voicesByLang.FR.push({
-          voice_id: v.voice_id,
-          name: v.name,
-          preview_url: null,
-          labels: { gender: v.gender, language: 'FR', accent: 'Frans' },
-        });
-      }
-    }
+    // Haal Franse en Duitse stemmen op van de Voice Library API
+    const libraryVoiceIds = {
+      FR: ['m5U7XCsc8v988k2RJAqN', 'aF9wTE4apSrh9D2pdwwI', '5opxviIE64D8KxYYJKpx'],
+      DE: ['m0jFDzIcZy0rC88oAehX', 'coPfQIqaxowKv5u2s2bV', '5KvpaGteYkNayiswuX2h'],
+    };
     
-    const germanVoices = [
-      { voice_id: 'm0jFDzIcZy0rC88oAehX', name: 'Duitse Stem 1', gender: 'Onbekend' },
-      { voice_id: 'coPfQIqaxowKv5u2s2bV', name: 'Duitse Stem 2', gender: 'Onbekend' },
-      { voice_id: '5KvpaGteYkNayiswuX2h', name: 'Duitse Stem 3', gender: 'Onbekend' },
-    ];
-    for (const v of germanVoices) {
-      if (!voicesByLang.DE.some(existing => existing.voice_id === v.voice_id)) {
-        voicesByLang.DE.push({
-          voice_id: v.voice_id,
-          name: v.name,
-          preview_url: null,
-          labels: { gender: v.gender, language: 'DE', accent: 'Duits' },
-        });
+    // Haal details op voor elke voice ID
+    for (const [lang, ids] of Object.entries(libraryVoiceIds)) {
+      for (const voiceId of ids) {
+        if (voicesByLang[lang].some(v => v.voice_id === voiceId)) continue;
+        
+        try {
+          const voiceRes = await fetch(`https://api.elevenlabs.io/v1/voices/${voiceId}`, {
+            headers: { 'xi-api-key': apiKey },
+          });
+          
+          if (voiceRes.ok) {
+            const voiceData = await voiceRes.json();
+            const labels = voiceData.labels || {};
+            let gender = 'Onbekend';
+            if (labels.gender === 'female') gender = 'Vrouw';
+            else if (labels.gender === 'male') gender = 'Man';
+            
+            voicesByLang[lang].push({
+              voice_id: voiceData.voice_id,
+              name: voiceData.name,
+              preview_url: voiceData.preview_url || null,
+              labels: { 
+                gender, 
+                language: lang, 
+                accent: lang === 'FR' ? 'Frans' : 'Duits' 
+              },
+            });
+          }
+        } catch (e) {
+          console.error(`Failed to fetch voice ${voiceId}:`, e);
+        }
       }
     }
 
