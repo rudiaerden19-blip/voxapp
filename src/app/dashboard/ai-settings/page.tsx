@@ -548,6 +548,15 @@ export default function AISettingsPage() {
           faqs: config.faqs.filter(f => f.question && f.answer),
           fallback_action: config.fallback_action,
           transfer_number: config.transfer_number,
+          // Bepaal taal op basis van gekozen stem
+          voice_language: (() => {
+            const selectedVoice = voices.find(v => v.voice_id === config.voice_id);
+            const lang = selectedVoice?.labels?.language;
+            if (lang === 'FR') return 'fr';
+            if (lang === 'DE') return 'de';
+            if (lang === 'EN') return 'en';
+            return 'nl'; // Default Nederlands
+          })(),
         }),
       });
       

@@ -41,6 +41,20 @@ interface FAQ {
   answer: string;
 }
 
+// Get greeting based on language
+function getGreeting(language: string, businessName: string): string {
+  switch (language) {
+    case 'fr':
+      return `Bonjour, bienvenue chez ${businessName}. Comment puis-je vous aider?`;
+    case 'de':
+      return `Guten Tag, willkommen bei ${businessName}. Wie kann ich Ihnen helfen?`;
+    case 'en':
+      return `Good day, welcome to ${businessName}. How can I help you?`;
+    default:
+      return `Goedendag, welkom bij ${businessName}. Waarmee kan ik u helpen?`;
+  }
+}
+
 // Build complete AI prompt with all business data
 function buildSystemPrompt(
   business: BusinessData,
@@ -177,7 +191,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Ongeldige JSON data' }, { status: 400 });
     }
 
-    const { business_id, ai_context, faqs, fallback_action, transfer_number } = body;
+    const { business_id, ai_context, faqs, fallback_action, transfer_number, voice_language } = body;
 
     // Validatie
     if (!business_id) {
@@ -275,8 +289,8 @@ export async function POST(request: NextRequest) {
             prompt: systemPrompt,
             llm: 'gemini-2.5-flash', // Required for non-English languages
           },
-          first_message: business.welcome_message || `Goedendag, welkom bij ${business.name}. Waarmee kan ik u helpen?`,
-          language: 'nl',
+          first_message: business.welcome_message || getGreeting(voice_language || 'nl', business.name),
+          language: voice_language || 'nl',
         },
         tts: {
           // Only use voice_id if it looks like an ElevenLabs ID (not Azure)
