@@ -145,15 +145,15 @@ export async function GET() {
       }
     }
 
-    // Voeg ECHTE Franse en Duitse ElevenLabs stemmen toe
-    if (voicesByLang.FR.length === 0) {
-      const frenchVoices = [
-        { voice_id: 'imRmmzTqlLHt9Do1HufF', name: 'Hélène', gender: 'Vrouw' },
-        { voice_id: 'glDtoWIoIgk38YbycCwG', name: 'Clara Dupont', gender: 'Vrouw' },
-        { voice_id: 'PjN1x5uqQvyU3DO0gdJz', name: 'Antoine', gender: 'Man' },
-        { voice_id: '1ns94GwK9YDCJoL6Nglv', name: 'Nicolas', gender: 'Man' },
-      ];
-      for (const v of frenchVoices) {
+    // Voeg ALTIJD echte Franse en Duitse ElevenLabs stemmen toe (als ze nog niet bestaan)
+    const frenchVoices = [
+      { voice_id: 'imRmmzTqlLHt9Do1HufF', name: 'Hélène', gender: 'Vrouw' },
+      { voice_id: 'glDtoWIoIgk38YbycCwG', name: 'Clara Dupont', gender: 'Vrouw' },
+      { voice_id: 'PjN1x5uqQvyU3DO0gdJz', name: 'Antoine', gender: 'Man' },
+      { voice_id: '1ns94GwK9YDCJoL6Nglv', name: 'Nicolas', gender: 'Man' },
+    ];
+    for (const v of frenchVoices) {
+      if (!voicesByLang.FR.some(existing => existing.voice_id === v.voice_id)) {
         voicesByLang.FR.push({
           voice_id: v.voice_id,
           name: v.name,
@@ -163,14 +163,14 @@ export async function GET() {
       }
     }
     
-    if (voicesByLang.DE.length === 0) {
-      const germanVoices = [
-        { voice_id: 'XqTEUeXvEbbL4e30WfT0', name: 'Lena', gender: 'Vrouw' },
-        { voice_id: 'z0gdR3nhVl1Ig2kiEigL', name: 'Luisa', gender: 'Vrouw' },
-        { voice_id: 'f2yUVfK5jdm78zlpcZ8C', name: 'Albert', gender: 'Man' },
-        { voice_id: 'SfXg52J54dixBlOl016v', name: 'Marc', gender: 'Man' },
-      ];
-      for (const v of germanVoices) {
+    const germanVoices = [
+      { voice_id: 'XqTEUeXvEbbL4e30WfT0', name: 'Lena', gender: 'Vrouw' },
+      { voice_id: 'z0gdR3nhVl1Ig2kiEigL', name: 'Luisa', gender: 'Vrouw' },
+      { voice_id: 'f2yUVfK5jdm78zlpcZ8C', name: 'Albert', gender: 'Man' },
+      { voice_id: 'SfXg52J54dixBlOl016v', name: 'Marc', gender: 'Man' },
+    ];
+    for (const v of germanVoices) {
+      if (!voicesByLang.DE.some(existing => existing.voice_id === v.voice_id)) {
         voicesByLang.DE.push({
           voice_id: v.voice_id,
           name: v.name,
