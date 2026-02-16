@@ -2350,8 +2350,8 @@ function PricingSection() {
     {
       key: 'starter',
       price: '99',
-      minutes: '300',
-      appointments: '~150',
+      minutes: '375',
+      appointments: '~190',
       extra: '0,40',
       featureKeys: ['f1', 'f2', 'f3', 'f4', 'f5', 'f6'],
       popular: false,
@@ -2359,8 +2359,8 @@ function PricingSection() {
     {
       key: 'pro',
       price: '149',
-      minutes: '750',
-      appointments: '~375',
+      minutes: '940',
+      appointments: '~470',
       extra: '0,35',
       featureKeys: ['f1', 'f2', 'f3', 'f4', 'f5', 'f6'],
       popular: true,
@@ -2368,8 +2368,8 @@ function PricingSection() {
     {
       key: 'business',
       price: '249',
-      minutes: '1500',
-      appointments: '~750',
+      minutes: '1875',
+      appointments: '~940',
       extra: '0,30',
       featureKeys: ['f1', 'f2', 'f3', 'f4', 'f5', 'f6'],
       popular: false,

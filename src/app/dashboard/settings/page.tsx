@@ -451,7 +451,7 @@ function SettingsContent() {
             </div>
             <div>
               <p style={{ color: '#6b7280', fontSize: 12, marginBottom: 4 }}>Inclusief</p>
-              <p style={{ color: 'white', fontSize: 14 }}>300 minuten • SMS • 24/7 AI</p>
+              <p style={{ color: 'white', fontSize: 14 }}>375 minuten • SMS • 24/7 AI</p>
             </div>
             <div>
               <p style={{ color: '#6b7280', fontSize: 12, marginBottom: 4 }}>Extra minuten</p>
