@@ -18,7 +18,10 @@ const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
 const moduleNavItems: Record<ModuleId, { href: string; icon: React.ComponentType<{ size?: number }>; label: string }> = {
   appointments: { href: '/dashboard/appointments', icon: Calendar, label: 'Afspraken' },
   menu: { href: '/dashboard/producten', icon: Package, label: 'Menu' },
+  products: { href: '/dashboard/producten', icon: Package, label: 'Producten' },
   orders: { href: '/dashboard/orders', icon: ShoppingBag, label: 'Bestellingen' },
+  kitchen: { href: '/dashboard/kitchen', icon: UtensilsCrossed, label: 'Keuken' },
+  delivery_slots: { href: '/dashboard/delivery-slots', icon: Calendar, label: 'Levertijden' },
   reservations: { href: '/dashboard/reservations', icon: CalendarCheck, label: 'Reserveringen' },
   services: { href: '/dashboard/services', icon: Briefcase, label: 'Diensten' },
   staff: { href: '/dashboard/staff', icon: Users, label: 'Team' },
