@@ -17,7 +17,7 @@ function generateSessionToken(email: string): string {
 function verifySessionToken(token: string, email: string): boolean {
   // For simplicity, we just check if the token exists and matches format
   // In production, you'd want to store sessions in a database with expiry
-  return token && token.length === 64; // SHA256 produces 64 hex chars
+  return Boolean(token && token.length === 64); // SHA256 produces 64 hex chars
 }
 
 // POST - Login
