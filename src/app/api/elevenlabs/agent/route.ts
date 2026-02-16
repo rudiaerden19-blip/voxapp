@@ -293,11 +293,11 @@ export async function POST(request: NextRequest) {
       // Niet fataal - ga door zonder services
     }
 
-    // Get products (for horeca)
+    // Get products/menu (for horeca) – tabel: menu_items
     let products: Product[] = [];
     if (['frituur', 'pizzeria', 'kebab', 'restaurant', 'snackbar'].includes(business.type || '')) {
       const { data: productsData, error: productsError } = await supabase
-        .from('products')
+        .from('menu_items')
         .select('id, name, category, price, description, is_available')
         .eq('business_id', business_id)
         .eq('is_available', true)
