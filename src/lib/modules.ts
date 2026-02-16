@@ -100,6 +100,7 @@ export interface BusinessTypeConfig {
     products?: string;     // meervoud
     appointment?: string;  // "afspraak", "reservering", "consult"
     customer?: string;     // "klant", "patiënt", "gast"
+    order?: string;        // "bestelling"
   };
   // Module-specifieke veld configuratie
   fieldConfig?: ModuleFieldConfig;
