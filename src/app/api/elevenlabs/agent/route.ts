@@ -280,6 +280,7 @@ export async function POST(request: NextRequest) {
         },
         tts: {
           voice_id: business.voice_id || 'pFZP5JQG7iQjIQuC4Bku', // Default Belgian voice
+          model_id: 'eleven_turbo_v2_5', // Required for non-English (32 languages)
         },
       },
       name: `${business.name} Receptionist`,
