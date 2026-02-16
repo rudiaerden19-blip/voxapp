@@ -157,8 +157,37 @@ export default function OnboardingPage() {
 
   const finishOnboarding = async () => {
     setSaving(true);
-    // TODO: Configure AI with Vapi
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    try {
+      if (businessId) {
+        // Create/update AI agent with ElevenLabs
+        const response = await fetch('/api/elevenlabs/agent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            businessId: businessId,
+            voiceId: aiConfig.voice_id,
+            greeting: aiConfig.greeting,
+          }),
+        });
+
+        if (!response.ok) {
+          console.error('Failed to create AI agent:', await response.text());
+          // Continue anyway - they can configure AI later
+        }
+
+        // Save AI settings to the database
+        const supabase = createClient();
+        await supabase.from('businesses').update({
+          voice_id: aiConfig.voice_id,
+          welcome_message: aiConfig.greeting,
+        } as any).eq('id', businessId);
+      }
+    } catch (error) {
+      console.error('Error during finishOnboarding:', error);
+      // Continue anyway - don't block the user
+    }
+    
     router.push('/dashboard');
   };
 

@@ -18,9 +18,9 @@ const businessTypeKeys = ['salon', 'garage', 'restaurant', 'takeaway', 'doctor',
 
 // Plan info for display
 const planInfo: Record<string, { name: string; price: string; minutes: string }> = {
-  starter: { name: 'Starter', price: '99', minutes: '300' },
-  pro: { name: 'Professional', price: '149', minutes: '750' },
-  business: { name: 'Business', price: '249', minutes: '1500' },
+  starter: { name: 'Starter', price: '99', minutes: '375' },
+  pro: { name: 'Professional', price: '149', minutes: '940' },
+  business: { name: 'Business', price: '249', minutes: '1875' },
 };
 
 // Inner component that uses useSearchParams
@@ -50,10 +50,19 @@ function RegisterForm() {
     try {
       const supabase = createClient();
       
-      // 1. Create auth user
+      // 1. Create auth user with email confirmation
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: {
+            business_name: businessName,
+            business_type: businessType,
+            phone: phone,
+            plan: selectedPlan,
+          }
+        }
       });
 
       if (authError) {
@@ -74,14 +83,17 @@ function RegisterForm() {
             email: email,
             subscription_status: 'trial',
             subscription_plan: selectedPlan,
-            trial_ends_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+            trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days trial
           }] as any);
 
         if (businessError) {
           console.error('Business creation error:', businessError);
           setError(t('auth.somethingWentWrong'));
         } else {
-          router.push('/dashboard/onboarding');
+          // Save email for verification page
+          localStorage.setItem('pendingVerificationEmail', email);
+          // Redirect to verify email page
+          router.push('/verify-email');
         }
       }
     } catch (err: any) {
