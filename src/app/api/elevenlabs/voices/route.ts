@@ -25,6 +25,9 @@ function detectLanguage(voice: ElevenLabsVoice): string | null {
   const labels = voice.labels || {};
   const allText = `${name} ${Object.values(labels).join(' ')}`.toLowerCase();
   
+  // Exclusies - stemmen die verkeerd worden geclassificeerd
+  if (name.includes('luisa')) return null; // Luisa is Engels, niet Duits
+  
   // Nederlands/Vlaams
   if (allText.includes('dutch') || allText.includes('flemish') || allText.includes('vlaams') || 
       allText.includes('belgian') || allText.includes('nederland') || allText.includes('nl-') ||
