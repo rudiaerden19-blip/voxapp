@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { 
   createAdminClient, 
   verifyAdmin, 
+  verifyAdminCookie,
   unauthorizedResponse,
   forbiddenResponse,
   isValidUUID,
@@ -33,9 +34,15 @@ const ALLOWED_UPDATE_FIELDS = [
   'voice_id', 'welcome_message', 'opening_hours'
 ];
 
-// GET - Haal alle tenants op (admin panel gebruikt localStorage auth)
+// GET - Haal alle tenants op (requires admin cookie)
 export async function GET(request: NextRequest) {
   try {
+    // Verify admin session
+    const { isAdmin, error: authError } = verifyAdminCookie(request);
+    if (!isAdmin) {
+      return unauthorizedResponse(authError || 'Geen toegang');
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
@@ -75,7 +82,11 @@ export async function GET(request: NextRequest) {
 // POST - Maak nieuwe tenant (alleen admin)
 export async function POST(request: NextRequest) {
   try {
-    // Auth check overgeslagen - admin panel gebruikt localStorage auth
+    // Verify admin session
+    const { isAdmin, error: authError } = verifyAdminCookie(request);
+    if (!isAdmin) {
+      return unauthorizedResponse(authError || 'Geen toegang');
+    }
 
     // Parse body
     let body;
@@ -140,7 +151,11 @@ export async function POST(request: NextRequest) {
 // PUT - Update tenant (alleen admin)
 export async function PUT(request: NextRequest) {
   try {
-    // Auth check overgeslagen - admin panel gebruikt localStorage auth
+    // Verify admin session
+    const { isAdmin, error: authError } = verifyAdminCookie(request);
+    if (!isAdmin) {
+      return unauthorizedResponse(authError || 'Geen toegang');
+    }
 
     // Parse body
     let body;
@@ -249,7 +264,11 @@ export async function PUT(request: NextRequest) {
 // DELETE - Verwijder tenant (alleen admin)
 export async function DELETE(request: NextRequest) {
   try {
-    // Auth check overgeslagen - admin panel gebruikt localStorage auth
+    // Verify admin session
+    const { isAdmin, error: authError } = verifyAdminCookie(request);
+    if (!isAdmin) {
+      return unauthorizedResponse(authError || 'Geen toegang');
+    }
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

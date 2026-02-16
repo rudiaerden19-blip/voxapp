@@ -6,6 +6,9 @@ const ADMIN_USER_IDS = [
   'e2ea6530-0c7a-48fd-a0df-3c404ca08753', // Rudi
 ];
 
+// Admin credentials for cookie-based auth
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@voxapp.tech';
+
 // Create admin Supabase client
 export function createAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -158,6 +161,37 @@ export async function verifyBusinessAccess(
   } catch (err) {
     console.error('Business access auth error:', err);
     return { hasAccess: false, userId: null, isAdmin: false, error: 'Authenticatie fout' };
+  }
+}
+
+// Verify admin from HTTP-only session cookies (standalone admin auth)
+export function verifyAdminCookie(request: NextRequest): {
+  isAdmin: boolean;
+  email: string | null;
+  error: string | null;
+} {
+  try {
+    const sessionToken = request.cookies.get('voxapp_admin_session')?.value;
+    const adminEmail = request.cookies.get('voxapp_admin_email')?.value;
+
+    if (!sessionToken || !adminEmail) {
+      return { isAdmin: false, email: null, error: 'Geen admin sessie' };
+    }
+
+    // Verify token format (SHA256 = 64 hex chars)
+    if (sessionToken.length !== 64) {
+      return { isAdmin: false, email: null, error: 'Ongeldige sessie token' };
+    }
+
+    // Verify it's our admin email
+    if (adminEmail !== ADMIN_EMAIL) {
+      return { isAdmin: false, email: null, error: 'Geen admin rechten' };
+    }
+
+    return { isAdmin: true, email: adminEmail, error: null };
+  } catch (err) {
+    console.error('Admin cookie verification error:', err);
+    return { isAdmin: false, email: null, error: 'Verificatie fout' };
   }
 }
 

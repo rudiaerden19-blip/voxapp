@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
 import DashboardLayout from '@/components/DashboardLayout';
-import { Phone, Plus, Search, Trash2, RefreshCw, CheckCircle, AlertCircle, Globe, PhoneCall, PhoneOutgoing } from 'lucide-react';
+import { Phone, Plus, Search, Trash2, RefreshCw, CheckCircle, AlertCircle, Globe, PhoneCall, PhoneOutgoing, ArrowRight, Forward } from 'lucide-react';
 
 interface PhoneNumber {
   id: string;
@@ -194,11 +195,39 @@ export default function PhonePage() {
         <div style={{ marginBottom: 32 }}>
           <h1 style={{ fontSize: 28, fontWeight: 700, color: 'white', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 12 }}>
             <Phone size={28} style={{ color: '#f97316' }} />
-            Telefoonnummers
+            Telefoon
           </h1>
           <p style={{ color: '#9ca3af' }}>
-            Beheer je AI telefoonnummers. Klanten kunnen dit nummer bellen om met je AI te praten.
+            Koppel je eigen nummer door naar de AI-receptionist, of koop een apart nummer (optioneel).
           </p>
+        </div>
+
+        {/* Aanbevolen: eigen nummer doorsturen */}
+        <div style={{
+          marginBottom: 24, padding: 20, borderRadius: 12, border: '1px solid rgba(249, 115, 22, 0.3)',
+          background: 'rgba(249, 115, 22, 0.08)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
+            <div style={{ flex: '1 1 280px' }}>
+              <h2 style={{ fontSize: 16, fontWeight: 600, color: '#f97316', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Forward size={18} />
+                Aanbevolen: eigen nummer doorsturen
+              </h2>
+              <p style={{ color: '#d1d5db', fontSize: 14, marginBottom: 12 }}>
+                Laat klanten je bestaande nummer bellen. Stel bij je provider doorsturen in naar ons poolnummer – dan neemt de AI op onder jouw nummer.
+              </p>
+              <Link
+                href="/dashboard/forwarding"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 8,
+                  color: '#f97316', fontWeight: 600, fontSize: 14, textDecoration: 'none',
+                }}
+              >
+                Doorsturen instellen
+                <ArrowRight size={16} />
+              </Link>
+            </div>
+          </div>
         </div>
 
         {/* Messages */}
@@ -295,12 +324,15 @@ export default function PhonePage() {
           )}
         </div>
 
-        {/* Buy New Number */}
+        {/* Optioneel: nieuw nummer kopen (Twilio) */}
         <div style={{ background: '#16161f', borderRadius: 12, border: '1px solid #2a2a35', padding: 24 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 600, color: 'white', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12 }}>
+          <h2 style={{ fontSize: 18, fontWeight: 600, color: 'white', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 12 }}>
             <Plus size={20} style={{ color: '#f97316' }} />
-            Nieuw Nummer Kopen
+            Optioneel: nieuw nummer kopen
           </h2>
+          <p style={{ color: '#6b7280', fontSize: 14, marginBottom: 20 }}>
+            Via Twilio kun je een apart nummer kopen voor je AI (niet verplicht als je doorsturen gebruikt).
+          </p>
 
           {/* Country Selection */}
           <div style={{ marginBottom: 20 }}>

@@ -6,9 +6,7 @@ import { useLanguage } from '@/lib/LanguageContext';
 import { LogOut, Plus, Monitor, RotateCcw, Eye, Ban, Check, Trash2, Phone, Users, CreditCard, AlertTriangle, Shield, Lock, X, ExternalLink, Calendar, Euro, TrendingUp, LayoutDashboard, Settings } from 'lucide-react';
 import { MODULES, getBusinessType, ModuleId } from '@/lib/modules';
 
-// Admin credentials - alleen jij hebt toegang
-const ADMIN_EMAIL = 'admin@voxapp.tech';
-const ADMIN_PASSWORD = 'VoxAdmin2024!';
+// Admin auth is now handled via API with HTTP-only cookies
 
 // Alle beschikbare modules
 const ALL_MODULES: ModuleId[] = Object.keys(MODULES) as ModuleId[];
@@ -58,15 +56,28 @@ export default function AdminDashboard() {
   const router = useRouter();
 
   useEffect(() => { 
-    // Check if admin session exists
-    const adminSession = localStorage.getItem('voxapp_admin_session');
-    if (adminSession === 'true') {
-      setIsAdmin(true);
-      loadTenants();
-    } else {
-      setLoading(false);
-    }
+    // Check if admin session exists via API
+    checkAdminSession();
   }, []);
+
+  const checkAdminSession = async () => {
+    try {
+      const res = await fetch('/api/admin/auth', { 
+        credentials: 'include' 
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.authenticated) {
+          setIsAdmin(true);
+          loadTenants();
+          return;
+        }
+      }
+    } catch (e) {
+      console.error('Session check failed:', e);
+    }
+    setLoading(false);
+  };
 
   const loadTenants = async () => {
     try {
@@ -87,21 +98,42 @@ export default function AdminDashboard() {
     setLoading(false);
   };
 
-  const handleAdminLogin = (e: React.FormEvent) => {
+  const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
+    setLoading(true);
     
-    if (adminEmail === ADMIN_EMAIL && adminPassword === ADMIN_PASSWORD) {
-      localStorage.setItem('voxapp_admin_session', 'true');
-      setIsAdmin(true);
-      loadTenants();
-    } else {
-      setLoginError('Ongeldige admin credentials');
+    try {
+      const res = await fetch('/api/admin/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email: adminEmail, password: adminPassword }),
+      });
+      
+      if (res.ok) {
+        setIsAdmin(true);
+        loadTenants();
+      } else {
+        const data = await res.json();
+        setLoginError(data.error || 'Ongeldige admin credentials');
+        setLoading(false);
+      }
+    } catch (e) {
+      setLoginError('Login mislukt - probeer opnieuw');
+      setLoading(false);
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('voxapp_admin_session');
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/admin/auth', { 
+        method: 'DELETE',
+        credentials: 'include'
+      });
+    } catch (e) {
+      console.error('Logout error:', e);
+    }
     setIsAdmin(false);
     setAdminEmail('');
     setAdminPassword('');

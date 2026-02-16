@@ -3,7 +3,7 @@
 import { useState, Suspense } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Phone, Calendar, Users, Settings, LogOut, TrendingUp, MessageSquare, Menu, X, Briefcase, Globe, ChevronDown, Shield, Package, Wrench, CreditCard, Home, Car, FileText, ShoppingBag, UtensilsCrossed, CalendarCheck, Scissors } from 'lucide-react';
+import { Phone, Calendar, Users, Settings, LogOut, TrendingUp, MessageSquare, Menu, X, Briefcase, Globe, ChevronDown, Shield, Package, Wrench, CreditCard, Home, Car, FileText, ShoppingBag, UtensilsCrossed, CalendarCheck, Scissors, ExternalLink } from 'lucide-react';
 import { useLanguage, Language } from '@/lib/LanguageContext';
 import { useBusiness } from '@/lib/BusinessContext';
 import { getBusinessType, hasModule, ModuleId } from '@/lib/modules';
@@ -221,6 +221,28 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             width: '100%', textAlign: 'left', marginBottom: 4, textDecoration: 'none',
           }}>
             <Phone size={18} />Telefoonnummer
+          </Link>
+
+          {/* Doorschakeling */}
+          <Link href={getHref('/dashboard/forwarding')} onClick={() => setSidebarOpen(false)} style={{
+            display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
+            background: pathname.startsWith('/dashboard/forwarding') ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
+            border: 'none', borderRadius: 8, color: pathname.startsWith('/dashboard/forwarding') ? '#f97316' : '#9ca3af',
+            fontSize: 14, fontWeight: pathname.startsWith('/dashboard/forwarding') ? 600 : 400, cursor: 'pointer',
+            width: '100%', textAlign: 'left', marginBottom: 4, textDecoration: 'none',
+          }}>
+            <ExternalLink size={18} />Doorschakeling
+          </Link>
+
+          {/* Verbruik */}
+          <Link href={getHref('/dashboard/usage')} onClick={() => setSidebarOpen(false)} style={{
+            display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
+            background: pathname.startsWith('/dashboard/usage') ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
+            border: 'none', borderRadius: 8, color: pathname.startsWith('/dashboard/usage') ? '#f97316' : '#9ca3af',
+            fontSize: 14, fontWeight: pathname.startsWith('/dashboard/usage') ? 600 : 400, cursor: 'pointer',
+            width: '100%', textAlign: 'left', marginBottom: 4, textDecoration: 'none',
+          }}>
+            <TrendingUp size={18} />Verbruik
           </Link>
 
           {/* Instellingen */}
