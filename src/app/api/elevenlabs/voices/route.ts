@@ -69,21 +69,41 @@ export async function GET() {
   }
 
   try {
-    const response = await fetch('https://api.elevenlabs.io/v1/voices', {
-      headers: { 'xi-api-key': apiKey },
-    });
+    // Haal zowel eigen voices als shared library voices op
+    const [ownResponse, sharedResponse] = await Promise.all([
+      fetch('https://api.elevenlabs.io/v1/voices', {
+        headers: { 'xi-api-key': apiKey },
+      }),
+      // Shared library - zoek naar Dutch, French, German voices
+      fetch('https://api.elevenlabs.io/v1/shared-voices?page_size=50&language=nl,fr,de', {
+        headers: { 'xi-api-key': apiKey },
+      }).catch(() => null), // Don't fail if shared voices fail
+    ]);
 
-    if (!response.ok) {
-      console.error('ElevenLabs API returned:', response.status);
+    if (!ownResponse.ok) {
+      console.error('ElevenLabs API returned:', ownResponse.status);
       return NextResponse.json({ error: 'Kon stemmen niet ophalen' }, { status: 502 });
     }
 
-    const data = await response.json();
+    const ownData = await ownResponse.json();
+    let sharedVoices: ElevenLabsVoice[] = [];
     
-    if (!data.voices || !Array.isArray(data.voices)) {
-      console.error('Invalid response from ElevenLabs');
-      return NextResponse.json({ error: 'Ongeldige response' }, { status: 502 });
+    if (sharedResponse?.ok) {
+      const sharedData = await sharedResponse.json();
+      if (sharedData.voices && Array.isArray(sharedData.voices)) {
+        sharedVoices = sharedData.voices;
+      }
     }
+    
+    // Combineer eigen en shared voices
+    const allVoices = [...(ownData.voices || []), ...sharedVoices];
+    
+    if (!allVoices.length) {
+      console.error('No voices found');
+      return NextResponse.json({ error: 'Geen stemmen gevonden' }, { status: 404 });
+    }
+    
+    const data = { voices: allVoices };
 
     // Categoriseer stemmen per taal
     const voicesByLang: Record<string, VoiceResponse[]> = {
@@ -121,6 +141,44 @@ export async function GET() {
             language: lang,
             accent,
           },
+        });
+      }
+    }
+
+    // Voeg fallback stemmen toe als categorieën leeg zijn
+    // Deze ElevenLabs stemmen zijn multilingual en werken voor alle talen
+    if (voicesByLang.FR.length === 0) {
+      // Gebruik multilingual stemmen die Frans kunnen spreken
+      const multilingualForFrench = [
+        { voice_id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah', gender: 'Vrouw' },
+        { voice_id: 'XrExE9yKIg1WjnnlVkGX', name: 'Matilda', gender: 'Vrouw' },
+        { voice_id: 'onwK4e9ZLuTAKqWW03F9', name: 'Daniel', gender: 'Man' },
+        { voice_id: 'N2lVS1w4EtoT3dr4eOWO', name: 'Callum', gender: 'Man' },
+      ];
+      for (const v of multilingualForFrench) {
+        voicesByLang.FR.push({
+          voice_id: v.voice_id,
+          name: v.name + ' (Multilingual)',
+          preview_url: null,
+          labels: { gender: v.gender, language: 'FR', accent: 'Frans' },
+        });
+      }
+    }
+    
+    if (voicesByLang.DE.length === 0) {
+      // Gebruik multilingual stemmen die Duits kunnen spreken
+      const multilingualForGerman = [
+        { voice_id: 'ThT5KcBeYPX3keUQqHPh', name: 'Dorothy', gender: 'Vrouw' },
+        { voice_id: 'AZnzlk1XvdvUeBnXmlld', name: 'Domi', gender: 'Vrouw' },
+        { voice_id: 'VR6AewLTigWG4xSOukaG', name: 'Arnold', gender: 'Man' },
+        { voice_id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam', gender: 'Man' },
+      ];
+      for (const v of multilingualForGerman) {
+        voicesByLang.DE.push({
+          voice_id: v.voice_id,
+          name: v.name + ' (Multilingual)',
+          preview_url: null,
+          labels: { gender: v.gender, language: 'DE', accent: 'Duits' },
         });
       }
     }
