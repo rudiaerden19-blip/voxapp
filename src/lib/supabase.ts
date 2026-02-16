@@ -1,4 +1,5 @@
-import { createClient as createSupabaseClient, SupabaseClient } from '@supabase/supabase-js'
+import { createBrowserClient } from '@supabase/ssr'
+import { SupabaseClient } from '@supabase/supabase-js'
 
 // Database types voor Supabase
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
@@ -92,13 +93,7 @@ interface Database {
   }
 }
 
-let supabaseInstance: SupabaseClient<Database> | null = null
-
 export function createClient(): SupabaseClient<Database> {
-  if (supabaseInstance) {
-    return supabaseInstance
-  }
-
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
@@ -106,6 +101,5 @@ export function createClient(): SupabaseClient<Database> {
     throw new Error('Missing Supabase environment variables')
   }
 
-  supabaseInstance = createSupabaseClient<Database>(supabaseUrl, supabaseAnonKey)
-  return supabaseInstance
+  return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey)
 }
