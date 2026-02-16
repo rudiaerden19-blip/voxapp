@@ -497,7 +497,7 @@ export const translations = {
       title: { nl: '4. Abonnementen en Prijzen', en: '4. Subscriptions and Pricing', fr: '4. Abonnements et tarifs', de: '4. Abonnements und Preise' },
       starter: { nl: '€99/maand - 375 minuten inbegrepen', en: '€99/month - 375 minutes included', fr: '99€/mois - 375 minutes incluses', de: '99€/Monat - 375 Minuten inklusive' },
       pro: { nl: '€149/maand - 940 minuten inbegrepen', en: '€149/month - 940 minutes included', fr: '149€/mois - 940 minutes incluses', de: '149€/Monat - 940 Minuten inklusive' },
-      business: { nl: '€249/maand - 1500 minuten inbegrepen', en: '€249/month - 1500 minutes included', fr: '249€/mois - 1500 minutes incluses', de: '249€/Monat - 1500 Minuten inklusive' },
+      business: { nl: '€249/maand - 1875 minuten inbegrepen', en: '€249/month - 1875 minutes included', fr: '249€/mois - 1875 minutes incluses', de: '249€/Monat - 1875 Minuten inklusive' },
       trial: { nl: 'De eerste 7 dagen zijn gratis. Daarna wordt het abonnement maandelijks gefactureerd. Extra minuten worden aan het einde van de maand in rekening gebracht.', en: 'The first 7 days are free. After that, the subscription is billed monthly. Extra minutes are charged at the end of the month.', fr: 'Les 7 premiers jours sont gratuits. Ensuite, l\'abonnement est facturé mensuellement. Les minutes supplémentaires sont facturées à la fin du mois.', de: 'Die ersten 7 Tage sind kostenlos. Danach wird das Abonnement monatlich abgerechnet. Zusätzliche Minuten werden am Ende des Monats berechnet.' },
     },
     section5: {
