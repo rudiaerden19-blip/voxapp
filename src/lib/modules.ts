@@ -5,7 +5,10 @@
 export type ModuleId = 
   | 'appointments'    // Afspraken/Agenda
   | 'menu'            // Menu/Producten
+  | 'products'        // Producten (horeca)
   | 'orders'          // Bestellingen
+  | 'kitchen'         // Keuken/Kassa scherm
+  | 'delivery_slots'  // Bezorgslots
   | 'reservations'    // Reserveringen (tafels/kamers)
   | 'services'        // Diensten met duur/prijs
   | 'staff'           // Medewerkers
@@ -125,6 +128,27 @@ export const MODULES: Record<ModuleId, Module> = {
     icon: '📦',
     navItem: { href: '/dashboard/orders', label: 'Bestellingen', icon: 'ShoppingBag' },
   },
+  products: {
+    id: 'products',
+    name: 'Producten',
+    description: 'Menu en producten (tot 300 items)',
+    icon: '🍔',
+    navItem: { href: '/dashboard/products', label: 'Producten', icon: 'Package' },
+  },
+  kitchen: {
+    id: 'kitchen',
+    name: 'Keuken',
+    description: 'Live bestellingen en kassa',
+    icon: '👨‍🍳',
+    navItem: { href: '/dashboard/kitchen', label: 'Keuken', icon: 'ChefHat' },
+  },
+  delivery_slots: {
+    id: 'delivery_slots',
+    name: 'Bezorgslots',
+    description: 'Levertijden en capaciteit',
+    icon: '🚗',
+    navItem: { href: '/dashboard/delivery-slots', label: 'Levertijden', icon: 'Clock' },
+  },
   reservations: {
     id: 'reservations',
     name: 'Reserveringen',
@@ -191,18 +215,18 @@ export const BUSINESS_TYPES: Record<string, BusinessTypeConfig> = {
     name: 'Frituur',
     icon: '🍟',
     category: 'horeca',
-    modules: ['menu', 'orders'],
-    aiContext: 'Je bent een vriendelijke medewerker van een Belgische frituur. Je kent alle snacks, frietjes en sauzen. Typische producten: frikandel, bicky burger, stoofvleeskroket, curryworst. Sauzen zijn vaak inbegrepen of extra.',
-    terminology: { product: 'snack', products: 'snacks', customer: 'klant' },
+    modules: ['products', 'orders', 'kitchen', 'delivery_slots'],
+    aiContext: 'Je bent een vriendelijke medewerker van een Belgische frituur. Je neemt telefonische bestellingen aan. Je kent alle snacks, frietjes en sauzen. Typische producten: frikandel, bicky burger, stoofvleeskroket, curryworst. Vraag altijd: afhalen of leveren? Naam en adres bij levering. Bevestig de bestelling en levertijd.',
+    terminology: { product: 'snack', products: 'snacks', customer: 'klant', order: 'bestelling' },
   },
   pizzeria: {
     id: 'pizzeria',
     name: "Pizzeria",
     icon: '🍕',
     category: 'horeca',
-    modules: ['menu', 'orders', 'reservations'],
-    aiContext: "Je werkt bij een pizzeria. Je kent alle pizza's, pasta's en bijgerechten. Vraag naar formaat (klein/medium/groot) en extra toppings.",
-    terminology: { product: 'gerecht', products: 'gerechten', customer: 'klant' },
+    modules: ['products', 'orders', 'kitchen', 'delivery_slots'],
+    aiContext: "Je werkt bij een pizzeria en neemt telefonische bestellingen aan. Je kent alle pizza's, pasta's en bijgerechten. Vraag naar formaat (klein/medium/groot) en extra toppings. Vraag altijd: afhalen of leveren? Naam en adres bij levering. Bevestig de bestelling en levertijd.",
+    terminology: { product: 'gerecht', products: 'gerechten', customer: 'klant', order: 'bestelling' },
   },
   restaurant: {
     id: 'restaurant',
@@ -218,9 +242,9 @@ export const BUSINESS_TYPES: Record<string, BusinessTypeConfig> = {
     name: 'Kebabzaak',
     icon: '🥙',
     category: 'horeca',
-    modules: ['menu', 'orders'],
-    aiContext: 'Je werkt bij een kebabzaak. Typische producten: durum, pita, schotel, lahmacun. Vraag naar vlees (kip/rund/mix), saus en groenten.',
-    terminology: { product: 'gerecht', products: 'gerechten', customer: 'klant' },
+    modules: ['products', 'orders', 'kitchen', 'delivery_slots'],
+    aiContext: 'Je werkt bij een kebabzaak en neemt telefonische bestellingen aan. Typische producten: durum, pita, schotel, lahmacun. Vraag naar vlees (kip/rund/mix), saus en groenten. Vraag altijd: afhalen of leveren? Naam en adres bij levering. Bevestig de bestelling en levertijd.',
+    terminology: { product: 'gerecht', products: 'gerechten', customer: 'klant', order: 'bestelling' },
   },
   hotel: {
     id: 'hotel',
@@ -1030,9 +1054,375 @@ export function getFAQTemplate(businessType: string): Array<{ question: string; 
   }
   
   // ===========================================
-  // RESTAURANT / HORECA - 50+ FAQs
+  // FRITUUR / SNACKBAR - 100+ FAQs
   // ===========================================
-  if (typeId === 'restaurant' || typeId === 'frituur' || typeId === 'pizzeria' || typeId === 'kebab' || typeId === 'snackbar') {
+  if (typeId === 'frituur' || typeId === 'snackbar') {
+    return [
+      // Bestellen - basis
+      { question: 'Ik wil bestellen', answer: 'Prima! Wat mag het zijn?' },
+      { question: 'Kan ik bestellen?', answer: 'Ja natuurlijk! Wat wilt u hebben?' },
+      { question: 'Neem je bestellingen aan?', answer: 'Ja, ik neem uw bestelling graag op. Wat mag het zijn?' },
+      { question: 'Kan ik telefonisch bestellen?', answer: 'Ja, ik noteer uw bestelling. Wat wilt u?' },
+      { question: 'Ik wil friet', answer: 'Prima! Een grote of kleine portie? En welke saus?' },
+      { question: 'Eén friet alsjeblieft', answer: 'Komt eraan! Klein, medium of groot? En welke saus?' },
+      { question: 'Twee grote friet', answer: 'Twee grote friet! Welke sauzen erbij?' },
+      { question: 'Friet met mayonaise', answer: 'Friet met mayo, genoteerd! Nog iets anders?' },
+      { question: 'Friet speciaal', answer: 'Friet speciaal genoteerd! Nog meer?' },
+      { question: 'Friet oorlog', answer: 'Friet oorlog, komt eraan! Anders nog iets?' },
+      
+      // Snacks
+      { question: 'Hebben jullie frikandellen?', answer: 'Ja, we hebben frikandellen. Hoeveel wilt u er?' },
+      { question: 'Een frikandel speciaal', answer: 'Frikandel speciaal genoteerd! Nog iets erbij?' },
+      { question: 'Twee frikandellen', answer: 'Twee frikandellen! Speciaal of gewoon?' },
+      { question: 'Hebben jullie bicky burgers?', answer: 'Ja, we hebben heerlijke bicky burgers. Hoeveel?' },
+      { question: 'Eén bicky burger', answer: 'Eén bicky burger genoteerd! Saus erbij?' },
+      { question: 'Hebben jullie kroketten?', answer: 'Ja, vlees- en garnalenkroketten. Welke wilt u?' },
+      { question: 'Stoofvleeskroket', answer: 'Stoofvleeskroket, lekker! Hoeveel stuks?' },
+      { question: 'Hebben jullie curryworst?', answer: 'Ja, heerlijke curryworst. Hoeveel wilt u?' },
+      { question: 'Mexicano', answer: 'Pittige mexicano! Hoeveel stuks?' },
+      { question: 'Boulet', answer: 'Boulet met saus, hoeveel stuks?' },
+      { question: 'Viandel', answer: 'Viandel genoteerd! Nog iets anders?' },
+      { question: 'Lucifer', answer: 'Pittige lucifer, hoeveel?' },
+      { question: 'Gehaktbal', answer: 'Gehaktbal met saus? Hoeveel stuks?' },
+      { question: 'Chicken nuggets', answer: 'Chicken nuggets, 6 of 9 stuks?' },
+      { question: 'Kipfingers', answer: 'Krokante kipfingers! Hoeveel stuks?' },
+      { question: 'Kipcorn', answer: 'Kipcorn genoteerd! Hoeveel wilt u?' },
+      { question: 'Loempia', answer: 'Verse loempia! Vlees of groente?' },
+      { question: 'Kaassoufflé', answer: 'Kaassoufflé, lekker! Hoeveel?' },
+      { question: 'Bami', answer: 'Bami schijf of bami portie? Hoeveel?' },
+      { question: 'Berenhap', answer: 'Berenhap met saus, hoeveel stuks?' },
+      
+      // Sauzen
+      { question: 'Welke sauzen hebben jullie?', answer: 'We hebben mayo, curry, ketchup, stoofvleessaus, samurai, andalouse, tartaar, pickles, peper, mosterd, en meer.' },
+      { question: 'Is saus inbegrepen?', answer: 'Eén saus is inbegrepen. Extra sauzen zijn tegen meerprijs.' },
+      { question: 'Hoeveel kost extra saus?', answer: 'Extra saus kost een kleine meerprijs per bakje.' },
+      { question: 'Hebben jullie samurai?', answer: 'Ja, pittige samuraisaus.' },
+      { question: 'Hebben jullie andalouse?', answer: 'Ja, heerlijke andalouse saus.' },
+      { question: 'Joppiesaus?', answer: 'Ja, we hebben joppiesaus!' },
+      { question: 'Stoofvleessaus?', answer: 'Ja, huisgemaakte stoofvleessaus.' },
+      
+      // Afhalen of leveren
+      { question: 'Kan ik afhalen?', answer: 'Ja, afhalen kan. Over hoe lang wilt u het ophalen?' },
+      { question: 'Hebben jullie levering?', answer: 'Ja, we leveren aan huis. Wat is uw adres?' },
+      { question: 'Bezorgen jullie?', answer: 'Ja, we bezorgen! Wat is uw adres?' },
+      { question: 'Leveren jullie bij mij?', answer: 'Wat is uw postcode? Dan check ik het voor u.' },
+      { question: 'Wat zijn de bezorgkosten?', answer: 'De bezorgkosten zijn afhankelijk van de afstand, ik geef u de prijs.' },
+      { question: 'Wat is de minimale bestelling?', answer: 'Voor levering hanteren we een minimumbedrag. Ik geef u de info.' },
+      { question: 'Hoe lang duurt levering?', answer: 'De levertijd is ongeveer 30-45 minuten, afhankelijk van drukte.' },
+      { question: 'Wanneer kan het geleverd worden?', answer: 'Ik kijk naar de beschikbare levertijden voor u.' },
+      { question: 'Kan het om 19:00 geleverd worden?', answer: 'Ik check of 19:00 beschikbaar is.' },
+      { question: 'Zo snel mogelijk leveren', answer: 'Ik geef de snelst mogelijke levertijd.' },
+      { question: 'Hoe laat is mijn bestelling klaar?', answer: 'Uw bestelling is klaar over ongeveer 15-20 minuten.' },
+      
+      // Betaling
+      { question: 'Kan ik met pin betalen?', answer: 'Ja, we accepteren pin, contant en contactloos.' },
+      { question: 'Kan ik contant betalen?', answer: 'Ja, contant betalen kan.' },
+      { question: 'Kan ik bij levering betalen?', answer: 'Ja, u kunt bij levering betalen met pin of contant.' },
+      { question: 'Betalen bij afhalen?', answer: 'Ja, u betaalt bij het afhalen.' },
+      { question: 'Kan ik met Payconiq betalen?', answer: 'Ja, Payconiq wordt geaccepteerd.' },
+      
+      // Openingsuren
+      { question: 'Wat zijn jullie openingsuren?', answer: 'Ik geef u onze exacte openingsuren.' },
+      { question: 'Zijn jullie nu open?', answer: 'Ja, we zijn nu geopend. Wat mag ik voor u doen?' },
+      { question: 'Tot hoe laat zijn jullie open?', answer: 'Ik geef u onze sluitingstijd vandaag.' },
+      { question: 'Zijn jullie op zondag open?', answer: 'Ik check onze zondagsuren voor u.' },
+      { question: 'Open op feestdagen?', answer: 'Op de meeste feestdagen zijn we open. Ik geef u de info.' },
+      { question: 'Wanneer sluiten jullie?', answer: 'Ik geef u de sluitingstijd.' },
+      { question: 'Zijn jullie vanavond open?', answer: 'Ja, we zijn vanavond open! Wilt u bestellen?' },
+      
+      // Locatie
+      { question: 'Waar zijn jullie?', answer: 'Ik geef u ons adres.' },
+      { question: 'Waar zitten jullie?', answer: 'Ons adres is...' },
+      { question: 'Waar is de frituur?', answer: 'Ik geef u ons volledige adres.' },
+      { question: 'Is er parking?', answer: 'Ja, er is parkeergelegenheid in de buurt.' },
+      
+      // Menu en prijzen
+      { question: 'Wat kost een friet?', answer: 'Ik geef u de prijzen voor klein, medium en groot.' },
+      { question: 'Hoeveel kost een bicky?', answer: 'Een bicky burger kost... wilt u er een?' },
+      { question: 'Prijslijst?', answer: 'Ik kan u de prijzen van onze producten geven.' },
+      { question: 'Hebben jullie menu?', answer: 'Ja, we hebben menu combinaties. Ik vertel u meer.' },
+      { question: 'Wat zit in het menu?', answer: 'Ons menu bevat meestal friet, een snack naar keuze en een drankje.' },
+      { question: 'Kindermenu?', answer: 'Ja, we hebben een kindermenu met kleinere porties.' },
+      
+      // Allergieën
+      { question: 'Zijn jullie producten glutenvrij?', answer: 'Sommige snacks bevatten gluten. Ik kan u adviseren.' },
+      { question: 'Vegetarische snacks?', answer: 'Ja, we hebben kaassoufflé en andere vegetarische opties.' },
+      { question: 'Halal?', answer: 'Ik informeer u over onze halal opties.' },
+      { question: 'Allergenen?', answer: 'Ik kan u informeren over allergenen in onze producten.' },
+      
+      // Speciale wensen
+      { question: 'Zonder zout?', answer: 'Ja, we kunnen de friet zonder zout bakken.' },
+      { question: 'Extra krokant?', answer: 'Ja, we kunnen het extra krokant bakken.' },
+      { question: 'Zonder ui?', answer: 'Geen probleem, ik noteer het zonder ui.' },
+      { question: 'Extra saus?', answer: 'Extra saus erbij tegen meerprijs.' },
+      
+      // Drankjes
+      { question: 'Hebben jullie cola?', answer: 'Ja, we hebben cola, fanta, sprite en meer.' },
+      { question: 'Welke drankjes?', answer: 'We hebben cola, fanta, sprite, water, ice tea en bier.' },
+      { question: 'Een cola erbij', answer: 'Cola genoteerd! Nog iets anders?' },
+      
+      // Bestelling wijzigen/annuleren
+      { question: 'Ik wil mijn bestelling wijzigen', answer: 'Geen probleem, wat wilt u veranderen?' },
+      { question: 'Bestelling annuleren', answer: 'Is er iets mis? Ik help u graag.' },
+      { question: 'Ik wil nog iets toevoegen', answer: 'Prima, wat mag ik nog toevoegen?' },
+      
+      // Afronden bestelling
+      { question: 'Dat was het', answer: 'Prima! Dan herhaal ik uw bestelling...' },
+      { question: 'Meer heb ik niet nodig', answer: 'Goed! Uw totaalbedrag is... Afhalen of leveren?' },
+      { question: 'Hoeveel wordt het?', answer: 'Het totaalbedrag van uw bestelling is...' },
+      { question: 'Kan ik betalen?', answer: 'Het totaal is... U kunt bij afhalen/levering betalen.' },
+      
+      // Feedback
+      { question: 'Bedankt', answer: 'Graag gedaan! Eet smakelijk en tot de volgende keer!' },
+      { question: 'Ik heb een klacht', answer: 'Dat spijt ons. Wat is er gebeurd?' },
+      { question: 'Mijn bestelling klopt niet', answer: 'Excuses! Wat mist er of wat klopt niet?' },
+    ];
+  }
+  
+  // ===========================================
+  // PIZZERIA - 100+ FAQs
+  // ===========================================
+  if (typeId === 'pizzeria') {
+    return [
+      // Bestellen - basis
+      { question: 'Ik wil bestellen', answer: 'Prima! Wat mag het zijn?' },
+      { question: 'Kan ik een pizza bestellen?', answer: 'Ja natuurlijk! Welke pizza wilt u?' },
+      { question: 'Pizzabestelling', answer: 'Ik help u graag! Welke pizza mag het zijn?' },
+      { question: 'Eén pizza margherita', answer: 'Pizza Margherita genoteerd! Klein of groot formaat?' },
+      { question: 'Twee pizzas', answer: 'Prima! Welke twee pizzas mag ik noteren?' },
+      
+      // Pizza soorten
+      { question: 'Welke pizzas hebben jullie?', answer: 'We hebben Margherita, Pepperoni, Quattro Formaggi, Hawaii, Tonno, en meer. Welke wilt u?' },
+      { question: 'Pizza Margherita', answer: 'Klassieke Margherita met tomaat, mozzarella en basilicum. Welk formaat?' },
+      { question: 'Pizza Pepperoni', answer: 'Pizza met pittige pepperoni. Welk formaat?' },
+      { question: 'Pizza Quattro Formaggi', answer: 'Vier kazen pizza! Welk formaat?' },
+      { question: 'Pizza Hawaii', answer: 'Hawaii met ham en ananas. Welk formaat?' },
+      { question: 'Pizza Tonno', answer: 'Pizza met tonijn. Welk formaat?' },
+      { question: 'Pizza Calzone', answer: 'Gevouwen pizza met vulling. Welke vulling?' },
+      { question: 'Pizza Vegetarisch', answer: 'Vegetarische pizza met groenten. Welk formaat?' },
+      { question: 'Pizza van de dag', answer: 'Onze special van vandaag is... Wilt u die?' },
+      { question: 'Wat is jullie beste pizza?', answer: 'Onze specialiteiten zijn... Mag ik er een aanbevelen?' },
+      
+      // Formaten
+      { question: 'Welke formaten hebben jullie?', answer: 'We hebben klein (26cm), medium (30cm) en groot (35cm).' },
+      { question: 'Grote pizza', answer: 'Grote pizza van 35cm. Welke soort?' },
+      { question: 'Kleine pizza', answer: 'Kleine pizza van 26cm. Welke soort?' },
+      { question: 'Medium pizza', answer: 'Medium pizza van 30cm. Welke soort?' },
+      { question: 'Familieformaat?', answer: 'Ons grote formaat is 35cm, perfect om te delen.' },
+      
+      // Extra toppings
+      { question: 'Kan ik extra toppings?', answer: 'Ja! Welke toppings wilt u extra?' },
+      { question: 'Extra kaas', answer: 'Extra kaas erbij genoteerd tegen kleine meerprijs.' },
+      { question: 'Extra pepperoni', answer: 'Extra pepperoni erbij genoteerd!' },
+      { question: 'Zonder ui', answer: 'Geen ui, genoteerd!' },
+      { question: 'Zonder champignons', answer: 'Zonder champignons, genoteerd!' },
+      { question: 'Welke toppings zijn er?', answer: 'We hebben salami, ham, pepperoni, tonijn, ansjovis, champignons, paprika, ui, olijven, en meer.' },
+      { question: 'Vegan kaas?', answer: 'Ja, we kunnen vegan kaas gebruiken tegen meerprijs.' },
+      
+      // Pasta
+      { question: 'Hebben jullie pasta?', answer: 'Ja! Spaghetti, penne, tagliatelle met diverse sauzen.' },
+      { question: 'Spaghetti bolognese', answer: 'Spaghetti bolognese, klassiek! Wilt u parmezaan erbij?' },
+      { question: 'Pasta carbonara', answer: 'Pasta carbonara genoteerd! Nog iets anders?' },
+      { question: 'Lasagne', answer: 'Huisgemaakte lasagne! Genoteerd.' },
+      { question: 'Welke pastasauzen?', answer: 'Bolognese, carbonara, arrabiata, pesto, quattro formaggi.' },
+      
+      // Bijgerechten
+      { question: 'Hebben jullie salade?', answer: 'Ja, gemengde salade, caprese, tonijnsalade.' },
+      { question: 'Brood erbij?', answer: 'Ja, knoflookbrood of focaccia.' },
+      { question: 'Knoflookbrood', answer: 'Knoflookbrood genoteerd! Met of zonder kaas?' },
+      { question: 'Tiramisu?', answer: 'Ja, heerlijke tiramisu als dessert.' },
+      { question: 'Desserts?', answer: 'We hebben tiramisu, panna cotta, en ijs.' },
+      
+      // Afhalen of leveren
+      { question: 'Kan ik afhalen?', answer: 'Ja, afhalen kan. Over hoe lang wilt u het ophalen?' },
+      { question: 'Bezorgen jullie?', answer: 'Ja, we bezorgen! Wat is uw adres?' },
+      { question: 'Leveren jullie bij mij?', answer: 'Wat is uw postcode? Dan check ik het.' },
+      { question: 'Bezorgkosten?', answer: 'De bezorgkosten zijn afhankelijk van de afstand.' },
+      { question: 'Minimale bestelling levering?', answer: 'Voor levering is het minimumbedrag...' },
+      { question: 'Hoe lang duurt levering?', answer: 'Ongeveer 30-45 minuten, afhankelijk van drukte.' },
+      { question: 'Wanneer kan het geleverd worden?', answer: 'Ik kijk naar beschikbare levertijden.' },
+      { question: 'Zo snel mogelijk', answer: 'Ik check de snelst mogelijke levertijd.' },
+      { question: 'Kan het om 20:00 geleverd worden?', answer: 'Ik check of 20:00 beschikbaar is.' },
+      { question: 'Hoe laat is het klaar voor afhalen?', answer: 'Uw bestelling is klaar over ongeveer 20-25 minuten.' },
+      
+      // Betaling
+      { question: 'Kan ik pinnen?', answer: 'Ja, we accepteren pin, contant en contactloos.' },
+      { question: 'Contant betalen?', answer: 'Ja, contant betalen kan.' },
+      { question: 'Bij levering betalen?', answer: 'Ja, u kunt bij levering betalen.' },
+      { question: 'Payconiq?', answer: 'Ja, Payconiq wordt geaccepteerd.' },
+      
+      // Openingsuren
+      { question: 'Openingsuren?', answer: 'Ik geef u onze exacte openingsuren.' },
+      { question: 'Zijn jullie open?', answer: 'Ja, we zijn nu geopend! Wat mag het zijn?' },
+      { question: 'Tot hoe laat?', answer: 'Ik geef u onze sluitingstijd.' },
+      { question: 'Open op zondag?', answer: 'Ik check onze zondagsuren.' },
+      { question: 'Wanneer sluiten jullie?', answer: 'Ik geef u de sluitingstijd.' },
+      
+      // Locatie
+      { question: 'Waar zitten jullie?', answer: 'Ik geef u ons adres.' },
+      { question: 'Adres?', answer: 'Ons adres is...' },
+      { question: 'Parking?', answer: 'Ja, er is parkeergelegenheid in de buurt.' },
+      
+      // Prijzen
+      { question: 'Wat kost een pizza?', answer: 'Prijzen variëren per pizza en formaat. Welke pizza wilt u weten?' },
+      { question: 'Hoeveel kost Margherita?', answer: 'Pizza Margherita kost... Welk formaat?' },
+      { question: 'Prijslijst?', answer: 'Ik kan u de prijzen geven van onze pizzas.' },
+      { question: 'Aanbiedingen?', answer: 'Ik informeer u over onze actuele aanbiedingen.' },
+      { question: 'Combideal?', answer: 'Ja, we hebben menu deals met pizza, drankje en dessert.' },
+      
+      // Allergieën
+      { question: 'Glutenvrij?', answer: 'Ja, we hebben glutenvrije bodems beschikbaar tegen meerprijs.' },
+      { question: 'Lactosevrij?', answer: 'We kunnen pizzas maken zonder kaas of met vegan kaas.' },
+      { question: 'Vegetarisch?', answer: 'Ja, we hebben diverse vegetarische pizzas.' },
+      { question: 'Vegan?', answer: 'We kunnen vegan pizzas maken met vegan kaas.' },
+      { question: 'Halal?', answer: 'Ik informeer u over onze halal opties.' },
+      { question: 'Noten?', answer: 'Ik check welke producten notenvrij zijn.' },
+      
+      // Drankjes
+      { question: 'Welke drankjes?', answer: 'Cola, fanta, sprite, water, bier, wijn, ice tea.' },
+      { question: 'Cola erbij', answer: 'Cola genoteerd! 33cl of 50cl?' },
+      { question: 'Bier?', answer: 'Ja, we hebben diverse bieren.' },
+      { question: 'Wijn?', answer: 'Ja, rood en wit per glas of fles.' },
+      
+      // Bestelling afronden
+      { question: 'Dat was het', answer: 'Prima! Dan herhaal ik uw bestelling...' },
+      { question: 'Hoeveel wordt het?', answer: 'Het totaalbedrag is...' },
+      { question: 'Nog iets toevoegen', answer: 'Wat mag ik nog toevoegen?' },
+      { question: 'Bestelling wijzigen', answer: 'Geen probleem, wat wilt u veranderen?' },
+      
+      // Feedback
+      { question: 'Bedankt', answer: 'Graag gedaan! Buon appetito en tot de volgende keer!' },
+      { question: 'Klacht', answer: 'Dat spijt ons. Wat is er gebeurd?' },
+      { question: 'Bestelling klopt niet', answer: 'Excuses! Wat mist er?' },
+    ];
+  }
+  
+  // ===========================================
+  // KEBAB - 100+ FAQs
+  // ===========================================
+  if (typeId === 'kebab') {
+    return [
+      // Bestellen - basis
+      { question: 'Ik wil bestellen', answer: 'Prima! Wat mag het zijn?' },
+      { question: 'Kan ik bestellen?', answer: 'Ja natuurlijk! Wat wilt u hebben?' },
+      { question: 'Kebab bestellen', answer: 'Graag! Durum, pita of schotel?' },
+      { question: 'Één kebab', answer: 'Durum, pita of schotel? En welk vlees: kip, rund of mix?' },
+      { question: 'Twee durums', answer: 'Twee durums! Kip, rund of mix?' },
+      
+      // Kebab soorten
+      { question: 'Wat voor kebab hebben jullie?', answer: 'Durum, pita, lahmacun, kebab schotel, en meer.' },
+      { question: 'Durum', answer: 'Durum genoteerd! Kip, rund of mix? Welke saus en groenten?' },
+      { question: 'Pita', answer: 'Pita broodje! Kip, rund of mix? Saus en groenten?' },
+      { question: 'Lahmacun', answer: 'Turkse pizza! Met vlees en salade erbij?' },
+      { question: 'Kebab schotel', answer: 'Schotel met friet of rijst? Kip, rund of mix?' },
+      { question: 'Dönerschotel', answer: 'Dönerschotel! Met friet, rijst of salade? Welk vlees?' },
+      { question: 'Iskender', answer: 'Iskender met yoghurt en tomatensaus. Genoteerd!' },
+      { question: 'Adana kebab', answer: 'Pittige Adana kebab! Met friet of rijst?' },
+      { question: 'Kip kebab', answer: 'Kip kebab! Durum, pita of schotel?' },
+      { question: 'Mix kebab', answer: 'Mix van kip en rund! In welke vorm?' },
+      
+      // Vlees keuze
+      { question: 'Welk vlees hebben jullie?', answer: 'Kip, rundvlees, en mix (beide). Alles is halal.' },
+      { question: 'Kip of rund?', answer: 'We hebben kip en rund. Beide zijn halal.' },
+      { question: 'Is het halal?', answer: 'Ja, al ons vlees is 100% halal.' },
+      { question: 'Alleen kip', answer: 'Alleen kip genoteerd!' },
+      { question: 'Alleen rund', answer: 'Alleen rundvlees genoteerd!' },
+      
+      // Sauzen
+      { question: 'Welke sauzen?', answer: 'Knoflooksaus, samurai, cocktail, curry, andalouse, pikante saus.' },
+      { question: 'Knoflooksaus', answer: 'Knoflooksaus erbij genoteerd!' },
+      { question: 'Samurai saus', answer: 'Pittige samurai genoteerd!' },
+      { question: 'Pikante saus', answer: 'Pittige saus, genoteerd!' },
+      { question: 'Zonder saus', answer: 'Zonder saus genoteerd.' },
+      { question: 'Extra saus', answer: 'Extra saus erbij, kleine meerprijs.' },
+      
+      // Groenten
+      { question: 'Welke groenten?', answer: 'Sla, tomaat, ui, rode kool, komkommer, ijsbergsla.' },
+      { question: 'Alles erop', answer: 'Alle groenten erbij genoteerd!' },
+      { question: 'Zonder ui', answer: 'Zonder ui genoteerd.' },
+      { question: 'Zonder tomaat', answer: 'Zonder tomaat genoteerd.' },
+      { question: 'Alleen sla', answer: 'Alleen sla erbij genoteerd.' },
+      { question: 'Zonder groenten', answer: 'Zonder groenten, genoteerd.' },
+      
+      // Friet erbij
+      { question: 'Met friet?', answer: 'Ja, wilt u friet erbij? Klein of groot?' },
+      { question: 'Friet erbij', answer: 'Friet erbij genoteerd! Welke saus?' },
+      { question: 'Schotel met friet', answer: 'Schotel met friet, genoteerd!' },
+      { question: 'Schotel met rijst', answer: 'Schotel met rijst, genoteerd!' },
+      
+      // Andere gerechten
+      { question: 'Hebben jullie falafel?', answer: 'Ja, vegetarische falafel! Durum, pita of schotel?' },
+      { question: 'Falafel durum', answer: 'Falafel durum genoteerd! Welke saus?' },
+      { question: 'Shoarma', answer: 'Shoarma! Kip of vlees? Durum of pita?' },
+      { question: 'Pizza?', answer: 'Ja, we hebben Turkse pizza en ook gewone pizzas.' },
+      { question: 'Turkse pizza', answer: 'Lahmacun, Turkse pizza! Met salade erbij?' },
+      { question: 'Kapsalon', answer: 'Kapsalon! Kip, rund of mix? Met alle sauzen?' },
+      { question: 'Durum kapsalon', answer: 'Durum kapsalon genoteerd! Welk vlees?' },
+      
+      // Afhalen of leveren
+      { question: 'Afhalen?', answer: 'Ja, afhalen kan. Over hoe lang wilt u het ophalen?' },
+      { question: 'Bezorging?', answer: 'Ja, we bezorgen! Wat is uw adres?' },
+      { question: 'Leveren jullie?', answer: 'Ja! Wat is uw adres?' },
+      { question: 'Bezorgkosten?', answer: 'De bezorgkosten zijn afhankelijk van de afstand.' },
+      { question: 'Minimale bestelling?', answer: 'Voor levering is het minimumbedrag...' },
+      { question: 'Hoe lang duurt het?', answer: 'Ongeveer 25-40 minuten, afhankelijk van drukte.' },
+      { question: 'Zo snel mogelijk', answer: 'Ik check de snelst mogelijke tijd.' },
+      { question: 'Kan het om 21:00?', answer: 'Ik check of 21:00 beschikbaar is.' },
+      { question: 'Hoe laat klaar?', answer: 'Uw bestelling is klaar over ongeveer 15-20 minuten.' },
+      
+      // Betaling
+      { question: 'Pinnen?', answer: 'Ja, we accepteren pin en contant.' },
+      { question: 'Contant?', answer: 'Ja, contant betalen kan.' },
+      { question: 'Bij levering betalen?', answer: 'Ja, u betaalt bij levering.' },
+      { question: 'Payconiq?', answer: 'Ja, Payconiq wordt geaccepteerd.' },
+      
+      // Openingsuren
+      { question: 'Openingsuren?', answer: 'Ik geef u onze openingsuren.' },
+      { question: 'Zijn jullie open?', answer: 'Ja, we zijn open! Wat mag ik voor u doen?' },
+      { question: 'Tot hoe laat?', answer: 'Ik geef u de sluitingstijd.' },
+      { question: 'Open op zondag?', answer: 'Ik check onze zondagsuren.' },
+      { question: 'Laat open?', answer: 'Ja, we zijn meestal tot laat open.' },
+      
+      // Locatie
+      { question: 'Waar zitten jullie?', answer: 'Ik geef u ons adres.' },
+      { question: 'Adres?', answer: 'Ons adres is...' },
+      { question: 'Parking?', answer: 'Er is parkeergelegenheid in de buurt.' },
+      
+      // Prijzen
+      { question: 'Wat kost een durum?', answer: 'Een durum kost... Wilt u er een bestellen?' },
+      { question: 'Hoeveel kost een schotel?', answer: 'Een kebab schotel kost...' },
+      { question: 'Prijslijst?', answer: 'Ik kan u de prijzen geven.' },
+      { question: 'Aanbiedingen?', answer: 'Ik informeer u over actuele aanbiedingen.' },
+      { question: 'Menu deal?', answer: 'Ja, we hebben menu combinaties.' },
+      
+      // Allergieën
+      { question: 'Glutenvrij?', answer: 'De schotel zonder brood is glutenvrij.' },
+      { question: 'Vegetarisch?', answer: 'Ja, we hebben falafel als vegetarische optie.' },
+      { question: 'Vegan?', answer: 'Falafel met groenten is veganistisch.' },
+      { question: 'Allergenen?', answer: 'Ik informeer u over allergenen.' },
+      
+      // Drankjes
+      { question: 'Drankjes?', answer: 'Cola, fanta, sprite, ayran, water, ice tea.' },
+      { question: 'Ayran?', answer: 'Ja, verse ayran! Wilt u die erbij?' },
+      { question: 'Cola erbij', answer: 'Cola genoteerd!' },
+      
+      // Bestelling afronden
+      { question: 'Dat was het', answer: 'Prima! Dan herhaal ik uw bestelling...' },
+      { question: 'Hoeveel wordt het?', answer: 'Het totaalbedrag is...' },
+      { question: 'Nog iets toevoegen', answer: 'Wat mag ik nog toevoegen?' },
+      { question: 'Wijzigen', answer: 'Wat wilt u veranderen?' },
+      
+      // Feedback
+      { question: 'Bedankt', answer: 'Graag gedaan! Eet smakelijk en tot ziens!' },
+      { question: 'Klacht', answer: 'Dat spijt ons. Wat is er gebeurd?' },
+      { question: 'Bestelling klopt niet', answer: 'Excuses! Wat mist er?' },
+    ];
+  }
+  
+  // ===========================================
+  // RESTAURANT (algemeen) - 50+ FAQs
+  // ===========================================
+  if (typeId === 'restaurant') {
     return [
       // Contact & Openingsuren
       { question: 'Wat zijn jullie openingsuren?', answer: 'Ik geef u graag onze exacte openingsuren.' },
@@ -1052,18 +1442,6 @@ export function getFAQTemplate(businessType: string): Array<{ question: string; 
       { question: 'Ik wil mijn reservering wijzigen', answer: 'Dat kan. Wat wilt u veranderen?' },
       { question: 'Hebben jullie plek voor vanavond?', answer: 'Ik kijk of er plek is. Met hoeveel personen komt u?' },
       
-      // Bestellen
-      { question: 'Kan ik telefonisch bestellen?', answer: 'Ja, wat wilt u bestellen?' },
-      { question: 'Ik wil bestellen', answer: 'Wat mag het zijn?' },
-      { question: 'Hebben jullie bezorging?', answer: 'Ja, wij bezorgen. Wat is uw adres?' },
-      { question: 'Wat zijn de bezorgkosten?', answer: 'Ik geef u de bezorgkosten voor uw adres.' },
-      { question: 'Vanaf welk bedrag leveren jullie?', answer: 'Ik vertel u ons minimum bestelbedrag.' },
-      { question: 'Hoe lang duurt de bezorging?', answer: 'Gemiddeld 30-45 minuten, afhankelijk van drukte.' },
-      { question: 'Kan ik afhalen?', answer: 'Ja, afhalen kan. Wanneer wilt u het ophalen?' },
-      { question: 'Hoe laat is mijn bestelling klaar?', answer: 'Meestal binnen 15-20 minuten na bestelling.' },
-      { question: 'Kan ik online bestellen?', answer: 'Ja, via onze website of app.' },
-      { question: 'Kan ik met pin betalen?', answer: 'Ja, wij accepteren pin, contant en vaak ook creditcard.' },
-      
       // Menu
       { question: 'Hebben jullie een menukaart?', answer: 'Ja, ik kan u over onze gerechten vertellen.' },
       { question: 'Wat zijn jullie specialiteiten?', answer: 'Ik vertel u graag over onze populaire gerechten.' },
@@ -1071,17 +1449,8 @@ export function getFAQTemplate(businessType: string): Array<{ question: string; 
       { question: 'Hebben jullie veganistische opties?', answer: 'Ja, wij hebben veganistische keuzes.' },
       { question: 'Hebben jullie glutenvrije opties?', answer: 'Ja, vraag naar onze glutenvrije gerechten.' },
       { question: 'Zijn er allergenen in jullie eten?', answer: 'Wij kunnen u informeren over allergenen.' },
-      { question: 'Wat kost een ...?', answer: 'Ik geef u de prijs.' },
       { question: 'Hebben jullie een kindermenu?', answer: 'Ja, wij hebben kinderporties.' },
       { question: 'Hebben jullie dagmenu?', answer: 'Vraag naar onze dagaanbiedingen.' },
-      { question: 'Hebben jullie lunch?', answer: 'Ja, onze lunchkaart is beschikbaar.' },
-      
-      // Specifieke gerechten
-      { question: 'Hebben jullie pizza?', answer: 'Ja, wij hebben diverse pizzas.' },
-      { question: 'Hebben jullie friet?', answer: 'Ja, wij hebben verse friet.' },
-      { question: 'Welke sauzen hebben jullie?', answer: 'Wij hebben diverse sauzen. Ik noem ze op.' },
-      { question: 'Hebben jullie desserts?', answer: 'Ja, wij hebben desserts.' },
-      { question: 'Hebben jullie drankjes?', answer: 'Ja, frisdranken, bier, wijn, etc.' },
       
       // Praktisch
       { question: 'Is er een toilet?', answer: 'Ja, er is een toilet voor klanten.' },
@@ -1092,8 +1461,7 @@ export function getFAQTemplate(businessType: string): Array<{ question: string; 
       
       // Feedback
       { question: 'Ik heb een klacht', answer: 'Dat spijt ons. Vertel me wat er is gebeurd.' },
-      { question: 'Mijn bestelling klopt niet', answer: 'Excuses daarvoor. Wat is er mis?' },
-      { question: 'Bedankt', answer: 'Graag gedaan! Eet smakelijk en tot ziens!' },
+      { question: 'Bedankt', answer: 'Graag gedaan! Tot de volgende keer!' },
     ];
   }
   
