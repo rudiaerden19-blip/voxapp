@@ -697,13 +697,10 @@ export default function AdminDashboard() {
                     <optgroup label="Diensten">
                       <option value="garage">Garage</option>
                       <option value="loodgieter">Loodgieter</option>
-                      <option value="schoonmaak">Schoonmaakbedrijf</option>
                       <option value="advocaat">Advocatenkantoor</option>
                       <option value="boekhouder">Boekhoudkantoor</option>
                     </optgroup>
                     <optgroup label="Retail">
-                      <option value="bloemenwinkel">Bloemenwinkel</option>
-                      <option value="immo">Immobiliënkantoor</option>
                     </optgroup>
                     <optgroup label="Overig">
                       <option value="other">Overig</option>
@@ -898,13 +895,10 @@ export default function AdminDashboard() {
                         <optgroup label="Diensten">
                           <option value="garage">Garage</option>
                           <option value="loodgieter">Loodgieter</option>
-                          <option value="schoonmaak">Schoonmaakbedrijf</option>
                           <option value="advocaat">Advocatenkantoor</option>
                           <option value="boekhouder">Boekhoudkantoor</option>
                         </optgroup>
                         <optgroup label="Retail">
-                          <option value="bloemenwinkel">Bloemenwinkel</option>
-                          <option value="immo">Immobiliënkantoor</option>
                         </optgroup>
                         <optgroup label="Overig">
                           <option value="other">Overig</option>

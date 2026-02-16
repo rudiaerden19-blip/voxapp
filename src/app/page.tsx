@@ -867,12 +867,9 @@ function ForWhoSection() {
     { icon: '💆', key: 'beautysalons' },
     { icon: '🏋️', key: 'fitnessstudios' },
     { icon: '🚗', key: 'garages' },
-    { icon: '🏠', key: 'immobilienkantoren' },
     { icon: '⚖️', key: 'advocatenkantoren' },
     { icon: '📊', key: 'boekhoudkantoren' },
     { icon: '🐕', key: 'dierenklinieken' },
-    { icon: '💐', key: 'bloemenwinkels' },
-    { icon: '🧹', key: 'schoonmaakbedrijven' },
     { icon: '🔧', key: 'loodgieters' },
   ];
 
