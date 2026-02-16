@@ -147,10 +147,9 @@ export async function GET() {
 
     // Voeg ALTIJD echte Franse en Duitse ElevenLabs stemmen toe (als ze nog niet bestaan)
     const frenchVoices = [
-      { voice_id: 'imRmmzTqlLHt9Do1HufF', name: 'Hélène', gender: 'Vrouw' },
-      { voice_id: 'glDtoWIoIgk38YbycCwG', name: 'Clara Dupont', gender: 'Vrouw' },
-      { voice_id: 'PjN1x5uqQvyU3DO0gdJz', name: 'Antoine', gender: 'Man' },
-      { voice_id: '1ns94GwK9YDCJoL6Nglv', name: 'Nicolas', gender: 'Man' },
+      { voice_id: 'm5U7XCsc8v988k2RJAqN', name: 'Franse Stem 1', gender: 'Onbekend' },
+      { voice_id: 'aF9wTE4apSrh9D2pdwwI', name: 'Franse Stem 2', gender: 'Onbekend' },
+      { voice_id: '5opxviIE64D8KxYYJKpx', name: 'Franse Stem 3', gender: 'Onbekend' },
     ];
     for (const v of frenchVoices) {
       if (!voicesByLang.FR.some(existing => existing.voice_id === v.voice_id)) {
@@ -164,10 +163,9 @@ export async function GET() {
     }
     
     const germanVoices = [
-      { voice_id: 'XqTEUeXvEbbL4e30WfT0', name: 'Lena', gender: 'Vrouw' },
-      { voice_id: 'z0gdR3nhVl1Ig2kiEigL', name: 'Luisa', gender: 'Vrouw' },
-      { voice_id: 'f2yUVfK5jdm78zlpcZ8C', name: 'Albert', gender: 'Man' },
-      { voice_id: 'SfXg52J54dixBlOl016v', name: 'Marc', gender: 'Man' },
+      { voice_id: 'm0jFDzIcZy0rC88oAehX', name: 'Duitse Stem 1', gender: 'Onbekend' },
+      { voice_id: 'coPfQIqaxowKv5u2s2bV', name: 'Duitse Stem 2', gender: 'Onbekend' },
+      { voice_id: '5KvpaGteYkNayiswuX2h', name: 'Duitse Stem 3', gender: 'Onbekend' },
     ];
     for (const v of germanVoices) {
       if (!voicesByLang.DE.some(existing => existing.voice_id === v.voice_id)) {
