@@ -60,7 +60,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
     }
 
-    return NextResponse.json(data || []);
+    // Zorg dat items altijd een array is (keukenscherm verwacht order.items[])
+    const orders = (data || []).map((o: { items?: unknown }) => ({
+      ...o,
+      items: Array.isArray(o.items) ? o.items : [],
+    }));
+    return NextResponse.json(orders);
   } catch (error) {
     console.error('Orders GET error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
