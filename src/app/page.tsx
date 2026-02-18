@@ -1198,9 +1198,12 @@ function FrituurSection() {
             <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
               {t('frituur.badge')}
             </p>
-            <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 700, color: '#1a1a2e', lineHeight: 1.2, marginBottom: 20 }}>
+            <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 700, color: '#1a1a2e', lineHeight: 1.2, marginBottom: 8 }}>
               {t('frituur.title')}
             </h2>
+            <p style={{ fontSize: 18, fontWeight: 600, color: '#f97316', marginBottom: 20 }}>
+              {t('frituur.noCommission')}
+            </p>
             <p style={{ fontSize: 16, color: '#6b7280', lineHeight: 1.7, marginBottom: 32 }}>
               {t('frituur.subtitle')}
             </p>
