@@ -16,7 +16,7 @@ export const translations = {
   // Hero Section
   hero: {
     badge: { nl: 'Slimme Receptie voor Groeiende Bedrijven', en: 'Smart Reception for Growing Businesses', fr: 'Réception Intelligente pour Entreprises en Croissance', de: 'Smarte Rezeption für Wachsende Unternehmen' },
-    title1: { nl: 'Mis nooit een oproep.', en: 'Never miss a call.', fr: 'Ne manquez jamais un appel.', de: 'Verpassen Sie nie einen Anruf.' },
+    title1: { nl: 'Mis nooit meer een afspraak.', en: 'Never miss an appointment again.', fr: 'Ne manquez plus jamais un rendez-vous.', de: 'Verpassen Sie nie wieder einen Termin.' },
     title2: { nl: 'Boek meer afspraken.', en: 'Book more appointments.', fr: 'Réservez plus de rendez-vous.', de: 'Buchen Sie mehr Termine.' },
     title3: { nl: 'Bespaar tijd.', en: 'Save time.', fr: 'Gagnez du temps.', de: 'Sparen Sie Zeit.' },
     subtitle: { nl: 'VoxApp beheert uw oproepen, boekt afspraken en beantwoordt vragen — zodat u kunt focussen op uw werk.', en: 'VoxApp manages your calls, books appointments and answers questions — so you can focus on your work.', fr: 'VoxApp gère vos appels, prend des rendez-vous et répond aux questions — pour que vous puissiez vous concentrer sur votre travail.', de: 'VoxApp verwaltet Ihre Anrufe, bucht Termine und beantwortet Fragen — damit Sie sich auf Ihre Arbeit konzentrieren können.' },
