@@ -127,4 +127,4 @@ Kostprijs per klant: ~€25/maand → Marge: 75-83%
 6. **Test op telefoon** — de klant bekijkt alles op telefoon
 7. **Nederlands** — alle tekst in het Nederlands (België)
 8. **Supabase keys** staan in .env.local, NOOIT committen
-9. **Na elke wijziging**: git add, commit, push → Vercel deployed automatisch
+9. **Commit & deploy altijd automatisch** — Na ELKE code- of configuratie-wijziging: `git add` (alle gewijzigde bestanden), `git commit` (duidelijke NL message), `git push origin main`. Doe dit standaard aan het einde van de taak, zonder te vragen. Push met `required_permissions: ["all"]` zodat credentials werken.
