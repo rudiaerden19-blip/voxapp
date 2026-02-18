@@ -874,6 +874,9 @@ function ForWhoSection() {
     { icon: '📊', key: 'boekhoudkantoren' },
     { icon: '🐕', key: 'dierenklinieken' },
     { icon: '🔧', key: 'loodgieters' },
+    { icon: '🏢', key: 'bedrijven' },
+    { icon: '🚒', key: 'brandweer' },
+    { icon: '👮', key: 'politie' },
   ];
 
   return (

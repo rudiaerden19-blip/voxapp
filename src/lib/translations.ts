@@ -174,6 +174,9 @@ export const translations = {
       bloemenwinkels: { nl: 'Bloemenwinkels', en: 'Flower Shops', fr: 'Fleuristes', de: 'Blumenläden' },
       schoonmaakbedrijven: { nl: 'Schoonmaakbedrijven', en: 'Cleaning Companies', fr: 'Entreprises de nettoyage', de: 'Reinigungsfirmen' },
       loodgieters: { nl: 'Loodgieters', en: 'Plumbers', fr: 'Plombiers', de: 'Klempner' },
+      bedrijven: { nl: 'Bedrijven', en: 'Companies', fr: 'Entreprises', de: 'Unternehmen' },
+      brandweer: { nl: 'Brandweer', en: 'Fire Department', fr: 'Pompiers', de: 'Feuerwehr' },
+      politie: { nl: 'Politie', en: 'Police', fr: 'Police', de: 'Polizei' },
     },
   },
 
