@@ -2771,19 +2771,23 @@ function CTASection() {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 8,
-                background: 'transparent',
-                color: '#1a1a2e',
+                background: '#22c55e',
+                color: 'white',
                 padding: '16px 32px',
                 borderRadius: 8,
                 fontSize: 16,
                 fontWeight: 600,
-                border: '1px solid #d1d5db',
+                border: 'none',
                 cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(34, 197, 94, 0.3)',
               }}>
               <Headphones size={18} />
               {t('cta.talkToTeam')}
             </button>
           </div>
+          <p style={{ textAlign: 'center', fontSize: 14, color: '#6b7280', maxWidth: 420, margin: '16px auto 0', lineHeight: 1.6 }}>
+            {t('cta.talkToTeamHint')}
+          </p>
           
           {/* Language selector for support */}
           <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 16 }}>
