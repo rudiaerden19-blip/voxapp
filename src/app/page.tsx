@@ -1114,6 +1114,37 @@ function RestaurantSection({ onOpenDemo }: { onOpenDemo: () => void }) {
 }
 
 /* ============================================
+   RECEPTIE OP MAAT - tussen Hero en Frituur
+============================================ */
+function CustomReceptionSection() {
+  const { t } = useLanguage();
+  return (
+    <section style={{ background: '#ffffff', padding: '100px 0' }}>
+      <div style={{ maxWidth: 800, margin: '0 auto', padding: '0 24px', textAlign: 'center' }}>
+        <p style={{ color: '#f97316', fontSize: 14, fontWeight: 600, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 }}>
+          {t('customReception.badge')}
+        </p>
+        <h2 style={{ fontSize: 'clamp(26px, 4vw, 38px)', fontWeight: 700, color: '#1a1a2e', lineHeight: 1.25, marginBottom: 24 }}>
+          {t('customReception.title')}
+        </h2>
+        <p style={{ fontSize: 17, color: '#4b5563', lineHeight: 1.7, marginBottom: 24 }}>
+          {t('customReception.intro')}
+        </p>
+        <p style={{ fontSize: 16, color: '#6b7280', lineHeight: 1.7, marginBottom: 28 }}>
+          {t('customReception.database')}
+        </p>
+        <p style={{ fontSize: 15, color: '#374151', lineHeight: 1.8, marginBottom: 8 }}>
+          {t('customReception.example1')} · {t('customReception.example2')} · {t('customReception.example3')} · {t('customReception.example4')} · …
+        </p>
+        <p style={{ fontSize: 18, fontWeight: 700, color: '#f97316', letterSpacing: 0.5, marginTop: 24 }}>
+          {t('customReception.closing')}
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================
    FEATURE SECTION - Frituur Bestellingen
 ============================================ */
 function FrituurSection() {
@@ -3360,6 +3391,7 @@ export default function Home() {
     <main>
       <Navigation />
       <HeroSection onOpenDemo={openBelleDemo} />
+      <CustomReceptionSection />
       <FrituurSection />
       <KassaSection />
       <ROICalculatorSection />

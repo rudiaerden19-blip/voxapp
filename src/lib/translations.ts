@@ -207,6 +207,19 @@ export const translations = {
     restaurantInterior: { nl: 'Restaurant interieur', en: 'Restaurant interior', fr: 'Intérieur restaurant', de: 'Restaurantinterieur' },
   },
 
+  // Receptie op maat (tussen Hero en Frituur)
+  customReception: {
+    badge: { nl: 'Op uw maat', en: 'Tailored to you', fr: 'Sur mesure', de: 'Auf Sie zugeschnitten' },
+    title: { nl: 'Wij maken uw receptie op uw eigen maat.', en: 'We build your reception to your measure.', fr: 'Nous créons votre réception sur mesure.', de: 'Wir bauen Ihre Rezeption nach Maß.' },
+    intro: { nl: 'U zegt welk bedrijf u runt, wat u doet, wat u maakt, welke vragen u het meest krijgt — en wij maken alles gratis perfect klaar op uw bedrijf.', en: 'You tell us which business you run, what you do, what you make, which questions you get most — and we set everything up perfectly for your business, free of charge.', fr: 'Vous nous dites quel commerce vous avez, ce que vous faites, ce que vous vendez, quelles questions vous recevez le plus — et nous préparons tout gratuitement et parfaitement pour votre entreprise.', de: 'Sie sagen uns, welches Unternehmen Sie führen, was Sie tun, was Sie herstellen, welche Fragen am häufigsten kommen — und wir richten alles kostenlos perfekt für Ihr Unternehmen ein.' },
+    database: { nl: 'De receptie heeft een database van 150.000 vragen zodat iedere klant een perfect antwoord krijgt op zijn vraag.', en: 'The reception has a database of 150,000 questions so every customer gets a perfect answer to their question.', fr: 'La réception dispose d\'une base de 150 000 questions pour que chaque client reçoive une réponse parfaite.', de: 'Die Rezeption hat eine Datenbank mit 150.000 Fragen, damit jeder Kunde eine perfekte Antwort erhält.' },
+    example1: { nl: 'Is mijn auto al klaar?', en: 'Is my car ready yet?', fr: 'Ma voiture est-elle prête ?', de: 'Ist mein Auto schon fertig?' },
+    example2: { nl: 'Waar blijft mijn pakje?', en: 'Where is my package?', fr: 'Où est mon colis ?', de: 'Wo bleibt mein Paket?' },
+    example3: { nl: 'Kan ik een afspraak maken?', en: 'Can I make an appointment?', fr: 'Puis-je prendre rendez-vous ?', de: 'Kann ich einen Termin machen?' },
+    example4: { nl: 'Ik wil eten bestellen', en: 'I want to order food', fr: 'Je veux commander à manger', de: 'Ich möchte Essen bestellen' },
+    closing: { nl: 'U ZAL VERSTOMD STAAN.', en: 'YOU WILL BE AMAZED.', fr: 'VOUS SEREZ ÉMERVEILLÉ.', de: 'SIE WERDEN STAUNEN.' },
+  },
+
   // Frituur Section  
   frituur: {
     badge: { nl: 'Frituren & Afhaalzaken', en: 'Snack Bars & Takeaway', fr: 'Friteries & À emporter', de: 'Imbisse & Takeaway' },
