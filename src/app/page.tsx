@@ -2625,7 +2625,7 @@ function TestimonialsSection() {
           {t('testimonials.title')}
         </h2>
         
-        <div className="testimonials-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 30 }}>
+        <div className="testimonials-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(260px, 1fr))', gap: 30, overflowX: 'auto', minWidth: 0, paddingBottom: 8 }}>
           {testimonials.map((testimonial, i) => (
             <div 
               key={i}
