@@ -793,6 +793,11 @@ export const translations = {
       author: { nl: 'Dr. Peter Hendriks', en: 'Dr. Peter Hendriks', fr: 'Dr. Peter Hendriks', de: 'Dr. Peter Hendriks' },
       role: { nl: 'Eigenaar, Dental Care', en: 'Owner, Dental Care', fr: 'Propriétaire, Dental Care', de: 'Inhaber, Dental Care' },
     },
+    testimonial4: {
+      text: { nl: '"Wat een bedrijf, wat een weelde. Ik hoef in de frituur geen telefonische bestellingen meer aan te nemen. Wat een druk die wegvalt. Mijn team is hier enorm gelukkig mee en dit werkt gewoon beter."', en: '"What a relief. I no longer have to take phone orders at the frituur. So much pressure gone. My team is really happy with it and it simply works better."', fr: '"Quel soulagement. Je n\'ai plus à prendre les commandes téléphoniques à la friterie. Quelle pression en moins. Mon équipe en est très contente et ça fonctionne tout simplement mieux."', de: '"Was für eine Erleichterung. Ich muss in der Fritteuse keine Telefonbestellungen mehr annehmen. So viel Druck fällt weg. Mein Team ist sehr zufrieden und es funktioniert einfach besser."' },
+      author: { nl: 'Jan De Backer', en: 'Jan De Backer', fr: 'Jan De Backer', de: 'Jan De Backer' },
+      role: { nl: 'Eigenaar, Frituur De Gouden Friet', en: 'Owner, Frituur De Gouden Friet', fr: 'Propriétaire, Frituur De Gouden Friet', de: 'Inhaber, Frituur De Gouden Friet' },
+    },
   },
 
   // Onboarding

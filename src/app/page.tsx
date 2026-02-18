@@ -2609,6 +2609,13 @@ function TestimonialsSection() {
       color: '#a855f7',
       text: t('testimonials.testimonial3.text'),
     },
+    {
+      name: t('testimonials.testimonial4.author'),
+      role: t('testimonials.testimonial4.role'),
+      initials: 'JB',
+      color: '#f97316',
+      text: t('testimonials.testimonial4.text'),
+    },
   ];
 
   return (
