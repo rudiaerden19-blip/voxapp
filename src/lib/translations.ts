@@ -21,6 +21,7 @@ export const translations = {
     title3: { nl: 'Bespaar tijd.', en: 'Save time.', fr: 'Gagnez du temps.', de: 'Sparen Sie Zeit.' },
     subtitle: { nl: 'VoxApp beheert uw oproepen, boekt afspraken en beantwoordt vragen — zodat u kunt focussen op uw werk.', en: 'VoxApp manages your calls, books appointments and answers questions — so you can focus on your work.', fr: 'VoxApp gère vos appels, prend des rendez-vous et répond aux questions — pour que vous puissiez vous concentrer sur votre travail.', de: 'VoxApp verwaltet Ihre Anrufe, bucht Termine und beantwortet Fragen — damit Sie sich auf Ihre Arbeit konzentrieren können.' },
     tagline: { nl: 'Geen robotstemmen, maar uw eigen stem die spreekt.', en: 'No robot voices, but your own voice speaking.', fr: 'Pas de voix robotiques, mais votre propre voix qui parle.', de: 'Keine Roboterstimmen, sondern Ihre eigene Stimme.' },
+    proof: { nl: 'Bewezen door klanten: 25% meer afspraken.', en: 'Proven by customers: 25% more appointments.', fr: 'Prouvé par les clients : 25 % de rendez-vous en plus.', de: 'Bewährt bei Kunden: 25 % mehr Termine.' },
     cta: { nl: 'Start gratis proefperiode', en: 'Start free trial', fr: 'Commencer l\'essai gratuit', de: 'Kostenlose Testphase starten' },
     tryDemo: { nl: 'Probeer demo', en: 'Try demo', fr: 'Essayer la démo', de: 'Demo testen' },
     kapper: { nl: 'Kapper', en: 'Hairdresser', fr: 'Coiffeur', de: 'Friseur' },

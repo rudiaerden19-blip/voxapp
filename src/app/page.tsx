@@ -734,8 +734,11 @@ function HeroSection({ onOpenDemo }: { onOpenDemo: () => void }) {
             <p style={{ fontSize: 18, color: '#9ca3af', lineHeight: 1.7, marginBottom: 12 }}>
               {t('hero.subtitle')}
             </p>
-            <p style={{ fontSize: 16, color: '#f97316', fontWeight: 500, marginBottom: 32 }}>
+            <p style={{ fontSize: 16, color: '#f97316', fontWeight: 500, marginBottom: 8 }}>
               {t('hero.tagline')}
+            </p>
+            <p style={{ fontSize: 15, color: '#9ca3af', marginBottom: 32 }}>
+              {t('hero.proof')}
             </p>
 
             {/* CTA Buttons */}
