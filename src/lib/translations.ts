@@ -217,6 +217,7 @@ export const translations = {
     example2: { nl: 'Waar blijft mijn pakje?', en: 'Where is my package?', fr: 'Où est mon colis ?', de: 'Wo bleibt mein Paket?' },
     example3: { nl: 'Kan ik een afspraak maken?', en: 'Can I make an appointment?', fr: 'Puis-je prendre rendez-vous ?', de: 'Kann ich einen Termin machen?' },
     example4: { nl: 'Ik wil eten bestellen', en: 'I want to order food', fr: 'Je veux commander à manger', de: 'Ich möchte Essen bestellen' },
+    notTechnical: { nl: 'Als u niet zo technisch aangelegd bent: wij doen alles gratis voor u.', en: 'Not so technically minded? We do everything for you, free of charge.', fr: 'Vous n\'êtes pas très technique ? Nous faisons tout pour vous, gratuitement.', de: 'Nicht so technikaffin? Wir erledigen alles für Sie, kostenlos.' },
     closing: { nl: 'U ZAL VERSTOMD STAAN.', en: 'YOU WILL BE AMAZED.', fr: 'VOUS SEREZ ÉMERVEILLÉ.', de: 'SIE WERDEN STAUNEN.' },
   },
 
@@ -312,6 +313,10 @@ export const translations = {
       q: { nl: 'Is er een contract?', en: 'Is there a contract?', fr: 'Y a-t-il un contrat?', de: 'Gibt es einen Vertrag?' },
       a: { nl: 'Nee. Maandelijks opzegbaar, 7 dagen gratis.', en: 'No. Cancel monthly, 7 days free.', fr: 'Non. Résiliation mensuelle, 7 jours gratuits.', de: 'Nein. Monatlich kündbar, 7 Tage kostenlos.' },
     },
+    q6: {
+      q: { nl: 'Wat kosten de plannen en hoeveel afspraken zitten erin?', en: 'What do the plans cost and how many appointments are included?', fr: 'Combien coûtent les forfaits et combien de rendez-vous sont inclus?', de: 'Was kosten die Tarife und wie viele Termine sind enthalten?' },
+      a: { nl: 'Starter: €99/maand, 375 min, ongeveer 190 afspraken/maand, €0,40 per extra minuut. Pro: €149/maand, 940 min, ongeveer 470 afspraken/maand, €0,35 per extra minuut. Business: €249/maand, 1875 min, ongeveer 940 afspraken/maand, €0,30 per extra minuut.', en: 'Starter: €99/month, 375 min, ~190 appointments/month, €0.40 per extra minute. Pro: €149/month, 940 min, ~470 appointments/month, €0.35 per extra minute. Business: €249/month, 1875 min, ~940 appointments/month, €0.30 per extra minute.', fr: 'Starter : 99€/mois, 375 min, ~190 rendez-vous/mois, 0,40€/min supp. Pro : 149€/mois, 940 min, ~470 rendez-vous/mois, 0,35€/min supp. Business : 249€/mois, 1875 min, ~940 rendez-vous/mois, 0,30€/min supp.', de: 'Starter: 99€/Monat, 375 Min, ~190 Termine/Monat, 0,40€/Zusatzminute. Pro: 149€/Monat, 940 Min, ~470 Termine/Monat, 0,35€/Zusatzminute. Business: 249€/Monat, 1875 Min, ~940 Termine/Monat, 0,30€/Zusatzminute.' },
+    },
   },
 
   // CTA Section
@@ -322,6 +327,7 @@ export const translations = {
     startTrial: { nl: 'Start gratis proefperiode', en: 'Start free trial', fr: 'Commencer l\'essai gratuit', de: 'Kostenlose Testphase starten' },
     talkToTeam: { nl: 'Praat live met ons team', en: 'Talk live with our team', fr: 'Parlez en direct avec notre équipe', de: 'Sprechen Sie live mit unserem Team' },
     talkToTeamHint: { nl: 'Heeft u een vraag over de werking, de prijs of algemene info? Druk op de knop en praat vrijblijvend live met ons team.', en: 'Have a question about how it works, pricing or general info? Click the button and talk to our team live, no obligation.', fr: 'Une question sur le fonctionnement, les tarifs ou les infos générales ? Cliquez sur le bouton et parlez en direct avec notre équipe, sans engagement.', de: 'Fragen zur Funktionsweise, zu den Preisen oder allgemeinen Infos? Klicken Sie auf den Button und sprechen Sie unverbindlich live mit unserem Team.' },
+    notTechnical: { nl: 'Niet zo technisch? Wij doen alles gratis voor u.', en: 'Not so technical? We do everything for you, free of charge.', fr: 'Pas très technique ? Nous faisons tout pour vous, gratuitement.', de: 'Nicht so technikaffin? Wir erledigen alles für Sie, kostenlos.' },
     support: { nl: 'VoxApp Support', en: 'VoxApp Support', fr: 'Support VoxApp', de: 'VoxApp Support' },
     askQuestions: { nl: 'Stel al uw vragen over VoxApp', en: 'Ask all your questions about VoxApp', fr: 'Posez toutes vos questions sur VoxApp', de: 'Stellen Sie alle Ihre Fragen zu VoxApp' },
     connecting: { nl: 'Verbinden...', en: 'Connecting...', fr: 'Connexion...', de: 'Verbinden...' },

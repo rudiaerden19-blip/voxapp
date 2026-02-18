@@ -1128,8 +1128,11 @@ function CustomReceptionSection() {
         <h2 style={{ fontSize: 'clamp(26px, 4vw, 38px)', fontWeight: 700, color: '#1a1a2e', lineHeight: 1.25, marginBottom: 24 }}>
           {t('customReception.title')}
         </h2>
-        <p style={{ fontSize: 17, color: '#4b5563', lineHeight: 1.7, marginBottom: 24 }}>
+        <p style={{ fontSize: 17, color: '#4b5563', lineHeight: 1.7, marginBottom: 16 }}>
           {t('customReception.intro')}
+        </p>
+        <p style={{ fontSize: 16, color: '#22c55e', fontWeight: 600, lineHeight: 1.6, marginBottom: 24 }}>
+          {t('customReception.notTechnical')}
         </p>
         <p style={{ fontSize: 16, color: '#6b7280', lineHeight: 1.7, marginBottom: 28 }}>
           {t('customReception.database')}
@@ -2560,7 +2563,7 @@ function FAQSection() {
   const { t } = useLanguage();
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
-  const faqKeys = ['q1', 'q2', 'q3', 'q4', 'q5'];
+  const faqKeys = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6'];
 
   return (
     <section id="faq" style={{ background: '#1a1025', padding: '100px 0' }}>
@@ -2798,6 +2801,9 @@ function CTASection() {
           </div>
           <p style={{ textAlign: 'center', fontSize: 14, color: '#6b7280', maxWidth: 420, margin: '16px auto 0', lineHeight: 1.6 }}>
             {t('cta.talkToTeamHint')}
+          </p>
+          <p style={{ textAlign: 'center', fontSize: 14, color: '#22c55e', fontWeight: 500, maxWidth: 420, margin: '8px auto 0', lineHeight: 1.5 }}>
+            {t('cta.notTechnical')}
           </p>
           
           {/* Language selector for support */}
