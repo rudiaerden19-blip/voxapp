@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { useConversation } from '@elevenlabs/react';
 import { useLanguage, Language } from '@/lib/LanguageContext';
+import { PLAN_FACTS } from '@/lib/planFacts';
 
 // Force scroll to top on page load/refresh
 if (typeof window !== 'undefined') {
@@ -2382,38 +2383,14 @@ function StatsSection() {
 }
 
 /* ============================================
-   PRICING SECTION
+   PRICING SECTION (cijfers uit src/lib/planFacts.ts)
 ============================================ */
 function PricingSection() {
   const { t } = useLanguage();
   const plans = [
-    {
-      key: 'starter',
-      price: '99',
-      minutes: '375',
-      appointments: '~190',
-      extra: '0,40',
-      featureKeys: ['f1', 'f2', 'f3', 'f4', 'f5', 'f6'],
-      popular: false,
-    },
-    {
-      key: 'pro',
-      price: '149',
-      minutes: '940',
-      appointments: '~470',
-      extra: '0,35',
-      featureKeys: ['f1', 'f2', 'f3', 'f4', 'f5', 'f6'],
-      popular: true,
-    },
-    {
-      key: 'business',
-      price: '249',
-      minutes: '1875',
-      appointments: '~940',
-      extra: '0,30',
-      featureKeys: ['f1', 'f2', 'f3', 'f4', 'f5', 'f6'],
-      popular: false,
-    },
+    { key: 'starter', price: String(PLAN_FACTS.starter.priceEur), minutes: String(PLAN_FACTS.starter.minutesPerMonth), appointments: `~${PLAN_FACTS.starter.appointmentsPerMonth}`, extra: String(PLAN_FACTS.starter.extraMinuteEur).replace('.', ','), featureKeys: ['f1', 'f2', 'f3', 'f4', 'f5', 'f6'], popular: false },
+    { key: 'pro', price: String(PLAN_FACTS.pro.priceEur), minutes: String(PLAN_FACTS.pro.minutesPerMonth), appointments: `~${PLAN_FACTS.pro.appointmentsPerMonth}`, extra: String(PLAN_FACTS.pro.extraMinuteEur).replace('.', ','), featureKeys: ['f1', 'f2', 'f3', 'f4', 'f5', 'f6'], popular: true },
+    { key: 'business', price: String(PLAN_FACTS.business.priceEur), minutes: String(PLAN_FACTS.business.minutesPerMonth), appointments: `~${PLAN_FACTS.business.appointmentsPerMonth}`, extra: String(PLAN_FACTS.business.extraMinuteEur).replace('.', ','), featureKeys: ['f1', 'f2', 'f3', 'f4', 'f5', 'f6'], popular: false },
   ];
 
   return (

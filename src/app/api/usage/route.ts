@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { PLAN_MINUTES } from '@/lib/planFacts';
 
 // Create admin Supabase client
 function getSupabase() {
@@ -12,15 +13,6 @@ function getSupabase() {
   
   return createClient(supabaseUrl, serviceRoleKey);
 }
-
-// Plan limits in minutes
-const PLAN_LIMITS: Record<string, number> = {
-  starter: 375,
-  pro: 940,
-  professional: 940,
-  business: 1875,
-  enterprise: 1875,
-};
 
 // Extra minute costs
 const EXTRA_MINUTE_COST: Record<string, number> = {
@@ -85,7 +77,7 @@ export async function GET(request: NextRequest) {
 
     // Calculate current month stats
     const plan = business.subscription_plan || 'starter';
-    const includedMinutes = PLAN_LIMITS[plan] || 375;
+    const includedMinutes = PLAN_MINUTES[plan] ?? PLAN_MINUTES.starter;
     const extraMinuteCost = EXTRA_MINUTE_COST[plan] || 0.15;
     
     const totalMinutes = monthlyUsage?.total_minutes || 0;

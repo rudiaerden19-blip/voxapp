@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { PLAN_MINUTES } from '@/lib/planFacts';
 
 // Create admin Supabase client for webhook handling
 function getSupabase() {
@@ -12,15 +13,6 @@ function getSupabase() {
   
   return createClient(supabaseUrl, serviceRoleKey);
 }
-
-// Plan limits in minutes
-const PLAN_LIMITS: Record<string, number> = {
-  starter: 375,
-  pro: 940,
-  professional: 940,
-  business: 1875,
-  enterprise: 1875,
-};
 
 // POST - Receive webhook from ElevenLabs after call completion
 export async function POST(request: NextRequest) {
@@ -115,7 +107,7 @@ export async function POST(request: NextRequest) {
         .eq('id', existingUsage.id);
     } else {
       // Create new monthly record
-      const planLimit = PLAN_LIMITS[business.subscription_plan || 'starter'] || 375;
+      const planLimit = PLAN_MINUTES[business.subscription_plan || 'starter'] ?? PLAN_MINUTES.starter;
       
       await supabase
         .from('usage_monthly')
