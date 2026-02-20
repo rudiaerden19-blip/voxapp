@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const supabase = createAdminClient();
     const { data: pools, error } = await supabase
       .from('pool_numbers')
-      .select('id, phone_number, provider, status, country, monthly_cost, max_concurrent_calls, created_at')
+      .select('id, phone_number, provider, status, country, monthly_cost, max_concurrent_calls, twilio_sid, default_agent_id, created_at')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -54,9 +54,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       phone_number,
-      provider = 'telnyx',
+      provider = 'twilio',
       country = 'BE',
-      monthly_cost = 2,
+      monthly_cost = 25,
       max_concurrent_calls = 10,
     } = body;
 
@@ -76,11 +76,13 @@ export async function POST(request: NextRequest) {
       .from('pool_numbers')
       .insert({
         phone_number: normalized,
-        provider: provider === 'telnyx' ? 'telnyx' : provider,
+        provider: body.provider || 'twilio',
         status: 'active',
         country: country || 'BE',
-        monthly_cost: Number(monthly_cost) || 2,
+        monthly_cost: Number(monthly_cost) || 25,
         max_concurrent_calls: Number(max_concurrent_calls) || 10,
+        twilio_sid: body.twilio_sid || null,
+        default_agent_id: body.default_agent_id || null,
       })
       .select()
       .single();
