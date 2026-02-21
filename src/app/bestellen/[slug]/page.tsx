@@ -7,9 +7,9 @@ import { useParams } from 'next/navigation';
 
 interface MenuItem {
   id: string;
-  category: string;
+  category: string | null;
   name: string;
-  description?: string;
+  description?: string | null;
   price: number;
   is_available: boolean;
 }
