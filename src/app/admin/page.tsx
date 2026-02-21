@@ -18,6 +18,10 @@ const planPricing: Record<string, number> = {
   business: 249,
 };
 
+// Beschermde eigenaar accounts - kunnen nooit verwijderd/geblokkeerd worden
+const PROTECTED_EMAILS = ['rudiaerden19@gmail.com'];
+const isProtectedAccount = (email?: string) => email && PROTECTED_EMAILS.includes(email.toLowerCase());
+
 interface Tenant {
   id: string;
   user_id?: string;
@@ -347,6 +351,8 @@ export default function AdminDashboard() {
   };
 
   const getStatusBadge = (tenant: Tenant) => {
+    // Eigenaar is altijd actief
+    if (isProtectedAccount(tenant.email)) return { bg: '#22c55e', label: 'Eigenaar' };
     if (tenant.blocked) return { bg: '#ef4444', label: 'Blocked' };
     switch (tenant.subscription_status) {
       case 'active': return { bg: '#22c55e', label: 'Actief' };
@@ -531,7 +537,7 @@ export default function AdminDashboard() {
                           <span style={{ background: `${status.bg}20`, color: status.bg, padding: '4px 10px', borderRadius: 4, fontSize: 12, fontWeight: 500 }}>
                             {status.label}
                           </span>
-                          {tenant.subscription_status === 'trial' && tenant.trial_ends_at && (
+                          {tenant.subscription_status === 'trial' && tenant.trial_ends_at && !isProtectedAccount(tenant.email) && (
                             <span style={{ 
                               fontSize: 11, 
                               color: isTrialExpiringSoon(tenant.trial_ends_at) ? '#ef4444' : '#6b7280',
@@ -561,20 +567,29 @@ export default function AdminDashboard() {
                           >
                             <Eye size={16} />
                           </button>
-                          <button
-                            onClick={() => toggleBlock(tenant)}
-                            style={{ padding: 8, background: tenant.blocked ? '#22c55e20' : '#f9731620', border: 'none', borderRadius: 6, color: tenant.blocked ? '#22c55e' : '#f97316', cursor: 'pointer' }}
-                            title={tenant.blocked ? 'Deblokkeren' : 'Blokkeren'}
-                          >
-                            {tenant.blocked ? <Check size={16} /> : <Ban size={16} />}
-                          </button>
-                          <button
-                            onClick={() => deleteTenant(tenant)}
-                            style={{ padding: 8, background: '#ef444420', border: 'none', borderRadius: 6, color: '#ef4444', cursor: 'pointer' }}
-                            title="Verwijderen"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                          {!isProtectedAccount(tenant.email) && (
+                            <button
+                              onClick={() => toggleBlock(tenant)}
+                              style={{ padding: 8, background: tenant.blocked ? '#22c55e20' : '#f9731620', border: 'none', borderRadius: 6, color: tenant.blocked ? '#22c55e' : '#f97316', cursor: 'pointer' }}
+                              title={tenant.blocked ? 'Deblokkeren' : 'Blokkeren'}
+                            >
+                              {tenant.blocked ? <Check size={16} /> : <Ban size={16} />}
+                            </button>
+                          )}
+                          {!isProtectedAccount(tenant.email) && (
+                            <button
+                              onClick={() => deleteTenant(tenant)}
+                              style={{ padding: 8, background: '#ef444420', border: 'none', borderRadius: 6, color: '#ef4444', cursor: 'pointer' }}
+                              title="Verwijderen"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
+                          {isProtectedAccount(tenant.email) && (
+                            <span style={{ padding: 8, color: '#22c55e', display: 'flex', alignItems: 'center', gap: 4 }}>
+                              <Shield size={16} /> Eigenaar
+                            </span>
+                          )}
                         </div>
                       </td>
                     </tr>
