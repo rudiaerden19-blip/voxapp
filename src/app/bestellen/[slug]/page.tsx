@@ -134,7 +134,7 @@ export default function BestelPage() {
     return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   };
 
-  const categories = ['all', ...Array.from(new Set(menuItems.map(i => i.category).filter(Boolean)))];
+  const categories: string[] = ['all', ...Array.from(new Set(menuItems.map(i => i.category).filter((c): c is string => c !== null && c !== undefined)))];
   
   const filteredItems = selectedCategory === 'all' 
     ? menuItems 

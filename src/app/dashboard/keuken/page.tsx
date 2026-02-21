@@ -13,22 +13,23 @@ interface OrderItem {
   quantity: number;
   unit_price: number;
   total_price: number;
-  notes?: string;
+  notes?: string | null;
 }
 
 interface Order {
   id: string;
-  order_number?: number;
-  customer_name?: string;
-  customer_phone?: string;
-  order_type: 'pickup' | 'delivery';
-  status: 'pending' | 'preparing' | 'ready' | 'completed' | 'cancelled';
-  total_amount: number;
-  notes?: string;
-  estimated_ready_time?: string;
+  order_number?: number | null;
+  customer_name?: string | null;
+  customer_phone?: string | null;
+  order_type?: 'pickup' | 'delivery' | string | null;
+  status: string;
+  total_amount: number | null;
+  notes?: string | null;
+  estimated_ready_time?: string | null;
+  pickup_time?: string | null;
   created_at: string;
-  order_items?: OrderItem[];
-  source?: string; // 'phone', 'whatsapp', 'online', 'walk-in'
+  order_items?: OrderItem[] | any;
+  source?: string | null;
 }
 
 const statusColors: Record<string, { bg: string; text: string; label: string }> = {
@@ -369,7 +370,7 @@ function OrderCard({
       <div style={{ padding: 16 }}>
         {order.order_items && order.order_items.length > 0 ? (
           <div style={{ marginBottom: 12 }}>
-            {order.order_items.map((item, idx) => (
+            {order.order_items.map((item: OrderItem, idx: number) => (
               <div key={idx} style={{ 
                 display: 'flex', 
                 justifyContent: 'space-between',
@@ -379,7 +380,7 @@ function OrderCard({
                 <span style={{ color: 'white', fontSize: 14 }}>
                   <strong style={{ color: '#f97316' }}>{item.quantity}x</strong> {item.name}
                 </span>
-                <span style={{ color: '#9ca3af', fontSize: 14 }}>€{item.total_price.toFixed(2)}</span>
+                <span style={{ color: '#9ca3af', fontSize: 14 }}>€{item.total_price?.toFixed(2) || '0.00'}</span>
               </div>
             ))}
           </div>
