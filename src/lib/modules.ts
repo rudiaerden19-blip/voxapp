@@ -139,9 +139,9 @@ export const MODULES: Record<ModuleId, Module> = {
   kitchen: {
     id: 'kitchen',
     name: 'Keuken',
-    description: 'Live bestellingen en kassa',
+    description: 'Live bestellingen en kassa (OrderVysion)',
     icon: '👨‍🍳',
-    navItem: { href: '/dashboard/kitchen', label: 'Keuken', icon: 'ChefHat' },
+    navItem: { href: '/dashboard/keuken', label: 'Keuken', icon: 'ChefHat' },
   },
   delivery_slots: {
     id: 'delivery_slots',
