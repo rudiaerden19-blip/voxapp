@@ -56,6 +56,7 @@ function RegisterForm() {
         password,
         options: {
           data: {
+            display_name: businessName,
             business_name: businessName,
             business_type: businessType,
             phone: phone,
