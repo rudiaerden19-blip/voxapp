@@ -23,7 +23,8 @@ interface Business {
   id: string;
   name: string;
   type: string;
-  phone?: string;
+  phone?: string | null;
+  email?: string | null;
   opening_hours?: any;
 }
 
