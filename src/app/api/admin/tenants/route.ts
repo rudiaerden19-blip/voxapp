@@ -284,10 +284,10 @@ export async function DELETE(request: NextRequest) {
 
     const supabase = createAdminClient();
 
-    // Check of tenant bestaat
+    // Check of tenant bestaat en haal user_id + email op
     const { data: existing } = await supabase
       .from('businesses')
-      .select('id, name')
+      .select('id, name, user_id, email')
       .eq('id', id)
       .single();
 
@@ -295,6 +295,13 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Tenant niet gevonden' }, { status: 404 });
     }
 
+    // Bescherm eigenaar account - mag nooit verwijderd worden
+    const PROTECTED_EMAILS = ['rudiaerden19@gmail.com', 'info@vysionhoreca.com'];
+    if (existing.email && PROTECTED_EMAILS.includes(existing.email.toLowerCase())) {
+      return NextResponse.json({ error: 'Deze account is beschermd en kan niet verwijderd worden' }, { status: 403 });
+    }
+
+    // 1. Verwijder business record
     const { error } = await supabase
       .from('businesses')
       .delete()
@@ -305,7 +312,16 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Database fout bij verwijderen tenant' }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, message: `Tenant "${existing.name}" verwijderd` });
+    // 2. Verwijder ook de auth user
+    if (existing.user_id) {
+      const { error: authError } = await supabase.auth.admin.deleteUser(existing.user_id);
+      if (authError) {
+        console.error('Delete auth user error:', authError);
+        // Business is al verwijderd, dus we geven een waarschuwing
+      }
+    }
+
+    return NextResponse.json({ success: true, message: `Tenant "${existing.name}" en gebruiker verwijderd` });
   } catch (error) {
     console.error('Tenants DELETE error:', error);
     return NextResponse.json({ error: 'Interne serverfout' }, { status: 500 });
