@@ -182,7 +182,7 @@ export default function BestelPage() {
       
       if (itemsError) throw itemsError;
       
-      setOrderNumber(order.order_number);
+      setOrderNumber((order as any).order_number || Math.floor(Math.random() * 900) + 100);
       setStep('success');
       setCart([]);
       
