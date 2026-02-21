@@ -50,12 +50,11 @@ function RegisterForm() {
     try {
       const supabase = createClient();
       
-      // 1. Create auth user with email confirmation
+      // 1. Create auth user (no email verification required)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
             business_name: businessName,
             business_type: businessType,
@@ -90,10 +89,8 @@ function RegisterForm() {
           console.error('Business creation error:', businessError);
           setError(t('auth.somethingWentWrong'));
         } else {
-          // Save email for verification page
-          localStorage.setItem('pendingVerificationEmail', email);
-          // Redirect to verify email page
-          router.push('/verify-email');
+          // Go directly to dashboard
+          router.push('/dashboard');
         }
       }
     } catch (err: any) {
