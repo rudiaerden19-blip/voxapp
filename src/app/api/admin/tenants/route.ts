@@ -296,7 +296,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Bescherm eigenaar account - mag nooit verwijderd worden
-    const PROTECTED_EMAILS = ['rudiaerden19@gmail.com', 'info@vysionhoreca.com'];
+    const PROTECTED_EMAILS = ['rudiaerden19@gmail.com'];
     if (existing.email && PROTECTED_EMAILS.includes(existing.email.toLowerCase())) {
       return NextResponse.json({ error: 'Deze account is beschermd en kan niet verwijderd worden' }, { status: 403 });
     }
