@@ -1,0 +1,32 @@
+{
+  "type": "post_call_transcription",
+  "event_timestamp": 1771790200,
+  "data": {
+    "agent_id": "agent_6301khhy4aa2ftcrpw9wx7shj1wf",
+    "conversation_id": "conv_test_123",
+    "status": "done",
+    "transcript": [
+      {"role": "agent", "message": "Hallo, met Frituur Nolim, met Anja, hoe kan ik u helpen?"},
+      {"role": "user", "message": "Ja hallo, ik wil graag twee grote friet bestellen met mayonaise"},
+      {"role": "agent", "message": "Oké! Twee grote friet met mayo. Nog iets anders?"},
+      {"role": "user", "message": "Nee dat was het"},
+      {"role": "agent", "message": "Goed. Afhalen of bezorgen?"},
+      {"role": "user", "message": "Afhalen"},
+      {"role": "agent", "message": "Op welke naam mag ik noteren?"},
+      {"role": "user", "message": "Op naam van Piet"},
+      {"role": "agent", "message": "En uw telefoonnummer?"},
+      {"role": "user", "message": "0478 12 34 56"},
+      {"role": "agent", "message": "Dus twee grote friet met mayo, op naam van Piet. Klopt dat?"},
+      {"role": "user", "message": "Ja klopt"},
+      {"role": "agent", "message": "Perfect, tot straks!"}
+    ],
+    "metadata": {
+      "start_time_unix_secs": 1771790139,
+      "call_duration_secs": 57
+    },
+    "analysis": {
+      "call_successful": "success",
+      "transcript_summary": "Klant Piet bestelde 2 grote friet met mayonaise, afhalen. Telefoonnummer 0478123456."
+    }
+  }
+}

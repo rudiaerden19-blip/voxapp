@@ -150,16 +150,17 @@ export async function POST(request: NextRequest) {
     console.log('=== ELEVENLABS WEBHOOK RECEIVED ===');
     console.log('Full payload:', JSON.stringify(body, null, 2));
     
-    // Try multiple possible field names from ElevenLabs webhook payload
-    const agent_id = body.agent_id || body.agentId || body.data?.agent_id || body.conversation?.agent_id || null;
-    const conversation_id = body.conversation_id || body.conversationId || body.data?.conversation_id || body.id || null;
-    const transcript = body.transcript || body.data?.transcript || body.conversation?.transcript || body.analysis?.transcript || null;
-    const call_duration_seconds = body.call_duration_seconds || body.duration || body.data?.duration || body.call_duration_secs || 0;
-    const caller_phone_number = body.caller_phone_number || body.phone_number || body.data?.caller_phone || body.metadata?.phone || null;
-    const call_successful = body.call_successful !== false && body.status !== 'failed';
-    const summary = body.summary || body.data?.summary || body.analysis?.summary || null;
-    const metadata = body.metadata || body.data?.metadata || null;
-    const timestamp = body.timestamp || body.created_at || body.data?.timestamp || null;
+    // ElevenLabs post-call webhook wraps everything in body.data
+    const d = body.data || body;
+    const agent_id = d.agent_id || body.agent_id || null;
+    const conversation_id = d.conversation_id || body.conversation_id || null;
+    const transcript = d.transcript || body.transcript || null;
+    const call_duration_seconds = d.metadata?.call_duration_secs || d.call_duration_secs || body.call_duration_seconds || body.duration || 0;
+    const caller_phone_number = d.caller_phone || d.caller_phone_number || body.caller_phone_number || null;
+    const call_successful = (d.analysis?.call_successful !== 'failure') && (body.call_successful !== false) && (body.status !== 'failed');
+    const summary = d.analysis?.transcript_summary || d.summary || body.summary || null;
+    const metadata = d.metadata || body.metadata || null;
+    const timestamp = body.event_timestamp ? new Date(body.event_timestamp * 1000).toISOString() : (body.timestamp || new Date().toISOString());
     
     console.log('Parsed: agent_id=', agent_id, 'conversation_id=', conversation_id);
 
@@ -275,9 +276,17 @@ export async function POST(request: NextRequest) {
     // === AUTOMATIC APPOINTMENT/ORDER EXTRACTION ===
     // Only process if we have a transcript
     if (transcript && call_successful) {
-      const transcriptText = typeof transcript === 'string' 
-        ? transcript 
-        : JSON.stringify(transcript);
+      // Convert transcript array to readable text for parsing
+      let transcriptText: string;
+      if (typeof transcript === 'string') {
+        transcriptText = transcript;
+      } else if (Array.isArray(transcript)) {
+        transcriptText = transcript.map((m: { role?: string; message?: string; text?: string }) => 
+          `${m.role || 'unknown'}: ${m.message || m.text || ''}`
+        ).join('\n');
+      } else {
+        transcriptText = JSON.stringify(transcript);
+      }
       
       // Get business type to determine if it's horeca or appointment-based
       const { data: fullBusiness } = await supabase
@@ -298,17 +307,19 @@ export async function POST(request: NextRequest) {
         const customerAddress = deliveryType === 'delivery' ? extractAddress(transcriptText) : null;
         const { time: deliveryTime } = extractDateTime(transcriptText);
         
-        // Create order with summary as notes (items to be parsed manually or from summary)
+        // Build notes with all relevant info
+        const addressInfo = customerAddress ? ` | Adres: ${customerAddress}` : '';
+        const timeInfo = deliveryTime ? ` | Tijd: ${deliveryTime}` : '';
+        const orderNotes = (summary || transcriptText.substring(0, 500) || 'Bestelling via telefoon') + addressInfo + timeInfo;
+        
         const { error: orderError } = await supabase
           .from('orders')
           .insert({
             business_id: business.id,
             customer_name: customerName,
             customer_phone: customerPhone,
-            customer_address: customerAddress,
             order_type: deliveryType,
-            pickup_time: deliveryTime,
-            notes: summary || transcriptText.substring(0, 500) || 'Bestelling via telefoon',
+            notes: orderNotes,
             status: 'pending',
             source: 'phone',
             total_amount: 0,
