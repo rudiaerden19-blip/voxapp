@@ -26,6 +26,183 @@ const SECTORS = [
   { id: 'boekhouder', name: 'Boekhouder', icon: '📊' },
 ];
 
+const GPT_TEMPLATES: Record<string, string> = {
+  garage: `Je bent een AI assistent die een kennisbank maakt voor een autogarage.
+
+=== GARAGE GEGEVENS (VUL IN) ===
+
+Bedrijfsnaam: [bijv. Garage Van den Berg]
+Adres: [bijv. Industrieweg 15, 3500 Hasselt]
+Telefoon: [bijv. 011 12 34 56]
+Email: [bijv. info@garage.be]
+
+Openingstijden:
+- Maandag t/m vrijdag: [bijv. 08:00 - 18:00]
+- Zaterdag: [bijv. 09:00 - 13:00]
+- Zondag: [Gesloten]
+
+Prijzen:
+- APK/Keuring: €[45]
+- Grote beurt: €[189]
+- Kleine beurt: €[99]
+- Airco service: €[79]
+- Banden wisselen (4st): €[40]
+- Diagnose uitlezen: €[35]
+- Uurtarief: €[65]
+
+Extra services:
+- Leenauto: [Ja/Nee]
+- Haal- en brengservice: [Ja/Nee]
+- Garantie op reparaties: [12 maanden]
+
+Specialisaties: [Volkswagen, Audi, etc.]
+Betaalmethodes: [Cash, Bancontact, Visa]
+
+=== OPDRACHT ===
+
+Genereer 150 vraag-antwoord paren in JSON formaat:
+[{"question": "VRAAG", "answer": "ANTWOORD"}]
+
+Categorieën:
+1. Openingstijden (15x)
+2. Locatie & Contact (15x)
+3. Prijzen onderhoud (25x)
+4. Prijzen reparaties (25x)
+5. Afspraak maken (20x)
+6. Services (20x)
+7. Garantie & Betaling (15x)
+8. Specialisaties (15x)
+
+Regels:
+- Vriendelijke receptioniste toon
+- Gebruik "wij" en "u"
+- Specifieke prijzen/tijden gebruiken
+- Max 2-3 zinnen per antwoord
+- Eindig met uitnodiging zoals "Belt u gerust!"
+
+Geef ALLEEN de JSON array terug.`,
+
+  kapsalon: `Je bent een AI assistent die een kennisbank maakt voor een kapsalon.
+
+=== KAPSALON GEGEVENS (VUL IN) ===
+
+Bedrijfsnaam: [bijv. Salon Beauty]
+Adres: [bijv. Hoofdstraat 10, 3500 Hasselt]
+Telefoon: [bijv. 011 12 34 56]
+
+Openingstijden:
+- Maandag: [Gesloten]
+- Dinsdag t/m vrijdag: [09:00 - 18:00]
+- Zaterdag: [08:00 - 16:00]
+
+Prijzen Dames:
+- Knippen: €[35]
+- Knippen + föhnen: €[45]
+- Verven: €[55]
+- Highlights: €[75]
+- Permanent: €[65]
+- Brushing: €[25]
+
+Prijzen Heren:
+- Knippen: €[22]
+- Knippen + baard: €[30]
+- Baard trimmen: €[12]
+
+Prijzen Kinderen:
+- Knippen (tot 12 jaar): €[18]
+
+Extra services:
+- Zonder afspraak welkom: [Ja/Nee]
+- Bruidskapsel: [Ja, op afspraak]
+- Producten te koop: [Ja]
+
+=== OPDRACHT ===
+
+Genereer 100 vraag-antwoord paren in JSON formaat:
+[{"question": "VRAAG", "answer": "ANTWOORD"}]
+
+Categorieën: Openingstijden, Prijzen, Afspraak maken, Services, Producten
+
+Geef ALLEEN de JSON array terug.`,
+
+  tandarts: `Je bent een AI assistent die een kennisbank maakt voor een tandartspraktijk.
+
+=== PRAKTIJK GEGEVENS (VUL IN) ===
+
+Praktijknaam: [bijv. Tandartspraktijk Smile]
+Adres: [bijv. Kerkstraat 5, 3500 Hasselt]
+Telefoon: [bijv. 011 12 34 56]
+
+Openingstijden:
+- Maandag t/m vrijdag: [08:00 - 17:00]
+- Zaterdag: [Gesloten]
+
+Prijzen (indicatie):
+- Consultatie: €[25]
+- Gebitsreiniging: €[55]
+- Vulling: €[65-95]
+- Extractie: €[75]
+- Röntgenfoto: €[20]
+- Kroon: €[450-650]
+
+Info:
+- Spoedgevallen: [Ja, bel voor afspraak]
+- Conventie: [Ja/Nee]
+- Angstpatiënten welkom: [Ja]
+- Kinderen vanaf: [3 jaar]
+
+=== OPDRACHT ===
+
+Genereer 100 vraag-antwoord paren in JSON formaat.
+Categorieën: Openingstijden, Prijzen, Afspraken, Behandelingen, Verzekering, Spoedgevallen
+
+Geef ALLEEN de JSON array terug.`,
+
+  frituur: `Je bent een AI assistent die een kennisbank maakt voor een frituur.
+
+=== FRITUUR GEGEVENS (VUL IN) ===
+
+Bedrijfsnaam: [bijv. Frituur 't Hoekje]
+Adres: [bijv. Marktplein 1, 3500 Hasselt]
+Telefoon: [bijv. 011 12 34 56]
+
+Openingstijden:
+- Maandag: [Gesloten]
+- Dinsdag t/m zondag: [11:30 - 21:00]
+
+Populaire producten:
+- Grote friet: €[3.50]
+- Kleine friet: €[2.50]
+- Frikandel: €[2.00]
+- Curryworst: €[3.00]
+- Bicky Burger: €[4.50]
+- Stoofvleessaus: €[2.50]
+
+Services:
+- Levering aan huis: [Ja/Nee]
+- Online bestellen: [Ja/Nee]
+- Afhalen: [Ja]
+- Betaling: [Cash, Bancontact]
+
+=== OPDRACHT ===
+
+Genereer 100 vraag-antwoord paren in JSON formaat.
+Categorieën: Openingstijden, Menu/Prijzen, Bestellen, Levering, Allergenen
+
+Geef ALLEEN de JSON array terug.`,
+};
+
+const DEFAULT_TEMPLATE = `Geen template beschikbaar voor deze sector.
+
+Maak zelf een GPT prompt met:
+1. Bedrijfsgegevens (naam, adres, telefoon)
+2. Openingstijden
+3. Prijzen van diensten
+4. Extra services
+
+Vraag GPT om 100-150 vraag-antwoord paren te genereren in JSON formaat:
+[{"question": "...", "answer": "..."}]`;
+
 const CATEGORIES = ['algemeen', 'diensten', 'prijzen', 'openingsuren', 'faq', 'procedures', 'contact'];
 
 export default function AdminKennisbankPage() {
