@@ -16,7 +16,8 @@ const ALLOWED_UPDATE_FIELDS = [
   'street', 'city', 'postal_code', 'country',
   'voice_id', 'welcome_message', 'opening_hours',
   'fallback_action', 'transfer_number',
-  'delivery_fee', 'minimum_order'
+  'delivery_fee', 'minimum_order',
+  'agent_id'
 ];
 
 // Toegestane business types
