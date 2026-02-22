@@ -23,24 +23,52 @@ function extractPhoneNumber(text: string): string | null {
   return null;
 }
 
-// Parse customer name from transcript
-function extractCustomerName(text: string): string | null {
+// Parse customer name from transcript — uses structured message array when available
+function extractCustomerName(text: string, messages?: { role?: string; message?: string; text?: string }[]): string | null {
+  // Best method: find the user's reply right after the agent asks for the name
+  if (messages && messages.length > 0) {
+    for (let i = 0; i < messages.length - 1; i++) {
+      const m = messages[i];
+      if (m.role !== 'agent') continue;
+      const agentTxt = (m.message || m.text || '').toLowerCase();
+      if (/welke naam|op naam|naam mag ik|naam noteren/i.test(agentTxt)) {
+        // Next user message is the name
+        for (let j = i + 1; j < messages.length; j++) {
+          if (messages[j].role === 'user') {
+            const raw = (messages[j].message || messages[j].text || '').trim().replace(/[.!?,]+$/g, '');
+            if (raw.length >= 2 && raw.length <= 40) return raw;
+            break;
+          }
+        }
+      }
+    }
+    // Also extract from agent's summary: "Ok [NAME], even samenvatten:"
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i];
+      if (m.role !== 'agent') continue;
+      const txt = m.message || m.text || '';
+      const sm = txt.match(/^ok\s+([A-Za-zÀ-ÿ][\w\s]{1,30}?)\s*,\s*even\s+samenvatten/i);
+      if (sm) return sm[1].trim();
+    }
+  }
+
+  // Fallback: regex on full text
   const namePatterns = [
-    /(?:mijn naam is|ik ben|ik heet|naam is)\s+([A-Za-zÀ-ÿ]{2,}(?:[ ][A-Za-zÀ-ÿ]{2,})?)/im,
-    /(?:op naam van|onder de naam)\s+([A-Za-zÀ-ÿ]{2,}(?:[ ][A-Za-zÀ-ÿ]{2,})?)/im,
-    /(?:naam mag ik.*zetten|naam mag ik.*noteren)[\s\S]{0,30}?user:\s*([A-Za-zÀ-ÿ]{2,})/im,
+    /(?:mijn naam is|ik ben|ik heet|naam is)\s+([A-Za-zÀ-ÿ]{2,}(?:\s+[A-Za-zÀ-ÿ]{2,})*)/im,
+    /(?:op naam van|onder de naam)\s+([A-Za-zÀ-ÿ]{2,}(?:\s+[A-Za-zÀ-ÿ]{2,})*)/im,
+    /(?:naam.*zetten|naam.*noteren)\??\s*\n\s*user:\s*([A-Za-zÀ-ÿ]{2,}(?:\s+[A-Za-zÀ-ÿ]{2,})*)/im,
   ];
   
-  const badWords = ['agent', 'user', 'klant', 'unknown', 'telefoon', 'hallo', 'goeiedag',
+  const badWords = new Set(['agent', 'user', 'klant', 'unknown', 'telefoon', 'hallo', 'goeiedag',
     'bestellen', 'bestelling', 'afhalen', 'bezorgen', 'leveren', 'doen', 'helpen',
     'ja', 'nee', 'ok', 'goed', 'nog', 'iets', 'anders', 'dat', 'was', 'het', 'niet',
-    'voor', 'met', 'een', 'kan', 'wil', 'graag', 'zou'];
+    'voor', 'met', 'een', 'kan', 'wil', 'graag', 'zou']);
   
   for (const pattern of namePatterns) {
     const match = text.match(pattern);
     if (match) {
-      const name = match[1].trim();
-      if (badWords.includes(name.toLowerCase())) continue;
+      const name = match[1].trim().replace(/[.!?,]+$/g, '');
+      if (badWords.has(name.toLowerCase())) continue;
       if (name.length < 2) continue;
       return name;
     }
@@ -101,44 +129,40 @@ function lookupPrice(item: string, menuPrices: Record<string, number>): number {
   return 0;
 }
 
-// Split order text into individual items, look up prices, format as receipt lines
+// Build a receipt from the conversation transcript
 function buildReceipt(
   messages: { role?: string; message?: string; text?: string }[],
   menuPrices: Record<string, number>
 ): { notes: string; total: number } {
-  // Step 1: Get the raw order text from agent's summary or user messages
+  // --- STEP 1: Extract the order text from the agent's summary ---
   let rawText = '';
 
-  // Try agent's confirmation/summary line first
   for (let i = messages.length - 1; i >= 0; i--) {
     const m = messages[i];
     if (m.role !== 'agent') continue;
     const txt = m.message || m.text || '';
-    if (/samenvatten|samenvatting|ik noem.*op|even op.*besteld|dus\b.*friet|dus\b.*besteld|klopt\s*dat\s*\?/i.test(txt)) {
-      rawText = txt
-        .replace(/^ok\s+\w+\s*,?\s*/i, '')
-        .replace(/even\s+samenvatten\s*:?\s*/i, '')
-        .replace(/ik noem nog even op wat je besteld hebt\s*:?\s*/i, '')
-        .replace(/dat was alles\s*\??/i, '')
-        .replace(/klopt\s*(dat|dit)\s*\??/i, '')
-        .replace(/^\s*dus\s*:?\s*/i, '')
-        .replace(/,?\s*op naam van\s+[\w\s]+/i, '')
-        .replace(/,?\s*afhalen\b.*/i, '')
-        .replace(/,?\s*bezorgen\b.*/i, '')
-        .trim().replace(/\.\s*$/, '');
-      if (rawText.length > 5) break;
-      rawText = '';
-    }
+    if (!/samenvatten|samenvatting|ik noem.*op|even op.*besteld|klopt\s*dat\s*\?/i.test(txt)) continue;
+
+    // Strip everything before the actual item list
+    rawText = txt
+      .replace(/^.*?even\s+samenvatten\s*:?\s*/i, '')
+      .replace(/^.*?ik noem.*?op\s*:?\s*/i, '')
+      .replace(/^.*?je\s+(?:hebt\s+)?besteld\s*:?\s*/i, '')
+      .replace(/klopt\s*(dat|dit)\s*\??/gi, '')
+      .replace(/dat\s+was\s+alles\s*\??/gi, '')
+      .trim().replace(/[.!]+\s*$/, '');
+    if (rawText.length > 5) break;
+    rawText = '';
   }
 
-  // Fallback: user messages (skip greetings/questions/answers)
+  // Fallback: collect user messages that contain food items
   if (!rawText) {
-    const skip = /^(hallo|hey|goeie|dag|ja\b|nee\b|klopt|dat was|mijn naam|ik heet|ik ben|op naam|telefoon|\d{4}|afhalen|bezorgen|leveren|kan ik bestellen|ik wil bestellen|ik zou graag|dat is het|dat is alles|meer niet|niks meer|dank|bedankt|ok\b)/i;
+    const skip = /^(hallo|hey|goeie|dag|ja\b|nee\b|klopt|dat was|mijn naam|ik heet|ik ben|op naam|telefoon|mijn nummer|\d{4}|afhalen|bezorgen|leveren|kan ik bestellen|ik wil graag bestellen|ik wil bestellen|ik zou graag|dat is het|dat is alles|meer niet|niks meer|dank|bedankt|ok\b|ik kom|graag gedaan|tot ziens|goed zo|prima)/i;
     const lines: string[] = [];
     for (const m of messages) {
       if (m.role !== 'user') continue;
       const txt = (m.message || m.text || '').trim();
-      if (!txt || txt.length < 3 || skip.test(txt)) continue;
+      if (!txt || txt.length < 4 || skip.test(txt)) continue;
       lines.push(txt);
     }
     rawText = lines.join(', ');
@@ -146,55 +170,61 @@ function buildReceipt(
 
   if (!rawText) return { notes: 'Bestelling via telefoon', total: 0 };
 
-  // Fix common speech-to-text errors
+  // --- STEP 2: Clean up speech-to-text errors ---
   rawText = rawText.replace(/zoute\s+mayo(naise)?/gi, 'zoete mayonaise');
+  rawText = rawText.replace(/biggie\s+burger/gi, 'bicky burger');
 
-  // Step 2: Split into individual items
-  const parts = rawText.split(/,\s*|\ben\s+(?=een\b|\béén\b|\b\d|\bfriet|\bbicky|\bfrikandel|\bkroket|\bcola|\bfanta|\bwater|\bcurry|\bice)/i)
+  // --- STEP 3: Split into individual items ---
+  // Split on comma, or "en" followed by a quantity word / food keyword
+  const parts = rawText
+    .split(/,\s*|\ben\s+(?=een\b|één\b|twee\b|drie\b|vier\b|vijf\b|\d+\s*x?\s|\bfriet|\bbicky|\bfrikandel|\bkroket|\bcola|\bfanta|\bwater|\bcurry|\bice|\bbrood|\bbol|\bgebak|\bstoof|\bgoulash)/i)
     .map(p => p.trim())
     .filter(p => p.length > 2);
 
-  // Step 3: For each part, extract qty + name, look up price
+  // --- STEP 4: Parse each part into qty + item + price ---
+  const NUM_WORDS: Record<string, number> = { een: 1, één: 1, twee: 2, drie: 3, vier: 4, vijf: 5, zes: 6, zeven: 7, acht: 8, negen: 9, tien: 10 };
+  const sortedMenu = Object.entries(menuPrices).sort((a, b) => b[0].length - a[0].length);
   let total = 0;
   const receiptLines: string[] = [];
-  const sortedMenu = Object.entries(menuPrices).sort((a, b) => b[0].length - a[0].length);
 
   for (const part of parts) {
-    // Extract quantity
     let qty = 1;
     let itemText = part;
-    const qm = part.match(/^(\d+)\s*[x×]?\s*/i) || part.match(/^(een|één|twee|drie|vier|vijf)\s+/i);
+
+    // Extract quantity (digit or Dutch number word)
+    const qm = itemText.match(/^(\d+)\s*[x×]?\s*/i);
+    const qw = !qm ? itemText.match(/^(een|één|twee|drie|vier|vijf|zes|zeven|acht|negen|tien)\s+/i) : null;
     if (qm) {
-      const map: Record<string, number> = { een: 1, één: 1, twee: 2, drie: 3, vier: 4, vijf: 5 };
-      qty = map[qm[1].toLowerCase()] || parseInt(qm[1]) || 1;
-      itemText = part.substring(qm[0].length).trim();
+      qty = parseInt(qm[1]) || 1;
+      itemText = itemText.substring(qm[0].length).trim();
+    } else if (qw) {
+      qty = NUM_WORDS[qw[1].toLowerCase()] || 1;
+      itemText = itemText.substring(qw[0].length).trim();
     }
 
-    // Clean filler
-    itemText = itemText.replace(/^(ik wil|ik zou graag|graag|eh|euh|uh)\s+/i, '').trim();
+    // Remove filler words at the start
+    itemText = itemText.replace(/^(ik wil|ik zou graag|graag|eh|euh|uh|nog)\s+/i, '').trim();
     itemText = itemText.replace(/^(een|één)\s+/i, '').trim();
-    itemText = itemText.replace(/\s*(alstublieft|aub|svp|blikje|bakje)\s*/i, ' ').trim();
     if (itemText.length < 2) continue;
 
-    // Look up price
+    // Look up price — try longest menu name match first
     const lower = itemText.toLowerCase();
     let price = 0;
-    let matchedName = itemText;
+    let displayName = itemText.charAt(0).toUpperCase() + itemText.slice(1);
+
     for (const [menuName, menuPrice] of sortedMenu) {
       if (lower.includes(menuName) || menuName.includes(lower)) {
         price = menuPrice;
-        matchedName = menuName.charAt(0).toUpperCase() + menuName.slice(1);
+        // Keep the full description (e.g., "grote friet met zoete mayo") but capitalize
+        displayName = itemText.charAt(0).toUpperCase() + itemText.slice(1);
         break;
       }
-    }
-    if (price === 0) {
-      matchedName = itemText.charAt(0).toUpperCase() + itemText.slice(1);
     }
 
     const lineTotal = price * qty;
     total += lineTotal;
     const priceStr = lineTotal > 0 ? `€${lineTotal.toFixed(2)}` : '';
-    receiptLines.push(`${qty}  ${matchedName}  ${priceStr}`);
+    receiptLines.push(`${qty}x ${displayName}  ${priceStr}`);
   }
 
   if (receiptLines.length === 0) return { notes: rawText, total: 0 };
@@ -442,7 +472,7 @@ export async function POST(request: NextRequest) {
       
       // For horeca businesses, ALWAYS create an order from successful calls
       if (isHoreca) {
-        const customerName = extractCustomerName(transcriptText) || 'Telefoon klant';
+        const customerName = extractCustomerName(transcriptText, Array.isArray(transcript) ? transcript : undefined) || 'Telefoon klant';
         const customerPhone = extractPhoneNumber(transcriptText) || caller_phone_number || '';
         const deliveryType = extractDeliveryType(transcriptText);
         const customerAddress = deliveryType === 'delivery' ? extractAddress(transcriptText) : null;
@@ -475,8 +505,7 @@ export async function POST(request: NextRequest) {
         }
         
       } else if (!isHoreca && detectAppointmentConfirmation(transcriptText)) {
-        // Extract appointment details
-        const customerName = extractCustomerName(transcriptText) || 'Telefoon klant';
+        const customerName = extractCustomerName(transcriptText, Array.isArray(transcript) ? transcript : undefined) || 'Telefoon klant';
         const customerPhone = extractPhoneNumber(transcriptText) || caller_phone_number || '';
         const { date, time } = extractDateTime(transcriptText);
         
