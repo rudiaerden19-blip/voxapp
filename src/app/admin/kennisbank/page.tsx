@@ -54,8 +54,9 @@ export default function AdminKennisbankPage() {
   // Bulk import
   const [bulkJson, setBulkJson] = useState('');
   const [bulkImporting, setBulkImporting] = useState(false);
-  const [bulkResult, setBulkResult] = useState<{ success: number; failed: number; total: number } | null>(null);
+  const [bulkResult, setBulkResult] = useState<{ success: number; failed: number; total: number; remaining?: number } | null>(null);
   const [showBulkImport, setShowBulkImport] = useState(false);
+  const [importProgress, setImportProgress] = useState('');
 
   useEffect(() => {
     loadKnowledge();
@@ -178,6 +179,73 @@ export default function AdminKennisbankPage() {
     }
 
     setBulkImporting(false);
+  }
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setBulkImporting(true);
+    setBulkResult(null);
+    setImportProgress('Bestand lezen...');
+
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      
+      // Get items array (handle both formats)
+      const items = data.requests || data;
+      const totalItems = items.length;
+      
+      setImportProgress(`${totalItems} items gevonden. Importeren...`);
+
+      let totalSuccess = 0;
+      let totalFailed = 0;
+      const CHUNK_SIZE = 500;
+
+      for (let i = 0; i < totalItems; i += CHUNK_SIZE) {
+        const chunk = items.slice(i, i + CHUNK_SIZE);
+        
+        setImportProgress(`Importeren ${i + 1} - ${Math.min(i + CHUNK_SIZE, totalItems)} van ${totalItems}...`);
+
+        const res = await fetch('/api/admin/kennisbank/import-gpt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sector_type: selectedSector,
+            data: chunk,
+          }),
+        });
+
+        if (res.ok) {
+          const result = await res.json();
+          totalSuccess += result.success;
+          totalFailed += result.failed;
+        } else {
+          totalFailed += chunk.length;
+        }
+
+        setBulkResult({
+          success: totalSuccess,
+          failed: totalFailed,
+          total: totalItems,
+        });
+
+        // Small delay between chunks
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+
+      setImportProgress('Klaar!');
+      loadKnowledge();
+    } catch (error) {
+      console.error('File import error:', error);
+      alert('Fout bij importeren. Controleer het bestand.');
+      setImportProgress('');
+    }
+
+    setBulkImporting(false);
+    // Reset file input
+    e.target.value = '';
   }
 
   // Group items by category
@@ -307,15 +375,46 @@ export default function AdminKennisbankPage() {
                   className="w-full flex items-center justify-center gap-2 text-gray-400 hover:text-white transition"
                 >
                   <Upload size={18} />
-                  {showBulkImport ? 'Verberg' : 'Bulk Import (JSON)'}
+                  {showBulkImport ? 'Verberg Import' : 'Bulk Import (GPT/JSON)'}
                 </button>
 
                 {showBulkImport && (
                   <div className="mt-4 space-y-4">
+                    {/* File Upload - GPT Format */}
+                    <div className="bg-green-900/30 border border-green-700 rounded-lg p-4">
+                      <p className="text-green-400 text-sm font-medium mb-2">
+                        GPT Bestand Uploaden
+                      </p>
+                      <p className="text-gray-400 text-xs mb-3">
+                        Upload je GPT JSON bestand direct (ondersteunt {`{requests: [...]}`} formaat)
+                      </p>
+                      <label className="block">
+                        <input
+                          type="file"
+                          accept=".json"
+                          onChange={handleFileUpload}
+                          disabled={bulkImporting}
+                          className="block w-full text-sm text-gray-400
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded-lg file:border-0
+                            file:text-sm file:font-medium
+                            file:bg-green-600 file:text-white
+                            hover:file:bg-green-700
+                            file:cursor-pointer file:disabled:opacity-50"
+                        />
+                      </label>
+                      {importProgress && (
+                        <p className="text-yellow-400 text-sm mt-2">{importProgress}</p>
+                      )}
+                    </div>
+
+                    <div className="text-center text-gray-500 text-sm">— of —</div>
+
+                    {/* Manual JSON Paste */}
                     <div className="bg-gray-700/50 rounded-lg p-3 text-xs text-gray-400">
                       <p className="flex items-center gap-1 mb-2">
                         <FileJson size={14} />
-                        JSON formaat:
+                        Handmatig JSON plakken:
                       </p>
                       <pre className="overflow-x-auto">
 {`[
@@ -332,25 +431,30 @@ export default function AdminKennisbankPage() {
                       value={bulkJson}
                       onChange={(e) => setBulkJson(e.target.value)}
                       placeholder="Plak hier je JSON array..."
-                      rows={8}
+                      rows={6}
                       className="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white text-sm font-mono"
                     />
+                    
                     {bulkResult && (
                       <div className="bg-gray-700 rounded-lg p-3 text-sm">
-                        <p className="text-green-400">{bulkResult.success} succesvol</p>
+                        <p className="text-green-400">{bulkResult.success.toLocaleString()} succesvol</p>
                         {bulkResult.failed > 0 && (
-                          <p className="text-red-400">{bulkResult.failed} mislukt</p>
+                          <p className="text-red-400">{bulkResult.failed.toLocaleString()} mislukt</p>
                         )}
-                        <p className="text-gray-400">Totaal: {bulkResult.total}</p>
+                        <p className="text-gray-400">Totaal: {bulkResult.total.toLocaleString()}</p>
+                        {bulkResult.remaining && bulkResult.remaining > 0 && (
+                          <p className="text-yellow-400">Nog {bulkResult.remaining.toLocaleString()} over</p>
+                        )}
                       </div>
                     )}
+                    
                     <button
                       onClick={handleBulkImport}
                       disabled={bulkImporting || !bulkJson.trim()}
                       className="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       {bulkImporting ? (
-                        <>Importeren... {bulkResult ? `(${bulkResult.success}/${bulkResult.total})` : ''}</>
+                        <>Importeren... {bulkResult ? `(${bulkResult.success.toLocaleString()}/${bulkResult.total.toLocaleString()})` : ''}</>
                       ) : (
                         <>
                           <Upload size={18} />
