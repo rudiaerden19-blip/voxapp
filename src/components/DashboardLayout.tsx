@@ -3,7 +3,7 @@
 import { useState, Suspense } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Phone, Calendar, Users, Settings, LogOut, TrendingUp, MessageSquare, Menu, X, Briefcase, Globe, ChevronDown, Shield, Package, Wrench, CreditCard, Home, Car, FileText, ShoppingBag, UtensilsCrossed, CalendarCheck, Scissors, ExternalLink, Building2, ToggleRight } from 'lucide-react';
+import { Phone, Calendar, Users, Settings, LogOut, TrendingUp, MessageSquare, Menu, X, Briefcase, Globe, ChevronDown, Shield, Package, Wrench, CreditCard, Home, Car, FileText, ShoppingBag, UtensilsCrossed, CalendarCheck, Scissors, ExternalLink, Building2 } from 'lucide-react';
 import { useLanguage, Language } from '@/lib/LanguageContext';
 import { useBusiness } from '@/lib/BusinessContext';
 import { getBusinessType, hasModule, ModuleId } from '@/lib/modules';
@@ -41,11 +41,44 @@ const languages: { code: Language; label: string; flag: string }[] = [
 
 function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const { t, language, setLanguage } = useLanguage();
-  const { business, isAdminView, loading, getHref, clearAdminView } = useBusiness();
+  const { business, isAdminView, loading, getHref, clearAdminView, refreshBusiness } = useBusiness();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+  const [togglingModule, setTogglingModule] = useState<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
+
+  // Get available modules for this business type
+  const businessType = business?.type ? getBusinessType(business.type) : null;
+  const availableModules = businessType?.modules || [];
+  
+  // Get enabled modules (custom or default)
+  const enabledModules = business?.enabled_modules || availableModules;
+
+  // Toggle a module on/off
+  const toggleModule = async (moduleId: ModuleId, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!business?.id || togglingModule) return;
+    
+    setTogglingModule(moduleId);
+    const newEnabled = enabledModules.includes(moduleId)
+      ? enabledModules.filter((m: string) => m !== moduleId)
+      : [...enabledModules, moduleId];
+    
+    try {
+      const supabase = createClient();
+      await supabase
+        .from('businesses')
+        .update({ enabled_modules: newEnabled } as any)
+        .eq('id', business.id);
+      refreshBusiness();
+    } catch (err) {
+      console.error('Error toggling module:', err);
+    } finally {
+      setTogglingModule(null);
+    }
+  };
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -162,30 +195,57 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             <TrendingUp size={18} />{t('dashboard.nav.dashboard')}
           </Link>
 
-          {/* Module-specifieke items gebaseerd op business type of custom modules */}
-          {business?.type && (
-            <>
-              {Object.entries(moduleNavItems).map(([moduleId, item]) => {
-                // Check custom enabled_modules first, then fall back to default
-                const moduleEnabled = business.enabled_modules 
-                  ? business.enabled_modules.includes(moduleId as ModuleId)
-                  : hasModule(business.type, moduleId as ModuleId);
-                if (!moduleEnabled) return null;
-                const active = pathname.startsWith(item.href);
-                return (
-                  <Link key={item.href} href={getHref(item.href)} onClick={() => setSidebarOpen(false)} style={{
+          {/* Module-specifieke items met toggles */}
+          {business?.type && availableModules.map((moduleId) => {
+            const item = moduleNavItems[moduleId];
+            if (!item) return null;
+            const isEnabled = enabledModules.includes(moduleId);
+            const active = pathname.startsWith(item.href);
+            const isToggling = togglingModule === moduleId;
+            
+            return (
+              <div key={moduleId} style={{
+                display: 'flex', alignItems: 'center', marginBottom: 4,
+              }}>
+                {isEnabled ? (
+                  <Link href={getHref(item.href)} onClick={() => setSidebarOpen(false)} style={{
                     display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
                     background: active ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
-                    border: 'none', borderRadius: 8, color: active ? '#f97316' : '#9ca3af',
+                    border: 'none', borderRadius: 8, color: active ? '#f97316' : 'white',
                     fontSize: 14, fontWeight: active ? 600 : 400, cursor: 'pointer',
-                    width: '100%', textAlign: 'left', marginBottom: 4, textDecoration: 'none',
+                    flex: 1, textAlign: 'left', textDecoration: 'none',
                   }}>
                     <item.icon size={18} />{item.label}
                   </Link>
-                );
-              })}
-            </>
-          )}
+                ) : (
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
+                    background: 'transparent', borderRadius: 8, color: '#4b5563',
+                    fontSize: 14, flex: 1,
+                  }}>
+                    <item.icon size={18} />{item.label}
+                  </div>
+                )}
+                {/* Toggle Switch */}
+                <button
+                  onClick={(e) => toggleModule(moduleId, e)}
+                  disabled={isToggling}
+                  style={{
+                    position: 'relative', width: 36, height: 20, borderRadius: 10,
+                    border: 'none', background: isEnabled ? '#f97316' : '#374151',
+                    cursor: isToggling ? 'wait' : 'pointer', transition: 'background 0.2s',
+                    marginRight: 8, flexShrink: 0,
+                  }}
+                >
+                  <div style={{
+                    position: 'absolute', top: 2, left: isEnabled ? 18 : 2,
+                    width: 16, height: 16, borderRadius: '50%', background: 'white',
+                    transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                  }} />
+                </button>
+              </div>
+            );
+          })}
 
           {/* Separator */}
           <div style={{ height: 1, background: '#2a2a35', margin: '12px 0' }} />
@@ -254,17 +314,6 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             width: '100%', textAlign: 'left', marginBottom: 4, textDecoration: 'none',
           }}>
             <TrendingUp size={18} />Verbruik
-          </Link>
-
-          {/* Modules */}
-          <Link href={getHref('/dashboard/modules')} onClick={() => setSidebarOpen(false)} style={{
-            display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
-            background: pathname.startsWith('/dashboard/modules') ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
-            border: 'none', borderRadius: 8, color: pathname.startsWith('/dashboard/modules') ? '#f97316' : '#9ca3af',
-            fontSize: 14, fontWeight: pathname.startsWith('/dashboard/modules') ? 600 : 400, cursor: 'pointer',
-            width: '100%', textAlign: 'left', marginBottom: 4, textDecoration: 'none',
-          }}>
-            <ToggleRight size={18} />Modules
           </Link>
 
           {/* Instellingen */}
