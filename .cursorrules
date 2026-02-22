@@ -1,3 +1,23 @@
+# ⚠ VERPLICHT — LEES EERST ⚠
+#
+# Voordat je ENIGE code wijzigt, MOET je ENTERPRISE_PROJECT_CONSTITUTION.md lezen.
+# Dit is een enterprise multi-tenant cloud platform (500+ tenants).
+# Alle regels in dat document zijn BINDEND.
+#
+# Kernregels:
+# - Elke request MOET tenant_id bevatten. Zonder → HARD FAIL.
+# - Geen GPT vrije conversatie. Deterministische state machine.
+# - Geen globale variabelen. Geen in-memory sessies.
+# - Alles tenant-scoped: sessies, queries, orders, metrics.
+# - Cloud-only: Vercel + Supabase + ElevenLabs + Twilio.
+# - Deploy alleen via GitHub → Vercel. Nooit lokaal.
+# - Geen architectuurwijzigingen zonder document update.
+# - Geen feature creep. Geen impliciete aannames.
+#
+# Lees het volledige document: /ENTERPRISE_PROJECT_CONSTITUTION.md
+
+---
+
 # VoxApp - AI Receptionist Platform
 
 ## Wat is VoxApp?
