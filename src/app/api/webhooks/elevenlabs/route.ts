@@ -66,6 +66,40 @@ function detectOrderConfirmation(text: string): boolean {
   return confirmationPhrases.some(p => p.test(text));
 }
 
+// Extract the order summary from agent's confirmation line in transcript
+function extractOrderSummary(messages: { role?: string; message?: string; text?: string }[]): string {
+  // Find the agent's confirmation message (e.g. "Dus 1 grote friet met mayo, op naam van Jan. Klopt dat?")
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const m = messages[i];
+    if (m.role === 'agent') {
+      const txt = m.message || m.text || '';
+      if (/dus\b|klopt.*\?|samenvatting|bestelling/i.test(txt)) {
+        // Clean up the confirmation to just items
+        return txt
+          .replace(/klopt\s*(dat|dit)\s*\??/gi, '')
+          .replace(/^\s*dus\s*/i, '')
+          .replace(/,?\s*op naam van\s+\w+/i, '')
+          .trim()
+          .replace(/\.?\s*$/, '');
+      }
+    }
+  }
+  
+  // Fallback: collect what the user ordered from their messages
+  const items: string[] = [];
+  for (const m of messages) {
+    if (m.role === 'user') {
+      const txt = m.message || m.text || '';
+      if (/friet|frikandel|kroket|bitterbal|snack|pizza|kebab|saus|mayo|ketchup|curry|stoofvlees|bestellen|graag|wil/i.test(txt)) {
+        if (!/naam|telefoon|adres|afhalen|bezorgen|nee|ja|klopt/i.test(txt)) {
+          items.push(txt);
+        }
+      }
+    }
+  }
+  return items.join('\n') || 'Bestelling via telefoon';
+}
+
 // Extract date and time from transcript
 function extractDateTime(text: string): { date: string | null; time: string | null } {
   let date: string | null = null;
@@ -306,19 +340,24 @@ export async function POST(request: NextRequest) {
       const isHoreca = fullBusiness?.type && HORECA_TYPES.includes(fullBusiness.type);
       
       // For horeca businesses, ALWAYS create an order from successful calls
-      // Better to have too many orders than miss one
       if (isHoreca) {
-        // Extract order details
         const customerName = extractCustomerName(transcriptText) || 'Telefoon klant';
         const customerPhone = extractPhoneNumber(transcriptText) || caller_phone_number || '';
         const deliveryType = extractDeliveryType(transcriptText);
         const customerAddress = deliveryType === 'delivery' ? extractAddress(transcriptText) : null;
         const { time: deliveryTime } = extractDateTime(transcriptText);
         
-        // Build notes with all relevant info
-        const addressInfo = customerAddress ? ` | Adres: ${customerAddress}` : '';
-        const timeInfo = deliveryTime ? ` | Tijd: ${deliveryTime}` : '';
-        const orderNotes = (summary || transcriptText.substring(0, 500) || 'Bestelling via telefoon') + addressInfo + timeInfo;
+        // Extract order items in Dutch from the transcript (NOT the English ElevenLabs summary)
+        let orderItems: string;
+        if (Array.isArray(transcript)) {
+          orderItems = extractOrderSummary(transcript);
+        } else {
+          orderItems = transcriptText.substring(0, 500);
+        }
+        
+        const addressInfo = customerAddress ? `\nAdres: ${customerAddress}` : '';
+        const timeInfo = deliveryTime ? `\nTijd: ${deliveryTime}` : '';
+        const orderNotes = orderItems + addressInfo + timeInfo;
         
         const { error: orderError } = await supabase
           .from('orders')

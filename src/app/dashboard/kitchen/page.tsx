@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ChefHat, Clock, Check, Phone, MapPin, User, RefreshCw } from 'lucide-react';
+import { ChefHat, RefreshCw } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { createClient } from '@/lib/supabase';
 import { useBusiness } from '@/lib/BusinessContext';
@@ -141,96 +141,102 @@ export default function KitchenPage() {
           <p style={{ color: '#4b5563', fontSize: 14, marginTop: 8 }}>Nieuwe bestellingen verschijnen hier automatisch</p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 20 }}>
           {orders.map(order => {
             const isPending = order.status === 'pending' || order.status === 'new';
-            const headerBg = isPending ? '#f97316' : order.status === 'preparing' ? '#3b82f6' : '#22c55e';
+            const statusColor = isPending ? '#f97316' : order.status === 'preparing' ? '#3b82f6' : '#22c55e';
+            const statusLabel = isPending ? 'NIEUW' : order.status === 'preparing' ? 'IN BEREIDING' : 'KLAAR';
+            const typeLabel = order.order_type === 'delivery' ? 'LEVERING' : 'AFHALEN';
+            const time = new Date(order.created_at).toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit' });
+
             return (
-              <div key={order.id} style={{ background: '#16161f', borderRadius: 16, border: `2px solid ${headerBg}`, overflow: 'hidden' }}>
-                <div style={{ background: headerBg, padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                    <span style={{ color: 'white', fontWeight: 700, fontSize: 18 }}>
-                      #{order.order_number || order.id.slice(-4).toUpperCase()}
-                    </span>
-                    <span style={{ background: 'rgba(255,255,255,0.2)', color: 'white', padding: '4px 12px', borderRadius: 20, fontSize: 13, fontWeight: 600 }}>
-                      {order.order_type === 'delivery' ? '🚗 LEVERING' : '🏪 AFHALEN'}
-                    </span>
-                    {order.source === 'phone' && (
-                      <span style={{ background: 'rgba(255,255,255,0.2)', color: 'white', padding: '4px 12px', borderRadius: 20, fontSize: 13 }}>📞 Telefoon</span>
-                    )}
-                  </div>
-                  <span style={{ color: 'white', fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Clock size={16} />
-                    {new Date(order.created_at).toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit' })}
+              <div key={order.id} style={{
+                background: '#fff', borderRadius: 4, overflow: 'hidden',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.3)', fontFamily: "'Courier New', Courier, monospace",
+                border: `3px solid ${statusColor}`,
+              }}>
+                {/* Ticket header */}
+                <div style={{ background: statusColor, padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#fff', fontWeight: 900, fontSize: 22 }}>
+                    #{order.order_number || order.id.slice(-4).toUpperCase()}
+                  </span>
+                  <span style={{ color: '#fff', fontWeight: 700, fontSize: 14, background: 'rgba(0,0,0,0.2)', padding: '3px 10px', borderRadius: 4 }}>
+                    {statusLabel}
                   </span>
                 </div>
 
-                <div style={{ padding: 20 }}>
-                  <div style={{ display: 'flex', gap: 24, marginBottom: 16, flexWrap: 'wrap' }}>
-                    {order.customer_name && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <User size={18} style={{ color: '#f97316' }} />
-                        <span style={{ color: 'white', fontWeight: 600, fontSize: 16 }}>{order.customer_name}</span>
+                {/* Ticket body — receipt style */}
+                <div style={{ padding: '16px 20px', color: '#111' }}>
+                  {/* Type + tijd */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed #999', paddingBottom: 10, marginBottom: 10 }}>
+                    <span style={{ fontWeight: 700, fontSize: 16 }}>{typeLabel}</span>
+                    <span style={{ fontSize: 14, color: '#555' }}>{time}</span>
+                  </div>
+
+                  {/* Klantgegevens */}
+                  <div style={{ borderBottom: '1px dashed #999', paddingBottom: 10, marginBottom: 12 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <span style={{ fontSize: 13, color: '#777' }}>Klant:</span>
+                      <span style={{ fontWeight: 700, fontSize: 15 }}>{order.customer_name || '-'}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: 13, color: '#777' }}>Tel:</span>
+                      <span style={{ fontSize: 14 }}>{order.customer_phone || '-'}</span>
+                    </div>
+                  </div>
+
+                  {/* Bestelling items */}
+                  <div style={{ borderBottom: '1px dashed #999', paddingBottom: 12, marginBottom: 12, minHeight: 48 }}>
+                    <div style={{ fontSize: 12, color: '#777', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>Bestelling</div>
+                    {order.notes ? (
+                      <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                        {order.notes}
                       </div>
-                    )}
-                    {order.customer_phone && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <Phone size={16} style={{ color: '#6b7280' }} />
-                        <span style={{ color: '#9ca3af' }}>{order.customer_phone}</span>
-                      </div>
-                    )}
-                    {order.customer_address && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <MapPin size={16} style={{ color: '#6b7280' }} />
-                        <span style={{ color: '#9ca3af' }}>{order.customer_address}</span>
-                      </div>
+                    ) : (
+                      <div style={{ fontSize: 14, color: '#aaa', fontStyle: 'italic' }}>Geen details</div>
                     )}
                   </div>
 
-                  {order.notes && (
-                    <div style={{ background: '#0a0a0f', borderRadius: 12, padding: 16, marginBottom: 16 }}>
-                      <p style={{ color: '#fbbf24', fontSize: 15, margin: 0, whiteSpace: 'pre-wrap' }}>📝 {order.notes}</p>
-                    </div>
-                  )}
+                  {/* Totaal */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                    <span style={{ fontSize: 16, fontWeight: 700 }}>TOTAAL</span>
+                    <span style={{ fontSize: 22, fontWeight: 900 }}>
+                      {order.total_amount > 0 ? `€${Number(order.total_amount).toFixed(2)}` : '—'}
+                    </span>
+                  </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      {order.total_amount > 0 && (
-                        <span style={{ color: 'white', fontSize: 22, fontWeight: 700 }}>€{Number(order.total_amount).toFixed(2)}</span>
-                      )}
-                    </div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      {isPending && (
-                        <>
-                          <button onClick={() => updateStatus(order.id, 'preparing')} style={{
-                            padding: '12px 24px', background: '#3b82f6', border: 'none', borderRadius: 10,
-                            color: 'white', fontSize: 16, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
-                          }}>
-                            <ChefHat size={20} /> START BEREIDING
-                          </button>
-                          <button onClick={() => updateStatus(order.id, 'cancelled')} style={{
-                            padding: '12px 16px', background: 'rgba(239,68,68,0.15)', border: '1px solid #ef4444',
-                            borderRadius: 10, color: '#ef4444', cursor: 'pointer',
-                          }}>✕</button>
-                        </>
-                      )}
-                      {order.status === 'preparing' && (
-                        <button onClick={() => updateStatus(order.id, 'ready')} style={{
-                          padding: '12px 24px', background: '#22c55e', border: 'none', borderRadius: 10,
-                          color: 'white', fontSize: 16, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
+                  {/* Actieknoppen */}
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {isPending && (
+                      <>
+                        <button onClick={() => updateStatus(order.id, 'preparing')} style={{
+                          flex: 1, padding: '12px', background: '#3b82f6', border: 'none', borderRadius: 6,
+                          color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer',
                         }}>
-                          <Check size={20} /> KLAAR
+                          START BEREIDING
                         </button>
-                      )}
-                      {order.status === 'ready' && (
-                        <button onClick={() => updateStatus(order.id, 'completed')} style={{
-                          padding: '12px 24px', background: '#6b7280', border: 'none', borderRadius: 10,
-                          color: 'white', fontSize: 16, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
-                        }}>
-                          <Check size={20} /> AFGEHAALD
-                        </button>
-                      )}
-                    </div>
+                        <button onClick={() => updateStatus(order.id, 'cancelled')} style={{
+                          padding: '12px 14px', background: '#fee2e2', border: '1px solid #ef4444',
+                          borderRadius: 6, color: '#ef4444', fontWeight: 700, cursor: 'pointer', fontSize: 15,
+                        }}>✕</button>
+                      </>
+                    )}
+                    {order.status === 'preparing' && (
+                      <button onClick={() => updateStatus(order.id, 'ready')} style={{
+                        flex: 1, padding: '12px', background: '#22c55e', border: 'none', borderRadius: 6,
+                        color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer',
+                      }}>
+                        KLAAR
+                      </button>
+                    )}
+                    {order.status === 'ready' && (
+                      <button onClick={() => updateStatus(order.id, 'completed')} style={{
+                        flex: 1, padding: '12px', background: '#6b7280', border: 'none', borderRadius: 6,
+                        color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer',
+                      }}>
+                        AFGEHAALD
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
