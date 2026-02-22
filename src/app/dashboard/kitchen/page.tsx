@@ -61,7 +61,7 @@ export default function KitchenPage() {
     if (!resolvedBusinessId) return;
     
     try {
-      const res = await fetch(`/api/orders?business_id=${resolvedBusinessId}&status=new,preparing,ready`);
+      const res = await fetch(`/api/orders?business_id=${resolvedBusinessId}&status=pending,new,preparing,ready`);
       if (res.ok) {
         const data = await res.json();
         setOrders(data);
