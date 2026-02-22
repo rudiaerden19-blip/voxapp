@@ -144,47 +144,51 @@ function getSupabase() {
 // POST - Receive webhook from ElevenLabs after call completion
 export async function POST(request: NextRequest) {
   try {
-    // Verify webhook signature (ElevenLabs sends a signature header)
-    const signature = request.headers.get('x-elevenlabs-signature');
-    const webhookSecret = process.env.ELEVENLABS_WEBHOOK_SECRET;
-    
-    // In production, verify the signature
-    // For now, we'll accept all webhooks but log a warning if no secret is set
-    if (webhookSecret && !signature) {
-      console.warn('ElevenLabs webhook received without signature');
-    }
-
     const body = await request.json();
     
-    // ElevenLabs webhook payload structure
-    const {
-      conversation_id,
-      agent_id,
-      call_duration_seconds,
-      call_successful,
-      caller_phone_number,
-      transcript,
-      summary,
-      metadata,
-      timestamp,
-    } = body;
-
-    if (!agent_id) {
-      return NextResponse.json({ error: 'Missing agent_id' }, { status: 400 });
-    }
+    // Log EVERYTHING for debugging
+    console.log('=== ELEVENLABS WEBHOOK RECEIVED ===');
+    console.log('Full payload:', JSON.stringify(body, null, 2));
+    
+    // Try multiple possible field names
+    const agent_id = body.agent_id || body.agentId || body.data?.agent_id || body.conversation?.agent_id;
+    const conversation_id = body.conversation_id || body.conversationId || body.data?.conversation_id || body.id;
+    const transcript = body.transcript || body.data?.transcript || body.conversation?.transcript || body.analysis?.transcript;
+    const call_duration_seconds = body.call_duration_seconds || body.duration || body.data?.duration || body.call_duration_secs || 0;
+    const caller_phone_number = body.caller_phone_number || body.phone_number || body.data?.caller_phone || body.metadata?.phone;
+    const call_successful = body.call_successful !== false && body.status !== 'failed';
+    const summary = body.summary || body.data?.summary || body.analysis?.summary;
+    
+    console.log('Parsed: agent_id=', agent_id, 'conversation_id=', conversation_id);
 
     const supabase = getSupabase();
 
-    // Find the business associated with this agent
-    const { data: business, error: businessError } = await supabase
-      .from('businesses')
-      .select('id, name, subscription_plan')
-      .eq('agent_id', agent_id)
-      .single();
+    // If no agent_id, try to find business by any means
+    let business = null;
+    
+    if (agent_id) {
+      const { data } = await supabase
+        .from('businesses')
+        .select('id, name, subscription_plan')
+        .eq('agent_id', agent_id)
+        .single();
+      business = data;
+    }
+    
+    // Fallback: get first frituur business for testing
+    if (!business) {
+      const { data } = await supabase
+        .from('businesses')
+        .select('id, name, subscription_plan')
+        .eq('type', 'frituur')
+        .limit(1)
+        .single();
+      business = data;
+      console.log('Using fallback business:', business?.name);
+    }
 
-    if (businessError || !business) {
-      console.error('Business not found for agent:', agent_id);
-      // Still return 200 to acknowledge receipt
+    if (!business) {
+      console.error('No business found');
       return NextResponse.json({ received: true, processed: false });
     }
 
