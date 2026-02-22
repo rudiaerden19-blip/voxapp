@@ -203,9 +203,20 @@ Jij: "Onze openingsuren zijn:\n${openingHoursText}\nKan ik u ergens mee helpen?"
 
 Klant: "Ik wil een afspraak maken"
 Jij: "Ja natuurlijk, dat regel ik graag voor u. Mag ik uw naam?"
+[Verzamel: naam, telefoonnummer, gewenste datum/tijd, reden. Gebruik dan de create_appointment tool om de afspraak in te boeken.]
 
 Klant: "Kan ik mijn afspraak verzetten?"
 Jij: "Ja hoor, geen probleem. Mag ik uw naam en telefoonnummer zodat ik uw afspraak kan opzoeken?"
+
+# BELANGRIJK: GEBRUIK DE TOOLS
+${['frituur', 'pizzeria', 'kebab', 'snackbar'].includes(business.type || '') 
+  ? `- Wanneer een klant wil BESTELLEN: verzamel alle items, vraag afhalen of bezorgen, naam, telefoonnummer (en adres bij bezorging). Gebruik dan de create_order tool om de bestelling door te geven.
+- De bestelling verschijnt automatisch in de keuken.
+- Bevestig altijd de totaalprijs en de geschatte tijd.`
+  : `- Wanneer een klant een AFSPRAAK wil maken: vraag naam, telefoonnummer, gewenste datum en tijd. Gebruik de check_availability tool om beschikbaarheid te controleren.
+- Als er een slot beschikbaar is, gebruik de create_appointment tool om de afspraak in te boeken.
+- De afspraak verschijnt automatisch in de agenda.
+- Bevestig altijd de datum, tijd en wat voor afspraak het is.`}
 
 # FALLBACK INSTRUCTIES
 ${fallbackAction === 'transfer' && transferNumber 
@@ -343,6 +354,95 @@ export async function POST(request: NextRequest) {
       validTransferNumber
     );
 
+    // Get base URL for tool webhooks
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://voxapp.io';
+
+    // Build tools based on business type
+    const isHoreca = ['frituur', 'pizzeria', 'kebab', 'restaurant', 'snackbar'].includes(business.type || '');
+    
+    const tools = isHoreca ? [
+      {
+        type: 'webhook',
+        name: 'create_order',
+        description: 'Maak een bestelling aan wanneer de klant klaar is om te bestellen. Vraag eerst: wat wilt u bestellen, afhalen of bezorgen, naam, telefoonnummer, en adres (bij bezorging).',
+        webhook: {
+          url: `${baseUrl}/api/ai-tools/create-order`,
+          method: 'POST',
+        },
+        parameters: {
+          type: 'object',
+          properties: {
+            business_id: { type: 'string', description: 'Business ID', const: business_id },
+            customer_name: { type: 'string', description: 'Naam van de klant' },
+            customer_phone: { type: 'string', description: 'Telefoonnummer van de klant' },
+            customer_address: { type: 'string', description: 'Bezorgadres (alleen bij bezorging)' },
+            delivery_type: { type: 'string', enum: ['pickup', 'delivery'], description: 'afhalen of bezorgen' },
+            delivery_time: { type: 'string', description: 'Gewenste tijd (bijv. 19:30 of zo snel mogelijk)' },
+            items: { 
+              type: 'array', 
+              items: {
+                type: 'object',
+                properties: {
+                  product_name: { type: 'string', description: 'Naam van het product' },
+                  quantity: { type: 'number', description: 'Aantal' },
+                  options: { type: 'array', items: { type: 'string' }, description: 'Extra opties zoals sauzen' },
+                  notes: { type: 'string', description: 'Opmerkingen voor dit item' },
+                },
+                required: ['product_name', 'quantity'],
+              },
+              description: 'Bestelde items met hoeveelheid' 
+            },
+            notes: { type: 'string', description: 'Algemene opmerkingen bij de bestelling' },
+          },
+          required: ['business_id', 'customer_name', 'customer_phone', 'delivery_type', 'items'],
+        },
+      },
+    ] : [
+      {
+        type: 'webhook',
+        name: 'check_availability',
+        description: 'Controleer beschikbare tijdsloten voor een afspraak op een bepaalde datum.',
+        webhook: {
+          url: `${baseUrl}/api/ai-tools/check-availability`,
+          method: 'POST',
+        },
+        parameters: {
+          type: 'object',
+          properties: {
+            business_id: { type: 'string', description: 'Business ID', const: business_id },
+            date: { type: 'string', description: 'Datum in YYYY-MM-DD formaat' },
+            service_id: { type: 'string', description: 'Service ID (optioneel)' },
+          },
+          required: ['business_id', 'date'],
+        },
+      },
+      {
+        type: 'webhook',
+        name: 'create_appointment',
+        description: 'Maak een afspraak aan wanneer de klant een tijdslot heeft gekozen. Vraag eerst: naam, telefoonnummer, gewenste datum en tijd, en reden van afspraak.',
+        webhook: {
+          url: `${baseUrl}/api/ai-tools/create-appointment`,
+          method: 'POST',
+        },
+        parameters: {
+          type: 'object',
+          properties: {
+            business_id: { type: 'string', description: 'Business ID', const: business_id },
+            customer_name: { type: 'string', description: 'Naam van de klant' },
+            customer_phone: { type: 'string', description: 'Telefoonnummer van de klant' },
+            customer_email: { type: 'string', description: 'E-mailadres (optioneel)' },
+            date: { type: 'string', description: 'Datum in YYYY-MM-DD formaat' },
+            time: { type: 'string', description: 'Tijd in HH:MM formaat (bijv. 14:30)' },
+            service_name: { type: 'string', description: 'Naam/omschrijving van de afspraak' },
+            service_id: { type: 'string', description: 'Service ID (optioneel)' },
+            staff_id: { type: 'string', description: 'Medewerker ID (optioneel)' },
+            notes: { type: 'string', description: 'Extra opmerkingen' },
+          },
+          required: ['business_id', 'customer_name', 'customer_phone', 'date', 'time'],
+        },
+      },
+    ];
+
     // ElevenLabs agent config - Dutch requires turbo/flash model
     const agentConfig = {
       conversation_config: {
@@ -350,6 +450,7 @@ export async function POST(request: NextRequest) {
           prompt: {
             prompt: systemPrompt,
             llm: 'gemini-2.5-flash', // Required for non-English languages
+            tools,
           },
           first_message: business.welcome_message || getGreeting(voice_language || 'nl', business.name),
           language: voice_language || 'nl',
