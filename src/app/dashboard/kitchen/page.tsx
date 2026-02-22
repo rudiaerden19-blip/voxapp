@@ -70,7 +70,7 @@ export default function KitchenPage() {
       console.error('Orders laden mislukt:', error);
     }
     if (data) {
-      setOrders(data);
+      setOrders(data as Order[]);
     }
     setLastRefresh(new Date());
     setLoading(false);
