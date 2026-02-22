@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Phone, Calendar, Users, Settings, LogOut, TrendingUp, MessageSquare, Menu, X, Briefcase, Globe, ChevronDown, Shield, Package, Wrench, CreditCard, Home, Car, FileText, ShoppingBag, UtensilsCrossed, CalendarCheck, Scissors, ExternalLink, Building2 } from 'lucide-react';
@@ -41,10 +41,9 @@ const languages: { code: Language; label: string; flag: string }[] = [
 
 function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const { t, language, setLanguage } = useLanguage();
-  const { business, isAdminView, loading, getHref, clearAdminView, refreshBusiness } = useBusiness();
+  const { business, isAdminView, loading, getHref, clearAdminView } = useBusiness();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
-  const [togglingModule, setTogglingModule] = useState<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -52,36 +51,40 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const businessType = business?.type ? getBusinessType(business.type) : null;
   const availableModules = businessType?.modules || [];
   
-  // Get enabled modules (custom or default)
-  const enabledModules = business?.enabled_modules || availableModules;
+  // Local state for enabled modules (optimistic updates)
+  const [localEnabledModules, setLocalEnabledModules] = useState<ModuleId[]>([]);
+  
+  // Sync local state with business data
+  useEffect(() => {
+    if (business) {
+      setLocalEnabledModules(business.enabled_modules || availableModules);
+    }
+  }, [business?.id, business?.enabled_modules]);
 
-  // Toggle a module on/off
+  // Toggle a module on/off (optimistic update)
   const toggleModule = async (moduleId: ModuleId, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!business?.id || togglingModule) return;
+    if (!business?.id) return;
     
-    setTogglingModule(moduleId);
-    const newEnabled = enabledModules.includes(moduleId)
-      ? enabledModules.filter((m: string) => m !== moduleId)
-      : [...enabledModules, moduleId];
+    const newEnabled = localEnabledModules.includes(moduleId)
+      ? localEnabledModules.filter((m) => m !== moduleId)
+      : [...localEnabledModules, moduleId];
     
+    // Update UI immediately (optimistic)
+    setLocalEnabledModules(newEnabled);
+    
+    // Sync to server in background
     try {
-      const res = await fetch('/api/business/modules', {
+      await fetch('/api/business/modules', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ businessId: business.id, enabled_modules: newEnabled }),
       });
-      
-      if (res.ok) {
-        await refreshBusiness();
-      } else {
-        console.error('Failed to update modules');
-      }
     } catch (err) {
       console.error('Error toggling module:', err);
-    } finally {
-      setTogglingModule(null);
+      // Revert on error
+      setLocalEnabledModules(localEnabledModules);
     }
   };
 
@@ -204,9 +207,8 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           {business?.type && availableModules.map((moduleId) => {
             const item = moduleNavItems[moduleId];
             if (!item) return null;
-            const isEnabled = enabledModules.includes(moduleId);
+            const isEnabled = localEnabledModules.includes(moduleId);
             const active = pathname.startsWith(item.href);
-            const isToggling = togglingModule === moduleId;
             
             return (
               <div key={moduleId} style={{
@@ -234,11 +236,10 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                 {/* Toggle Switch */}
                 <button
                   onClick={(e) => toggleModule(moduleId, e)}
-                  disabled={isToggling}
                   style={{
                     position: 'relative', width: 36, height: 20, borderRadius: 10,
                     border: 'none', background: isEnabled ? '#f97316' : '#374151',
-                    cursor: isToggling ? 'wait' : 'pointer', transition: 'background 0.2s',
+                    cursor: 'pointer', transition: 'background 0.2s',
                     marginRight: 8, flexShrink: 0,
                   }}
                 >
