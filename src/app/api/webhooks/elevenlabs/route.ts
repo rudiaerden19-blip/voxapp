@@ -146,6 +146,9 @@ function buildReceipt(
 
   if (!rawText) return { notes: 'Bestelling via telefoon', total: 0 };
 
+  // Fix common speech-to-text errors
+  rawText = rawText.replace(/zoute\s+mayo(naise)?/gi, 'zoete mayonaise');
+
   // Step 2: Split into individual items
   const parts = rawText.split(/,\s*|\ben\s+(?=een\b|\béén\b|\b\d|\bfriet|\bbicky|\bfrikandel|\bkroket|\bcola|\bfanta|\bwater|\bcurry|\bice)/i)
     .map(p => p.trim())
