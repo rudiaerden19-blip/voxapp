@@ -431,7 +431,7 @@ export async function POST(request: NextRequest) {
         agent: {
           prompt: {
             prompt: systemPrompt,
-            llm: 'gemini-2.5-flash', // Required for non-English languages
+            llm: 'gpt-4o-mini',
           },
           first_message: business.welcome_message || getGreeting(voice_language || 'nl', business.name, business.type || ''),
           language: voice_language || 'nl',
