@@ -30,7 +30,7 @@ export default function RapportPage() {
         <p>Stem-instellingen worden niet meer overschreven</p>
 
         <h3 style={{ color: '#fff', margin: '20px 0 10px' }}>5. Test Endpoint ✅</h3>
-        <p><code style={{ background: '#0f0f23', padding: '2px 8px', borderRadius: 4 }}>https://voxapp.io/api/test/webhook</code></p>
+        <p><code style={{ background: '#0f0f23', padding: '2px 8px', borderRadius: 4 }}>https://www.voxapp.tech/api/test/webhook</code></p>
 
         <h2 style={{ color: '#f97316', margin: '30px 0 15px', borderBottom: '2px solid #f97316', paddingBottom: 8 }}>NOG TE DOEN</h2>
 
@@ -38,7 +38,7 @@ export default function RapportPage() {
         <ol style={{ paddingLeft: 25 }}>
           <li>Ga naar ElevenLabs → ElevenAgents → Settings</li>
           <li>Post-Call Webhook configureren</li>
-          <li>URL: <code style={{ background: '#0f0f23', padding: '2px 8px', borderRadius: 4 }}>https://voxapp.io/api/webhooks/elevenlabs</code></li>
+          <li>URL: <code style={{ background: '#0f0f23', padding: '2px 8px', borderRadius: 4 }}>https://www.voxapp.tech/api/webhooks/elevenlabs</code></li>
         </ol>
 
         <div style={{ background: '#fef3c7', color: '#000', padding: 15, borderRadius: 8, margin: '15px 0', wordBreak: 'break-all' }}>
@@ -57,7 +57,7 @@ export default function RapportPage() {
 
         <h2 style={{ color: '#f97316', margin: '30px 0 15px', borderBottom: '2px solid #f97316', paddingBottom: 8 }}>Test Instructies</h2>
         <ol style={{ paddingLeft: 25 }}>
-          <li>Ga naar: <code style={{ background: '#0f0f23', padding: '2px 8px', borderRadius: 4 }}>https://voxapp.io/api/test/webhook</code></li>
+          <li>Ga naar: <code style={{ background: '#0f0f23', padding: '2px 8px', borderRadius: 4 }}>https://www.voxapp.tech/api/test/webhook</code></li>
           <li>Check Dashboard → Keuken → test order moet verschijnen</li>
           <li>Als dat werkt: bel en test echte bestelling</li>
         </ol>

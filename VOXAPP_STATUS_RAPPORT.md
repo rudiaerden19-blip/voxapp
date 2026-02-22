@@ -150,7 +150,7 @@ ALTER TABLE businesses ADD COLUMN IF NOT EXISTS max_appointments_per_day INTEGER
 3. Zoek "Post-Call Webhook"
 4. Klik "Select Webhook" of "Create"
 5. Vul in:
-   - **URL:** `https://voxapp.io/api/webhooks/elevenlabs`
+   - **URL:** `https://www.voxapp.tech/api/webhooks/elevenlabs`
    - **Events:** Transcript
    - **Auth:** HMAC
 
@@ -228,7 +228,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 ELEVENLABS_API_KEY=
 ELEVENLABS_WEBHOOK_SECRET=wsec_c3ccdc7fbd8f39a8fca6cc27257d2e61f33f8756808e366076e60e4392dcb8a6
-NEXT_PUBLIC_APP_URL=https://voxapp.io
+NEXT_PUBLIC_APP_URL=https://www.voxapp.tech
 ```
 
 ---
@@ -236,7 +236,7 @@ NEXT_PUBLIC_APP_URL=https://voxapp.io
 ## 9. TEST INSTRUCTIES
 
 ### Test 1: Database Order Test
-1. Ga naar: `https://voxapp.io/api/test/webhook`
+1. Ga naar: `https://www.voxapp.tech/api/test/webhook`
 2. Zou JSON response moeten geven met `success: true`
 3. Ga naar Dashboard → Keuken
 4. Test order moet zichtbaar zijn
