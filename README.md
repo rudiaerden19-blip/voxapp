@@ -1,3 +1,16 @@
+⚠ ENTERPRISE MULTI-TENANT CLOUD PLATFORM ⚠
+
+Lees eerst:
+ENTERPRISE_PROJECT_CONSTITUTION.md
+
+Dit project is:
+- Multi-tenant (500+ tenants)
+- Cloud-only (Vercel + Supabase + ElevenLabs)
+- Deterministisch (geen GPT vrije flow)
+- Enterprise-grade
+
+---
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
