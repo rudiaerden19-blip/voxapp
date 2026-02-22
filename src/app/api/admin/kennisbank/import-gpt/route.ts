@@ -98,15 +98,12 @@ export async function POST(request: NextRequest) {
 
             if (!content) return null;
 
-            // Try to get embedding, but continue without it if it fails
-            const embedding = await getEmbedding(content);
-
+            // Skip embeddings for now - import data first
             return {
               sector_type,
               category,
               title: title || content.substring(0, 100),
               content,
-              embedding, // Can be null
               is_active: true,
             };
           } catch (err) {
