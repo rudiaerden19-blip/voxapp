@@ -18,7 +18,7 @@ CREATE TABLE knowledge_base (
   content TEXT NOT NULL, -- De volledige kennis tekst
   
   -- Vector embedding voor zoeken
-  embedding vector(1536), -- OpenAI embeddings zijn 1536 dimensies
+  embedding vector(768), -- Gemini text-embedding-004 is 768 dimensies
   
   -- Metadata
   is_active BOOLEAN DEFAULT true,
@@ -87,7 +87,7 @@ CREATE INDEX idx_sector_templates_sector_type ON sector_templates(sector_type);
 
 CREATE OR REPLACE FUNCTION search_knowledge(
   p_business_id UUID,
-  p_query_embedding vector(1536),
+  p_query_embedding vector(768),
   p_match_threshold FLOAT DEFAULT 0.7,
   p_match_count INT DEFAULT 5
 )

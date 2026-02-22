@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 function getSupabase() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -11,12 +11,15 @@ function getSupabase() {
   return createClient(supabaseUrl, supabaseServiceKey);
 }
 
-function getOpenAI() {
-  const openaiKey = process.env.OPENAI_API_KEY;
-  if (!openaiKey) {
-    throw new Error('Missing OpenAI API key');
+async function getEmbedding(text: string): Promise<number[]> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error('Missing GEMINI_API_KEY');
   }
-  return new OpenAI({ apiKey: openaiKey });
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ model: 'text-embedding-004' });
+  const result = await model.embedContent(text);
+  return result.embedding.values;
 }
 
 // POST: Zoek relevante kennis voor een vraag
@@ -32,16 +35,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const openai = getOpenAI();
     const supabase = getSupabase();
 
-    // Genereer embedding voor de zoekvraag
-    const embeddingResponse = await openai.embeddings.create({
-      model: 'text-embedding-3-small',
-      input: query,
-    });
-
-    const queryEmbedding = embeddingResponse.data[0].embedding;
+    // Genereer embedding voor de zoekvraag met Gemini
+    const queryEmbedding = await getEmbedding(query);
 
     // Zoek in database met vector similarity
     const { data, error } = await supabase.rpc('search_knowledge', {

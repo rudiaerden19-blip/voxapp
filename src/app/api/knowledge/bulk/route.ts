@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 function getSupabase() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -11,12 +11,15 @@ function getSupabase() {
   return createClient(supabaseUrl, supabaseServiceKey);
 }
 
-function getOpenAI() {
-  const openaiKey = process.env.OPENAI_API_KEY;
-  if (!openaiKey) {
-    throw new Error('Missing OpenAI API key');
+async function getEmbedding(text: string): Promise<number[]> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error('Missing GEMINI_API_KEY');
   }
-  return new OpenAI({ apiKey: openaiKey });
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ model: 'text-embedding-004' });
+  const result = await model.embedContent(text);
+  return result.embedding.values;
 }
 
 interface KnowledgeItem {
@@ -38,7 +41,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const openai = getOpenAI();
     const supabase = getSupabase();
 
     const results: { id: string; title: string }[] = [];
@@ -48,15 +50,11 @@ export async function POST(request: NextRequest) {
     for (let i = 0; i < items.length; i += 10) {
       const batch = items.slice(i, i + 10);
       
-      // Generate embeddings for batch
+      // Generate embeddings for batch with Gemini
       const embeddings = await Promise.all(
         batch.map(async (item) => {
           try {
-            const response = await openai.embeddings.create({
-              model: 'text-embedding-3-small',
-              input: item.content,
-            });
-            return response.data[0].embedding;
+            return await getEmbedding(item.content);
           } catch {
             return null;
           }
