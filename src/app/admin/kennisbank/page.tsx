@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import AdminLayout from '@/components/AdminLayout';
-import { Plus, Trash2, ChevronDown, ChevronRight, Search } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronRight, Search, Upload, FileJson } from 'lucide-react';
 
 interface KnowledgeItem {
   id: string;
@@ -50,6 +50,12 @@ export default function AdminKennisbankPage() {
 
   // Search
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Bulk import
+  const [bulkJson, setBulkJson] = useState('');
+  const [bulkImporting, setBulkImporting] = useState(false);
+  const [bulkResult, setBulkResult] = useState<{ success: number; failed: number; total: number } | null>(null);
+  const [showBulkImport, setShowBulkImport] = useState(false);
 
   useEffect(() => {
     loadKnowledge();
@@ -114,6 +120,64 @@ export default function AdminKennisbankPage() {
         ? prev.filter(c => c !== cat)
         : [...prev, cat]
     );
+  }
+
+  async function handleBulkImport() {
+    if (!bulkJson.trim()) return;
+
+    setBulkImporting(true);
+    setBulkResult(null);
+
+    try {
+      const items = JSON.parse(bulkJson);
+      
+      if (!Array.isArray(items)) {
+        alert('JSON moet een array zijn');
+        setBulkImporting(false);
+        return;
+      }
+
+      // Split into chunks of 1000
+      const CHUNK_SIZE = 500;
+      let totalSuccess = 0;
+      let totalFailed = 0;
+
+      for (let i = 0; i < items.length; i += CHUNK_SIZE) {
+        const chunk = items.slice(i, i + CHUNK_SIZE);
+        
+        const res = await fetch('/api/admin/kennisbank/bulk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sector_type: selectedSector,
+            items: chunk,
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          totalSuccess += data.success;
+          totalFailed += data.failed;
+        } else {
+          totalFailed += chunk.length;
+        }
+
+        // Update progress
+        setBulkResult({
+          success: totalSuccess,
+          failed: totalFailed,
+          total: items.length,
+        });
+      }
+
+      setBulkJson('');
+      loadKnowledge();
+    } catch (error) {
+      console.error('Bulk import error:', error);
+      alert('Ongeldige JSON. Controleer het formaat.');
+    }
+
+    setBulkImporting(false);
   }
 
   // Group items by category
@@ -235,6 +299,68 @@ export default function AdminKennisbankPage() {
                   )}
                 </button>
               </form>
+
+              {/* Bulk Import Toggle */}
+              <div className="mt-6 pt-6 border-t border-gray-700">
+                <button
+                  onClick={() => setShowBulkImport(!showBulkImport)}
+                  className="w-full flex items-center justify-center gap-2 text-gray-400 hover:text-white transition"
+                >
+                  <Upload size={18} />
+                  {showBulkImport ? 'Verberg' : 'Bulk Import (JSON)'}
+                </button>
+
+                {showBulkImport && (
+                  <div className="mt-4 space-y-4">
+                    <div className="bg-gray-700/50 rounded-lg p-3 text-xs text-gray-400">
+                      <p className="flex items-center gap-1 mb-2">
+                        <FileJson size={14} />
+                        JSON formaat:
+                      </p>
+                      <pre className="overflow-x-auto">
+{`[
+  {
+    "category": "diensten",
+    "title": "APK keuring",
+    "content": "Een APK..."
+  },
+  ...
+]`}
+                      </pre>
+                    </div>
+                    <textarea
+                      value={bulkJson}
+                      onChange={(e) => setBulkJson(e.target.value)}
+                      placeholder="Plak hier je JSON array..."
+                      rows={8}
+                      className="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white text-sm font-mono"
+                    />
+                    {bulkResult && (
+                      <div className="bg-gray-700 rounded-lg p-3 text-sm">
+                        <p className="text-green-400">{bulkResult.success} succesvol</p>
+                        {bulkResult.failed > 0 && (
+                          <p className="text-red-400">{bulkResult.failed} mislukt</p>
+                        )}
+                        <p className="text-gray-400">Totaal: {bulkResult.total}</p>
+                      </div>
+                    )}
+                    <button
+                      onClick={handleBulkImport}
+                      disabled={bulkImporting || !bulkJson.trim()}
+                      className="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {bulkImporting ? (
+                        <>Importeren... {bulkResult ? `(${bulkResult.success}/${bulkResult.total})` : ''}</>
+                      ) : (
+                        <>
+                          <Upload size={18} />
+                          Importeer JSON
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
