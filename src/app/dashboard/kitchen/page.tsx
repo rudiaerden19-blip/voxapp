@@ -195,7 +195,7 @@ export default function KitchenPage() {
                             const textPart = priceMatch ? line.replace(/(€\d+[.,]\d{2})\s*$/, '').trim() : line.trim();
                             const price = priceMatch ? priceMatch[1] : '';
                             // Split "2  Grote friet" into qty + name
-                            const qtyNameMatch = textPart.match(/^(\d+)\s{1,}(.+)$/);
+                            const qtyNameMatch = textPart.match(/^(\d+)x?\s+(.+)$/);
                             const qty = qtyNameMatch ? qtyNameMatch[1] : '';
                             const name = qtyNameMatch ? qtyNameMatch[2] : textPart;
                             return (
