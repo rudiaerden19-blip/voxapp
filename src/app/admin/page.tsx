@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/LanguageContext';
-import { LogOut, Plus, Monitor, RotateCcw, Eye, Ban, Check, Trash2, Phone, Users, CreditCard, AlertTriangle, Shield, Lock, X, ExternalLink, Calendar, Euro, TrendingUp, LayoutDashboard, Settings } from 'lucide-react';
+import { LogOut, Plus, Monitor, RotateCcw, Eye, Ban, Check, Trash2, Phone, Users, CreditCard, AlertTriangle, Shield, Lock, X, ExternalLink, Calendar, Euro, TrendingUp, LayoutDashboard, Settings, BookOpen } from 'lucide-react';
 import { MODULES, getBusinessType, ModuleId } from '@/lib/modules';
 
 // Admin auth is now handled via API with HTTP-only cookies
@@ -602,7 +602,21 @@ export default function AdminDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+        <div 
+          onClick={() => router.push('/admin/kennisbank')}
+          style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)', borderRadius: 12, padding: 20, border: '1px solid #8b5cf6', cursor: 'pointer' }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 8, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <BookOpen size={20} style={{ color: 'white' }} />
+            </div>
+            <div>
+              <p style={{ color: 'white', fontWeight: 600, margin: 0 }}>Kennisbank</p>
+              <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, margin: 0 }}>AI kennis per sector</p>
+            </div>
+          </div>
+        </div>
         <div 
           onClick={() => setShowNewTenantModal(true)}
           style={{ background: '#1e293b', borderRadius: 12, padding: 20, border: '1px solid #334155', cursor: 'pointer' }}
