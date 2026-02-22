@@ -23,17 +23,20 @@ function extractPhoneNumber(text: string): string | null {
   return null;
 }
 
-// Parse customer name from transcript
+// Parse customer name from transcript — match only word chars on the same line
 function extractCustomerName(text: string): string | null {
   const namePatterns = [
-    /(?:mijn naam is|ik ben|naam is|heet)\s+([A-Za-zÀ-ÿ]+(?:\s+[A-Za-zÀ-ÿ]+)?)/i,
-    /(?:voor|op naam van|onder de naam)\s+([A-Za-zÀ-ÿ]+(?:\s+[A-Za-zÀ-ÿ]+)?)/i,
+    /(?:mijn naam is|ik ben|naam is|heet)\s+([A-Za-zÀ-ÿ]+(?:[ ][A-Za-zÀ-ÿ]+)?)/im,
+    /(?:op naam van|voor|onder de naam)\s+([A-Za-zÀ-ÿ]+(?:[ ][A-Za-zÀ-ÿ]+)?)/im,
   ];
   
   for (const pattern of namePatterns) {
     const match = text.match(pattern);
     if (match) {
-      return match[1].trim();
+      const name = match[1].trim();
+      const badWords = ['agent', 'user', 'klant', 'unknown', 'telefoon'];
+      if (badWords.includes(name.toLowerCase())) continue;
+      return name;
     }
   }
   return null;
@@ -106,9 +109,14 @@ function extractDateTime(text: string): { date: string | null; time: string | nu
   return { date, time };
 }
 
-// Extract delivery type
+// Extract delivery type — match whole words only to avoid false positives (e.g. "stoofvleessaus" contains "lev")
 function extractDeliveryType(text: string): 'pickup' | 'delivery' {
-  if (/bezorg|lever|brengen/i.test(text)) {
+  if (/\bbezorg\w*\b|\blever\w*\b|\bbrengen\b/i.test(text)) {
+    if (/\bafhalen\b/i.test(text)) {
+      const afhalenIdx = text.search(/\bafhalen\b/i);
+      const bezorgIdx = text.search(/\bbezorg\w*\b|\blever\w*\b|\bbrengen\b/i);
+      return afhalenIdx > bezorgIdx ? 'pickup' : 'delivery';
+    }
     return 'delivery';
   }
   return 'pickup';
