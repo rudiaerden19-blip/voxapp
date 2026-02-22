@@ -12,11 +12,20 @@ import {
 
 // Whitelist van velden die mogen worden bijgewerkt door eigenaar
 const ALLOWED_UPDATE_FIELDS = [
-  'name', 'description', 'phone', 'email', 'website',
+  'name', 'type', 'description', 'phone', 'email', 'website',
   'street', 'city', 'postal_code', 'country',
   'voice_id', 'welcome_message', 'opening_hours',
   'fallback_action', 'transfer_number',
   'delivery_fee', 'minimum_order'
+];
+
+// Toegestane business types
+const VALID_BUSINESS_TYPES = [
+  'frituur', 'pizzeria', 'kebab', 'restaurant', 'snackbar',
+  'tandarts', 'huisarts', 'dokter', 'opticien', 'dierenkliniek', 'fysiotherapie',
+  'kapper', 'schoonheid', 'barbier', 'massage', 'fitness',
+  'garage', 'loodgieter', 'advocaat', 'boekhouder', 'hotel', 'immo',
+  'other'
 ];
 
 // PUT - Update business
@@ -56,6 +65,10 @@ export async function PUT(request: NextRequest) {
         const sanitized = sanitizeString(value as string, 200);
         if (sanitized && sanitized.length >= 2) {
           safeUpdates.name = sanitized;
+        }
+      } else if (key === 'type') {
+        if (typeof value === 'string' && VALID_BUSINESS_TYPES.includes(value)) {
+          safeUpdates.type = value;
         }
       } else if (key === 'email') {
         if (value === null || value === '') {
