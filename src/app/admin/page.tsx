@@ -44,7 +44,7 @@ interface Tenant {
 export default function AdminDashboard() {
   const { t, language } = useLanguage();
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(true); // Always admin - no login required
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
@@ -60,26 +60,14 @@ export default function AdminDashboard() {
   const router = useRouter();
 
   useEffect(() => { 
-    // Check if admin session exists via API
-    checkAdminSession();
+    // No login required - load tenants directly
+    loadTenants();
   }, []);
 
   const checkAdminSession = async () => {
-    try {
-      const res = await fetch('/api/admin/auth', { 
-        credentials: 'include' 
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.authenticated) {
-          setIsAdmin(true);
-          loadTenants();
-          return;
-        }
-      }
-    } catch (e) {
-      console.error('Session check failed:', e);
-    }
+    // No login required - always authenticated
+    setIsAdmin(true);
+    loadTenants();
     setLoading(false);
   };
 

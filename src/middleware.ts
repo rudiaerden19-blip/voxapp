@@ -54,31 +54,9 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  const { data: { session } } = await supabase.auth.getSession();
-
-  // Protected routes - require authentication
-  const protectedPaths = ['/dashboard'];
-  const isProtectedPath = protectedPaths.some(path => 
-    request.nextUrl.pathname.startsWith(path)
-  );
-
-  // Auth routes - redirect to dashboard if already logged in
-  const authPaths = ['/login', '/register'];
-  const isAuthPath = authPaths.some(path => 
-    request.nextUrl.pathname.startsWith(path)
-  );
-
-  // If trying to access protected route without session, redirect to login
-  if (isProtectedPath && !session) {
-    const redirectUrl = new URL('/login', request.url);
-    redirectUrl.searchParams.set('redirect', request.nextUrl.pathname);
-    return NextResponse.redirect(redirectUrl);
-  }
-
-  // If logged in and trying to access auth pages, redirect to dashboard
-  if (isAuthPath && session) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
-  }
+  // NO LOGIN REQUIRED - All routes accessible
+  // Just refresh the session if it exists
+  await supabase.auth.getSession();
 
   return response;
 }
