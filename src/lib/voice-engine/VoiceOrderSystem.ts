@@ -79,7 +79,7 @@ const TTS_REPLACEMENTS: [string, string][] = [
   ['americaine', 'amerikèn'],
   ['samurai', 'samourai'],
   ['frikandel speciaal', 'frikandel spessjaal'],
-  ['tomatenketchup', 'tomaten ketchup'],
+  ['tom ketchup', 'tomaten ketchup'],
 ];
 
 function levenshtein(a: string, b: string): number {
@@ -150,10 +150,10 @@ function extractItems(
   menuItems: string[],
   menuPrices: Record<string, number>
 ): OrderItem[] {
-  const normalized = normalizeInput(text);
   const items: OrderItem[] = [];
 
-  const parts = normalized
+  // text is already normalized by handle() — do NOT call normalizeInput again
+  const parts = text
     .split(/[.]\s*|,\s*|\b(?:en|eén|één)\s+(?=een\b|één\b|eén\b|twee\b|drie\b|vier\b|vijf\b|\d|\bfriet|\bbicky|\bfrikandel|\bkroket|\bcola|\bfanta|\bwater|\bcurry|\bice|\bbrood|\bcervela|\bboulet|\bcurryworst|\bbitterballen|\bblikje|\bcheeseburger|\bhamburger|\bservela)/i)
     .map(p => p.trim())
     .filter(p => p.length > 2);
