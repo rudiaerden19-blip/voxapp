@@ -13,10 +13,11 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = getSupabase();
     
-    // Get frituur nolim business
+    // Get business with agent_id set (= actieve tenant), fallback op naam
     const { data: business, error: bizError } = await supabase
       .from('businesses')
       .select('id, name, type')
+      .not('agent_id', 'is', null)
       .eq('type', 'frituur')
       .limit(1)
       .single();
