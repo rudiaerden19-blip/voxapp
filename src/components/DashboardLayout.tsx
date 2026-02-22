@@ -245,6 +245,17 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             <TrendingUp size={18} />Verbruik
           </Link>
 
+          {/* Kennisbank */}
+          <Link href={getHref('/dashboard/kennisbank')} onClick={() => setSidebarOpen(false)} style={{
+            display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
+            background: pathname.startsWith('/dashboard/kennisbank') ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
+            border: 'none', borderRadius: 8, color: pathname.startsWith('/dashboard/kennisbank') ? '#f97316' : '#9ca3af',
+            fontSize: 14, fontWeight: pathname.startsWith('/dashboard/kennisbank') ? 600 : 400, cursor: 'pointer',
+            width: '100%', textAlign: 'left', marginBottom: 4, textDecoration: 'none',
+          }}>
+            <FileText size={18} />Kennisbank
+          </Link>
+
           {/* Instellingen */}
           <Link href={getHref('/dashboard/settings')} onClick={() => setSidebarOpen(false)} style={{
             display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',

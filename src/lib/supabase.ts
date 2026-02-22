@@ -77,6 +77,12 @@ interface Database {
         Update: { id?: string; menu_item_id?: string; option_group_id?: string; business_id?: string; created_at?: string }
         Relationships: []
       }
+      knowledge_base: {
+        Row: { id: string; business_id: string; category: string | null; title: string | null; content: string; embedding: number[] | null; is_active: boolean; created_at: string; updated_at: string }
+        Insert: { id?: string; business_id: string; category?: string | null; title?: string | null; content: string; embedding?: number[] | null; is_active?: boolean; created_at?: string; updated_at?: string }
+        Update: { id?: string; business_id?: string; category?: string | null; title?: string | null; content?: string; embedding?: number[] | null; is_active?: boolean; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
