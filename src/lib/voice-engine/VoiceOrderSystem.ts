@@ -59,6 +59,15 @@ const HARDCODED_REPLACEMENTS: [string, string][] = [
   ['boelet', 'gebakken boulet'],
   ['boelett', 'gebakken boulet'],
   ['frikadel', 'frikandel'],
+  ['tomatenketchup', 'tom ketchup'],
+  ['tomaten ketchup', 'tom ketchup'],
+  ['met samurai', 'met samurai saus'],
+  ['met andalouse', 'met andalouse saus'],
+  ['met cocktail', 'met cocktail saus'],
+  ['met amerikaanse', 'met amerikaanse saus'],
+  ['met joppie', 'met joppie saus'],
+  ['met bbq', 'met bbq saus'],
+  ['met look', 'met looksaus'],
 ];
 
 const TTS_REPLACEMENTS: [string, string][] = [
@@ -129,6 +138,13 @@ const NUM_WORDS: Record<string, number> = {
   zes: 6, zeven: 7, acht: 8, negen: 9, tien: 10,
 };
 
+const SAUCE_ITEMS = new Set([
+  'mayonaise', 'zoete mayonaise', 'tom ketchup', 'curry ketchup',
+  'cocktail saus', 'andalouse saus', 'amerikaanse saus', 'curry saus',
+  'looksaus', 'joppie saus', 'samurai saus', 'mezzomix', 'bbq saus',
+  'mosterd', 'tartaar',
+]);
+
 function extractItems(
   text: string,
   menuItems: string[],
@@ -137,7 +153,6 @@ function extractItems(
   const normalized = normalizeInput(text);
   const items: OrderItem[] = [];
 
-  // Split on: period, comma, or "en/eén/één" before a quantity or food word
   const parts = normalized
     .split(/[.]\s*|,\s*|\b(?:en|eén|één)\s+(?=een\b|één\b|eén\b|twee\b|drie\b|vier\b|vijf\b|\d|\bfriet|\bbicky|\bfrikandel|\bkroket|\bcola|\bfanta|\bwater|\bcurry|\bice|\bbrood|\bcervela|\bboulet|\bcurryworst|\bbitterballen|\bblikje|\bcheeseburger|\bhamburger|\bservela)/i)
     .map(p => p.trim())
@@ -147,13 +162,11 @@ function extractItems(
     let qty = 1;
     let rest = part;
 
-    // Extract numeric quantity: "2x grote friet" or "2 grote friet"
     const numMatch = rest.match(/^(\d+)\s*[x×]?\s*/);
     if (numMatch) {
       qty = parseInt(numMatch[1]) || 1;
       rest = rest.substring(numMatch[0].length).trim();
     } else {
-      // Dutch number word: "twee grote friet", "eén cervela"
       const wordMatch = rest.match(/^(een|één|eén|twee|drie|vier|vijf|zes|zeven|acht|negen|tien)\s+/i);
       if (wordMatch) {
         qty = NUM_WORDS[wordMatch[1].toLowerCase()] || NUM_WORDS[wordMatch[1].toLowerCase().replace('eé', 'éé')] || 1;
@@ -161,40 +174,66 @@ function extractItems(
       }
     }
 
-    // Remove filler words
     rest = rest.replace(/^(ik wil|ik zou graag|graag|nog|eh|euh|uh)\s+/i, '').trim();
     rest = rest.replace(/^(een|één|eén)\s+/i, '').trim();
     rest = rest.replace(/\b(blikje|bakje)\s+/gi, '').trim();
     if (rest.length < 2) continue;
 
-    // Try to find the best menu match
-    // First: exact substring match against menu
-    let matched: string | null = null;
     const lower = rest.toLowerCase();
 
-    // Direct substring check (longest match first)
-    const sortedMenu = [...menuItems].sort((a, b) => b.length - a.length);
-    for (const item of sortedMenu) {
-      if (lower.includes(item) || item.includes(lower)) {
-        matched = item;
-        break;
+    // Find ALL menu items that appear in this part (base product + sauces)
+    const allMatches: { item: string; pos: number }[] = [];
+    for (const menuItem of menuItems) {
+      const pos = lower.indexOf(menuItem);
+      if (pos >= 0) {
+        // Skip if this match is a substring of an already-found longer match
+        const dominated = allMatches.some(
+          m => pos >= m.pos && pos + menuItem.length <= m.pos + m.item.length
+        );
+        if (!dominated) {
+          // Remove any existing shorter matches that this one contains
+          for (let i = allMatches.length - 1; i >= 0; i--) {
+            const m = allMatches[i];
+            if (m.pos >= pos && m.pos + m.item.length <= pos + menuItem.length) {
+              allMatches.splice(i, 1);
+            }
+          }
+          allMatches.push({ item: menuItem, pos });
+        }
       }
     }
 
-    // Fuzzy match if no direct match (3-word, 2-word, 1-word combos)
-    if (!matched) {
-      const words = rest.split(/\s+/);
-      if (words.length >= 3) matched = fuzzyMatch(`${words[0]} ${words[1]} ${words[2]}`, menuItems);
-      if (!matched && words.length >= 2) matched = fuzzyMatch(`${words[0]} ${words[1]}`, menuItems);
-      if (!matched) matched = fuzzyMatch(words[0], menuItems);
+    // Sort by position → first match is the base product
+    allMatches.sort((a, b) => a.pos - b.pos);
+
+    let baseProduct: string | null = null;
+    let totalPrice = 0;
+
+    if (allMatches.length > 0) {
+      // First non-sauce match is the base, or first match if all are sauces
+      const baseMatch = allMatches.find(m => !SAUCE_ITEMS.has(m.item)) || allMatches[0];
+      baseProduct = baseMatch.item;
+
+      // Sum prices of all matched items
+      for (const m of allMatches) {
+        totalPrice += menuPrices[m.item] || 0;
+      }
     }
 
-    const product = matched || rest;
-    const price = menuPrices[product] || 0;
+    // Fuzzy fallback if no direct match found
+    if (!baseProduct) {
+      const words = rest.split(/\s+/);
+      if (words.length >= 3) baseProduct = fuzzyMatch(`${words[0]} ${words[1]} ${words[2]}`, menuItems);
+      if (!baseProduct && words.length >= 2) baseProduct = fuzzyMatch(`${words[0]} ${words[1]}`, menuItems);
+      if (!baseProduct) baseProduct = fuzzyMatch(words[0], menuItems);
+      if (baseProduct) {
+        totalPrice = menuPrices[baseProduct] || 0;
+      }
+    }
 
-    // Preserve modifiers (e.g. "met zoete mayonaise" stays attached to friet)
-    let displayName = product;
-    if (matched && lower.length > matched.length + 3) {
+    // Display name: use full text if it has modifiers, otherwise just the product
+    let displayName = baseProduct || rest;
+    if (baseProduct && lower.length > baseProduct.length + 3) {
       displayName = rest;
     }
 
@@ -202,7 +241,7 @@ function extractItems(
     if (existing) {
       existing.quantity += qty;
     } else {
-      items.push({ product: displayName, quantity: qty, price });
+      items.push({ product: displayName, quantity: qty, price: totalPrice });
     }
   }
 
