@@ -62,8 +62,15 @@ const HARDCODED_REPLACEMENTS: [string, string][] = [
 ];
 
 const TTS_REPLACEMENTS: [string, string][] = [
-  ['cervela', 'servela'],
   ['gebakken boulet', 'gebakken boelett'],
+  ['bicky burger', 'bikkie burger'],
+  ['zoete mayonaise', 'zoete mayonéze'],
+  ['andalouse', 'andaloeze'],
+  ['cervela', 'servela'],
+  ['americaine', 'amerikèn'],
+  ['samurai', 'samourai'],
+  ['frikandel speciaal', 'frikandel spessjaal'],
+  ['tomatenketchup', 'tomaten ketchup'],
 ];
 
 function levenshtein(a: string, b: string): number {
