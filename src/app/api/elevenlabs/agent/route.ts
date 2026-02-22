@@ -443,6 +443,20 @@ export async function POST(request: NextRequest) {
       },
     ];
 
+    // Build workflow tools in ElevenLabs format
+    const workflowTools = tools.map(tool => ({
+      type: 'webhook' as const,
+      name: tool.name,
+      description: tool.description,
+      webhook: {
+        url: tool.webhook.url,
+        request_headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+      parameters: tool.parameters,
+    }));
+
     // ElevenLabs agent config - Dutch requires turbo/flash model
     const agentConfig = {
       conversation_config: {
@@ -453,7 +467,6 @@ export async function POST(request: NextRequest) {
           },
           first_message: business.welcome_message || getGreeting(voice_language || 'nl', business.name),
           language: voice_language || 'nl',
-          // tools, // TODO: Enable when ElevenLabs tool format is confirmed
         },
         tts: {
           // Only use voice_id if it looks like an ElevenLabs ID (not Azure)
@@ -462,6 +475,9 @@ export async function POST(request: NextRequest) {
             : 'pFZP5JQG7iQjIQuC4Bku', // Default: Lily (multilingual)
           model_id: 'eleven_turbo_v2_5', // Required for non-English (32 languages)
         },
+      },
+      workflow: {
+        tools: workflowTools,
       },
       name: `${business.name} Receptionist`,
     };
