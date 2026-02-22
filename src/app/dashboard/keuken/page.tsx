@@ -57,9 +57,23 @@ export default function KeukenPage() {
   const [lastOrderCount, setLastOrderCount] = useState(0);
 
   const loadOrders = useCallback(async () => {
-    if (!business?.id) return;
-    
     const supabase = createClient();
+    let businessId = business?.id;
+
+    // Fallback: als geen business context, pak eerste business uit DB
+    if (!businessId) {
+      const { data: biz } = await supabase
+        .from('businesses')
+        .select('id')
+        .limit(1)
+        .single();
+      businessId = biz?.id;
+    }
+
+    if (!businessId) {
+      setLoading(false);
+      return;
+    }
     
     let query = supabase
       .from('orders')
@@ -67,7 +81,7 @@ export default function KeukenPage() {
         *,
         order_items (*)
       `)
-      .eq('business_id', business.id)
+      .eq('business_id', businessId)
       .order('created_at', { ascending: false });
     
     if (filter === 'active') {
@@ -76,8 +90,11 @@ export default function KeukenPage() {
     
     const { data, error } = await query.limit(50);
     
-    if (!error && data) {
-      // Check for new orders
+    if (error) {
+      console.error('Orders laden mislukt:', error);
+    }
+
+    if (data) {
       const pendingOrders = data.filter(o => o.status === 'pending');
       if (pendingOrders.length > lastOrderCount && playSound && lastOrderCount > 0) {
         playNotificationSound();
@@ -90,14 +107,11 @@ export default function KeukenPage() {
   }, [business?.id, filter, lastOrderCount, playSound]);
 
   useEffect(() => {
-    if (business?.id) {
-      loadOrders();
-      
-      // Poll every 5 seconds for new orders
-      const interval = setInterval(loadOrders, 5000);
-      return () => clearInterval(interval);
-    }
-  }, [business?.id, loadOrders]);
+    loadOrders();
+    
+    const interval = setInterval(loadOrders, 5000);
+    return () => clearInterval(interval);
+  }, [loadOrders]);
 
   const playNotificationSound = () => {
     try {
