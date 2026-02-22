@@ -1,8 +1,13 @@
 # ⚠ VERPLICHT — LEES EERST ⚠
 #
-# Voordat je ENIGE code wijzigt, MOET je ENTERPRISE_PROJECT_CONSTITUTION.md lezen.
+# STAP 1: Lees /PROJECT_STATUS.md — waar staan we, wat is af, wat moet nog
+# STAP 2: Lees /ENTERPRISE_PROJECT_CONSTITUTION.md — bindende regels
+#
+# Doe dit VOORDAT je enige code wijzigt.
 # Dit is een enterprise multi-tenant cloud platform (500+ tenants).
-# Alle regels in dat document zijn BINDEND.
+#
+# Na elke taak die je afrondt: UPDATE PROJECT_STATUS.md
+# Verplaats items van "WAT NOG MOET" naar "WAT IS AF" met datum.
 #
 # Kernregels:
 # - Elke request MOET tenant_id bevatten. Zonder → HARD FAIL.
@@ -13,8 +18,6 @@
 # - Deploy alleen via GitHub → Vercel. Nooit lokaal.
 # - Geen architectuurwijzigingen zonder document update.
 # - Geen feature creep. Geen impliciete aannames.
-#
-# Lees het volledige document: /ENTERPRISE_PROJECT_CONSTITUTION.md
 
 ---
 

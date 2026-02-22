@@ -7,6 +7,8 @@ import {
   type SessionData,
   type BusinessConfig,
 } from '@/lib/voice-engine/VoiceOrderSystem';
+import { requireTenantFromBusiness, TenantError } from '@/lib/tenant';
+import { createCallLog, logCall, logError } from '@/lib/logger';
 
 // ============================================================
 // SUPABASE
@@ -31,12 +33,12 @@ async function loadSession(supabase: DB, sessionId: string): Promise<SessionData
   return data?.session_data || null;
 }
 
-async function saveSession(supabase: DB, sessionId: string, session: SessionData, businessId: string): Promise<void> {
+async function saveSession(supabase: DB, sessionId: string, session: SessionData, tenantId: string): Promise<void> {
   await supabase
     .from('voice_sessions')
     .upsert({
       conversation_id: sessionId,
-      business_id: businessId,
+      business_id: tenantId,
       session_data: session,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'conversation_id' });
@@ -46,11 +48,11 @@ async function deleteSession(supabase: DB, sessionId: string): Promise<void> {
   await supabase.from('voice_sessions').delete().eq('conversation_id', sessionId);
 }
 
-async function loadMenu(supabase: DB, businessId: string) {
+async function loadMenu(supabase: DB, tenantId: string) {
   const { data } = await supabase
     .from('menu_items')
     .select('name, price')
-    .eq('business_id', businessId)
+    .eq('business_id', tenantId)
     .eq('is_available', true);
   const items: string[] = [];
   const prices: Record<string, number> = {};
@@ -79,7 +81,6 @@ interface BusinessRow {
 const BUSINESS_SELECT = 'id, name, welcome_message, ai_name, prep_time_pickup, prep_time_delivery, delivery_enabled';
 
 async function resolveBusiness(supabase: DB, agentId?: string): Promise<BusinessRow | null> {
-  // 1. Try by ElevenLabs agent_id
   if (agentId) {
     const { data } = await supabase
       .from('businesses')
@@ -89,7 +90,6 @@ async function resolveBusiness(supabase: DB, agentId?: string): Promise<Business
     if (data) return data as BusinessRow;
   }
 
-  // 2. Fallback: first frituur business that has menu items
   const { data } = await supabase
     .from('businesses')
     .select(BUSINESS_SELECT)
@@ -146,6 +146,8 @@ function buildSSEChunk(content: string, model: string, finishReason: string | nu
 // ============================================================
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+
   try {
     const body = await request.json();
 
@@ -154,20 +156,17 @@ export async function POST(request: NextRequest) {
     const userId: string | null = body.user_id || null;
     const extraBody = body.elevenlabs_extra_body || body.extra_body || {};
 
-    // Agent ID from ElevenLabs request
     const agentId: string | undefined =
       extraBody.agent_id ||
       body.agent_id ||
       request.nextUrl.searchParams.get('agent_id') ||
       undefined;
 
-    // Session ID: conversation_id > user_id > hash
     const sessionId =
       extraBody.conversation_id ||
       userId ||
       `session_${hashMessages(messages)}`;
 
-    // Extract the LAST user message
     let userMessage = '';
     for (let i = messages.length - 1; i >= 0; i--) {
       if (messages[i].role === 'user') {
@@ -178,36 +177,42 @@ export async function POST(request: NextRequest) {
 
     const supabase = getSupabase();
     const business = await resolveBusiness(supabase, agentId);
-    if (!business) {
-      return sseResponse('Excuseer, er is een probleem. Probeer later opnieuw.', model);
-    }
 
-    const config = buildConfig(business);
-    const { items: menuItems, prices: menuPrices } = await loadMenu(supabase, business.id);
+    // TENANT GUARD — hard fail without tenant
+    const tenant = requireTenantFromBusiness(business);
+    const tenantId = tenant.tenant_id;
+
+    const callLog = createCallLog(sessionId, tenantId);
+
+    const config = buildConfig(business!);
+    const { items: menuItems, prices: menuPrices } = await loadMenu(supabase, tenantId);
     const engine = new VoiceOrderSystem(menuItems, menuPrices, config);
 
-    // First turn — no user message yet → return greeting
     if (!userMessage) {
+      callLog.state_transitions.push('GREETING');
+      callLog.completion_status = 'in_progress';
+      callLog.duration_ms = Date.now() - startTime;
+      logCall(callLog);
       return sseResponse(engine.getGreeting(), model);
     }
 
-    // Load or create session
     let session = await loadSession(supabase, sessionId);
+    const prevState = session?.state || 'NEW';
     if (!session) {
       session = createEmptySession();
     }
 
-    // Run state machine
     const result = engine.handle(session, userMessage);
     session = result.session;
 
-    // If DONE → insert order, delete session
+    callLog.state_transitions.push(`${prevState} → ${session.state}`);
+
     if (session.state === OrderState.DONE) {
       const orderData = engine.buildOrderData(session);
       const { notes, total } = engine.buildReceiptNotes(session);
 
       await supabase.from('orders').insert({
-        business_id: business.id,
+        business_id: tenantId,
         customer_name: orderData.name || 'Telefoon klant',
         customer_phone: orderData.phone || '',
         order_type: orderData.delivery_type === 'levering' ? 'delivery' : 'pickup',
@@ -218,16 +223,28 @@ export async function POST(request: NextRequest) {
         created_at: orderData.timestamp,
       });
 
-      console.log(`[voice-engine] Order created — ${business.name} — ${orderData.name} — ${orderData.items.length} items — €${total.toFixed(2)}`);
       await deleteSession(supabase, sessionId);
+
+      callLog.completion_status = 'completed';
+      callLog.items_count = orderData.items.length;
+      callLog.total_amount = total;
     } else {
-      await saveSession(supabase, sessionId, session, business.id);
+      await saveSession(supabase, sessionId, session, tenantId);
+      callLog.completion_status = 'in_progress';
     }
+
+    callLog.end_time = new Date().toISOString();
+    callLog.duration_ms = Date.now() - startTime;
+    logCall(callLog);
 
     return sseResponse(result.response, model);
 
   } catch (error: unknown) {
-    console.error('[voice-engine] Error:', error);
+    if (error instanceof TenantError) {
+      logError('UNKNOWN', 'UNKNOWN', error);
+      return sseResponse('Excuseer, er is een probleem. Probeer later opnieuw.', 'voice-order-system');
+    }
+    logError('UNKNOWN', 'UNKNOWN', error);
     return sseResponse('Excuseer, kan je dat herhalen?', 'voice-order-system');
   }
 }
