@@ -3,22 +3,21 @@ import { createClient } from '@supabase/supabase-js';
 import { getTemplate, buildWelcomeMessage } from '@/lib/tenant-templates';
 
 // ============================================================
-// TENANT PROVISIONING — Zero-touch onboarding
+// TENANT PROVISIONING — Idempotent, herstelbaar
 // ============================================================
 //
 // POST /api/tenants/provision
 //
-// Creates:
-//   1. Business record in Supabase
-//   2. Menu items from template
-//   3. ElevenLabs agent (Custom LLM mode)
-//   4. Links everything together
+// Idempotentie:
+//   - Bestaand email → 409 met tenant_id
+//   - Bestaande tenant zonder agent → retry agent aanmaak
+//   - Bestaande tenant met agent → 409
+//   - Menu-items alleen als er nog geen zijn
 //
-// Input:
-//   { name, type, email, phone, address, city, postal_code, country, ai_name? }
-//
-// Output:
-//   { tenant_id, agent_id, welcome_message, menu_count, status }
+// Volgorde:
+//   1. Check bestaande tenant (email)
+//   2. Als AGENT_PENDING → retry ElevenLabs
+//   3. Nieuw: business → agent → menu
 //
 
 function getSupabase() {
@@ -27,6 +26,9 @@ function getSupabase() {
   if (!url || !key) throw new Error('Missing Supabase env vars');
   return createClient(url, key);
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type DB = any;
 
 const CUSTOM_LLM_URL = 'https://www.voxapp.tech/api/voice-engine/v1/chat/completions';
 
@@ -89,11 +91,91 @@ async function createElevenLabsAgent(
   }
 }
 
+async function ensureMenuItems(supabase: DB, tenantId: string, type: string): Promise<number> {
+  const { count } = await supabase
+    .from('menu_items')
+    .select('id', { count: 'exact', head: true })
+    .eq('business_id', tenantId);
+
+  if (count && count > 0) return count;
+
+  const template = getTemplate(type);
+  if (!template) return 0;
+
+  const menuRows = template.menu.map(item => ({
+    business_id: tenantId,
+    name: item.name,
+    price: item.price,
+    category: item.category || 'algemeen',
+    is_available: true,
+  }));
+
+  const { error } = await supabase.from('menu_items').insert(menuRows);
+  if (error) {
+    console.error('[provision] Menu insert error:', error);
+    return 0;
+  }
+  return template.menu.length;
+}
+
+async function retryAgentForTenant(
+  supabase: DB,
+  tenant: { id: string; name: string; welcome_message: string; ai_name: string; agent_id: string | null; type: string }
+): Promise<NextResponse> {
+  if (tenant.agent_id) {
+    return NextResponse.json({
+      status: 'already_provisioned',
+      tenant_id: tenant.id,
+      agent_id: tenant.agent_id,
+      message: 'Tenant en agent bestaan al',
+    }, { status: 409 });
+  }
+
+  const agentId = await createElevenLabsAgent(
+    tenant.name,
+    tenant.welcome_message || `Hallo, met ${tenant.name}, wat kan ik voor u doen?`,
+    tenant.ai_name || 'Anja'
+  );
+
+  if (agentId) {
+    await supabase
+      .from('businesses')
+      .update({ agent_id: agentId, subscription_status: 'trial' })
+      .eq('id', tenant.id);
+
+    console.log(JSON.stringify({
+      level: 'info', service: 'provision', action: 'agent_retry_success',
+      tenant_id: tenant.id, agent_id: agentId,
+    }));
+
+    const menuCount = await ensureMenuItems(supabase, tenant.id, tenant.type);
+
+    return NextResponse.json({
+      status: 'agent_created',
+      tenant_id: tenant.id,
+      agent_id: agentId,
+      menu_count: menuCount,
+      message: 'Agent alsnog aangemaakt voor bestaande tenant',
+    });
+  }
+
+  console.error(JSON.stringify({
+    level: 'error', service: 'provision', action: 'agent_retry_failed',
+    tenant_id: tenant.id,
+  }));
+
+  return NextResponse.json({
+    status: 'agent_pending',
+    tenant_id: tenant.id,
+    agent_id: null,
+    message: 'Agent aanmaak opnieuw gefaald. Probeer later opnieuw.',
+  }, { status: 503 });
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    // Validate required fields
     const { name, type, email, phone } = body;
     if (!name || !type) {
       return NextResponse.json(
@@ -102,7 +184,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get template for business type
     const template = getTemplate(type);
     if (!template) {
       return NextResponse.json(
@@ -111,30 +192,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const aiName = body.ai_name || template.default_ai_name;
-    const welcomeMessage = buildWelcomeMessage(template, name, aiName);
-
     const supabase = getSupabase();
 
-    // Check if tenant already exists (by name + email)
-    if (email) {
-      const { data: existing } = await supabase
+    // ── IDEMPOTENTIE CHECK ──────────────────────────────────
+    // Zoek bestaande tenant op email OF telefoon
+    if (email || phone) {
+      let query = supabase
         .from('businesses')
-        .select('id')
-        .eq('email', email)
-        .single();
+        .select('id, name, agent_id, welcome_message, ai_name, type');
+
+      if (email) {
+        query = query.eq('email', email);
+      } else {
+        query = query.eq('phone', phone);
+      }
+
+      const { data: existing } = await query.single();
+
       if (existing) {
-        return NextResponse.json(
-          { error: 'Er bestaat al een tenant met dit e-mailadres', tenant_id: existing.id },
-          { status: 409 }
-        );
+        // Tenant bestaat al → retry agent als die ontbreekt, anders 409
+        return retryAgentForTenant(supabase, existing);
       }
     }
 
-    // 1. Create ElevenLabs agent
-    const agentId = await createElevenLabsAgent(name, welcomeMessage, aiName);
+    // ── NIEUWE TENANT ───────────────────────────────────────
+    const aiName = body.ai_name || template.default_ai_name;
+    const welcomeMessage = buildWelcomeMessage(template, name, aiName);
 
-    // 2. Create business record
+    // 1. Business record eerst (zonder agent_id)
     const { data: business, error: bizError } = await supabase
       .from('businesses')
       .insert({
@@ -146,7 +231,7 @@ export async function POST(request: NextRequest) {
         city: body.city || null,
         postal_code: body.postal_code || null,
         country: body.country || 'België',
-        agent_id: agentId,
+        agent_id: null,
         welcome_message: welcomeMessage,
         ai_name: aiName,
         prep_time_pickup: template.prep_time_pickup,
@@ -154,7 +239,7 @@ export async function POST(request: NextRequest) {
         delivery_enabled: template.delivery_enabled,
         voice_id: '7qdUFMklKPaaAVMsBTBt',
         subscription_plan: 'starter',
-        subscription_status: 'trial',
+        subscription_status: 'agent_pending',
         trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
         enabled_modules: ['orders', 'menu', 'kitchen'],
       })
@@ -171,21 +256,17 @@ export async function POST(request: NextRequest) {
 
     const tenantId = business.id;
 
-    // 3. Insert menu items from template
-    const menuRows = template.menu.map(item => ({
-      business_id: tenantId,
-      name: item.name,
-      price: item.price,
-      category: item.category || 'algemeen',
-      is_available: true,
-    }));
+    // 2. Menu items (idempotent — checkt of er al items zijn)
+    const menuCount = await ensureMenuItems(supabase, tenantId, type);
 
-    const { error: menuError } = await supabase
-      .from('menu_items')
-      .insert(menuRows);
+    // 3. ElevenLabs agent
+    const agentId = await createElevenLabsAgent(name, welcomeMessage, aiName);
 
-    if (menuError) {
-      console.error('[provision] Menu insert error:', menuError);
+    if (agentId) {
+      await supabase
+        .from('businesses')
+        .update({ agent_id: agentId, subscription_status: 'trial' })
+        .eq('id', tenantId);
     }
 
     console.log(JSON.stringify({
@@ -196,16 +277,17 @@ export async function POST(request: NextRequest) {
       tenant_name: name,
       type,
       agent_id: agentId,
-      menu_count: template.menu.length,
+      agent_status: agentId ? 'active' : 'pending',
+      menu_count: menuCount,
     }));
 
     return NextResponse.json({
-      status: 'ok',
+      status: agentId ? 'ok' : 'agent_pending',
       tenant_id: tenantId,
       agent_id: agentId,
       ai_name: aiName,
       welcome_message: welcomeMessage,
-      menu_count: template.menu.length,
+      menu_count: menuCount,
       type,
       trial_days: 14,
       next_steps: agentId
@@ -217,9 +299,9 @@ export async function POST(request: NextRequest) {
             'Twilio nummer moet nog gekoppeld worden',
           ]
         : [
-            'Tenant is aangemaakt',
+            'Tenant is aangemaakt met status AGENT_PENDING',
             'Menu is geladen',
-            'ElevenLabs agent moet handmatig aangemaakt worden (geen API key)',
+            'ElevenLabs agent aanmaak gefaald — roep /api/tenants/provision opnieuw aan met zelfde email om te retrien',
             'Twilio nummer moet nog gekoppeld worden',
           ],
     });
