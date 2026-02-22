@@ -65,12 +65,22 @@ async function loadMenu(supabase: DB, businessId: string) {
   return { items, prices };
 }
 
-async function resolveBusiness(supabase: DB): Promise<{ id: string; name: string } | null> {
-  // For now resolve the frituur business; later use agent_id from extra_body
+async function resolveBusiness(supabase: DB, agentId?: string): Promise<{ id: string; name: string } | null> {
+  // If agent_id is provided, look up by elevenlabs_agent_id
+  if (agentId) {
+    const { data } = await supabase
+      .from('businesses')
+      .select('id, name')
+      .eq('elevenlabs_agent_id', agentId)
+      .single();
+    if (data) return data as { id: string; name: string };
+  }
+
+  // Fallback: find frituur nolim specifically
   const { data } = await supabase
     .from('businesses')
     .select('id, name')
-    .eq('type', 'frituur')
+    .ilike('name', '%nolim%')
     .limit(1)
     .single();
   return data as { id: string; name: string } | null;
@@ -126,7 +136,7 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = getSupabase();
-    const business = await resolveBusiness(supabase);
+    const business = await resolveBusiness(supabase, extraBody.agent_id);
     if (!business) {
       return sseResponse('Excuseer, er is een probleem. Probeer later opnieuw.', model);
     }
