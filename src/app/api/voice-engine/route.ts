@@ -5,6 +5,7 @@ import {
   OrderState,
   createEmptySession,
   type SessionData,
+  type BusinessConfig,
 } from '@/lib/voice-engine/VoiceOrderSystem';
 
 // ============================================================
@@ -81,22 +82,55 @@ async function loadMenu(supabase: DB, businessId: string): Promise<{ items: stri
 // RESOLVE BUSINESS FROM AGENT ID
 // ============================================================
 
-async function resolveBusiness(supabase: DB, agentId: string | null): Promise<{ id: string; name: string } | null> {
+interface BusinessRow {
+  id: string;
+  name: string;
+  welcome_message: string | null;
+  ai_name: string | null;
+  prep_time_pickup: number | null;
+  prep_time_delivery: number | null;
+  delivery_enabled: boolean | null;
+}
+
+const BIZ_SELECT = 'id, name, welcome_message, ai_name, prep_time_pickup, prep_time_delivery, delivery_enabled';
+
+async function resolveBusiness(supabase: DB, agentId: string | null): Promise<BusinessRow | null> {
   if (agentId) {
     const { data } = await supabase
       .from('businesses')
-      .select('id, name')
+      .select(BIZ_SELECT)
       .eq('agent_id', agentId)
       .single();
-    if (data) return data as { id: string; name: string };
+    if (data) return data as BusinessRow;
   }
   const { data } = await supabase
     .from('businesses')
-    .select('id, name')
+    .select(BIZ_SELECT)
     .eq('type', 'frituur')
-    .limit(1)
-    .single();
-  return data as { id: string; name: string } | null;
+    .order('created_at', { ascending: true });
+  if (Array.isArray(data)) {
+    for (const biz of data) {
+      const { count } = await supabase
+        .from('menu_items')
+        .select('id', { count: 'exact', head: true })
+        .eq('business_id', biz.id)
+        .eq('is_available', true);
+      if (count && count > 0) return biz as BusinessRow;
+    }
+    if (data.length > 0) return data[0] as BusinessRow;
+  }
+  return null;
+}
+
+function buildConfig(biz: BusinessRow): BusinessConfig {
+  return {
+    name: biz.name,
+    ai_name: biz.ai_name || 'Anja',
+    welcome_message: biz.welcome_message || `Hallo, met ${biz.name}, wat kan ik voor u doen?`,
+    prep_time_pickup: biz.prep_time_pickup || 20,
+    prep_time_delivery: biz.prep_time_delivery || 30,
+    delivery_enabled: biz.delivery_enabled ?? true,
+  };
 }
 
 // ============================================================
@@ -121,30 +155,26 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (!userMessage) {
-      return NextResponse.json({ response: 'Hallo, met Frituur Nolim, met Anja. Kan ik uw bestelling opnemen?' });
-    }
-
     const supabase = getSupabase();
 
-    // Resolve business
     const business = await resolveBusiness(supabase, agentId);
     if (!business) {
       console.error('Voice engine: no business found for agent', agentId);
       return NextResponse.json({ response: 'Excuseer, er is een probleem. Probeer later opnieuw.' });
     }
 
-    // Load menu
+    const config = buildConfig(business);
     const { items: menuItems, prices: menuPrices } = await loadMenu(supabase, business.id);
+    const engine = new VoiceOrderSystem(menuItems, menuPrices, config);
 
-    // Load or create session
+    if (!userMessage) {
+      return NextResponse.json({ response: engine.getGreeting() });
+    }
+
     let session = await loadSession(supabase, conversationId);
     if (!session) {
       session = createEmptySession();
     }
-
-    // Process through state machine
-    const engine = new VoiceOrderSystem(menuItems, menuPrices);
     const result = engine.handle(session, userMessage);
     session = result.session;
 
