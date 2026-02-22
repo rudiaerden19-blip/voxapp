@@ -67,12 +67,17 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
       : [...enabledModules, moduleId];
     
     try {
-      const supabase = createClient();
-      await supabase
-        .from('businesses')
-        .update({ enabled_modules: newEnabled } as any)
-        .eq('id', business.id);
-      refreshBusiness();
+      const res = await fetch('/api/business/modules', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ businessId: business.id, enabled_modules: newEnabled }),
+      });
+      
+      if (res.ok) {
+        await refreshBusiness();
+      } else {
+        console.error('Failed to update modules');
+      }
     } catch (err) {
       console.error('Error toggling module:', err);
     } finally {
