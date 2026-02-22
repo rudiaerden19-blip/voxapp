@@ -67,7 +67,8 @@ function detectOrderConfirmation(text: string): boolean {
 }
 
 // Load menu prices from database for the given business
-async function loadMenuPrices(supabase: ReturnType<typeof createClient>, businessId: string): Promise<Record<string, number>> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function loadMenuPrices(supabase: any, businessId: string): Promise<Record<string, number>> {
   const { data } = await supabase
     .from('menu_items')
     .select('name, price')
@@ -75,9 +76,8 @@ async function loadMenuPrices(supabase: ReturnType<typeof createClient>, busines
     .eq('is_available', true);
   
   const prices: Record<string, number> = {};
-  const items = data as { name: string; price: number }[] | null;
-  if (items) {
-    for (const item of items) {
+  if (Array.isArray(data)) {
+    for (const item of data) {
       if (item.name && typeof item.price === 'number') {
         prices[item.name.toLowerCase()] = item.price;
       }
