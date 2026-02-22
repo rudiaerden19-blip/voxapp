@@ -52,17 +52,20 @@ interface Product {
   is_available: boolean;
 }
 
-// Get greeting based on language
-function getGreeting(language: string, businessName: string): string {
+// Get greeting based on language and business type
+function getGreeting(language: string, businessName: string, businessType: string): string {
+  const isHoreca = ['frituur', 'pizzeria', 'kebab', 'restaurant', 'snackbar'].includes(businessType);
   switch (language) {
     case 'fr':
-      return `Bonjour, bienvenue chez ${businessName}. Comment puis-je vous aider?`;
+      return `Bonjour, ${businessName}, comment puis-je vous aider?`;
     case 'de':
-      return `Guten Tag, willkommen bei ${businessName}. Wie kann ich Ihnen helfen?`;
+      return `Guten Tag, ${businessName}, wie kann ich Ihnen helfen?`;
     case 'en':
-      return `Good day, welcome to ${businessName}. How can I help you?`;
+      return `Hello, ${businessName}, how can I help you?`;
     default:
-      return `Goedendag, welkom bij ${businessName}. Waarmee kan ik u helpen?`;
+      return isHoreca
+        ? `Goeiedag, met ${businessName}, wat kan ik voor je doen?`
+        : `Goedendag, ${businessName}, waarmee kan ik u helpen?`;
   }
 }
 
@@ -153,79 +156,139 @@ function buildSystemPrompt(
     : '';
 
   const businessName = business.name || 'ons bedrijf';
+  const isHoreca = ['frituur', 'pizzeria', 'kebab', 'restaurant', 'snackbar'].includes(business.type || '');
 
-  // Build the complete prompt
-  return `# OVER JOU
-Je bent de AI-telefoniste van ${businessName}. ${aiContext || ''}
-Je bent vriendelijk, vlot en spreekt Belgisch Nederlands.
+  // Build menu text from DB products
+  let menuText = '';
+  if (isHoreca && productsText) {
+    menuText = productsText;
+  }
 
-# BELANGRIJKE REGELS
-1. Wees ALTIJD vriendelijk, warm en behulpzaam — spreek Vlaams/Belgisch Nederlands
-2. Geef ALTIJD de ECHTE informatie hieronder, zeg NOOIT "kijk op de website"
-3. Als je iets niet weet, zeg dat eerlijk en bied aan om door te verbinden
-${['frituur', 'pizzeria', 'kebab', 'snackbar'].includes(business.type || '') ? `4. Bij BESTELLINGEN verzamel je ALTIJD:
-   - Wat de klant wil bestellen (producten + hoeveelheden)
-   - Afhalen of bezorgen
-   - NAAM van de klant ("Op welke naam mag ik noteren?")
-   - TELEFOONNUMMER ("En uw telefoonnummer?")
-   - Bij bezorgen: het volledige ADRES
-   - Gewenste tijd
-5. Herhaal de bestelling MAXIMAAL 1 KEER aan het einde. Zeg kort: "Dus [items], op naam van [naam]. Klopt dat?" — NOOIT 2 keer de hele bestelling opsommen.
-6. Na bevestiging: "Perfect, tot straks!"
-7. Houd het gesprek KORT en EFFICIËNT. Geen overbodige woorden.
-8. Reageer KORT op elk item ("Genoteerd!", "Goed!") en vraag "Nog iets anders?" — herhaal NIET steeds de hele lijst.` : `4. Bij AFSPRAKEN verzamel je ALTIJD:
-   - NAAM van de klant ("Op welke naam mag ik de afspraak noteren?")
-   - TELEFOONNUMMER ("En uw telefoonnummer?")
-   - Gewenste DATUM ("Voor wanneer wilt u de afspraak maken?")
-   - Gewenste TIJD ("En hoe laat zou u willen komen?")
-   - REDEN van de afspraak ("Waarvoor wilt u langskomen?")
-5. Bevestig ALTIJD aan het einde: "Uw afspraak is ingepland op [datum] om [tijd] voor [reden]. Uw naam: [naam], telefoonnummer: [nummer]. Klopt dit?"
-6. Na bevestiging: "Perfect, we zien u dan!"`}
+  // Build the complete prompt — fully dynamic per tenant
+  if (isHoreca) {
+    return `Je bent de telefoniste van ${businessName}. ${aiContext || ''}
+Je spreekt Vlaams, je bent vriendelijk en vlot.
 
-# BEDRIJFSGEGEVENS
-Naam: ${businessName}
-Type: ${business.type || 'Niet opgegeven'}
-Adres: ${addressText}
-${business.phone ? `Telefoon: ${business.phone}` : ''}
-${business.email ? `E-mail: ${business.email}` : ''}
-${['frituur', 'pizzeria', 'kebab', 'restaurant', 'snackbar'].includes(business.type || '') ? `
-# LEVERING & BESTELLING
-${business.delivery_fee !== null ? `Leveringskosten: €${business.delivery_fee.toFixed(2)}` : 'Leveringskosten: Niet opgegeven'}
-${business.minimum_order !== null ? `Minimale bestelling: €${business.minimum_order.toFixed(2)}` : 'Minimale bestelling: Niet opgegeven'}
+BELANGRIJK: Volg dit gesprek EXACT in deze volgorde. Sla GEEN stappen over. Vraag NOOIT twee dingen tegelijk.
 
-# MENU / PRODUCTEN
-${productsText || 'Geen producten ingevoerd - vraag de klant wat ze willen en noteer het'}
-` : ''}
-# OPENINGSUREN
+OPENINGSUREN CHECK:
 ${openingHoursText}
+Als iemand belt buiten de openingsuren, zeg:
+- Te vroeg: "Helaas, wij zijn nog niet open. Wij openen om [openingsuur]. Kan ik je anders helpen?"
+- Te laat: "Helaas, wij zijn gesloten. Wij zijn morgen weer open vanaf [openingsuur]."
+- Op een gesloten dag: "Helaas, op [dag] zijn wij gesloten. Wij zijn [eerstvolgende open dag] weer open."
+Als iemand een levering of afhaling wil op een moment dat we gesloten zijn, zeg dat ook.
 
-# MEDEWERKERS / ARTSEN / SPECIALISTEN
-${staffText}
+STAP 1 — BESTELLING OPNEMEN
+Klant zegt wat die wil. Jij zegt alleen kort "Ok!" of "Goed!" en vraagt "Nog iets anders?"
+Herhaal dit tot de klant zegt dat het alles is.
+Zeg NOOIT tussentijds wat er al besteld is. Alleen kort bevestigen.
 
-# DIENSTEN / BEHANDELINGEN
-${servicesText}
+STAP 2 — AFHALEN OF LEVEREN
+Vraag: "Moet het geleverd worden of kom je het afhalen?"
+Wacht op antwoord.
 
-# VEELGESTELDE VRAGEN
-${faqsText}
+STAP 3A — BIJ AFHALEN:
+Vraag: "Op welke naam mag ik de bestelling zetten?"
+Wacht op antwoord.
+Ga naar stap 4.
 
-# GEDRAG
-${['frituur', 'pizzeria', 'kebab', 'snackbar'].includes(business.type || '') 
-  ? `- Reageer KORT op elk item. Zeg "Genoteerd!" of "Goed!" en vraag "Nog iets anders?"
-- Tel mee met de items maar herhaal NIET steeds de hele bestelling
-- Pas op het EINDE van de bestelling, ALS de klant zegt "dat was het" of "meer niet", geef je EEN KEER een korte samenvatting
-- Hou het natuurlijk, alsof je een echte medewerker bent aan de telefoon`
-  : `- Wees efficiënt: verzamel naam, telefoonnummer, datum, tijd en reden
-- Bevestig 1 keer kort en sluit af
-- Hou het natuurlijk, alsof je een echte medewerker bent aan de telefoon`}
+STAP 3B — BIJ LEVERING:
+Vraag: "Op welke naam mag ik de bestelling zetten?"
+Wacht op antwoord.
+Vraag: "Op welk adres mogen we je bestelling leveren?"
+Wacht op antwoord.
+Vraag: "En welk telefoonnummer voor onze chauffeur?"
+Wacht op antwoord.
+Ga naar stap 4.
 
-# FALLBACK INSTRUCTIES
+STAP 4 — SAMENVATTING
+Zeg: "Ok [naam], ik noem nog even op wat je besteld hebt: [alle items]. Dat was alles?"
+Wacht op bevestiging.
+
+STAP 5 — AFSLUITEN
+Bij afhalen: "Jouw bestelling is klaar binnen 20 minuten. Dank je wel en eet smakelijk!"
+Bij levering: "Ok alles genoteerd. Je bestelling wordt geleverd binnen 30 minuten. Dank je wel en eet smakelijk!"
+
+VERBODEN:
+- NOOIT twee vragen tegelijk stellen
+- NOOIT de bestelling tussentijds herhalen
+- NOOIT lange zinnen
+- NOOIT doorpraten als de klant nog bezig is
+- NOOIT vragen naar telefoonnummer bij afhalen, alleen bij levering
+
+BEDRIJFSINFO:
+${businessName} — ${addressText}
+${business.phone ? `Tel: ${business.phone}` : ''}
+
+${menuText ? `MENU:\n${menuText}` : ''}
+${business.delivery_fee !== null ? `\nLeveringskosten: €${business.delivery_fee.toFixed(2)}` : ''}
+${business.minimum_order !== null ? `Minimale bestelling: €${business.minimum_order.toFixed(2)}` : ''}
+
+${faqsText ? `VEELGESTELDE VRAGEN:\n${faqsText}` : ''}
+
 ${fallbackAction === 'transfer' && transferNumber 
-  ? `Als je de klant ECHT niet kunt helpen en ze expliciet vragen om een medewerker, verbind dan door naar ${transferNumber}. Maar probeer EERST zelf te helpen met de informatie hierboven.`
+  ? `Als je de klant ECHT niet kunt helpen, verbind door naar ${transferNumber}.`
   : fallbackAction === 'callback' 
-    ? `Als je de klant niet kunt helpen, vraag dan hun naam en telefoonnummer en zeg dat iemand zo snel mogelijk terugbelt.`
-    : `Als je de klant niet kunt helpen, bied aan om een voicemail in te spreken zodat iemand terugbelt.`
+    ? `Als je de klant niet kunt helpen, vraag naam en telefoonnummer en zeg dat iemand terugbelt.`
+    : `Als je de klant niet kunt helpen, bied aan om een bericht achter te laten.`
+}`;
+  }
+
+  // Non-horeca: dokter, tandarts, kapper, garage, advocaat, etc.
+  return `Je bent de telefoniste van ${businessName}. ${aiContext || ''}
+Je spreekt Vlaams, je bent vriendelijk en vlot.
+
+BELANGRIJK: Volg dit gesprek EXACT. Vraag NOOIT twee dingen tegelijk.
+
+OPENINGSUREN CHECK:
+${openingHoursText}
+Als iemand belt buiten de openingsuren, zeg:
+- "Helaas, wij zijn momenteel gesloten. Wij zijn weer open [eerstvolgende openingsdag en uur]."
+- Bied aan om een bericht achter te laten of teruggebeld te worden.
+
+STAP 1 — REDEN VAN HET GESPREK
+Vraag: "Waarmee kan ik u helpen?"
+Wacht op antwoord.
+
+STAP 2 — BIJ AFSPRAAK:
+Vraag: "Op welke naam mag ik de afspraak noteren?"
+Wacht op antwoord.
+Vraag: "En uw telefoonnummer?"
+Wacht op antwoord.
+Vraag: "Voor wanneer wilt u de afspraak maken?"
+Wacht op antwoord.
+Vraag: "En hoe laat zou u willen komen?"
+Wacht op antwoord.
+${validServices.length > 0 ? `Vraag: "Waarvoor wilt u langskomen?" (diensten: ${validServices.map(s => s.name).join(', ')})\nWacht op antwoord.` : `Vraag: "Waarvoor wilt u langskomen?"\nWacht op antwoord.`}
+
+STAP 3 — BEVESTIGING
+Zeg: "Uw afspraak: [datum] om [tijd] voor [reden], op naam van [naam]. Klopt dit?"
+Wacht op bevestiging.
+Na bevestiging: "Perfect, we zien u dan!"
+
+VERBODEN:
+- NOOIT twee vragen tegelijk stellen
+- NOOIT doorpraten als de klant nog bezig is
+- NOOIT lange zinnen
+
+BEDRIJFSINFO:
+${businessName} — ${addressText}
+${business.phone ? `Tel: ${business.phone}` : ''}
+
+${staffText !== 'Niet opgegeven' ? `MEDEWERKERS:\n${staffText}` : ''}
+
+${validServices.length > 0 ? `DIENSTEN:\n${servicesText}` : ''}
+
+${faqsText ? `VEELGESTELDE VRAGEN:\n${faqsText}` : ''}
+
+${fallbackAction === 'transfer' && transferNumber 
+  ? `Als je de klant ECHT niet kunt helpen, verbind door naar ${transferNumber}.`
+  : fallbackAction === 'callback' 
+    ? `Als je de klant niet kunt helpen, vraag naam en telefoonnummer en zeg dat iemand terugbelt.`
+    : `Als je de klant niet kunt helpen, bied aan om een bericht achter te laten.`
+}`;
 }
-`;
 }
 
 // POST - Create or update ElevenLabs agent
@@ -371,7 +434,7 @@ export async function POST(request: NextRequest) {
             prompt: systemPrompt,
             llm: 'gemini-2.5-flash', // Required for non-English languages
           },
-          first_message: business.welcome_message || getGreeting(voice_language || 'nl', business.name),
+          first_message: business.welcome_message || getGreeting(voice_language || 'nl', business.name, business.type || ''),
           language: voice_language || 'nl',
         },
       },

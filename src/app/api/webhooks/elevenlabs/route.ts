@@ -66,36 +66,29 @@ function detectOrderConfirmation(text: string): boolean {
   return confirmationPhrases.some(p => p.test(text));
 }
 
-// Menu price lookup
-const MENU_PRICES: Record<string, number> = {
-  'friet klein': 3.50, 'frietje klein': 3.50, 'kleine friet': 3.50, 'frietjes klein': 3.50,
-  'friet middel': 3.80, 'frietje middel': 3.80, 'medium friet': 3.80,
-  'friet groot': 4.10, 'frietje groot': 4.10, 'grote friet': 4.10, 'groot friet': 4.10,
-  'friet kinder': 3.30, 'kinderfriet': 3.30, 'kinderfrietje': 3.30,
-  'friet special klein': 4.90, 'special klein': 4.90,
-  'friet special middel': 5.20, 'special middel': 5.20,
-  'friet special groot': 5.50, 'special groot': 5.50, 'grote special': 5.50,
-  'friet stoofvlees': 8.50, 'stoofvlees friet': 8.50,
-  'friet goulash': 8.50, 'goulash friet': 8.50,
-  'friet oorlog': 8.50, 'oorlog friet': 8.50, 'patatje oorlog': 8.50,
-  'friet nolim': 10.00, 'nolim friet': 10.00,
-  'friet stoofvlees saus': 5.70, 'stoofvleessaus': 5.70,
-  'friet goulash saus': 5.70, 'goulashsaus': 5.70,
-  'mayo': 1.10, 'mayonaise': 1.10, 'andalouse': 1.10, 'samurai': 1.10,
-  'curry': 1.10, 'currysaus': 1.10, 'bbq': 1.10, 'cocktail': 1.10,
-  'joppie': 1.10, 'joppiesaus': 1.10, 'looksaus': 1.10, 'tartaar': 1.10,
-  'ketchup': 1.10, 'mosterd': 1.10, 'zoete mayo': 1.10, 'americaine': 1.10,
-  'mezzomix': 1.10,
-  'cola': 2.00, 'coca cola': 2.00, 'fanta': 2.00, 'water': 1.50,
-  'ice tea': 2.00, 'icetea': 2.00,
-  'frikandel': 2.50, 'frikandel speciaal': 3.50, 'kroket': 2.50,
-  'bitterbal': 1.50, 'bitterballen': 4.50,
-};
+// Load menu prices from database for the given business
+async function loadMenuPrices(supabase: ReturnType<typeof createClient>, businessId: string): Promise<Record<string, number>> {
+  const { data: items } = await supabase
+    .from('menu_items')
+    .select('name, price')
+    .eq('business_id', businessId)
+    .eq('is_available', true);
+  
+  const prices: Record<string, number> = {};
+  if (items) {
+    for (const item of items) {
+      if (item.name && typeof item.price === 'number') {
+        prices[item.name.toLowerCase()] = item.price;
+      }
+    }
+  }
+  return prices;
+}
 
-function lookupPrice(item: string): number {
+function lookupPrice(item: string, menuPrices: Record<string, number>): number {
   const lower = item.toLowerCase().trim();
-  if (MENU_PRICES[lower]) return MENU_PRICES[lower];
-  for (const [key, price] of Object.entries(MENU_PRICES)) {
+  if (menuPrices[lower]) return menuPrices[lower];
+  for (const [key, price] of Object.entries(menuPrices)) {
     if (lower.includes(key) || key.includes(lower)) return price;
   }
   return 0;
@@ -108,7 +101,7 @@ interface OrderItem {
 }
 
 // Parse order items with quantities and prices from transcript messages
-function extractOrderItems(messages: { role?: string; message?: string; text?: string }[]): OrderItem[] {
+function extractOrderItems(messages: { role?: string; message?: string; text?: string }[], menuPrices: Record<string, number>): OrderItem[] {
   // First try: agent's summary line ("Dus 1 grote friet, 1 cola...")
   for (let i = messages.length - 1; i >= 0; i--) {
     const m = messages[i];
@@ -122,7 +115,7 @@ function extractOrderItems(messages: { role?: string; message?: string; text?: s
           .replace(/,?\s*afhalen\b.*/i, '')
           .replace(/,?\s*bezorgen\b.*/i, '')
           .trim();
-        const items = parseItemsFromText(cleaned);
+        const items = parseItemsFromText(cleaned, menuPrices);
         if (items.length > 0) return items;
       }
     }
@@ -141,10 +134,10 @@ function extractOrderItems(messages: { role?: string; message?: string; text?: s
     }
   }
   
-  return parseItemsFromText(allUserText.join(', '));
+  return parseItemsFromText(allUserText.join(', '), menuPrices);
 }
 
-function parseItemsFromText(text: string): OrderItem[] {
+function parseItemsFromText(text: string, menuPrices: Record<string, number>): OrderItem[] {
   const items: OrderItem[] = [];
   // Split on commas, "en", "plus", "ook"
   const parts = text.split(/,|\ben\b|\bplus\b|\book\b|\bnog\b/i).map(p => p.trim()).filter(Boolean);
@@ -175,7 +168,7 @@ function parseItemsFromText(text: string): OrderItem[] {
     // Capitalize first letter
     name = name.charAt(0).toUpperCase() + name.slice(1);
     
-    const price = lookupPrice(name);
+    const price = lookupPrice(name, menuPrices);
     items.push({ qty, name, price: price * qty });
   }
   
@@ -441,10 +434,11 @@ export async function POST(request: NextRequest) {
         const customerAddress = deliveryType === 'delivery' ? extractAddress(transcriptText) : null;
         const { time: deliveryTime } = extractDateTime(transcriptText);
         
-        // Parse structured order items with prices
+        // Load menu prices from DB for this business, then parse items
+        const menuPrices = await loadMenuPrices(supabase, business.id);
         let items: OrderItem[] = [];
         if (Array.isArray(transcript)) {
-          items = extractOrderItems(transcript);
+          items = extractOrderItems(transcript, menuPrices);
         }
         const orderNotes = items.length > 0 ? formatOrderItems(items) : (transcriptText.substring(0, 500));
         const totalAmount = calculateTotal(items);
