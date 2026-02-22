@@ -68,13 +68,14 @@ function detectOrderConfirmation(text: string): boolean {
 
 // Load menu prices from database for the given business
 async function loadMenuPrices(supabase: ReturnType<typeof createClient>, businessId: string): Promise<Record<string, number>> {
-  const { data: items } = await supabase
+  const { data } = await supabase
     .from('menu_items')
     .select('name, price')
     .eq('business_id', businessId)
     .eq('is_available', true);
   
   const prices: Record<string, number> = {};
+  const items = data as { name: string; price: number }[] | null;
   if (items) {
     for (const item of items) {
       if (item.name && typeof item.price === 'number') {
