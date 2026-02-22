@@ -1,5 +1,5 @@
 // ============================================================
-// FRITUUR NOLIM – VOICE ORDER SYSTEM (State Machine)
+// VOICE ORDER SYSTEM — Multi-tenant State Machine
 // ============================================================
 
 export enum OrderState {
@@ -37,8 +37,17 @@ export interface SessionData {
   created_at: string;
 }
 
+export interface BusinessConfig {
+  name: string;
+  ai_name: string;
+  welcome_message: string;
+  prep_time_pickup: number;
+  prep_time_delivery: number;
+  delivery_enabled: boolean;
+}
+
 // ============================================================
-// MENU + NORMALIZER
+// STT NORMALIZER — fixes common speech-to-text errors
 // ============================================================
 
 const HARDCODED_REPLACEMENTS: [string, string][] = [
@@ -70,6 +79,10 @@ const HARDCODED_REPLACEMENTS: [string, string][] = [
   ['met look', 'met looksaus'],
 ];
 
+// ============================================================
+// TTS PHONETIC REWRITER — fixes pronunciation for ElevenLabs
+// ============================================================
+
 const TTS_REPLACEMENTS: [string, string][] = [
   ['gebakken boulet', 'gebakken boelett'],
   ['bicky burger', 'bikkie burger'],
@@ -81,6 +94,10 @@ const TTS_REPLACEMENTS: [string, string][] = [
   ['frikandel speciaal', 'frikandel spessjaal'],
   ['tom ketchup', 'tomaten ketchup'],
 ];
+
+// ============================================================
+// MATCHING HELPERS
+// ============================================================
 
 function levenshtein(a: string, b: string): number {
   const m = a.length, n = b.length;
@@ -114,7 +131,6 @@ function fuzzyMatch(phrase: string, menuItems: string[], cutoff = 0.82): string 
 
 function normalizeInput(text: string): string {
   let t = text.toLowerCase().trim();
-  // Longest replacements first
   for (const [wrong, correct] of HARDCODED_REPLACEMENTS) {
     t = t.replace(new RegExp(wrong.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), correct);
   }
@@ -152,7 +168,6 @@ function extractItems(
 ): OrderItem[] {
   const items: OrderItem[] = [];
 
-  // text is already normalized by handle() — do NOT call normalizeInput again
   const parts = text
     .split(/[.]\s*|,\s*|\b(?:en|eén|één)\s+(?=een\b|één\b|eén\b|twee\b|drie\b|vier\b|vijf\b|\d|\bfriet|\bbicky|\bfrikandel|\bkroket|\bcola|\bfanta|\bwater|\bcurry|\bice|\bbrood|\bcervela|\bboulet|\bcurryworst|\bbitterballen|\bblikje|\bcheeseburger|\bhamburger|\bservela)/i)
     .map(p => p.trim())
@@ -181,17 +196,14 @@ function extractItems(
 
     const lower = rest.toLowerCase();
 
-    // Find ALL menu items that appear in this part (base product + sauces)
     const allMatches: { item: string; pos: number }[] = [];
     for (const menuItem of menuItems) {
       const pos = lower.indexOf(menuItem);
       if (pos >= 0) {
-        // Skip if this match is a substring of an already-found longer match
         const dominated = allMatches.some(
           m => pos >= m.pos && pos + menuItem.length <= m.pos + m.item.length
         );
         if (!dominated) {
-          // Remove any existing shorter matches that this one contains
           for (let i = allMatches.length - 1; i >= 0; i--) {
             const m = allMatches[i];
             if (m.pos >= pos && m.pos + m.item.length <= pos + menuItem.length) {
@@ -203,24 +215,19 @@ function extractItems(
       }
     }
 
-    // Sort by position → first match is the base product
     allMatches.sort((a, b) => a.pos - b.pos);
 
     let baseProduct: string | null = null;
     let totalPrice = 0;
 
     if (allMatches.length > 0) {
-      // First non-sauce match is the base, or first match if all are sauces
       const baseMatch = allMatches.find(m => !SAUCE_ITEMS.has(m.item)) || allMatches[0];
       baseProduct = baseMatch.item;
-
-      // Sum prices of all matched items
       for (const m of allMatches) {
         totalPrice += menuPrices[m.item] || 0;
       }
     }
 
-    // Fuzzy fallback if no direct match found
     if (!baseProduct) {
       const words = rest.split(/\s+/);
       if (words.length >= 3) baseProduct = fuzzyMatch(`${words[0]} ${words[1]} ${words[2]}`, menuItems);
@@ -231,7 +238,6 @@ function extractItems(
       }
     }
 
-    // Display name: use full text if it has modifiers, otherwise just the product
     let displayName = baseProduct || rest;
     if (baseProduct && lower.length > baseProduct.length + 3) {
       displayName = rest;
@@ -249,16 +255,22 @@ function extractItems(
 }
 
 // ============================================================
-// VOICE ORDER SYSTEM — STATE MACHINE
+// VOICE ORDER SYSTEM — STATE MACHINE (multi-tenant)
 // ============================================================
 
 export class VoiceOrderSystem {
   private menuItems: string[];
   private menuPrices: Record<string, number>;
+  private config: BusinessConfig;
 
-  constructor(menuItems: string[], menuPrices: Record<string, number>) {
+  constructor(
+    menuItems: string[],
+    menuPrices: Record<string, number>,
+    config: BusinessConfig
+  ) {
     this.menuItems = menuItems;
     this.menuPrices = menuPrices;
+    this.config = config;
   }
 
   handle(session: SessionData, transcript: string): { response: string; session: SessionData } {
@@ -267,28 +279,29 @@ export class VoiceOrderSystem {
     switch (session.state) {
 
       case OrderState.TAKING_ORDER: {
-        // Check if customer is done ordering
         if (/\b(nee|neen|dat was het|dat is het|dat is alles|meer niet|niks meer|dat was alles|klaar)\b/i.test(input)) {
           if (session.order.length === 0) {
             return this.reply(session, 'Ik heb nog geen bestelling genoteerd. Wat mag het zijn?');
           }
-          session.state = OrderState.DELIVERY_TYPE;
-          return this.reply(session, 'Moet het geleverd worden of kom je het afhalen?');
+          if (this.config.delivery_enabled) {
+            session.state = OrderState.DELIVERY_TYPE;
+            return this.reply(session, 'Moet het geleverd worden of kom je het afhalen?');
+          }
+          session.delivery_type = 'afhalen';
+          session.state = OrderState.GET_NAME;
+          return this.reply(session, 'Op welke naam mag ik de bestelling zetten?');
         }
 
-        // Check if customer just says they want to order (no items yet)
         if (/\b(bestellen|ik wil|mag ik|kan ik)\b/i.test(input) && !this.containsMenuItem(input)) {
           return this.reply(session, 'Ja, zeg het maar.');
         }
 
-        // Extract items
         const items = extractItems(input, this.menuItems, this.menuPrices);
         if (items.length > 0) {
           session.order.push(...items);
           return this.reply(session, 'Ok, genoteerd. Nog iets anders?');
         }
 
-        // Couldn't parse anything useful
         if (session.order.length === 0) {
           return this.reply(session, 'Ja, zeg het maar.');
         }
@@ -347,9 +360,9 @@ export class VoiceOrderSystem {
         if (/\b(ja|klopt|juist|correct|dat klopt|precies)\b/i.test(input)) {
           session.state = OrderState.DONE;
           if (session.delivery_type === 'levering') {
-            return this.reply(session, 'Je bestelling wordt binnen 30 minuten geleverd. Dank je wel en eet smakelijk.');
+            return this.reply(session, `Je bestelling wordt binnen ${this.config.prep_time_delivery} minuten geleverd. Dank je wel en eet smakelijk.`);
           }
-          return this.reply(session, 'Je bestelling is klaar over 20 minuten. Dank je wel en eet smakelijk.');
+          return this.reply(session, `Je bestelling is klaar over ${this.config.prep_time_pickup} minuten. Dank je wel en eet smakelijk.`);
         }
         if (/\b(nee|neen|niet|fout)\b/i.test(input)) {
           session.order = [];
@@ -366,6 +379,10 @@ export class VoiceOrderSystem {
       default:
         return this.reply(session, 'Excuseer, kan je dat herhalen?');
     }
+  }
+
+  getGreeting(): string {
+    return normalizeForTts(this.config.welcome_message);
   }
 
   private containsMenuItem(text: string): boolean {
