@@ -12,15 +12,21 @@ function getSupabase() {
   return createClient(supabaseUrl, supabaseServiceKey);
 }
 
-async function getEmbedding(text: string): Promise<number[]> {
+async function getEmbedding(text: string): Promise<number[] | null> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error('Missing GEMINI_API_KEY');
+    console.error('Missing GEMINI_API_KEY');
+    return null;
   }
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'text-embedding-004' });
-  const result = await model.embedContent(text);
-  return result.embedding.values;
+  try {
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: 'text-embedding-004' });
+    const result = await model.embedContent(text);
+    return result.embedding.values;
+  } catch (error) {
+    console.error('Embedding error:', error);
+    return null;
+  }
 }
 
 interface GPTGarageRequest {
@@ -92,6 +98,7 @@ export async function POST(request: NextRequest) {
 
             if (!content) return null;
 
+            // Try to get embedding, but continue without it if it fails
             const embedding = await getEmbedding(content);
 
             return {
@@ -99,28 +106,31 @@ export async function POST(request: NextRequest) {
               category,
               title: title || content.substring(0, 100),
               content,
-              embedding,
+              embedding, // Can be null
               is_active: true,
             };
-          } catch {
+          } catch (err) {
+            console.error('Item processing error:', err);
             return null;
           }
         })
       );
 
-      // Insert valid items
+      // Insert valid items (items with content, embedding can be null)
       const validItems = processedBatch.filter((item): item is NonNullable<typeof item> => item !== null);
 
       if (validItems.length > 0) {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('sector_templates')
-          .insert(validItems);
+          .insert(validItems)
+          .select();
 
         if (error) {
-          console.error('Insert error:', error);
+          console.error('Database insert error:', JSON.stringify(error));
           errorCount += validItems.length;
         } else {
           successCount += validItems.length;
+          console.log(`Inserted ${data?.length || 0} items`);
         }
       }
 
@@ -143,6 +153,9 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Import error:', error);
-    return NextResponse.json({ error: 'Failed to import' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Failed to import', 
+      details: error instanceof Error ? error.message : String(error)
+    }, { status: 500 });
   }
 }
