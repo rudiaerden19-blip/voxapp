@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Trash2, ChevronDown, ChevronRight, Search, Upload, FileJson, ArrowLeft, Shield } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronRight, Search, Upload, ArrowLeft, Shield } from 'lucide-react';
 
 interface KnowledgeItem {
   id: string;
@@ -26,45 +26,35 @@ const SECTORS = [
   { id: 'boekhouder', name: 'Boekhouder', icon: '📊' },
 ];
 
-const CATEGORIES = [
-  'algemeen',
-  'diensten',
-  'prijzen',
-  'openingsuren',
-  'faq',
-  'procedures',
-  'contact',
-];
+const CATEGORIES = ['algemeen', 'diensten', 'prijzen', 'openingsuren', 'faq', 'procedures', 'contact'];
 
 export default function AdminKennisbankPage() {
   const router = useRouter();
   const [isAdmin, setIsAdmin] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [items, setItems] = useState<KnowledgeItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [selectedSector, setSelectedSector] = useState<string>('frituur');
-  const [expandedCategories, setExpandedCategories] = useState<string[]>(['algemeen']);
+  const [selectedSector, setSelectedSector] = useState('garage');
+  const [expandedCategories, setExpandedCategories] = useState<string[]>(['algemeen', 'diensten']);
 
-  // Form state
   const [category, setCategory] = useState('algemeen');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-
-  // Search
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Bulk import
-  const [bulkJson, setBulkJson] = useState('');
-  const [bulkImporting, setBulkImporting] = useState(false);
-  const [bulkResult, setBulkResult] = useState<{ success: number; failed: number; total: number; remaining?: number } | null>(null);
   const [showBulkImport, setShowBulkImport] = useState(false);
+  const [bulkImporting, setBulkImporting] = useState(false);
   const [importProgress, setImportProgress] = useState('');
+  const [bulkResult, setBulkResult] = useState<{ success: number; failed: number; total: number } | null>(null);
 
-  // Check admin auth on mount
   useEffect(() => {
     checkAdminSession();
   }, []);
+
+  useEffect(() => {
+    if (isAdmin) loadKnowledge();
+  }, [selectedSector, isAdmin]);
 
   const checkAdminSession = async () => {
     try {
@@ -80,20 +70,13 @@ export default function AdminKennisbankPage() {
     } catch (e) {
       console.error('Session check failed:', e);
     }
-    // Not authenticated, redirect to admin login
     router.push('/admin');
   };
-
-  useEffect(() => {
-    if (isAdmin) {
-      loadKnowledge();
-    }
-  }, [selectedSector, isAdmin]);
 
   async function loadKnowledge() {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/kennisbank?sector=${selectedSector}`);
+      const res = await fetch(`/api/admin/kennisbank?sector=${selectedSector}`, { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         setItems(data);
@@ -107,12 +90,12 @@ export default function AdminKennisbankPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!content.trim()) return;
-
     setSaving(true);
     try {
       const res = await fetch('/api/admin/kennisbank', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           sector_type: selectedSector,
           category,
@@ -120,99 +103,30 @@ export default function AdminKennisbankPage() {
           content,
         }),
       });
-
       if (res.ok) {
         setTitle('');
         setContent('');
         loadKnowledge();
       }
     } catch (error) {
-      console.error('Error saving knowledge:', error);
+      console.error('Error saving:', error);
     }
     setSaving(false);
   }
 
   async function handleDelete(id: string) {
     if (!confirm('Weet je zeker dat je dit wilt verwijderen?')) return;
-
     try {
-      await fetch(`/api/admin/kennisbank?id=${id}`, { method: 'DELETE' });
+      await fetch(`/api/admin/kennisbank?id=${id}`, { method: 'DELETE', credentials: 'include' });
       loadKnowledge();
     } catch (error) {
-      console.error('Error deleting knowledge:', error);
+      console.error('Error deleting:', error);
     }
-  }
-
-  function toggleCategory(cat: string) {
-    setExpandedCategories(prev =>
-      prev.includes(cat)
-        ? prev.filter(c => c !== cat)
-        : [...prev, cat]
-    );
-  }
-
-  async function handleBulkImport() {
-    if (!bulkJson.trim()) return;
-
-    setBulkImporting(true);
-    setBulkResult(null);
-
-    try {
-      const items = JSON.parse(bulkJson);
-      
-      if (!Array.isArray(items)) {
-        alert('JSON moet een array zijn');
-        setBulkImporting(false);
-        return;
-      }
-
-      // Split into chunks of 1000
-      const CHUNK_SIZE = 500;
-      let totalSuccess = 0;
-      let totalFailed = 0;
-
-      for (let i = 0; i < items.length; i += CHUNK_SIZE) {
-        const chunk = items.slice(i, i + CHUNK_SIZE);
-        
-        const res = await fetch('/api/admin/kennisbank/bulk', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            sector_type: selectedSector,
-            items: chunk,
-          }),
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          totalSuccess += data.success;
-          totalFailed += data.failed;
-        } else {
-          totalFailed += chunk.length;
-        }
-
-        // Update progress
-        setBulkResult({
-          success: totalSuccess,
-          failed: totalFailed,
-          total: items.length,
-        });
-      }
-
-      setBulkJson('');
-      loadKnowledge();
-    } catch (error) {
-      console.error('Bulk import error:', error);
-      alert('Ongeldige JSON. Controleer het formaat.');
-    }
-
-    setBulkImporting(false);
   }
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-
     setBulkImporting(true);
     setBulkResult(null);
     setImportProgress('Bestand lezen...');
@@ -220,12 +134,9 @@ export default function AdminKennisbankPage() {
     try {
       const text = await file.text();
       const data = JSON.parse(text);
-      
-      // Get items array (handle both formats)
       const items = data.requests || data;
       const totalItems = items.length;
-      
-      setImportProgress(`${totalItems} items gevonden. Importeren...`);
+      setImportProgress(`${totalItems} items gevonden...`);
 
       let totalSuccess = 0;
       let totalFailed = 0;
@@ -233,16 +144,13 @@ export default function AdminKennisbankPage() {
 
       for (let i = 0; i < totalItems; i += CHUNK_SIZE) {
         const chunk = items.slice(i, i + CHUNK_SIZE);
-        
         setImportProgress(`Importeren ${i + 1} - ${Math.min(i + CHUNK_SIZE, totalItems)} van ${totalItems}...`);
 
         const res = await fetch('/api/admin/kennisbank/import-gpt', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            sector_type: selectedSector,
-            data: chunk,
-          }),
+          credentials: 'include',
+          body: JSON.stringify({ sector_type: selectedSector, data: chunk }),
         });
 
         if (res.ok) {
@@ -252,31 +160,24 @@ export default function AdminKennisbankPage() {
         } else {
           totalFailed += chunk.length;
         }
-
-        setBulkResult({
-          success: totalSuccess,
-          failed: totalFailed,
-          total: totalItems,
-        });
-
-        // Small delay between chunks
+        setBulkResult({ success: totalSuccess, failed: totalFailed, total: totalItems });
         await new Promise(resolve => setTimeout(resolve, 200));
       }
-
       setImportProgress('Klaar!');
       loadKnowledge();
     } catch (error) {
-      console.error('File import error:', error);
-      alert('Fout bij importeren. Controleer het bestand.');
+      console.error('Import error:', error);
+      alert('Fout bij importeren');
       setImportProgress('');
     }
-
     setBulkImporting(false);
-    // Reset file input
     e.target.value = '';
   }
 
-  // Group items by category
+  const toggleCategory = (cat: string) => {
+    setExpandedCategories(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]);
+  };
+
   const groupedItems = items.reduce((acc, item) => {
     const cat = item.category || 'algemeen';
     if (!acc[cat]) acc[cat] = [];
@@ -284,17 +185,12 @@ export default function AdminKennisbankPage() {
     return acc;
   }, {} as Record<string, KnowledgeItem[]>);
 
-  // Filter by search
   const filteredItems = searchQuery
-    ? items.filter(item =>
-        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.content.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+    ? items.filter(item => item.title.toLowerCase().includes(searchQuery.toLowerCase()) || item.content.toLowerCase().includes(searchQuery.toLowerCase()))
     : null;
 
   const currentSector = SECTORS.find(s => s.id === selectedSector);
 
-  // Loading state
   if (authLoading) {
     return (
       <div style={{ minHeight: '100vh', background: '#0f1729', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -303,322 +199,214 @@ export default function AdminKennisbankPage() {
     );
   }
 
-  // Not authenticated
   if (!isAdmin) {
     return (
       <div style={{ minHeight: '100vh', background: '#0f1729', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center' }}>
-          <Shield size={48} style={{ color: '#ef4444', marginBottom: 16 }} />
-          <p style={{ color: '#9ca3af' }}>Geen toegang</p>
-        </div>
+        <Shield size={48} style={{ color: '#ef4444' }} />
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0f1729' }}>
-      <div className="p-6 max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.push('/admin')}
-              className="flex items-center gap-2 text-gray-400 hover:text-white transition"
-            >
-              <ArrowLeft size={20} />
-              Terug
-            </button>
-            <div>
-              <h1 className="text-3xl font-bold text-white">Kennisbank</h1>
-              <p className="text-gray-400 mt-1">
-                Beheer kennis per sector - wordt automatisch aan klanten gekoppeld bij registratie
-              </p>
-            </div>
+    <div style={{ minHeight: '100vh', background: '#0f1729', padding: 24 }}>
+      {/* Header */}
+      <div style={{ maxWidth: 1400, margin: '0 auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
+          <button
+            onClick={() => router.push('/admin')}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#1e293b', border: '1px solid #334155', borderRadius: 8, padding: '10px 16px', color: '#9ca3af', cursor: 'pointer' }}
+          >
+            <ArrowLeft size={18} /> Terug
+          </button>
+          <div>
+            <h1 style={{ color: 'white', fontSize: 28, fontWeight: 700, margin: 0 }}>Kennisbank</h1>
+            <p style={{ color: '#6b7280', fontSize: 14, margin: 0 }}>Beheer kennis per sector - wordt automatisch aan klanten gekoppeld</p>
           </div>
         </div>
 
-        {/* Sector tabs */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+        {/* Sector Tabs */}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
           {SECTORS.map(sector => (
             <button
               key={sector.id}
               onClick={() => setSelectedSector(sector.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition ${
-                selectedSector === sector.id
-                  ? 'bg-orange-500 text-white'
-                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-              }`}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                background: selectedSector === sector.id ? '#f97316' : '#1e293b',
+                color: selectedSector === sector.id ? 'white' : '#9ca3af',
+                fontWeight: selectedSector === sector.id ? 600 : 400,
+              }}
             >
               <span>{sector.icon}</span>
               <span>{sector.name}</span>
-              {items.length > 0 && selectedSector === sector.id && (
-                <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">
-                  {items.length}
-                </span>
-              )}
             </button>
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left: Add new knowledge */}
-          <div className="lg:col-span-1">
-            <div className="bg-gray-800 rounded-lg p-6 sticky top-6">
-              <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-                <Plus size={20} />
-                Kennis toevoegen
-              </h2>
-              <p className="text-gray-400 text-sm mb-4">
-                Voor: {currentSector?.icon} {currentSector?.name}
-              </p>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Categorie
-                  </label>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white"
-                  >
-                    {CATEGORIES.map(cat => (
-                      <option key={cat} value={cat}>
-                        {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Titel
-                  </label>
-                  <input
-                    type="text"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Korte titel..."
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Inhoud
-                  </label>
-                  <textarea
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    placeholder="De kennis die de AI moet weten..."
-                    rows={6}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white"
-                    required
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={saving || !content.trim()}
-                  className="w-full bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 disabled:opacity-50 flex items-center justify-center gap-2"
+        {/* Main Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: '350px 1fr', gap: 24 }}>
+          {/* LEFT: Form */}
+          <div style={{ background: '#1e293b', borderRadius: 12, padding: 24, border: '1px solid #334155', height: 'fit-content' }}>
+            <h2 style={{ color: 'white', fontSize: 18, fontWeight: 600, margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Plus size={20} /> Kennis toevoegen
+            </h2>
+            <p style={{ color: '#6b7280', fontSize: 13, margin: '0 0 20px 0' }}>
+              Voor: {currentSector?.icon} {currentSector?.name}
+            </p>
+
+            <form onSubmit={handleSubmit}>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', color: '#9ca3af', fontSize: 13, marginBottom: 6 }}>Categorie</label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  style={{ width: '100%', padding: '10px 12px', background: '#0f172a', border: '1px solid #334155', borderRadius: 8, color: 'white', fontSize: 14 }}
                 >
-                  {saving ? 'Opslaan...' : (
-                    <>
-                      <Plus size={18} />
-                      Toevoegen
-                    </>
-                  )}
-                </button>
-              </form>
+                  {CATEGORIES.map(cat => (
+                    <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>
+                  ))}
+                </select>
+              </div>
 
-              {/* Bulk Import Toggle */}
-              <div className="mt-6 pt-6 border-t border-gray-700">
-                <button
-                  onClick={() => setShowBulkImport(!showBulkImport)}
-                  className="w-full flex items-center justify-center gap-2 text-gray-400 hover:text-white transition"
-                >
-                  <Upload size={18} />
-                  {showBulkImport ? 'Verberg Import' : 'Bulk Import (GPT/JSON)'}
-                </button>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', color: '#9ca3af', fontSize: 13, marginBottom: 6 }}>Titel</label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Korte titel..."
+                  style={{ width: '100%', padding: '10px 12px', background: '#0f172a', border: '1px solid #334155', borderRadius: 8, color: 'white', fontSize: 14 }}
+                />
+              </div>
 
-                {showBulkImport && (
-                  <div className="mt-4 space-y-4">
-                    {/* File Upload - GPT Format */}
-                    <div className="bg-green-900/30 border border-green-700 rounded-lg p-4">
-                      <p className="text-green-400 text-sm font-medium mb-2">
-                        GPT Bestand Uploaden
-                      </p>
-                      <p className="text-gray-400 text-xs mb-3">
-                        Upload je GPT JSON bestand direct (ondersteunt {`{requests: [...]}`} formaat)
-                      </p>
-                      <label className="block">
-                        <input
-                          type="file"
-                          accept=".json"
-                          onChange={handleFileUpload}
-                          disabled={bulkImporting}
-                          className="block w-full text-sm text-gray-400
-                            file:mr-4 file:py-2 file:px-4
-                            file:rounded-lg file:border-0
-                            file:text-sm file:font-medium
-                            file:bg-green-600 file:text-white
-                            hover:file:bg-green-700
-                            file:cursor-pointer file:disabled:opacity-50"
-                        />
-                      </label>
-                      {importProgress && (
-                        <p className="text-yellow-400 text-sm mt-2">{importProgress}</p>
-                      )}
-                    </div>
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: 'block', color: '#9ca3af', fontSize: 13, marginBottom: 6 }}>Inhoud</label>
+                <textarea
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="De kennis die de AI moet weten..."
+                  rows={5}
+                  style={{ width: '100%', padding: '10px 12px', background: '#0f172a', border: '1px solid #334155', borderRadius: 8, color: 'white', fontSize: 14, resize: 'vertical' }}
+                  required
+                />
+              </div>
 
-                    <div className="text-center text-gray-500 text-sm">— of —</div>
+              <button
+                type="submit"
+                disabled={saving || !content.trim()}
+                style={{
+                  width: '100%', padding: '12px 20px', background: '#f97316', border: 'none', borderRadius: 8, color: 'white', fontSize: 15, fontWeight: 600, cursor: 'pointer',
+                  opacity: (saving || !content.trim()) ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                }}
+              >
+                <Plus size={18} /> {saving ? 'Opslaan...' : 'Toevoegen'}
+              </button>
+            </form>
 
-                    {/* Manual JSON Paste */}
-                    <div className="bg-gray-700/50 rounded-lg p-3 text-xs text-gray-400">
-                      <p className="flex items-center gap-1 mb-2">
-                        <FileJson size={14} />
-                        Handmatig JSON plakken:
-                      </p>
-                      <pre className="overflow-x-auto">
-{`[
-  {
-    "category": "diensten",
-    "title": "APK keuring",
-    "content": "Een APK..."
-  },
-  ...
-]`}
-                      </pre>
-                    </div>
-                    <textarea
-                      value={bulkJson}
-                      onChange={(e) => setBulkJson(e.target.value)}
-                      placeholder="Plak hier je JSON array..."
-                      rows={6}
-                      className="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white text-sm font-mono"
+            {/* Bulk Import */}
+            <div style={{ marginTop: 24, paddingTop: 24, borderTop: '1px solid #334155' }}>
+              <button
+                onClick={() => setShowBulkImport(!showBulkImport)}
+                style={{ width: '100%', background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 14 }}
+              >
+                <Upload size={16} /> {showBulkImport ? 'Verberg Import' : 'Bulk Import (GPT/JSON)'}
+              </button>
+
+              {showBulkImport && (
+                <div style={{ marginTop: 16 }}>
+                  <div style={{ background: '#0f172a', border: '1px solid #22c55e40', borderRadius: 8, padding: 16 }}>
+                    <p style={{ color: '#22c55e', fontSize: 13, fontWeight: 600, margin: '0 0 8px 0' }}>GPT Bestand Uploaden</p>
+                    <p style={{ color: '#6b7280', fontSize: 12, margin: '0 0 12px 0' }}>Upload je JSON bestand</p>
+                    <input
+                      type="file"
+                      accept=".json"
+                      onChange={handleFileUpload}
+                      disabled={bulkImporting}
+                      style={{ width: '100%', fontSize: 13, color: '#9ca3af' }}
                     />
-                    
+                    {importProgress && <p style={{ color: '#f59e0b', fontSize: 13, marginTop: 8 }}>{importProgress}</p>}
                     {bulkResult && (
-                      <div className="bg-gray-700 rounded-lg p-3 text-sm">
-                        <p className="text-green-400">{bulkResult.success.toLocaleString()} succesvol</p>
-                        {bulkResult.failed > 0 && (
-                          <p className="text-red-400">{bulkResult.failed.toLocaleString()} mislukt</p>
-                        )}
-                        <p className="text-gray-400">Totaal: {bulkResult.total.toLocaleString()}</p>
-                        {bulkResult.remaining && bulkResult.remaining > 0 && (
-                          <p className="text-yellow-400">Nog {bulkResult.remaining.toLocaleString()} over</p>
-                        )}
+                      <div style={{ marginTop: 12, padding: 12, background: '#1e293b', borderRadius: 6 }}>
+                        <p style={{ color: '#22c55e', fontSize: 13, margin: 0 }}>{bulkResult.success.toLocaleString()} succesvol</p>
+                        {bulkResult.failed > 0 && <p style={{ color: '#ef4444', fontSize: 13, margin: 0 }}>{bulkResult.failed.toLocaleString()} mislukt</p>}
                       </div>
                     )}
-                    
-                    <button
-                      onClick={handleBulkImport}
-                      disabled={bulkImporting || !bulkJson.trim()}
-                      className="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2"
-                    >
-                      {bulkImporting ? (
-                        <>Importeren... {bulkResult ? `(${bulkResult.success.toLocaleString()}/${bulkResult.total.toLocaleString()})` : ''}</>
-                      ) : (
-                        <>
-                          <Upload size={18} />
-                          Importeer JSON
-                        </>
-                      )}
-                    </button>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Right: Knowledge list */}
-          <div className="lg:col-span-2">
+          {/* RIGHT: Knowledge List */}
+          <div>
             {/* Search */}
-            <div className="mb-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Zoeken in kennisbank..."
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-white"
-                />
-              </div>
+            <div style={{ position: 'relative', marginBottom: 16 }}>
+              <Search size={18} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }} />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Zoeken in kennisbank..."
+                style={{ width: '100%', padding: '12px 12px 12px 44px', background: '#1e293b', border: '1px solid #334155', borderRadius: 8, color: 'white', fontSize: 14 }}
+              />
             </div>
 
+            {/* Stats */}
+            <div style={{ background: '#1e293b', borderRadius: 8, padding: 16, marginBottom: 16, border: '1px solid #334155' }}>
+              <p style={{ color: '#9ca3af', fontSize: 14, margin: 0 }}>
+                <strong style={{ color: 'white' }}>{items.length}</strong> items voor {currentSector?.icon} {currentSector?.name}
+              </p>
+            </div>
+
+            {/* Content */}
             {loading ? (
-              <div className="text-gray-400 text-center py-12">Laden...</div>
+              <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>Laden...</div>
             ) : items.length === 0 ? (
-              <div className="bg-gray-800 rounded-lg p-12 text-center">
-                <p className="text-gray-400">
-                  Nog geen kennis voor {currentSector?.name}.
-                </p>
-                <p className="text-gray-500 text-sm mt-2">
-                  Voeg kennis toe via het formulier links.
-                </p>
+              <div style={{ background: '#1e293b', borderRadius: 12, padding: 40, textAlign: 'center', border: '1px solid #334155' }}>
+                <p style={{ color: '#6b7280', fontSize: 16, margin: 0 }}>Nog geen kennis voor {currentSector?.name}</p>
+                <p style={{ color: '#4b5563', fontSize: 14, marginTop: 8 }}>Voeg kennis toe via het formulier links</p>
               </div>
             ) : filteredItems ? (
-              // Search results
-              <div className="space-y-2">
-                <p className="text-gray-400 text-sm mb-2">
-                  {filteredItems.length} resultaten voor &quot;{searchQuery}&quot;
-                </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <p style={{ color: '#6b7280', fontSize: 13 }}>{filteredItems.length} resultaten</p>
                 {filteredItems.map(item => (
-                  <div key={item.id} className="bg-gray-800 rounded-lg p-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">
-                          {item.category}
-                        </span>
-                        <h3 className="text-white font-medium mt-2">{item.title}</h3>
-                        <p className="text-gray-400 text-sm mt-1 line-clamp-2">
-                          {item.content}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="text-red-400 hover:text-red-300 p-2"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                  <div key={item.id} style={{ background: '#1e293b', borderRadius: 8, padding: 16, border: '1px solid #334155', display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ flex: 1 }}>
+                      <span style={{ background: '#374151', color: '#d1d5db', padding: '2px 8px', borderRadius: 4, fontSize: 11 }}>{item.category}</span>
+                      <h3 style={{ color: 'white', fontWeight: 500, margin: '8px 0 4px', fontSize: 15 }}>{item.title}</h3>
+                      <p style={{ color: '#6b7280', fontSize: 13, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.content}</p>
                     </div>
+                    <button onClick={() => handleDelete(item.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 8 }}>
+                      <Trash2 size={16} />
+                    </button>
                   </div>
                 ))}
               </div>
             ) : (
-              // Grouped by category
-              <div className="space-y-2">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {CATEGORIES.map(cat => {
                   const catItems = groupedItems[cat] || [];
                   if (catItems.length === 0) return null;
                   const isExpanded = expandedCategories.includes(cat);
-
                   return (
-                    <div key={cat} className="bg-gray-800 rounded-lg overflow-hidden">
+                    <div key={cat} style={{ background: '#1e293b', borderRadius: 8, border: '1px solid #334155', overflow: 'hidden' }}>
                       <button
                         onClick={() => toggleCategory(cat)}
-                        className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-750"
+                        style={{ width: '100%', padding: 16, background: 'none', border: 'none', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left' }}
                       >
-                        <div className="flex items-center gap-2">
-                          {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-                          <span className="text-white font-medium">
-                            {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                          </span>
-                          <span className="text-gray-500 text-sm">
-                            ({catItems.length})
-                          </span>
-                        </div>
+                        {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                        <span style={{ fontWeight: 500 }}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</span>
+                        <span style={{ color: '#6b7280', fontSize: 13 }}>({catItems.length})</span>
                       </button>
                       {isExpanded && (
-                        <div className="border-t border-gray-700 divide-y divide-gray-700">
+                        <div style={{ borderTop: '1px solid #334155' }}>
                           {catItems.map(item => (
-                            <div key={item.id} className="p-4 flex justify-between items-start">
-                              <div className="flex-1">
-                                <h3 className="text-white font-medium">{item.title}</h3>
-                                <p className="text-gray-400 text-sm mt-1 line-clamp-2">
-                                  {item.content}
-                                </p>
+                            <div key={item.id} style={{ padding: 16, borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between' }}>
+                              <div style={{ flex: 1 }}>
+                                <h3 style={{ color: 'white', fontWeight: 500, margin: '0 0 4px', fontSize: 14 }}>{item.title}</h3>
+                                <p style={{ color: '#6b7280', fontSize: 13, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.content}</p>
                               </div>
-                              <button
-                                onClick={() => handleDelete(item.id)}
-                                className="text-red-400 hover:text-red-300 p-2 ml-2"
-                              >
+                              <button onClick={() => handleDelete(item.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 8 }}>
                                 <Trash2 size={16} />
                               </button>
                             </div>
