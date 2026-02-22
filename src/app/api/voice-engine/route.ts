@@ -219,7 +219,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error: unknown) {
     if (error instanceof TenantError) {
-      logError('UNKNOWN', conversationId, error);
+      logError('UNKNOWN', 'UNKNOWN', error);
       return NextResponse.json({ response: 'Excuseer, er is een probleem. Probeer later opnieuw.' });
     }
     logError('UNKNOWN', 'UNKNOWN', error);
