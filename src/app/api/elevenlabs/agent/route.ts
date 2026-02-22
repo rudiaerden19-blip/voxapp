@@ -162,10 +162,22 @@ Je bent de AI receptionist van ${businessName}. ${aiContext || ''}
 1. Wees ALTIJD vriendelijk, warm en behulpzaam
 2. Geef ALTIJD de ECHTE informatie hieronder, zeg NOOIT "kijk op de website"
 3. Als je iets niet weet, zeg dat eerlijk en bied aan om door te verbinden
-${['frituur', 'pizzeria', 'kebab', 'snackbar'].includes(business.type || '') ? `4. Bij BESTELLINGEN: vraag wat de klant wilt, afhalen of leveren, naam, telefoonnummer, adres (bij levering)
-5. Bevestig ALTIJD de volledige bestelling met prijs aan het einde
-6. Geef de geschatte levertijd of afhaaltijd` : `4. Bij het maken van afspraken: vraag naam, telefoonnummer, gewenste datum/tijd, en reden
-5. Bevestig altijd de afspraakdetails aan het einde`}
+${['frituur', 'pizzeria', 'kebab', 'snackbar'].includes(business.type || '') ? `4. Bij BESTELLINGEN verzamel je ALTIJD deze gegevens:
+   - Wat de klant wilt bestellen (producten met hoeveelheden)
+   - Afhalen of bezorgen
+   - NAAM van de klant (zeg "Op welke naam mag ik de bestelling noteren?")
+   - TELEFOONNUMMER van de klant (zeg "En uw telefoonnummer voor contact?")
+   - Bij bezorgen: het volledige ADRES
+   - Gewenste tijd (afhaal/bezorg tijd)
+5. Bevestig ALTIJD aan het einde: "Uw bestelling is genoteerd. U heeft besteld: [items]. Het totaal is [bedrag]. [Afhalen om/Bezorging om] [tijd] aan [adres als bezorging]. Uw naam: [naam], telefoonnummer: [nummer]. Klopt dit?"
+6. Na bevestiging zeg: "Uw bestelling is bevestigd. Tot straks!"` : `4. Bij AFSPRAKEN verzamel je ALTIJD deze gegevens:
+   - NAAM van de klant (zeg "Op welke naam mag ik de afspraak noteren?")
+   - TELEFOONNUMMER van de klant (zeg "En uw telefoonnummer?")
+   - Gewenste DATUM (zeg "Voor wanneer wilt u de afspraak maken?")
+   - Gewenste TIJD (zeg "En hoe laat zou u willen komen?")
+   - REDEN van de afspraak (zeg "Waarvoor wilt u langskomen?")
+5. Bevestig ALTIJD aan het einde: "Uw afspraak is ingepland op [datum] om [tijd] voor [reden]. Uw naam: [naam], telefoonnummer: [nummer]. Klopt dit?"
+6. Na bevestiging zeg: "Uw afspraak is bevestigd. We zien u dan!"`}
 
 # BEDRIJFSGEGEVENS
 Naam: ${businessName}
@@ -354,6 +366,10 @@ export async function POST(request: NextRequest) {
       validTransferNumber
     );
 
+    // Get webhook URL for post-call processing
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://voxapp.io';
+    const webhookUrl = `${baseUrl}/api/webhooks/elevenlabs`;
+
     // ElevenLabs agent config - Dutch requires turbo/flash model
     // NOTE: Appointments/orders worden automatisch aangemaakt via post-call webhook analyse
     const agentConfig = {
@@ -372,6 +388,12 @@ export async function POST(request: NextRequest) {
             ? business.voice_id 
             : 'pFZP5JQG7iQjIQuC4Bku', // Default: Lily (multilingual)
           model_id: 'eleven_turbo_v2_5', // Required for non-English (32 languages)
+        },
+      },
+      platform_settings: {
+        webhook: {
+          url: webhookUrl,
+          events: ['post_call_transcription'],
         },
       },
       name: `${business.name} Receptionist`,
