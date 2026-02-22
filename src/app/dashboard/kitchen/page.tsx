@@ -185,19 +185,24 @@ export default function KitchenPage() {
                     </div>
                   </div>
 
-                  {/* Bestelling items — bon-stijl */}
-                  <div style={{ borderBottom: '2px solid #111', paddingBottom: 12, marginBottom: 12, minHeight: 48 }}>
+                  {/* Bestelling items — kassabon stijl */}
+                  <div style={{ borderBottom: '2px solid #111', paddingBottom: 8, marginBottom: 8, minHeight: 48 }}>
                     {order.notes ? (
                       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <tbody>
                           {order.notes.split('\n').filter((l: string) => l.trim()).map((line: string, idx: number) => {
-                            const priceMatch = line.match(/€(\d+[.,]\d{2})\s*$/);
-                            const itemText = priceMatch ? line.replace(/€\d+[.,]\d{2}\s*$/, '').trim() : line.trim();
-                            const price = priceMatch ? priceMatch[0].trim() : '';
+                            const priceMatch = line.match(/(€\d+[.,]\d{2})\s*$/);
+                            const textPart = priceMatch ? line.replace(/(€\d+[.,]\d{2})\s*$/, '').trim() : line.trim();
+                            const price = priceMatch ? priceMatch[1] : '';
+                            // Split "2  Grote friet" into qty + name
+                            const qtyNameMatch = textPart.match(/^(\d+)\s{1,}(.+)$/);
+                            const qty = qtyNameMatch ? qtyNameMatch[1] : '';
+                            const name = qtyNameMatch ? qtyNameMatch[2] : textPart;
                             return (
-                              <tr key={idx} style={{ borderBottom: '1px dotted #ccc' }}>
-                                <td style={{ padding: '6px 0', fontSize: 16, fontWeight: 700 }}>{itemText}</td>
-                                <td style={{ padding: '6px 0', fontSize: 16, fontWeight: 700, textAlign: 'right', whiteSpace: 'nowrap' }}>{price}</td>
+                              <tr key={idx}>
+                                <td style={{ padding: '5px 0', fontSize: 15, width: 28, verticalAlign: 'top', color: '#333' }}>{qty}</td>
+                                <td style={{ padding: '5px 0', fontSize: 15, fontWeight: 600 }}>{name}</td>
+                                <td style={{ padding: '5px 0', fontSize: 15, textAlign: 'right', whiteSpace: 'nowrap', fontWeight: 600 }}>{price}</td>
                               </tr>
                             );
                           })}
@@ -209,9 +214,9 @@ export default function KitchenPage() {
                   </div>
 
                   {/* Totaal */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, borderTop: '2px solid #111', paddingTop: 10 }}>
-                    <span style={{ fontSize: 18, fontWeight: 900, letterSpacing: 1 }}>TOTAAL</span>
-                    <span style={{ fontSize: 24, fontWeight: 900 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, borderTop: '2px double #111', paddingTop: 8 }}>
+                    <span style={{ fontSize: 18, fontWeight: 900 }}>TOTAAL</span>
+                    <span style={{ fontSize: 22, fontWeight: 900 }}>
                       {order.total_amount > 0 ? `€${Number(order.total_amount).toFixed(2)}` : '—'}
                     </span>
                   </div>
