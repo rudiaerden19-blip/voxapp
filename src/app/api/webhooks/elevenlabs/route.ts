@@ -5,6 +5,94 @@ import { PLAN_MINUTES } from '@/lib/planFacts';
 // Horeca business types that take orders
 const HORECA_TYPES = ['frituur', 'pizzeria', 'kebab', 'restaurant', 'snackbar'];
 
+// ==============================
+// MENU NORMALIZER — fixes speech-to-text errors
+// ==============================
+
+const HARDCODED_REPLACEMENTS: Record<string, string> = {
+  'cerbella': 'cervela',
+  'cebella': 'cervela',
+  'servela': 'cervela',
+  'cervella': 'cervela',
+  'cerbéla': 'cervela',
+  'cerbela': 'cervela',
+  'servelade': 'cervela',
+  'gebakken servla': 'cervela',
+  'boelet': 'gebakken boulet',
+  'boelett': 'gebakken boulet',
+  'boulet': 'gebakken boulet',
+  'koude boulet': 'gebakken boulet',
+  'frikadel': 'frikandel',
+  'frikadel speciaal': 'frikandel speciaal',
+  'bickyburger': 'bicky burger',
+  'biggie burger': 'bicky burger',
+  'zoute mayonaise': 'zoete mayonaise',
+  'zoute mayo': 'zoete mayonaise',
+};
+
+function levenshtein(a: string, b: string): number {
+  const m = a.length, n = b.length;
+  const dp: number[][] = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1,
+        dp[i][j - 1] + 1,
+        dp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
+      );
+  return dp[m][n];
+}
+
+function fuzzyMatchMenu(word: string, menuNames: string[], cutoff = 0.78): string {
+  let bestMatch = word;
+  let bestScore = 0;
+  for (const name of menuNames) {
+    const maxLen = Math.max(word.length, name.length);
+    if (maxLen === 0) continue;
+    const score = 1 - levenshtein(word, name) / maxLen;
+    if (score > bestScore && score >= cutoff) {
+      bestScore = score;
+      bestMatch = name;
+    }
+  }
+  return bestMatch;
+}
+
+function normalizeMenuText(text: string, menuNames: string[]): string {
+  let normalized = text.toLowerCase();
+  // Sort replacements by length (longest first) to avoid partial matches
+  const sorted = Object.entries(HARDCODED_REPLACEMENTS).sort((a, b) => b[0].length - a[0].length);
+  for (const [wrong, correct] of sorted) {
+    normalized = normalized.replace(new RegExp(wrong.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), correct);
+  }
+
+  // Fuzzy match multi-word and single-word against menu
+  const words = normalized.split(/\s+/);
+  const result: string[] = [];
+  let i = 0;
+  while (i < words.length) {
+    // Try 3-word combo
+    if (i + 2 < words.length) {
+      const three = `${words[i]} ${words[i + 1]} ${words[i + 2]}`;
+      const match3 = fuzzyMatchMenu(three, menuNames);
+      if (match3 !== three) { result.push(match3); i += 3; continue; }
+    }
+    // Try 2-word combo
+    if (i + 1 < words.length) {
+      const two = `${words[i]} ${words[i + 1]}`;
+      const match2 = fuzzyMatchMenu(two, menuNames);
+      if (match2 !== two) { result.push(match2); i += 2; continue; }
+    }
+    // Single word
+    const match1 = fuzzyMatchMenu(words[i], menuNames);
+    result.push(match1);
+    i += 1;
+  }
+  return result.join(' ');
+}
+
 // Parse phone number from transcript
 function extractPhoneNumber(text: string): string | null {
   const phonePatterns = [
@@ -170,9 +258,9 @@ function buildReceipt(
 
   if (!rawText) return { notes: 'Bestelling via telefoon', total: 0 };
 
-  // --- STEP 2: Clean up speech-to-text errors ---
-  rawText = rawText.replace(/zoute\s+mayo(naise)?/gi, 'zoete mayonaise');
-  rawText = rawText.replace(/biggie\s+burger/gi, 'bicky burger');
+  // --- STEP 2: Normalize with hardcoded replacements + fuzzy matching ---
+  const menuNames = Object.keys(menuPrices);
+  rawText = normalizeMenuText(rawText, menuNames);
 
   // --- STEP 3: Split into individual items ---
   // Split on comma, or "en" followed by a quantity word / food keyword
