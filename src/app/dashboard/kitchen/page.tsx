@@ -36,35 +36,70 @@ export default function KitchenPage() {
   const [error, setError] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [resolvedBusinessId, setResolvedBusinessId] = useState<string | null>(null);
+
+  // Resolve business ID: use context or fallback to first business
+  useEffect(() => {
+    if (businessId) {
+      setResolvedBusinessId(businessId);
+      return;
+    }
+    // Fallback: haal eerste business uit DB
+    const { createClient } = require('@/lib/supabase');
+    const supabase = createClient();
+    supabase
+      .from('businesses')
+      .select('id')
+      .limit(1)
+      .single()
+      .then(({ data }: { data: { id: string } | null }) => {
+        if (data?.id) setResolvedBusinessId(data.id);
+      });
+  }, [businessId]);
 
   const loadOrders = useCallback(async () => {
-    if (!businessId) return;
+    if (!resolvedBusinessId) return;
     
     try {
-      const res = await fetch(`/api/orders?business_id=${businessId}&status=new,preparing,ready`);
+      const res = await fetch(`/api/orders?business_id=${resolvedBusinessId}&status=new,preparing,ready`);
       if (res.ok) {
         const data = await res.json();
         setOrders(data);
         setLastRefresh(new Date());
+      } else {
+        // Fallback: direct Supabase query
+        const { createClient } = require('@/lib/supabase');
+        const supabase = createClient();
+        const { data } = await supabase
+          .from('orders')
+          .select('*, order_items(*)')
+          .eq('business_id', resolvedBusinessId)
+          .in('status', ['pending', 'preparing', 'ready', 'new'])
+          .order('created_at', { ascending: false })
+          .limit(50);
+        if (data) {
+          setOrders(data);
+          setLastRefresh(new Date());
+        }
       }
     } catch (e) {
       console.error('Failed to load orders:', e);
       setError('Kon bestellingen niet laden');
     }
     setLoading(false);
-  }, [businessId]);
+  }, [resolvedBusinessId]);
 
   useEffect(() => {
-    if (businessId) {
+    if (resolvedBusinessId) {
       loadOrders();
     }
-  }, [businessId, loadOrders]);
+  }, [resolvedBusinessId, loadOrders]);
 
   useEffect(() => {
-    if (!autoRefresh) return;
-    const interval = setInterval(loadOrders, 10000);
+    if (!autoRefresh || !resolvedBusinessId) return;
+    const interval = setInterval(loadOrders, 5000);
     return () => clearInterval(interval);
-  }, [autoRefresh, loadOrders]);
+  }, [autoRefresh, resolvedBusinessId, loadOrders]);
 
   const markAsReady = async (orderId: string) => {
     try {
@@ -76,13 +111,19 @@ export default function KitchenPage() {
       
       if (res.ok) {
         setOrders(prev => prev.filter(o => o.id !== orderId));
+      } else {
+        // Fallback: direct Supabase update
+        const { createClient } = require('@/lib/supabase');
+        const supabase = createClient();
+        await supabase.from('orders').update({ status: 'completed' }).eq('id', orderId);
+        setOrders(prev => prev.filter(o => o.id !== orderId));
       }
     } catch (e) {
       console.error('Failed to update order:', e);
     }
   };
 
-  if (businessLoading || loading) {
+  if (loading && !orders.length) {
     return (
       <DashboardLayout>
         <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>Laden...</div>
