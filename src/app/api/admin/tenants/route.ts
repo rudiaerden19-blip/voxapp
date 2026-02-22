@@ -16,7 +16,8 @@ const VALID_BUSINESS_TYPES = [
   'restaurant', 'frituur', 'pizzeria', 'kebab', 'snackbar', 'bakker', 'slager', 'traiteur',
   'kapper', 'schoonheidssalon', 'nagelsalon', 'spa', 'massagesalon',
   'dokter', 'tandarts', 'ziekenhuis', 'opticien', 'dierenkliniek',
-  'advocaat', 'boekhouder', 'loodgieter', 'elektricien', 'aannemer',
+  'garage', 'advocaat', 'boekhouder', 'loodgieter', 'elektricien', 'aannemer',
+  'immokantoor',
   'other'
 ];
 
@@ -139,6 +140,24 @@ export async function POST(request: NextRequest) {
 
     if (!data) {
       return NextResponse.json({ error: 'Tenant aangemaakt maar data niet teruggekregen' }, { status: 500 });
+    }
+
+    // Kopieer sector templates naar de nieuwe business kennisbank
+    if (data.id && businessType && businessType !== 'other') {
+      try {
+        const { data: copyResult, error: copyError } = await supabase.rpc('copy_sector_templates_to_business', {
+          p_business_id: data.id,
+          p_sector_type: businessType
+        });
+        
+        if (copyError) {
+          console.error('Error copying sector templates:', copyError);
+        } else {
+          console.log(`Copied ${copyResult} sector templates for ${businessType} to business ${data.id}`);
+        }
+      } catch (e) {
+        console.error('Exception copying sector templates:', e);
+      }
     }
 
     return NextResponse.json(data, { status: 201 });
