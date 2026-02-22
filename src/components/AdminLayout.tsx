@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Users, CreditCard, Settings, LogOut, BarChart3, Menu, X, Shield, Ban, UserPlus } from 'lucide-react';
+import { Users, CreditCard, Settings, LogOut, BarChart3, Menu, X, Shield, Ban, UserPlus, BookOpen } from 'lucide-react';
 
 // ADMIN EMAIL - Alleen deze email heeft toegang tot admin panel
 const ADMIN_EMAIL = 'rudi.aerden@hotmail.com';
@@ -12,6 +12,7 @@ const ADMIN_EMAIL = 'rudi.aerden@hotmail.com';
 const navItems = [
   { href: '/admin', icon: BarChart3, label: 'Overzicht' },
   { href: '/admin/tenants', icon: Users, label: 'Alle Tenants' },
+  { href: '/admin/kennisbank', icon: BookOpen, label: 'Kennisbank' },
   { href: '/admin/subscriptions', icon: CreditCard, label: 'Abonnementen' },
   { href: '/admin/settings', icon: Settings, label: 'Instellingen' },
 ];

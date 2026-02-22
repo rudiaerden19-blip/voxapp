@@ -72,14 +72,50 @@ CREATE TABLE sector_templates (
   title VARCHAR(255),
   content TEXT NOT NULL,
   
+  -- Vector embedding
+  embedding vector(768),
+  
   -- Metadata
   is_active BOOLEAN DEFAULT true,
   
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Index
+-- Indexes
 CREATE INDEX idx_sector_templates_sector_type ON sector_templates(sector_type);
+CREATE INDEX idx_sector_templates_embedding ON sector_templates 
+  USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+
+-- ============================================
+-- FUNCTIE: Kopieer sector templates naar nieuwe business
+-- ============================================
+
+CREATE OR REPLACE FUNCTION copy_sector_templates_to_business(
+  p_business_id UUID,
+  p_sector_type VARCHAR(50)
+)
+RETURNS INTEGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  copied_count INTEGER;
+BEGIN
+  INSERT INTO knowledge_base (business_id, category, title, content, embedding, is_active)
+  SELECT 
+    p_business_id,
+    category,
+    title,
+    content,
+    embedding,
+    true
+  FROM sector_templates
+  WHERE sector_type = p_sector_type
+    AND is_active = true;
+  
+  GET DIAGNOSTICS copied_count = ROW_COUNT;
+  RETURN copied_count;
+END;
+$$;
 
 -- ============================================
 -- FUNCTIE: Zoeken in kennisbank (vector similarity)
