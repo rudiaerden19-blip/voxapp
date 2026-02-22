@@ -289,7 +289,6 @@ ${fallbackAction === 'transfer' && transferNumber
     : `Als je de klant niet kunt helpen, bied aan om een bericht achter te laten.`
 }`;
 }
-}
 
 // POST - Create or update ElevenLabs agent
 export async function POST(request: NextRequest) {
