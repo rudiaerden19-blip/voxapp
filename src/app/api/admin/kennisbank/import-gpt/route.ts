@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
 
             if (!content) return null;
 
-            // Skip embeddings for now - import data first
+            // Embeddings genereren we later in batch (voorkomt rate limits)
             return {
               sector_type,
               category,
