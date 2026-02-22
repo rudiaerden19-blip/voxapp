@@ -95,97 +95,83 @@ function lookupPrice(item: string, menuPrices: Record<string, number>): number {
   return 0;
 }
 
-interface OrderItem {
-  qty: number;
-  name: string;
-  price: number;
-}
-
-// Parse order items with quantities and prices from transcript messages
-function extractOrderItems(messages: { role?: string; message?: string; text?: string }[], menuPrices: Record<string, number>): OrderItem[] {
-  // First try: agent's summary line ("Dus 1 grote friet, 1 cola...")
+// Extract order notes from the agent's own summary in the transcript
+function extractOrderNotes(
+  messages: { role?: string; message?: string; text?: string }[],
+  menuPrices: Record<string, number>
+): { notes: string; total: number } {
+  // BEST: Use the agent's confirmation/summary line — it's clean and in Dutch
+  // Look for "Ok [naam], ik noem nog even op wat je besteld hebt: ..." or "Dus ..."
   for (let i = messages.length - 1; i >= 0; i--) {
     const m = messages[i];
-    if (m.role === 'agent') {
-      const txt = m.message || m.text || '';
-      if (/dus\b|klopt.*\?|samenvatting/i.test(txt)) {
-        const cleaned = txt
-          .replace(/klopt\s*(dat|dit)\s*\??/gi, '')
-          .replace(/^\s*dus\s*/i, '')
-          .replace(/,?\s*op naam van\s+[\w\s]+/i, '')
-          .replace(/,?\s*afhalen\b.*/i, '')
-          .replace(/,?\s*bezorgen\b.*/i, '')
-          .trim();
-        const items = parseItemsFromText(cleaned, menuPrices);
-        if (items.length > 0) return items;
+    if (m.role !== 'agent') continue;
+    const txt = m.message || m.text || '';
+    if (/ik noem.*op|dus\b.*besteld|samenvatting|bestelling.*:/i.test(txt)) {
+      // This is the summary line — use it directly as notes
+      const cleaned = txt
+        .replace(/ok\s+\w+\s*,?\s*/i, '')
+        .replace(/ik noem nog even op wat je besteld hebt:?\s*/i, '')
+        .replace(/dat was alles\s*\??/i, '')
+        .replace(/klopt\s*(dat|dit)\s*\??/i, '')
+        .replace(/^\s*dus\s*/i, '')
+        .trim()
+        .replace(/\.\s*$/, '');
+
+      if (cleaned.length > 5) {
+        const total = calcTotalFromText(cleaned, menuPrices);
+        return { notes: cleaned, total };
       }
     }
   }
-  
-  // Fallback: collect from user messages
-  const allUserText: string[] = [];
+
+  // FALLBACK: collect ONLY the lines where the user says food items
+  // Skip greetings, questions, confirmations, name/phone/address answers
+  const skipPatterns = /^(hallo|hey|goeie|dag|ja\b|nee\b|klopt|dat was|mijn naam|ik heet|ik ben|op naam|telefoon|\d{4}|afhalen|bezorgen|leveren|kan ik bestellen|ik wil bestellen|ik zou graag willen bestellen|dat is het|dat is alles|meer niet|niks meer|dank|bedankt|ok)/i;
+
+  const orderLines: string[] = [];
   for (const m of messages) {
-    if (m.role === 'user') {
-      const txt = m.message || m.text || '';
-      if (/friet|frikandel|kroket|bitterbal|snack|cola|fanta|water|saus|mayo|ketchup|curry|stoofvlees|bestellen|graag|wil|special|goulash|oorlog|nolim|ice\s*tea/i.test(txt)) {
-        if (!/^(ja|nee|klopt|dat\s*was|mijn\s*naam|ik\s*heet|telefoon|nummer|afhalen|bezorgen)/i.test(txt.trim())) {
-          allUserText.push(txt);
-        }
+    if (m.role !== 'user') continue;
+    const txt = (m.message || m.text || '').trim();
+    if (!txt || txt.length < 3) continue;
+    if (skipPatterns.test(txt)) continue;
+    orderLines.push(txt);
+  }
+
+  if (orderLines.length > 0) {
+    const combined = orderLines.join(', ');
+    const total = calcTotalFromText(combined, menuPrices);
+    return { notes: combined, total };
+  }
+
+  return { notes: 'Bestelling via telefoon', total: 0 };
+}
+
+// Calculate total by matching words against menu prices
+function calcTotalFromText(text: string, menuPrices: Record<string, number>): number {
+  let total = 0;
+  const lower = text.toLowerCase();
+  const matched = new Set<string>();
+
+  // Sort menu items by name length (longest first) to avoid partial matches
+  const sortedItems = Object.entries(menuPrices).sort((a, b) => b[0].length - a[0].length);
+
+  for (const [name, price] of sortedItems) {
+    if (matched.has(name)) continue;
+    const idx = lower.indexOf(name);
+    if (idx >= 0) {
+      // Check for quantity before the match
+      let qty = 1;
+      const before = lower.substring(Math.max(0, idx - 15), idx);
+      const qtyMatch = before.match(/(\d+)\s*[x×]?\s*$/) || before.match(/(een|één|twee|drie|vier|vijf)\s+$/i);
+      if (qtyMatch) {
+        const qtyMap: Record<string, number> = { 'een': 1, 'één': 1, 'twee': 2, 'drie': 3, 'vier': 4, 'vijf': 5 };
+        qty = qtyMap[qtyMatch[1].toLowerCase()] || parseInt(qtyMatch[1]) || 1;
       }
+      total += price * qty;
+      matched.add(name);
     }
   }
-  
-  return parseItemsFromText(allUserText.join(', '), menuPrices);
-}
-
-function parseItemsFromText(text: string, menuPrices: Record<string, number>): OrderItem[] {
-  const items: OrderItem[] = [];
-  // Split on commas, "en", "plus", "ook"
-  const parts = text.split(/,|\ben\b|\bplus\b|\book\b|\bnog\b/i).map(p => p.trim()).filter(Boolean);
-  
-  for (const part of parts) {
-    if (!part || part.length < 2) continue;
-    // Skip non-food parts
-    if (/naam|telefoon|adres|afhalen|bezorgen|klopt|perfect|tot straks/i.test(part)) continue;
-    
-    // Extract quantity
-    let qty = 1;
-    let name = part;
-    const qtyMatch = part.match(/^(\d+)\s*[x×]?\s*/i) || part.match(/^(een|één|twee|drie|vier|vijf)\s+/i);
-    if (qtyMatch) {
-      const qtyStr = qtyMatch[1].toLowerCase();
-      const qtyMap: Record<string, number> = { 'een': 1, 'één': 1, 'twee': 2, 'drie': 3, 'vier': 4, 'vijf': 5 };
-      qty = qtyMap[qtyStr] || parseInt(qtyStr) || 1;
-      name = part.substring(qtyMatch[0].length).trim();
-    }
-    
-    // Clean up filler words
-    name = name.replace(/^(ik\s+wil\s+|ik\s+zou\s+graag\s+|graag\s+|eh\s+|uh\s+|euh\s+)/i, '').trim();
-    name = name.replace(/^(een|één)\s+/i, '').trim();
-    name = name.replace(/\s*(alstublieft|aub|svp)\s*/i, '').trim();
-    
-    if (name.length < 2) continue;
-    
-    // Capitalize first letter
-    name = name.charAt(0).toUpperCase() + name.slice(1);
-    
-    const price = lookupPrice(name, menuPrices);
-    items.push({ qty, name, price: price * qty });
-  }
-  
-  return items;
-}
-
-function formatOrderItems(items: OrderItem[]): string {
-  if (items.length === 0) return 'Bestelling via telefoon';
-  return items.map(i => {
-    const priceStr = i.price > 0 ? ` €${i.price.toFixed(2)}` : '';
-    return `${i.qty}x ${i.name}${priceStr}`;
-  }).join('\n');
-}
-
-function calculateTotal(items: OrderItem[]): number {
-  return items.reduce((sum, i) => sum + i.price, 0);
+  return total;
 }
 
 // Extract date and time from transcript
@@ -435,14 +421,11 @@ export async function POST(request: NextRequest) {
         const customerAddress = deliveryType === 'delivery' ? extractAddress(transcriptText) : null;
         const { time: deliveryTime } = extractDateTime(transcriptText);
         
-        // Load menu prices from DB for this business, then parse items
+        // Extract order from the agent's own summary + calculate total from menu prices
         const menuPrices = await loadMenuPrices(supabase, business.id);
-        let items: OrderItem[] = [];
-        if (Array.isArray(transcript)) {
-          items = extractOrderItems(transcript, menuPrices);
-        }
-        const orderNotes = items.length > 0 ? formatOrderItems(items) : (transcriptText.substring(0, 500));
-        const totalAmount = calculateTotal(items);
+        const { notes: orderNotes, total: totalAmount } = Array.isArray(transcript)
+          ? extractOrderNotes(transcript, menuPrices)
+          : { notes: transcriptText.substring(0, 500), total: 0 };
         
         const { error: orderError } = await supabase
           .from('orders')
