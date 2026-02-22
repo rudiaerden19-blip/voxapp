@@ -354,110 +354,8 @@ export async function POST(request: NextRequest) {
       validTransferNumber
     );
 
-    // Get base URL for tool webhooks
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://voxapp.io';
-
-    // Build tools based on business type
-    const isHoreca = ['frituur', 'pizzeria', 'kebab', 'restaurant', 'snackbar'].includes(business.type || '');
-    
-    const tools = isHoreca ? [
-      {
-        type: 'webhook',
-        name: 'create_order',
-        description: 'Maak een bestelling aan wanneer de klant klaar is om te bestellen. Vraag eerst: wat wilt u bestellen, afhalen of bezorgen, naam, telefoonnummer, en adres (bij bezorging).',
-        webhook: {
-          url: `${baseUrl}/api/ai-tools/create-order`,
-          method: 'POST',
-        },
-        parameters: {
-          type: 'object',
-          properties: {
-            business_id: { type: 'string', description: 'Business ID (vast)', default: business_id },
-            customer_name: { type: 'string', description: 'Naam van de klant' },
-            customer_phone: { type: 'string', description: 'Telefoonnummer van de klant' },
-            customer_address: { type: 'string', description: 'Bezorgadres (alleen bij bezorging)' },
-            delivery_type: { type: 'string', enum: ['pickup', 'delivery'], description: 'afhalen of bezorgen' },
-            delivery_time: { type: 'string', description: 'Gewenste tijd (bijv. 19:30 of zo snel mogelijk)' },
-            items: { 
-              type: 'array', 
-              items: {
-                type: 'object',
-                properties: {
-                  product_name: { type: 'string', description: 'Naam van het product' },
-                  quantity: { type: 'number', description: 'Aantal' },
-                  options: { type: 'array', items: { type: 'string' }, description: 'Extra opties zoals sauzen' },
-                  notes: { type: 'string', description: 'Opmerkingen voor dit item' },
-                },
-                required: ['product_name', 'quantity'],
-              },
-              description: 'Bestelde items met hoeveelheid' 
-            },
-            notes: { type: 'string', description: 'Algemene opmerkingen bij de bestelling' },
-          },
-          required: ['business_id', 'customer_name', 'customer_phone', 'delivery_type', 'items'],
-        },
-      },
-    ] : [
-      {
-        type: 'webhook',
-        name: 'check_availability',
-        description: 'Controleer beschikbare tijdsloten voor een afspraak op een bepaalde datum.',
-        webhook: {
-          url: `${baseUrl}/api/ai-tools/check-availability`,
-          method: 'POST',
-        },
-        parameters: {
-          type: 'object',
-          properties: {
-            business_id: { type: 'string', description: 'Business ID (vast)', default: business_id },
-            date: { type: 'string', description: 'Datum in YYYY-MM-DD formaat' },
-            service_id: { type: 'string', description: 'Service ID (optioneel)' },
-          },
-          required: ['business_id', 'date'],
-        },
-      },
-      {
-        type: 'webhook',
-        name: 'create_appointment',
-        description: 'Maak een afspraak aan wanneer de klant een tijdslot heeft gekozen. Vraag eerst: naam, telefoonnummer, gewenste datum en tijd, en reden van afspraak.',
-        webhook: {
-          url: `${baseUrl}/api/ai-tools/create-appointment`,
-          method: 'POST',
-        },
-        parameters: {
-          type: 'object',
-          properties: {
-            business_id: { type: 'string', description: 'Business ID (vast)', default: business_id },
-            customer_name: { type: 'string', description: 'Naam van de klant' },
-            customer_phone: { type: 'string', description: 'Telefoonnummer van de klant' },
-            customer_email: { type: 'string', description: 'E-mailadres (optioneel)' },
-            date: { type: 'string', description: 'Datum in YYYY-MM-DD formaat' },
-            time: { type: 'string', description: 'Tijd in HH:MM formaat (bijv. 14:30)' },
-            service_name: { type: 'string', description: 'Naam/omschrijving van de afspraak' },
-            service_id: { type: 'string', description: 'Service ID (optioneel)' },
-            staff_id: { type: 'string', description: 'Medewerker ID (optioneel)' },
-            notes: { type: 'string', description: 'Extra opmerkingen' },
-          },
-          required: ['business_id', 'customer_name', 'customer_phone', 'date', 'time'],
-        },
-      },
-    ];
-
-    // Build workflow tools in ElevenLabs format
-    const workflowTools = tools.map(tool => ({
-      type: 'webhook' as const,
-      name: tool.name,
-      description: tool.description,
-      webhook: {
-        url: tool.webhook.url,
-        request_headers: {
-          'Content-Type': 'application/json',
-        },
-      },
-      parameters: tool.parameters,
-    }));
-
     // ElevenLabs agent config - Dutch requires turbo/flash model
+    // NOTE: Appointments/orders worden automatisch aangemaakt via post-call webhook analyse
     const agentConfig = {
       conversation_config: {
         agent: {
@@ -475,9 +373,6 @@ export async function POST(request: NextRequest) {
             : 'pFZP5JQG7iQjIQuC4Bku', // Default: Lily (multilingual)
           model_id: 'eleven_turbo_v2_5', // Required for non-English (32 languages)
         },
-      },
-      workflow: {
-        tools: workflowTools,
       },
       name: `${business.name} Receptionist`,
     };
