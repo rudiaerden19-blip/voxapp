@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VoxApp Status Rapport</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #1a1a2e; color: #eee; padding: 40px; line-height: 1.6; }
+    .container { max-width: 900px; margin: 0 auto; background: #16213e; padding: 40px; border-radius: 12px; }
+    h1 { color: #f97316; margin-bottom: 10px; }
+    h2 { color: #f97316; margin: 30px 0 15px; border-bottom: 2px solid #f97316; padding-bottom: 8px; }
+    h3 { color: #fff; margin: 20px 0 10px; }
+    p, li { margin-bottom: 8px; }
+    ul { padding-left: 25px; }
+    code { background: #0f0f23; padding: 2px 8px; border-radius: 4px; font-size: 14px; }
+    pre { background: #0f0f23; padding: 15px; border-radius: 8px; overflow-x: auto; margin: 15px 0; }
+    table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+    th, td { border: 1px solid #333; padding: 10px; text-align: left; }
+    th { background: #f97316; color: #000; }
+    .status { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+    .done { background: #22c55e; color: #000; }
+    .todo { background: #ef4444; color: #fff; }
+    .date { color: #888; font-size: 14px; }
+    .secret { background: #fef3c7; color: #000; padding: 10px; border-radius: 8px; margin: 10px 0; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>VoxApp - Status Rapport</h1>
+    <p class="date">22 februari 2026</p>
+
+    <h2>Wat er gebouwd is</h2>
+    
+    <h3>1. Post-Call Webhook <span class="status done">KLAAR</span></h3>
+    <p>Locatie: <code>/src/app/api/webhooks/elevenlabs/route.ts</code></p>
+    <ul>
+      <li>Ontvangt gesprekken van ElevenLabs na afloop</li>
+      <li>Maakt automatisch orders aan voor horeca</li>
+      <li>Maakt automatisch afspraken aan voor andere bedrijven</li>
+      <li>Logt alle gesprekken</li>
+    </ul>
+
+    <h3>2. Keuken Scherm <span class="status done">KLAAR</span></h3>
+    <p>Locatie: <code>/src/app/dashboard/keuken/page.tsx</code></p>
+    <ul>
+      <li>Toont bestellingen realtime</li>
+      <li>Auto-refresh elke 5 seconden</li>
+      <li>Klaar-knop per bestelling</li>
+      <li>Geluidssignaal bij nieuwe orders</li>
+    </ul>
+
+    <h3>3. Module Toggles <span class="status done">KLAAR</span></h3>
+    <p>Sidebar met aan/uit sliders per module</p>
+
+    <h3>4. Voice Preservation <span class="status done">KLAAR</span></h3>
+    <p>Stem-instellingen worden niet meer overschreven bij updates</p>
+
+    <h3>5. Test Endpoint <span class="status done">KLAAR</span></h3>
+    <p>URL: <code>https://voxapp.io/api/test/webhook</code></p>
+
+    <h2>Wat nog moet gebeuren</h2>
+
+    <h3>1. ElevenLabs Webhook Configuratie <span class="status todo">HANDMATIG</span></h3>
+    <ol>
+      <li>Ga naar ElevenLabs → ElevenAgents → Settings</li>
+      <li>Zoek "Post-Call Webhook"</li>
+      <li>URL: <code>https://voxapp.io/api/webhooks/elevenlabs</code></li>
+      <li>Event: Transcript</li>
+    </ol>
+
+    <h3>Webhook Secret:</h3>
+    <div class="secret">wsec_c3ccdc7fbd8f39a8fca6cc27257d2e61f33f8756808e366076e60e4392dcb8a6</div>
+
+    <h3>2. Business Type Wijzigen <span class="status todo">HANDMATIG</span></h3>
+    <p>Frituur Nolim staat als "Restaurant" → moet "Frituur" zijn</p>
+    <p>Ga naar Dashboard → Instellingen → Type bedrijf → Frituur</p>
+
+    <h3>3. Menu Invullen <span class="status todo">HANDMATIG</span></h3>
+    <p>Dashboard → Menu → Producten toevoegen met prijzen</p>
+
+    <h3>4. Vlaamse Stem <span class="status todo">HANDMATIG</span></h3>
+    <p>In ElevenLabs: selecteer Vlaamse stem bij je agent</p>
+
+    <h2>Test Instructies</h2>
+    <ol>
+      <li>Wacht 3-4 min op deploy</li>
+      <li>Ga naar: <code>https://voxapp.io/api/test/webhook</code></li>
+      <li>Check Dashboard → Keuken → test order moet verschijnen</li>
+      <li>Als dat werkt: bel het nummer en test echte bestelling</li>
+    </ol>
+
+    <h2>Belangrijke Bestanden</h2>
+    <table>
+      <tr><th>Bestand</th><th>Functie</th></tr>
+      <tr><td><code>api/webhooks/elevenlabs/route.ts</code></td><td>Webhook ontvanger</td></tr>
+      <tr><td><code>api/elevenlabs/agent/route.ts</code></td><td>Agent configuratie</td></tr>
+      <tr><td><code>dashboard/keuken/page.tsx</code></td><td>Keuken scherm</td></tr>
+      <tr><td><code>dashboard/producten/page.tsx</code></td><td>Menu beheer</td></tr>
+      <tr><td><code>lib/modules.ts</code></td><td>Module definities</td></tr>
+    </table>
+
+    <h2>Laatste Commits</h2>
+    <pre>
+439588d - Fix: Robuuste webhook handler + preserve voice settings
+0746fee - Fix price input: remove 0 default
+3f15bf9 - Remove ALL login requirements
+b71c860 - Fix: Add 'type' to allowed update fields
+085405f - Add post-call webhook config</pre>
+
+    <p style="margin-top: 40px; color: #666; text-align: center;">
+      VoxApp © 2026 - Repository: github.com/rudiaerden19-blip/voxapp
+    </p>
+  </div>
+</body>
+</html>
