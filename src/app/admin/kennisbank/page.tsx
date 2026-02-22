@@ -317,14 +317,29 @@ export default function AdminKennisbankPage() {
                   <div style={{ background: '#0f172a', border: '1px solid #22c55e40', borderRadius: 8, padding: 16 }}>
                     <p style={{ color: '#22c55e', fontSize: 13, fontWeight: 600, margin: '0 0 8px 0' }}>GPT Bestand Uploaden</p>
                     <p style={{ color: '#6b7280', fontSize: 12, margin: '0 0 12px 0' }}>Upload je JSON bestand</p>
-                    <input
-                      type="file"
-                      accept=".json"
-                      onChange={handleFileUpload}
-                      disabled={bulkImporting}
-                      style={{ width: '100%', fontSize: 13, color: '#9ca3af' }}
-                    />
-                    {importProgress && <p style={{ color: '#f59e0b', fontSize: 13, marginTop: 8 }}>{importProgress}</p>}
+                    <label style={{
+                      display: 'block',
+                      padding: '12px 16px',
+                      background: '#22c55e',
+                      color: 'white',
+                      borderRadius: 8,
+                      textAlign: 'center',
+                      cursor: bulkImporting ? 'not-allowed' : 'pointer',
+                      fontWeight: 600,
+                      fontSize: 14,
+                      opacity: bulkImporting ? 0.5 : 1,
+                    }}>
+                      <Upload size={16} style={{ display: 'inline', marginRight: 8, verticalAlign: 'middle' }} />
+                      {bulkImporting ? 'Bezig met importeren...' : 'Selecteer JSON bestand'}
+                      <input
+                        type="file"
+                        accept=".json"
+                        onChange={handleFileUpload}
+                        disabled={bulkImporting}
+                        style={{ display: 'none' }}
+                      />
+                    </label>
+                    {importProgress && <p style={{ color: '#f59e0b', fontSize: 13, marginTop: 12 }}>{importProgress}</p>}
                     {bulkResult && (
                       <div style={{ marginTop: 12, padding: 12, background: '#1e293b', borderRadius: 6 }}>
                         <p style={{ color: '#22c55e', fontSize: 13, margin: 0 }}>{bulkResult.success.toLocaleString()} succesvol</p>
