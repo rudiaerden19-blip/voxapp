@@ -7,6 +7,8 @@ import {
   type SessionData,
   type BusinessConfig,
 } from '@/lib/voice-engine/VoiceOrderSystem';
+import { requireTenantFromBusiness, TenantError } from '@/lib/tenant';
+import { createCallLog, logCall, logError } from '@/lib/logger';
 
 // ============================================================
 // SUPABASE ADMIN CLIENT
@@ -158,14 +160,13 @@ export async function POST(request: NextRequest) {
     const supabase = getSupabase();
 
     const business = await resolveBusiness(supabase, agentId);
-    if (!business) {
-      console.error('Voice engine: no business found for agent', agentId);
-      return NextResponse.json({ response: 'Excuseer, er is een probleem. Probeer later opnieuw.' });
-    }
+    const tenant = requireTenantFromBusiness(business);
+    const tenantId = tenant.tenant_id;
 
-    const config = buildConfig(business);
-    const { items: menuItems, prices: menuPrices } = await loadMenu(supabase, business.id);
+    const config = buildConfig(business!);
+    const { items: menuItems, prices: menuPrices } = await loadMenu(supabase, tenantId);
     const engine = new VoiceOrderSystem(menuItems, menuPrices, config);
+    const callLog = createCallLog(conversationId, tenantId);
 
     if (!userMessage) {
       return NextResponse.json({ response: engine.getGreeting() });
@@ -186,7 +187,7 @@ export async function POST(request: NextRequest) {
       const { error: orderError } = await supabase
         .from('orders')
         .insert({
-          business_id: business.id,
+          business_id: tenantId,
           customer_name: orderData.name || 'Telefoon klant',
           customer_phone: orderData.phone || '',
           order_type: orderData.delivery_type === 'levering' ? 'delivery' : 'pickup',
@@ -198,22 +199,30 @@ export async function POST(request: NextRequest) {
         });
 
       if (orderError) {
-        console.error('Voice engine: order insert error', orderError);
+        callLog.error_count++;
+        logError(tenantId, conversationId, orderError);
       } else {
-        console.log('Voice engine: order created for', business.name, '—', orderData.name, '—', orderData.items.length, 'items');
+        callLog.completion_status = 'completed';
+        callLog.items_count = orderData.items.length;
+        callLog.total_amount = total;
+        logCall(callLog);
       }
 
       // Clean up session
       await deleteSession(supabase, conversationId);
     } else {
       // Save session for next turn
-      await saveSession(supabase, conversationId, session, business.id);
+      await saveSession(supabase, conversationId, session, tenantId);
     }
 
     return NextResponse.json({ response: result.response });
 
   } catch (error: unknown) {
-    console.error('Voice engine error:', error);
+    if (error instanceof TenantError) {
+      logError('UNKNOWN', conversationId, error);
+      return NextResponse.json({ response: 'Excuseer, er is een probleem. Probeer later opnieuw.' });
+    }
+    logError('UNKNOWN', 'UNKNOWN', error);
     return NextResponse.json({ response: 'Excuseer, kan je dat herhalen?' });
   }
 }

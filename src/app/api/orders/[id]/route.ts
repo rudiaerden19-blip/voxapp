@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { requireTenant, TenantError } from '@/lib/tenant';
 
 const getSupabase = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// GET - Get single order
+// GET - Get single order (tenant-scoped)
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -14,11 +15,13 @@ export async function GET(
   try {
     const supabase = getSupabase();
     const { id } = await params;
+    const tenant = requireTenant(new URL(request.url).searchParams.get('business_id'));
 
     const { data, error } = await supabase
       .from('orders')
       .select('*')
       .eq('id', id)
+      .eq('business_id', tenant.tenant_id)
       .single();
 
     if (error) {
@@ -27,12 +30,13 @@ export async function GET(
 
     return NextResponse.json(data);
   } catch (error) {
+    if (error instanceof TenantError) return NextResponse.json({ error: error.message }, { status: 400 });
     console.error('Order GET error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
 
-// PATCH - Update order (status, etc.)
+// PATCH - Update order (tenant-scoped)
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -41,6 +45,7 @@ export async function PATCH(
     const supabase = getSupabase();
     const { id } = await params;
     const body = await request.json();
+    const tenant = requireTenant(body.business_id);
     const { status, notes, delivery_time } = body;
 
     const updates: Record<string, any> = {};
@@ -72,6 +77,7 @@ export async function PATCH(
       .from('orders')
       .update(updates)
       .eq('id', id)
+      .eq('business_id', tenant.tenant_id)
       .select()
       .single();
 
@@ -82,12 +88,13 @@ export async function PATCH(
 
     return NextResponse.json(data);
   } catch (error) {
+    if (error instanceof TenantError) return NextResponse.json({ error: error.message }, { status: 400 });
     console.error('Order PATCH error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
 
-// DELETE - Delete order (admin only)
+// DELETE - Delete order (tenant-scoped)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -95,11 +102,13 @@ export async function DELETE(
   try {
     const supabase = getSupabase();
     const { id } = await params;
+    const tenant = requireTenant(new URL(request.url).searchParams.get('business_id'));
 
     const { error } = await supabase
       .from('orders')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('business_id', tenant.tenant_id);
 
     if (error) {
       console.error('Error deleting order:', error);
@@ -108,6 +117,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    if (error instanceof TenantError) return NextResponse.json({ error: error.message }, { status: 400 });
     console.error('Order DELETE error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }

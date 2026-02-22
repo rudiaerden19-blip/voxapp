@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { requireTenant, TenantError } from '@/lib/tenant';
 
 const getSupabase = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -11,13 +12,11 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = getSupabase();
     const { searchParams } = new URL(request.url);
-    const businessId = searchParams.get('business_id');
-    const status = searchParams.get('status'); // comma-separated: new,preparing,ready,delivered,archived
-    const period = searchParams.get('period'); // today, week, month, all
+    const status = searchParams.get('status');
+    const period = searchParams.get('period');
 
-    if (!businessId) {
-      return NextResponse.json({ error: 'business_id required' }, { status: 400 });
-    }
+    const tenant = requireTenant(searchParams.get('business_id'));
+    const businessId = tenant.tenant_id;
 
     let query = supabase
       .from('orders')
@@ -67,6 +66,7 @@ export async function GET(request: NextRequest) {
     }));
     return NextResponse.json(orders);
   } catch (error) {
+    if (error instanceof TenantError) return NextResponse.json({ error: error.message }, { status: 400 });
     console.error('Orders GET error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
@@ -89,7 +89,9 @@ export async function POST(request: NextRequest) {
       total_amount,
     } = body;
 
-    if (!business_id || !customer_name || !customer_phone || !items || items.length === 0) {
+    const tenant = requireTenant(business_id);
+
+    if (!customer_name || !customer_phone || !items || items.length === 0) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -101,7 +103,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase
       .from('orders')
       .insert({
-        business_id,
+        business_id: tenant.tenant_id,
         customer_name,
         customer_phone,
         customer_address,
@@ -123,6 +125,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
+    if (error instanceof TenantError) return NextResponse.json({ error: error.message }, { status: 400 });
     console.error('Orders POST error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }

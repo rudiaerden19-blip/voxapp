@@ -1,6 +1,6 @@
 # PROJECT STATUS — VOXAPP ENTERPRISE PLATFORM
 # ⚠ ELKE AGENT MOET DIT EERST LEZEN ⚠
-# Laatste update: 2026-02-23
+# Laatste update: 2026-02-23 01:30
 
 =====================================================================
 WAT IS DIT?
@@ -81,13 +81,24 @@ WAT IS AF ✅
 - [x] `calls` — gesprekslog
 - [x] `services`, `staff`, `appointments` — basis tabellen
 
-## Enterprise Infrastructure (toegevoegd 2026-02-23)
+## Enterprise Infrastructure (2026-02-23)
 - [x] `src/lib/tenant.ts` — TenantContext type + requireTenant() runtime guard
 - [x] `src/lib/logger.ts` — Structured JSON logging (CallLog per gesprek)
 - [x] `src/app/api/metrics/route.ts` — GET /api/metrics?tenant_id=... endpoint
 - [x] `src/__tests__/tenant-isolation.test.ts` — 18 tests, allemaal groen
-- [x] Tenant guard in voice engine: request zonder tenant → hard fail
+- [x] Tenant guard in voice engine (beide endpoints): request zonder tenant → hard fail
 - [x] Structured logging in voice engine: conversation_id, tenant_id, duration, state transitions
+- [x] Tenant guard in orders API (GET, POST, PATCH, DELETE) — allemaal tenant-scoped
+
+## Tenant Provisioning (2026-02-23)
+- [x] `src/lib/tenant-templates.ts` — Menu templates per type: frituur, restaurant, kapper, garage, dokter
+- [x] `POST /api/tenants/provision` — Zero-touch onboarding:
+  - Maakt business record in Supabase
+  - Laadt menu uit template (34 items voor frituur, 13 voor restaurant, etc.)
+  - Maakt ElevenLabs agent aan met Custom LLM URL
+  - Genereert welcome message uit template + business naam
+  - Zet trial van 14 dagen
+  - Retourneert tenant_id, agent_id, status
 
 ## Governance
 - [x] ENTERPRISE_PROJECT_CONSTITUTION.md — bindende regels
@@ -106,6 +117,7 @@ WAT NOG MOET ❌
 
 ## P1 — Enterprise features
 
+- [ ] Tenant guard toevoegen aan overige ~20 routes (admin, ai-tools, knowledge, etc.)
 - [ ] Call logging: start_time, end_time, duration, state_transitions, error_count
 - [ ] Dashboard: gesprekkenlijst met transcripties
 - [ ] Dashboard: realtime statistieken (oproepen vandaag, omzet, gemiddelde orderbedrag)
@@ -140,6 +152,8 @@ src/lib/voice-engine/VoiceOrderSystem.ts    — State machine + parser + TTS rew
 src/app/api/voice-engine/v1/chat/completions/route.ts — Custom LLM endpoint (SSE)
 src/app/api/voice-engine/route.ts           — Legacy endpoint (JSON)
 src/app/api/metrics/route.ts                — Metrics endpoint (per tenant)
+src/app/api/tenants/provision/route.ts      — Zero-touch tenant provisioning
+src/lib/tenant-templates.ts                 — Menu templates per business type
 src/app/dashboard/kitchen/page.tsx          — Kitchen screen
 src/app/page.tsx                            — Marketing website (NIET WIJZIGEN)
 src/lib/tenant.ts                           — TenantContext + runtime guard
