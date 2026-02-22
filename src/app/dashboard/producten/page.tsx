@@ -49,6 +49,7 @@ export default function ProductenPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [selectedOptionIds, setSelectedOptionIds] = useState<string[]>([]);
+  const [priceInput, setPriceInput] = useState('');
   
   // Form state
   const [formData, setFormData] = useState<Product>({
@@ -309,6 +310,7 @@ export default function ProductenPage() {
       is_popular: false,
       is_promo: false,
     });
+    setPriceInput('');
     setSelectedOptionIds([]);
     setEditingProduct(null);
     setShowModal(true);
@@ -316,6 +318,7 @@ export default function ProductenPage() {
 
   const openEditModal = async (product: Product) => {
     setFormData({ ...product });
+    setPriceInput(product.price > 0 ? product.price.toString() : '');
     setEditingProduct(product);
     
     // Haal gekoppelde opties op
@@ -339,7 +342,8 @@ export default function ProductenPage() {
   };
 
   const handleSave = async () => {
-    if (!formData.name || formData.price < 0) {
+    const finalPrice = parseFloat(priceInput) || 0;
+    if (!formData.name || finalPrice < 0) {
       setError('Vul een naam en geldige prijs in');
       return;
     }
@@ -363,7 +367,7 @@ export default function ProductenPage() {
           category: formData.category || 'Overig',
           name: formData.name,
           description: formData.description || null,
-          price: formData.price,
+          price: finalPrice,
           duration_minutes: formData.duration_minutes || null,
           sort_order: formData.sort_order || 0,
           is_available: formData.is_available ?? true,
@@ -734,14 +738,19 @@ export default function ProductenPage() {
                     <input
                       type="text"
                       inputMode="decimal"
-                      value={formData.price === 0 ? '0' : formData.price.toString()}
+                      value={priceInput}
                       onChange={(e) => {
-                        const val = e.target.value.replace(',', '.');
+                        let val = e.target.value.replace(',', '.');
                         if (val === '' || /^\d*\.?\d{0,2}$/.test(val)) {
-                          setFormData({ ...formData, price: val === '' ? 0 : parseFloat(val) || 0 });
+                          setPriceInput(val);
                         }
                       }}
-                      placeholder="0.00"
+                      onBlur={() => {
+                        const parsed = parseFloat(priceInput) || 0;
+                        setFormData({ ...formData, price: parsed });
+                        if (parsed > 0) setPriceInput(parsed.toString());
+                      }}
+                      placeholder="bijv. 3.50"
                       style={{ width: '100%', padding: '14px 16px 14px 32px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 10, color: 'white', fontSize: 14 }}
                     />
                   </div>
