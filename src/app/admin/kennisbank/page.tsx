@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import AdminLayout from '@/components/AdminLayout';
-import { Plus, Trash2, ChevronDown, ChevronRight, Search, Upload, FileJson } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Plus, Trash2, ChevronDown, ChevronRight, Search, Upload, FileJson, ArrowLeft, Shield } from 'lucide-react';
 
 interface KnowledgeItem {
   id: string;
@@ -37,6 +37,9 @@ const CATEGORIES = [
 ];
 
 export default function AdminKennisbankPage() {
+  const router = useRouter();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
   const [items, setItems] = useState<KnowledgeItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -58,9 +61,34 @@ export default function AdminKennisbankPage() {
   const [showBulkImport, setShowBulkImport] = useState(false);
   const [importProgress, setImportProgress] = useState('');
 
+  // Check admin auth on mount
   useEffect(() => {
-    loadKnowledge();
-  }, [selectedSector]);
+    checkAdminSession();
+  }, []);
+
+  const checkAdminSession = async () => {
+    try {
+      const res = await fetch('/api/admin/auth', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.authenticated) {
+          setIsAdmin(true);
+          setAuthLoading(false);
+          return;
+        }
+      }
+    } catch (e) {
+      console.error('Session check failed:', e);
+    }
+    // Not authenticated, redirect to admin login
+    router.push('/admin');
+  };
+
+  useEffect(() => {
+    if (isAdmin) {
+      loadKnowledge();
+    }
+  }, [selectedSector, isAdmin]);
 
   async function loadKnowledge() {
     setLoading(true);
@@ -266,15 +294,45 @@ export default function AdminKennisbankPage() {
 
   const currentSector = SECTORS.find(s => s.id === selectedSector);
 
+  // Loading state
+  if (authLoading) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#0f1729', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ color: '#9ca3af' }}>Laden...</p>
+      </div>
+    );
+  }
+
+  // Not authenticated
+  if (!isAdmin) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#0f1729', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <Shield size={48} style={{ color: '#ef4444', marginBottom: 16 }} />
+          <p style={{ color: '#9ca3af' }}>Geen toegang</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <AdminLayout>
+    <div style={{ minHeight: '100vh', background: '#0f1729' }}>
       <div className="p-6 max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-white">Kennisbank</h1>
-            <p className="text-gray-400 mt-1">
-              Beheer kennis per sector - wordt automatisch aan klanten gekoppeld bij registratie
-            </p>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => router.push('/admin')}
+              className="flex items-center gap-2 text-gray-400 hover:text-white transition"
+            >
+              <ArrowLeft size={20} />
+              Terug
+            </button>
+            <div>
+              <h1 className="text-3xl font-bold text-white">Kennisbank</h1>
+              <p className="text-gray-400 mt-1">
+                Beheer kennis per sector - wordt automatisch aan klanten gekoppeld bij registratie
+              </p>
+            </div>
           </div>
         </div>
 
@@ -575,6 +633,6 @@ export default function AdminKennisbankPage() {
           </div>
         </div>
       </div>
-    </AdminLayout>
+    </div>
   );
 }
