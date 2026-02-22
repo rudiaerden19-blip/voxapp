@@ -150,14 +150,16 @@ export async function POST(request: NextRequest) {
     console.log('=== ELEVENLABS WEBHOOK RECEIVED ===');
     console.log('Full payload:', JSON.stringify(body, null, 2));
     
-    // Try multiple possible field names
-    const agent_id = body.agent_id || body.agentId || body.data?.agent_id || body.conversation?.agent_id;
-    const conversation_id = body.conversation_id || body.conversationId || body.data?.conversation_id || body.id;
-    const transcript = body.transcript || body.data?.transcript || body.conversation?.transcript || body.analysis?.transcript;
+    // Try multiple possible field names from ElevenLabs webhook payload
+    const agent_id = body.agent_id || body.agentId || body.data?.agent_id || body.conversation?.agent_id || null;
+    const conversation_id = body.conversation_id || body.conversationId || body.data?.conversation_id || body.id || null;
+    const transcript = body.transcript || body.data?.transcript || body.conversation?.transcript || body.analysis?.transcript || null;
     const call_duration_seconds = body.call_duration_seconds || body.duration || body.data?.duration || body.call_duration_secs || 0;
-    const caller_phone_number = body.caller_phone_number || body.phone_number || body.data?.caller_phone || body.metadata?.phone;
+    const caller_phone_number = body.caller_phone_number || body.phone_number || body.data?.caller_phone || body.metadata?.phone || null;
     const call_successful = body.call_successful !== false && body.status !== 'failed';
-    const summary = body.summary || body.data?.summary || body.analysis?.summary;
+    const summary = body.summary || body.data?.summary || body.analysis?.summary || null;
+    const metadata = body.metadata || body.data?.metadata || null;
+    const timestamp = body.timestamp || body.created_at || body.data?.timestamp || null;
     
     console.log('Parsed: agent_id=', agent_id, 'conversation_id=', conversation_id);
 
@@ -286,7 +288,9 @@ export async function POST(request: NextRequest) {
       
       const isHoreca = fullBusiness?.type && HORECA_TYPES.includes(fullBusiness.type);
       
-      if (isHoreca && detectOrderConfirmation(transcriptText)) {
+      // For horeca businesses, ALWAYS create an order from successful calls
+      // Better to have too many orders than miss one
+      if (isHoreca) {
         // Extract order details
         const customerName = extractCustomerName(transcriptText) || 'Telefoon klant';
         const customerPhone = extractPhoneNumber(transcriptText) || caller_phone_number || '';
@@ -302,13 +306,13 @@ export async function POST(request: NextRequest) {
             customer_name: customerName,
             customer_phone: customerPhone,
             customer_address: customerAddress,
-            delivery_type: deliveryType,
-            delivery_time: deliveryTime,
-            items: [], // Would need AI parsing for detailed items
-            notes: summary || 'Bestelling via telefoon - zie transcript voor details',
-            status: 'new',
+            order_type: deliveryType,
+            pickup_time: deliveryTime,
+            notes: summary || transcriptText.substring(0, 500) || 'Bestelling via telefoon',
+            status: 'pending',
             source: 'phone',
-            total_amount: 0, // Would need AI parsing
+            total_amount: 0,
+            created_at: new Date().toISOString()
           });
         
         if (orderError) {

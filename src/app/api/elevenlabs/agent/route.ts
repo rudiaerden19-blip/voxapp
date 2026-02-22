@@ -372,7 +372,11 @@ export async function POST(request: NextRequest) {
 
     // ElevenLabs agent config - Dutch requires turbo/flash model
     // NOTE: Appointments/orders worden automatisch aangemaakt via post-call webhook analyse
-    const agentConfig = {
+    const agentId = business.agent_id;
+    let response;
+
+    // Base config - used for both create and update
+    const baseConfig = {
       conversation_config: {
         agent: {
           prompt: {
@@ -382,46 +386,52 @@ export async function POST(request: NextRequest) {
           first_message: business.welcome_message || getGreeting(voice_language || 'nl', business.name),
           language: voice_language || 'nl',
         },
-        tts: {
-          // Only use voice_id if it looks like an ElevenLabs ID (not Azure)
-          voice_id: (business.voice_id && !business.voice_id.includes('-')) 
-            ? business.voice_id 
-            : 'pFZP5JQG7iQjIQuC4Bku', // Default: Lily (multilingual)
-          model_id: 'eleven_turbo_v2_5', // Required for non-English (32 languages)
-        },
-      },
-      platform_settings: {
-        webhook: {
-          url: webhookUrl,
-          events: ['post_call_transcription'],
-        },
       },
       name: `${business.name} Receptionist`,
     };
 
-    const agentId = business.agent_id;
-    let response;
+    // Full config for NEW agents - includes voice settings
+    const newAgentConfig = {
+      ...baseConfig,
+      conversation_config: {
+        ...baseConfig.conversation_config,
+        tts: {
+          // Use stored voice_id or default to Lily (multilingual)
+          voice_id: (business.voice_id && !business.voice_id.includes('-')) 
+            ? business.voice_id 
+            : 'pFZP5JQG7iQjIQuC4Bku',
+          model_id: 'eleven_turbo_v2_5',
+        },
+      },
+    };
+
+    // Update config - does NOT change voice settings (preserves what user set in ElevenLabs UI)
+    const updateConfig = {
+      ...baseConfig,
+    };
 
     try {
       if (agentId) {
-        // Update existing agent
+        // Update existing agent - DO NOT change voice settings
+        console.log('Updating existing agent, preserving voice settings');
         response = await fetch(`https://api.elevenlabs.io/v1/convai/agents/${agentId}`, {
           method: 'PATCH',
           headers: {
             'xi-api-key': elevenLabsKey,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(agentConfig),
+          body: JSON.stringify(updateConfig),
         });
       } else {
-        // Create new agent
+        // Create new agent - includes voice settings
+        console.log('Creating new agent with voice settings');
         response = await fetch('https://api.elevenlabs.io/v1/convai/agents/create', {
           method: 'POST',
           headers: {
             'xi-api-key': elevenLabsKey,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(agentConfig),
+          body: JSON.stringify(newAgentConfig),
         });
       }
     } catch (fetchError) {
