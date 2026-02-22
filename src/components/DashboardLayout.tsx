@@ -3,7 +3,7 @@
 import { useState, Suspense } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Phone, Calendar, Users, Settings, LogOut, TrendingUp, MessageSquare, Menu, X, Briefcase, Globe, ChevronDown, Shield, Package, Wrench, CreditCard, Home, Car, FileText, ShoppingBag, UtensilsCrossed, CalendarCheck, Scissors, ExternalLink, Building2 } from 'lucide-react';
+import { Phone, Calendar, Users, Settings, LogOut, TrendingUp, MessageSquare, Menu, X, Briefcase, Globe, ChevronDown, Shield, Package, Wrench, CreditCard, Home, Car, FileText, ShoppingBag, UtensilsCrossed, CalendarCheck, Scissors, ExternalLink, Building2, ToggleRight } from 'lucide-react';
 import { useLanguage, Language } from '@/lib/LanguageContext';
 import { useBusiness } from '@/lib/BusinessContext';
 import { getBusinessType, hasModule, ModuleId } from '@/lib/modules';
@@ -254,6 +254,17 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             width: '100%', textAlign: 'left', marginBottom: 4, textDecoration: 'none',
           }}>
             <TrendingUp size={18} />Verbruik
+          </Link>
+
+          {/* Modules */}
+          <Link href={getHref('/dashboard/modules')} onClick={() => setSidebarOpen(false)} style={{
+            display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
+            background: pathname.startsWith('/dashboard/modules') ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
+            border: 'none', borderRadius: 8, color: pathname.startsWith('/dashboard/modules') ? '#f97316' : '#9ca3af',
+            fontSize: 14, fontWeight: pathname.startsWith('/dashboard/modules') ? 600 : 400, cursor: 'pointer',
+            width: '100%', textAlign: 'left', marginBottom: 4, textDecoration: 'none',
+          }}>
+            <ToggleRight size={18} />Modules
           </Link>
 
           {/* Instellingen */}
