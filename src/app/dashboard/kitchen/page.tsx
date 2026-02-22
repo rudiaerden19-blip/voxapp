@@ -185,22 +185,33 @@ export default function KitchenPage() {
                     </div>
                   </div>
 
-                  {/* Bestelling items */}
-                  <div style={{ borderBottom: '1px dashed #999', paddingBottom: 12, marginBottom: 12, minHeight: 48 }}>
-                    <div style={{ fontSize: 12, color: '#777', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>Bestelling</div>
+                  {/* Bestelling items — bon-stijl */}
+                  <div style={{ borderBottom: '2px solid #111', paddingBottom: 12, marginBottom: 12, minHeight: 48 }}>
                     {order.notes ? (
-                      <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
-                        {order.notes}
-                      </div>
+                      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <tbody>
+                          {order.notes.split('\n').filter((l: string) => l.trim()).map((line: string, idx: number) => {
+                            const priceMatch = line.match(/€(\d+[.,]\d{2})\s*$/);
+                            const itemText = priceMatch ? line.replace(/€\d+[.,]\d{2}\s*$/, '').trim() : line.trim();
+                            const price = priceMatch ? priceMatch[0].trim() : '';
+                            return (
+                              <tr key={idx} style={{ borderBottom: '1px dotted #ccc' }}>
+                                <td style={{ padding: '6px 0', fontSize: 16, fontWeight: 700 }}>{itemText}</td>
+                                <td style={{ padding: '6px 0', fontSize: 16, fontWeight: 700, textAlign: 'right', whiteSpace: 'nowrap' }}>{price}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
                     ) : (
                       <div style={{ fontSize: 14, color: '#aaa', fontStyle: 'italic' }}>Geen details</div>
                     )}
                   </div>
 
                   {/* Totaal */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                    <span style={{ fontSize: 16, fontWeight: 700 }}>TOTAAL</span>
-                    <span style={{ fontSize: 22, fontWeight: 900 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, borderTop: '2px solid #111', paddingTop: 10 }}>
+                    <span style={{ fontSize: 18, fontWeight: 900, letterSpacing: 1 }}>TOTAAL</span>
+                    <span style={{ fontSize: 24, fontWeight: 900 }}>
                       {order.total_amount > 0 ? `€${Number(order.total_amount).toFixed(2)}` : '—'}
                     </span>
                   </div>

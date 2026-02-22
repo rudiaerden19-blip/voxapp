@@ -66,38 +66,132 @@ function detectOrderConfirmation(text: string): boolean {
   return confirmationPhrases.some(p => p.test(text));
 }
 
-// Extract the order summary from agent's confirmation line in transcript
-function extractOrderSummary(messages: { role?: string; message?: string; text?: string }[]): string {
-  // Find the agent's confirmation message (e.g. "Dus 1 grote friet met mayo, op naam van Jan. Klopt dat?")
+// Menu price lookup
+const MENU_PRICES: Record<string, number> = {
+  'friet klein': 3.50, 'frietje klein': 3.50, 'kleine friet': 3.50, 'frietjes klein': 3.50,
+  'friet middel': 3.80, 'frietje middel': 3.80, 'medium friet': 3.80,
+  'friet groot': 4.10, 'frietje groot': 4.10, 'grote friet': 4.10, 'groot friet': 4.10,
+  'friet kinder': 3.30, 'kinderfriet': 3.30, 'kinderfrietje': 3.30,
+  'friet special klein': 4.90, 'special klein': 4.90,
+  'friet special middel': 5.20, 'special middel': 5.20,
+  'friet special groot': 5.50, 'special groot': 5.50, 'grote special': 5.50,
+  'friet stoofvlees': 8.50, 'stoofvlees friet': 8.50,
+  'friet goulash': 8.50, 'goulash friet': 8.50,
+  'friet oorlog': 8.50, 'oorlog friet': 8.50, 'patatje oorlog': 8.50,
+  'friet nolim': 10.00, 'nolim friet': 10.00,
+  'friet stoofvlees saus': 5.70, 'stoofvleessaus': 5.70,
+  'friet goulash saus': 5.70, 'goulashsaus': 5.70,
+  'mayo': 1.10, 'mayonaise': 1.10, 'andalouse': 1.10, 'samurai': 1.10,
+  'curry': 1.10, 'currysaus': 1.10, 'bbq': 1.10, 'cocktail': 1.10,
+  'joppie': 1.10, 'joppiesaus': 1.10, 'looksaus': 1.10, 'tartaar': 1.10,
+  'ketchup': 1.10, 'mosterd': 1.10, 'zoete mayo': 1.10, 'americaine': 1.10,
+  'mezzomix': 1.10,
+  'cola': 2.00, 'coca cola': 2.00, 'fanta': 2.00, 'water': 1.50,
+  'ice tea': 2.00, 'icetea': 2.00,
+  'frikandel': 2.50, 'frikandel speciaal': 3.50, 'kroket': 2.50,
+  'bitterbal': 1.50, 'bitterballen': 4.50,
+};
+
+function lookupPrice(item: string): number {
+  const lower = item.toLowerCase().trim();
+  if (MENU_PRICES[lower]) return MENU_PRICES[lower];
+  for (const [key, price] of Object.entries(MENU_PRICES)) {
+    if (lower.includes(key) || key.includes(lower)) return price;
+  }
+  return 0;
+}
+
+interface OrderItem {
+  qty: number;
+  name: string;
+  price: number;
+}
+
+// Parse order items with quantities and prices from transcript messages
+function extractOrderItems(messages: { role?: string; message?: string; text?: string }[]): OrderItem[] {
+  // First try: agent's summary line ("Dus 1 grote friet, 1 cola...")
   for (let i = messages.length - 1; i >= 0; i--) {
     const m = messages[i];
     if (m.role === 'agent') {
       const txt = m.message || m.text || '';
-      if (/dus\b|klopt.*\?|samenvatting|bestelling/i.test(txt)) {
-        // Clean up the confirmation to just items
-        return txt
+      if (/dus\b|klopt.*\?|samenvatting/i.test(txt)) {
+        const cleaned = txt
           .replace(/klopt\s*(dat|dit)\s*\??/gi, '')
           .replace(/^\s*dus\s*/i, '')
-          .replace(/,?\s*op naam van\s+\w+/i, '')
-          .trim()
-          .replace(/\.?\s*$/, '');
+          .replace(/,?\s*op naam van\s+[\w\s]+/i, '')
+          .replace(/,?\s*afhalen\b.*/i, '')
+          .replace(/,?\s*bezorgen\b.*/i, '')
+          .trim();
+        const items = parseItemsFromText(cleaned);
+        if (items.length > 0) return items;
       }
     }
   }
   
-  // Fallback: collect what the user ordered from their messages
-  const items: string[] = [];
+  // Fallback: collect from user messages
+  const allUserText: string[] = [];
   for (const m of messages) {
     if (m.role === 'user') {
       const txt = m.message || m.text || '';
-      if (/friet|frikandel|kroket|bitterbal|snack|pizza|kebab|saus|mayo|ketchup|curry|stoofvlees|bestellen|graag|wil/i.test(txt)) {
-        if (!/naam|telefoon|adres|afhalen|bezorgen|nee|ja|klopt/i.test(txt)) {
-          items.push(txt);
+      if (/friet|frikandel|kroket|bitterbal|snack|cola|fanta|water|saus|mayo|ketchup|curry|stoofvlees|bestellen|graag|wil|special|goulash|oorlog|nolim|ice\s*tea/i.test(txt)) {
+        if (!/^(ja|nee|klopt|dat\s*was|mijn\s*naam|ik\s*heet|telefoon|nummer|afhalen|bezorgen)/i.test(txt.trim())) {
+          allUserText.push(txt);
         }
       }
     }
   }
-  return items.join('\n') || 'Bestelling via telefoon';
+  
+  return parseItemsFromText(allUserText.join(', '));
+}
+
+function parseItemsFromText(text: string): OrderItem[] {
+  const items: OrderItem[] = [];
+  // Split on commas, "en", "plus", "ook"
+  const parts = text.split(/,|\ben\b|\bplus\b|\book\b|\bnog\b/i).map(p => p.trim()).filter(Boolean);
+  
+  for (const part of parts) {
+    if (!part || part.length < 2) continue;
+    // Skip non-food parts
+    if (/naam|telefoon|adres|afhalen|bezorgen|klopt|perfect|tot straks/i.test(part)) continue;
+    
+    // Extract quantity
+    let qty = 1;
+    let name = part;
+    const qtyMatch = part.match(/^(\d+)\s*[x×]?\s*/i) || part.match(/^(een|één|twee|drie|vier|vijf)\s+/i);
+    if (qtyMatch) {
+      const qtyStr = qtyMatch[1].toLowerCase();
+      const qtyMap: Record<string, number> = { 'een': 1, 'één': 1, 'twee': 2, 'drie': 3, 'vier': 4, 'vijf': 5 };
+      qty = qtyMap[qtyStr] || parseInt(qtyStr) || 1;
+      name = part.substring(qtyMatch[0].length).trim();
+    }
+    
+    // Clean up filler words
+    name = name.replace(/^(ik\s+wil\s+|ik\s+zou\s+graag\s+|graag\s+|eh\s+|uh\s+|euh\s+)/i, '').trim();
+    name = name.replace(/^(een|één)\s+/i, '').trim();
+    name = name.replace(/\s*(alstublieft|aub|svp)\s*/i, '').trim();
+    
+    if (name.length < 2) continue;
+    
+    // Capitalize first letter
+    name = name.charAt(0).toUpperCase() + name.slice(1);
+    
+    const price = lookupPrice(name);
+    items.push({ qty, name, price: price * qty });
+  }
+  
+  return items;
+}
+
+function formatOrderItems(items: OrderItem[]): string {
+  if (items.length === 0) return 'Bestelling via telefoon';
+  return items.map(i => {
+    const priceStr = i.price > 0 ? ` €${i.price.toFixed(2)}` : '';
+    return `${i.qty}x ${i.name}${priceStr}`;
+  }).join('\n');
+}
+
+function calculateTotal(items: OrderItem[]): number {
+  return items.reduce((sum, i) => sum + i.price, 0);
 }
 
 // Extract date and time from transcript
@@ -347,17 +441,13 @@ export async function POST(request: NextRequest) {
         const customerAddress = deliveryType === 'delivery' ? extractAddress(transcriptText) : null;
         const { time: deliveryTime } = extractDateTime(transcriptText);
         
-        // Extract order items in Dutch from the transcript (NOT the English ElevenLabs summary)
-        let orderItems: string;
+        // Parse structured order items with prices
+        let items: OrderItem[] = [];
         if (Array.isArray(transcript)) {
-          orderItems = extractOrderSummary(transcript);
-        } else {
-          orderItems = transcriptText.substring(0, 500);
+          items = extractOrderItems(transcript);
         }
-        
-        const addressInfo = customerAddress ? `\nAdres: ${customerAddress}` : '';
-        const timeInfo = deliveryTime ? `\nTijd: ${deliveryTime}` : '';
-        const orderNotes = orderItems + addressInfo + timeInfo;
+        const orderNotes = items.length > 0 ? formatOrderItems(items) : (transcriptText.substring(0, 500));
+        const totalAmount = calculateTotal(items);
         
         const { error: orderError } = await supabase
           .from('orders')
@@ -369,7 +459,7 @@ export async function POST(request: NextRequest) {
             notes: orderNotes,
             status: 'pending',
             source: 'phone',
-            total_amount: 0,
+            total_amount: totalAmount,
             created_at: new Date().toISOString()
           });
         
