@@ -263,7 +263,7 @@ export async function POST(request: NextRequest) {
     // Get business data
     const { data: business, error: bizError } = await supabase
       .from('businesses')
-      .select('id, name, type, phone, email, street, city, postal_code, opening_hours, voice_id, welcome_message, agent_id')
+      .select('id, name, type, phone, email, street, city, postal_code, opening_hours, voice_id, welcome_message, agent_id, delivery_fee, minimum_order')
       .eq('id', business_id)
       .single();
 
@@ -372,7 +372,7 @@ export async function POST(request: NextRequest) {
         parameters: {
           type: 'object',
           properties: {
-            business_id: { type: 'string', description: 'Business ID', const: business_id },
+            business_id: { type: 'string', description: 'Business ID (vast)', default: business_id },
             customer_name: { type: 'string', description: 'Naam van de klant' },
             customer_phone: { type: 'string', description: 'Telefoonnummer van de klant' },
             customer_address: { type: 'string', description: 'Bezorgadres (alleen bij bezorging)' },
@@ -409,7 +409,7 @@ export async function POST(request: NextRequest) {
         parameters: {
           type: 'object',
           properties: {
-            business_id: { type: 'string', description: 'Business ID', const: business_id },
+            business_id: { type: 'string', description: 'Business ID (vast)', default: business_id },
             date: { type: 'string', description: 'Datum in YYYY-MM-DD formaat' },
             service_id: { type: 'string', description: 'Service ID (optioneel)' },
           },
@@ -427,7 +427,7 @@ export async function POST(request: NextRequest) {
         parameters: {
           type: 'object',
           properties: {
-            business_id: { type: 'string', description: 'Business ID', const: business_id },
+            business_id: { type: 'string', description: 'Business ID (vast)', default: business_id },
             customer_name: { type: 'string', description: 'Naam van de klant' },
             customer_phone: { type: 'string', description: 'Telefoonnummer van de klant' },
             customer_email: { type: 'string', description: 'E-mailadres (optioneel)' },
@@ -450,10 +450,10 @@ export async function POST(request: NextRequest) {
           prompt: {
             prompt: systemPrompt,
             llm: 'gemini-2.5-flash', // Required for non-English languages
-            tools,
           },
           first_message: business.welcome_message || getGreeting(voice_language || 'nl', business.name),
           language: voice_language || 'nl',
+          // tools, // TODO: Enable when ElevenLabs tool format is confirmed
         },
         tts: {
           // Only use voice_id if it looks like an ElevenLabs ID (not Azure)
