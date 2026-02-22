@@ -109,18 +109,19 @@ function buildReceipt(
   // Step 1: Get the raw order text from agent's summary or user messages
   let rawText = '';
 
-  // Try agent's confirmation first
+  // Try agent's confirmation/summary line first
   for (let i = messages.length - 1; i >= 0; i--) {
     const m = messages[i];
     if (m.role !== 'agent') continue;
     const txt = m.message || m.text || '';
-    if (/ik noem.*op|dus\b|besteld|samenvatting/i.test(txt)) {
+    if (/samenvatten|samenvatting|ik noem.*op|even op.*besteld|dus\b.*friet|dus\b.*besteld|klopt\s*dat\s*\?/i.test(txt)) {
       rawText = txt
-        .replace(/ok\s+\w+\s*,?\s*/i, '')
-        .replace(/ik noem nog even op wat je besteld hebt:?\s*/i, '')
+        .replace(/^ok\s+\w+\s*,?\s*/i, '')
+        .replace(/even\s+samenvatten\s*:?\s*/i, '')
+        .replace(/ik noem nog even op wat je besteld hebt\s*:?\s*/i, '')
         .replace(/dat was alles\s*\??/i, '')
         .replace(/klopt\s*(dat|dit)\s*\??/i, '')
-        .replace(/^\s*dus\s*/i, '')
+        .replace(/^\s*dus\s*:?\s*/i, '')
         .replace(/,?\s*op naam van\s+[\w\s]+/i, '')
         .replace(/,?\s*afhalen\b.*/i, '')
         .replace(/,?\s*bezorgen\b.*/i, '')
