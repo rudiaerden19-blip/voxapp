@@ -9,6 +9,8 @@ import {
   type OrderItem,
 } from '@/lib/voice-engine/VoiceOrderSystem';
 import { extractWithGemini, extractNamePhoneWithGemini, type MenuItem } from '@/lib/voice-engine/geminiExtractor';
+import { normalizeTranscript } from '@/lib/voice-engine/transcriptNormalizer';
+import { buildCatalog, mapProducts } from '@/lib/voice-engine/productMapper';
 import { requireTenantFromBusiness, TenantError } from '@/lib/tenant';
 import { createCallLog, logCall, logError } from '@/lib/logger';
 
@@ -254,17 +256,27 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Gemini extractie per state
-    let geminiItems: OrderItem[] | null = null;
+    // ── PIPELINE: Normalize → Gemini → ProductMapper → State Machine ──
+    const normalized = normalizeTranscript(userMessage);
+
+    let mappedItems: OrderItem[] | null = null;
     let geminiNamePhone: { name: string | null; phone: string | null } | null = null;
 
     if (session.state === OrderState.TAKING_ORDER) {
-      geminiItems = await extractWithGemini(userMessage, menu.raw);
+      const geminiResult = await extractWithGemini(normalized, menu.raw);
+      if (geminiResult && geminiResult.items.length > 0) {
+        const catalog = buildCatalog(menu.raw.map(r => ({ name: r.name, price: r.price, is_modifier: r.is_modifier })));
+        const mapped = mapProducts(geminiResult.items, catalog);
+        const resolved = mapped.filter(m => !m.unresolved);
+        if (resolved.length > 0) {
+          mappedItems = resolved.map(m => ({ product: m.product, quantity: m.quantity, price: m.price }));
+        }
+      }
     } else if (session.state === OrderState.GET_NAME_PHONE) {
-      geminiNamePhone = await extractNamePhoneWithGemini(userMessage);
+      geminiNamePhone = await extractNamePhoneWithGemini(normalized);
     }
 
-    const result = engine.handle(session, userMessage, sessionId, geminiItems, geminiNamePhone);
+    const result = engine.handle(session, normalized, sessionId, mappedItems, geminiNamePhone);
     session = result.session;
 
     callLog.state_transitions.push(`${prevState} → ${session.state}`);
