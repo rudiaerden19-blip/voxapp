@@ -53,32 +53,56 @@ export interface BusinessConfig {
 // ============================================================
 
 const HARDCODED_REPLACEMENTS: [string, string][] = [
+  // ── Speciaal → special (menu gebruikt "special") ────────
+  ['speciaal', 'special'],
+
+  // ── Cervela STT varianten ───────────────────────────────
   ['gebakken servla', 'cervela'],
-  ['frikadel speciaal', 'frikandel speciaal'],
-  ['zoute mayonaise', 'zoete mayonaise'],
-  ['zoute mayo', 'zoete mayonaise'],
-  ['biggie burger', 'bicky burger'],
-  ['bickyburger', 'bicky burger'],
-  ['koude boulet', 'gebakken boulet'],
+  ['serbela', 'cervela'],
+  ['servela', 'cervela'],
   ['cerbella', 'cervela'],
   ['cebella', 'cervela'],
-  ['servela', 'cervela'],
   ['cervella', 'cervela'],
   ['cerbéla', 'cervela'],
   ['cerbela', 'cervela'],
   ['servelade', 'cervela'],
-  ['boelet', 'gebakken boulet'],
-  ['boelett', 'gebakken boulet'],
+
+  // ── Frikandel STT varianten (langste eerst) ─────────────
+  ['frikadelle special', 'frikandel special'],
+  ['frikadelle', 'frikandel'],
+  ['frikadel special', 'frikandel special'],
   ['frikadel', 'frikandel'],
-  ['tomatenketchup', 'tom ketchup'],
-  ['tomaten ketchup', 'tom ketchup'],
+
+  // ── Boulet STT varianten ────────────────────────────────
+  ['koude boulet', 'boulet'],
+  ['gebakken boulet', 'boulet'],
+  ['boelet', 'boulet'],
+  ['boelett', 'boulet'],
+
+  // ── Burger / Bicky varianten ────────────────────────────
+  ['amerikaanse burger', 'amerikaan'],
+  ['cheeseburger', 'cheese burger'],
+  ['biggie burger', 'bicky classic'],
+  ['bickyburger', 'bicky classic'],
+  ['bicky burger', 'bicky classic'],
+
+  // ── Sauzen STT ─────────────────────────────────────────
+  ['zoute mayonaise', 'zoete mayonaise'],
+  ['zoute mayo', 'zoete mayonaise'],
+  ['tomatenketchup', 'tomaten ketchup'],
   ['met samurai', 'met samurai saus'],
   ['met andalouse', 'met andalouse saus'],
   ['met cocktail', 'met cocktail saus'],
-  ['met amerikaanse', 'met amerikaanse saus'],
+  ['met amerikaanse', 'met amerikaanse donker'],
   ['met joppie', 'met joppie saus'],
   ['met bbq', 'met bbq saus'],
-  ['met look', 'met looksaus'],
+  ['met mammouth', 'met mammouth saus'],
+
+  // ── Saté STT ───────────────────────────────────────────
+  ['saté', 'sate'],
+  ['sateh', 'sate'],
+  ['satay', 'sate'],
+  ['hawai burger', 'hawaii burger'],
 ];
 
 function normalizeInput(text: string): string {
@@ -156,8 +180,8 @@ export function extractItems(
     let rest = part;
 
     rest = rest.replace(/^(doe daar|doe er|zet er)\s+/i, '').trim();
-    rest = rest.replace(/^(en|ook)\s+/i, '').trim();
-    rest = rest.replace(/^(ik wil\w*|ik wou|ik zou graag|graag|nog|eh|euh|uh|voor mij)\s+/i, '').trim();
+    rest = rest.replace(/^(en|ook|in|dan)\s+/i, '').trim();
+    rest = rest.replace(/^(ik wil\w*|ik wou|ik zou graag|graag|nog|eh|euh|uh|voor mij|geef mij|mag ik)\s+/i, '').trim();
 
     const numMatch = rest.match(/^(\d+)\s*[x×]?\s*/);
     if (numMatch) {
