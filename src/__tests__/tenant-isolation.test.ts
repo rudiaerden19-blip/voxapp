@@ -413,6 +413,67 @@ describe('GET_NAME — naam validatie', () => {
 });
 
 // ============================================================
+// FASE 2 — CONFIRM LOGICA FIX
+// ============================================================
+
+describe('CONFIRM — order behouden bij "nee"', () => {
+  const menu = ['grote friet', 'cola', 'cervela'];
+  const prices = { 'grote friet': 4.10, 'cola': 2.00, 'cervela': 3.00 };
+  const config: BusinessConfig = {
+    name: 'Test', ai_name: 'AI', welcome_message: 'Hallo',
+    prep_time_pickup: 20, prep_time_delivery: 30, delivery_enabled: false,
+  };
+
+  test('"nee" behoudt order en gaat terug naar TAKING_ORDER', () => {
+    const engine = new VoiceOrderSystem(menu, prices, config);
+    const session = createEmptySession();
+    session.state = OrderState.CONFIRM;
+    session.order = [
+      { product: 'grote friet', quantity: 1, price: 4.10 },
+      { product: 'cola', quantity: 2, price: 2.00 },
+    ];
+    session.name = 'Frederic';
+    session.delivery_type = 'afhalen';
+
+    const result = engine.handle(session, 'nee');
+
+    expect(result.session.state).toBe(OrderState.TAKING_ORDER);
+    expect(result.session.order).toHaveLength(2);
+    expect(result.session.order[0].product).toBe('grote friet');
+    expect(result.session.order[1].product).toBe('cola');
+    expect(result.response).toContain('aanpassen');
+  });
+
+  test('klant kan daarna nieuw item toevoegen', () => {
+    const engine = new VoiceOrderSystem(menu, prices, config);
+    const session = createEmptySession();
+    session.state = OrderState.TAKING_ORDER;
+    session.order = [
+      { product: 'grote friet', quantity: 1, price: 4.10 },
+      { product: 'cola', quantity: 2, price: 2.00 },
+    ];
+
+    engine.handle(session, 'een cervela');
+
+    expect(session.order).toHaveLength(3);
+    expect(session.order[2].product).toBe('cervela');
+    expect(session.order[2].price).toBe(3.00);
+  });
+
+  test('"ja" bij confirm gaat nog steeds naar DONE', () => {
+    const engine = new VoiceOrderSystem(menu, prices, config);
+    const session = createEmptySession();
+    session.state = OrderState.CONFIRM;
+    session.order = [{ product: 'cola', quantity: 1, price: 2.00 }];
+    session.name = 'Test';
+    session.delivery_type = 'afhalen';
+
+    const result = engine.handle(session, 'ja klopt');
+    expect(result.session.state).toBe(OrderState.DONE);
+  });
+});
+
+// ============================================================
 // SECTOR: KAPPER — parser tests
 // ============================================================
 

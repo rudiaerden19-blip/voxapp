@@ -430,9 +430,8 @@ export class VoiceOrderSystem {
           return this.reply(session, `Je bestelling is klaar over ${this.config.prep_time_pickup} minuten. Dank je wel en eet smakelijk.`);
         }
         if (/\b(nee|neen|niet|fout)\b/i.test(input)) {
-          session.order = [];
           session.state = OrderState.TAKING_ORDER;
-          return this.reply(session, 'Ok, laten we opnieuw beginnen. Wat mag het zijn?');
+          return this.reply(session, 'Wat klopt er niet? Zeg maar wat ik moet aanpassen.');
         }
         return this.confirm(session);
       }
