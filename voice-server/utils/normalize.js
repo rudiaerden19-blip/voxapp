@@ -80,18 +80,6 @@ const PHONETIC_MAP = [
   ['ijsthee', 'ice tea'],
   ['capri sun', 'caprisun'],
   ['spa blauw', 'spa bruis'],
-
-  // Dranken — STT fouten
-  ['kolen', 'cola'],
-  ['colah', 'cola'],
-  ['coolah', 'cola'],
-  ['kola', 'cola'],
-  ['fanta appel', 'fanta appelsien'],
-  ['fantta', 'fanta'],
-  ['sprait', 'sprite'],
-  ['spry', 'sprite'],
-  ['seven up', '7up'],
-  ['7 up', '7up'],
 ];
 
 const SORTED_MAP = [...PHONETIC_MAP].sort((a, b) => b[0].length - a[0].length);
