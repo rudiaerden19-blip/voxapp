@@ -56,8 +56,12 @@ const HARDCODED_REPLACEMENTS: [string, string][] = [
   // ── Speciaal → special (menu gebruikt "special") ────────
   ['speciaal', 'special'],
 
+  // ── STT grove fouten (woord-verwisseling) ───────────────
+  ['grote fan', 'grote friet'],
+
   // ── Cervela STT varianten ───────────────────────────────
   ['gebakken servla', 'cervela'],
+  ['cervelat', 'cervela'],
   ['serbela', 'cervela'],
   ['servela', 'cervela'],
   ['cerbella', 'cervela'],
@@ -68,6 +72,8 @@ const HARDCODED_REPLACEMENTS: [string, string][] = [
   ['servelade', 'cervela'],
 
   // ── Frikandel STT varianten (langste eerst) ─────────────
+  ['frikadellen special', 'frikandel special'],
+  ['frikadellen', 'frikandel'],
   ['frikadelle special', 'frikandel special'],
   ['frikadelle', 'frikandel'],
   ['frikadel special', 'frikandel special'],
@@ -90,6 +96,8 @@ const HARDCODED_REPLACEMENTS: [string, string][] = [
   ['zoute mayonaise', 'zoete mayonaise'],
   ['zoute mayo', 'zoete mayonaise'],
   ['tomatenketchup', 'tomaten ketchup'],
+  ['curryketchup', 'curry ketchup'],
+  ['met ketchup', 'met tomaten ketchup'],
   ['met samurai', 'met samurai saus'],
   ['met andalouse', 'met andalouse saus'],
   ['met cocktail', 'met cocktail saus'],
@@ -181,7 +189,7 @@ export function extractItems(
 
     rest = rest.replace(/^(doe daar|doe er|zet er)\s+/i, '').trim();
     rest = rest.replace(/^(en|ook|in|dan)\s+/i, '').trim();
-    rest = rest.replace(/^(ik wil\w*|ik wou|ik zou graag|graag|nog|eh|euh|uh|voor mij|geef mij|mag ik)\s+/i, '').trim();
+    rest = rest.replace(/^(ik wil\w*|ik wou|ik zou graag|ik ben|ik heb|graag|nog|eh|euh|uh|voor mij|geef mij|mag ik)\s+/i, '').trim();
 
     const numMatch = rest.match(/^(\d+)\s*[x×]?\s*/);
     if (numMatch) {
