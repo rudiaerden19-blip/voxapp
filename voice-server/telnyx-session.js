@@ -1,8 +1,6 @@
 const { createClient, LiveTranscriptionEvents } = require('@deepgram/sdk');
 
 const DEEPGRAM_API_KEY = process.env.DEEPGRAM_API_KEY;
-const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
-const ELEVENLABS_VOICE_ID = process.env.ELEVENLABS_VOICE_ID;
 const VERCEL_API_URL = process.env.VERCEL_API_URL;
 
 const activeSessions = new Map();
@@ -18,7 +16,6 @@ class TelnyxSession {
 
     this.deepgramConn = null;
     this.utteranceBuffer = '';
-    this.isSpeaking = false;
     this.processing = false;
 
     this.log('TelnyxSession created', { callControlId: this.callControlId, businessId: this.businessId });
@@ -137,10 +134,7 @@ class TelnyxSession {
     });
 
     this.deepgramConn.on(LiveTranscriptionEvents.SpeechStarted, () => {
-      if (this.isSpeaking) {
-        this.log('Barge-in detected — stopping playback');
-        this.stopPlayback();
-      }
+      this.log('Speech detected');
     });
 
     this.deepgramConn.on(LiveTranscriptionEvents.Error, (err) => {
@@ -154,9 +148,7 @@ class TelnyxSession {
 
   async sendGreeting() {
     const response = await this.callBusinessLogic('__greeting__');
-    if (response) {
-      await this.speak(response);
-    }
+    this.log('Greeting sent via Telnyx speak', { response: response?.slice(0, 80) });
   }
 
   async processUtterance(text) {
@@ -166,11 +158,8 @@ class TelnyxSession {
 
     const response = await this.callBusinessLogic(text);
     const elapsed = Date.now() - t0;
-    this.log('Business logic response', { elapsed_ms: elapsed, response: response?.slice(0, 100) });
+    this.log('Response via Telnyx speak', { elapsed_ms: elapsed, response: response?.slice(0, 100) });
 
-    if (response) {
-      await this.speak(response);
-    }
     this.processing = false;
   }
 
@@ -200,96 +189,6 @@ class TelnyxSession {
     } catch (err) {
       this.log('Business logic fetch error', { error: err.message });
       return null;
-    }
-  }
-
-  async speak(text) {
-    this.isSpeaking = true;
-    const t0 = Date.now();
-
-    try {
-      const url = `https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_VOICE_ID}/stream?output_format=ulaw_8000`;
-
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'xi-api-key': ELEVENLABS_API_KEY,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          text,
-          model_id: 'eleven_turbo_v2_5',
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.8,
-            style: 0.0,
-            use_speaker_boost: true,
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        const errText = await response.text();
-        this.log('TTS error', { status: response.status, body: errText.slice(0, 200) });
-        this.isSpeaking = false;
-        return;
-      }
-
-      const reader = response.body.getReader();
-      let residual = Buffer.alloc(0);
-      const CHUNK_SIZE = 640;
-      let firstByteMs = 0;
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        if (!this.isSpeaking) {
-          this.log('TTS interrupted mid-stream');
-          reader.cancel();
-          break;
-        }
-
-        if (!firstByteMs) {
-          firstByteMs = Date.now() - t0;
-          this.log('TTS first byte', { ms: firstByteMs });
-        }
-
-        let buf = Buffer.concat([residual, Buffer.from(value)]);
-        residual = Buffer.alloc(0);
-
-        while (buf.length >= CHUNK_SIZE) {
-          const chunk = buf.slice(0, CHUNK_SIZE);
-          buf = buf.slice(CHUNK_SIZE);
-
-          if (this.ws.readyState === 1) {
-            this.ws.send(JSON.stringify({
-              event: 'media',
-              media: { payload: chunk.toString('base64') },
-            }));
-          }
-        }
-        if (buf.length > 0) residual = buf;
-      }
-
-      if (residual.length > 0 && this.isSpeaking && this.ws.readyState === 1) {
-        this.ws.send(JSON.stringify({
-          event: 'media',
-          media: { payload: residual.toString('base64') },
-        }));
-      }
-
-      this.log('TTS complete', { total_ms: Date.now() - t0, first_byte_ms: firstByteMs });
-    } catch (err) {
-      this.log('TTS error', { error: err.message });
-    }
-
-    this.isSpeaking = false;
-  }
-
-  stopPlayback() {
-    this.isSpeaking = false;
-    if (this.ws.readyState === 1) {
-      this.ws.send(JSON.stringify({ event: 'clear' }));
     }
   }
 

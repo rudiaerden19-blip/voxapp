@@ -202,8 +202,12 @@ export async function POST(request: NextRequest) {
     const engine = new VoiceOrderSystem(menu.items, menu.prices, config, menu.modifiers);
 
     if (transcript === '__greeting__') {
-      console.log(JSON.stringify({ _tag: 'STREAM', event: 'greeting', business_id: businessId, elapsed: Date.now() - t0 }));
-      return NextResponse.json({ response: engine.getGreeting() });
+      const greeting = engine.getGreeting();
+      console.log(JSON.stringify({ _tag: 'STREAM', event: 'greeting', business_id: businessId, call_control_id: callControlId, elapsed: Date.now() - t0 }));
+      if (callControlId && process.env.TELNYX_API_KEY) {
+        await telnyxSpeak(callControlId, greeting);
+      }
+      return NextResponse.json({ response: greeting });
     }
 
     let session = await loadSession(supabase, conversationId);
@@ -270,11 +274,9 @@ export async function POST(request: NextRequest) {
       await saveSession(supabase, conversationId, session, businessId);
     }
 
-    // Telnyx speak: stuur audio terug naar de beller via Telnyx API
+    // Telnyx speak: stuur audio terug naar de beller
     if (callControlId && process.env.TELNYX_API_KEY) {
-      telnyxSpeak(callControlId, result.response).catch((err) => {
-        console.error('Telnyx speak error:', err);
-      });
+      await telnyxSpeak(callControlId, result.response);
     }
 
     return NextResponse.json({ response: result.response });
