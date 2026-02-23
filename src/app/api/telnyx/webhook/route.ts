@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     }
 
     const callControlId = payload.call_control_id;
-    const voiceServerUrl = process.env.VOICE_SERVER_URL;
+    const voiceServerUrl = process.env.VOICE_SERVER_URL || 'https://voxapp-voice.onrender.com';
 
     // ======== CALL INITIATED ========
     if (eventType === 'call.initiated') {
