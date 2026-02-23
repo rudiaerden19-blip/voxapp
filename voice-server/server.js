@@ -27,6 +27,20 @@ app.get('/health', (_req, res) => {
   });
 });
 
+app.get('/debug', (_req, res) => {
+  const mask = (v) => v ? `${v.slice(0, 6)}...${v.slice(-4)} (${v.length} chars)` : 'NOT SET';
+  res.json({
+    env: {
+      DEEPGRAM_API_KEY: mask(process.env.DEEPGRAM_API_KEY),
+      ELEVENLABS_API_KEY: mask(process.env.ELEVENLABS_API_KEY),
+      ELEVENLABS_VOICE_ID: process.env.ELEVENLABS_VOICE_ID || 'NOT SET',
+      VERCEL_API_URL: process.env.VERCEL_API_URL || 'NOT SET',
+      RENDER_EXTERNAL_URL: process.env.RENDER_EXTERNAL_URL || 'NOT SET',
+      PORT: process.env.PORT || '8080',
+    },
+  });
+});
+
 app.get('/audio/:id', (req, res) => {
   const audio = TelnyxSession.getAudio(req.params.id);
   if (!audio) return res.status(404).send('Not found');
