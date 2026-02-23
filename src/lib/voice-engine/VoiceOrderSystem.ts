@@ -132,7 +132,10 @@ function fuzzyMatch(phrase: string, menuItems: string[], cutoff = 0.82): string 
 function normalizeInput(text: string): string {
   let t = text.toLowerCase().trim();
   for (const [wrong, correct] of HARDCODED_REPLACEMENTS) {
-    t = t.replace(new RegExp(wrong.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), correct);
+    const escaped = wrong.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // Voorkom dubbeling: als correct langer is, check of de langere vorm er al staat
+    if (correct.length > wrong.length && t.includes(correct)) continue;
+    t = t.replace(new RegExp(escaped, 'gi'), correct);
   }
   return t;
 }

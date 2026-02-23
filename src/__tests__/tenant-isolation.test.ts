@@ -521,6 +521,53 @@ describe('Leidende connectors — correct gestript', () => {
 });
 
 // ============================================================
+// DUBBELE "saus saus" — HARDCODED_REPLACEMENT fix
+// ============================================================
+
+describe('Dubbele saus fix — geen "saus saus"', () => {
+  const menu = ['grote friet', 'samurai saus', 'andalouse saus', 'cocktail saus'];
+  const prices = { 'grote friet': 4.10, 'samurai saus': 1.10, 'andalouse saus': 1.10, 'cocktail saus': 1.10 };
+  const modifiers = new Set(['samurai saus', 'andalouse saus', 'cocktail saus']);
+  const config: BusinessConfig = {
+    name: 'Test', ai_name: 'AI', welcome_message: 'Hallo',
+    prep_time_pickup: 20, prep_time_delivery: 30, delivery_enabled: true,
+  };
+
+  test('"met samurai" → product bevat "samurai saus" (niet "saus saus")', () => {
+    const engine = new VoiceOrderSystem(menu, prices, config, modifiers);
+    const session = createEmptySession();
+    engine.handle(session, 'grote friet met samurai');
+    expect(session.order).toHaveLength(1);
+    expect(session.order[0].product).toContain('samurai saus');
+    expect(session.order[0].product).not.toContain('saus saus');
+  });
+
+  test('"met samurai saus" → blijft ongewijzigd (geen dubbeling)', () => {
+    const engine = new VoiceOrderSystem(menu, prices, config, modifiers);
+    const session = createEmptySession();
+    engine.handle(session, 'grote friet met samurai saus');
+    expect(session.order).toHaveLength(1);
+    expect(session.order[0].product).not.toContain('saus saus');
+  });
+
+  test('"met andalouse" → "andalouse saus" (niet "saus saus")', () => {
+    const engine = new VoiceOrderSystem(menu, prices, config, modifiers);
+    const session = createEmptySession();
+    engine.handle(session, 'grote friet met andalouse');
+    expect(session.order).toHaveLength(1);
+    expect(session.order[0].product).not.toContain('saus saus');
+  });
+
+  test('"met andalouse saus" → blijft ongewijzigd', () => {
+    const engine = new VoiceOrderSystem(menu, prices, config, modifiers);
+    const session = createEmptySession();
+    engine.handle(session, 'grote friet met andalouse saus');
+    expect(session.order).toHaveLength(1);
+    expect(session.order[0].product).not.toContain('saus saus');
+  });
+});
+
+// ============================================================
 // DELIVERY_TYPE — regex fix
 // ============================================================
 
