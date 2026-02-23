@@ -29,7 +29,7 @@ for (const key of REQUIRED_ENV) {
 }
 
 const PORT = process.env.PORT || 8080;
-const PUBLIC_URL = process.env.PUBLIC_URL || `http://localhost:${PORT}`;
+const PUBLIC_URL = process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
 
 // ── SUPABASE ────────────────────────────────────────────────
 const supabase = createClient(
