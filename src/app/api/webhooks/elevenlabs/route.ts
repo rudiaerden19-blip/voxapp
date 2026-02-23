@@ -2,416 +2,36 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { PLAN_MINUTES } from '@/lib/planFacts';
 
-// Horeca business types that take orders
-const HORECA_TYPES = ['frituur', 'pizzeria', 'kebab', 'restaurant', 'snackbar'];
+// ============================================================
+// ELEVENLABS POST-CALL WEBHOOK — READ-ONLY
+// ============================================================
+//
+// Order creation is handled exclusively by the Custom LLM flow
+// (VoiceOrderSystem state machine → DONE state → orders insert).
+//
+// This webhook only:
+//   1. Logs the call to call_logs
+//   2. Updates monthly usage counters
+//
+// NO orders, appointments, or other business data are created here.
+//
 
-// ==============================
-// MENU NORMALIZER — fixes speech-to-text errors
-// ==============================
-
-const HARDCODED_REPLACEMENTS: Record<string, string> = {
-  'cerbella': 'cervela',
-  'cebella': 'cervela',
-  'servela': 'cervela',
-  'cervella': 'cervela',
-  'cerbéla': 'cervela',
-  'cerbela': 'cervela',
-  'servelade': 'cervela',
-  'gebakken servla': 'cervela',
-  'boelet': 'gebakken boulet',
-  'boelett': 'gebakken boulet',
-  'boulet': 'gebakken boulet',
-  'koude boulet': 'gebakken boulet',
-  'frikadel': 'frikandel',
-  'frikadel speciaal': 'frikandel speciaal',
-  'bickyburger': 'bicky burger',
-  'biggie burger': 'bicky burger',
-  'zoute mayonaise': 'zoete mayonaise',
-  'zoute mayo': 'zoete mayonaise',
-};
-
-function levenshtein(a: string, b: string): number {
-  const m = a.length, n = b.length;
-  const dp: number[][] = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
-  for (let i = 0; i <= m; i++) dp[i][0] = i;
-  for (let j = 0; j <= n; j++) dp[0][j] = j;
-  for (let i = 1; i <= m; i++)
-    for (let j = 1; j <= n; j++)
-      dp[i][j] = Math.min(
-        dp[i - 1][j] + 1,
-        dp[i][j - 1] + 1,
-        dp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
-      );
-  return dp[m][n];
-}
-
-function fuzzyMatchMenu(word: string, menuNames: string[], cutoff = 0.78): string {
-  let bestMatch = word;
-  let bestScore = 0;
-  for (const name of menuNames) {
-    const maxLen = Math.max(word.length, name.length);
-    if (maxLen === 0) continue;
-    const score = 1 - levenshtein(word, name) / maxLen;
-    if (score > bestScore && score >= cutoff) {
-      bestScore = score;
-      bestMatch = name;
-    }
-  }
-  return bestMatch;
-}
-
-function normalizeMenuText(text: string, menuNames: string[]): string {
-  let normalized = text.toLowerCase();
-  // Sort replacements by length (longest first) to avoid partial matches
-  const sorted = Object.entries(HARDCODED_REPLACEMENTS).sort((a, b) => b[0].length - a[0].length);
-  for (const [wrong, correct] of sorted) {
-    normalized = normalized.replace(new RegExp(wrong.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), correct);
-  }
-
-  // Fuzzy match multi-word and single-word against menu
-  const words = normalized.split(/\s+/);
-  const result: string[] = [];
-  let i = 0;
-  while (i < words.length) {
-    // Try 3-word combo
-    if (i + 2 < words.length) {
-      const three = `${words[i]} ${words[i + 1]} ${words[i + 2]}`;
-      const match3 = fuzzyMatchMenu(three, menuNames);
-      if (match3 !== three) { result.push(match3); i += 3; continue; }
-    }
-    // Try 2-word combo
-    if (i + 1 < words.length) {
-      const two = `${words[i]} ${words[i + 1]}`;
-      const match2 = fuzzyMatchMenu(two, menuNames);
-      if (match2 !== two) { result.push(match2); i += 2; continue; }
-    }
-    // Single word
-    const match1 = fuzzyMatchMenu(words[i], menuNames);
-    result.push(match1);
-    i += 1;
-  }
-  return result.join(' ');
-}
-
-// Parse phone number from transcript
-function extractPhoneNumber(text: string): string | null {
-  const phonePatterns = [
-    /(?:telefoonnummer|nummer|telefoon|bellen)[:\s]*([+\d\s\-()]{8,})/i,
-    /([+]?32[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}[\s\-]?\d{2})/,
-    /([+]?31[\s\-]?\d{9})/,
-    /(0\d{1,3}[\s\-]?\d{2,3}[\s\-]?\d{2,3}[\s\-]?\d{2,3})/,
-  ];
-  
-  for (const pattern of phonePatterns) {
-    const match = text.match(pattern);
-    if (match) {
-      return match[1].replace(/[\s\-()]/g, '');
-    }
-  }
-  return null;
-}
-
-// Parse customer name from transcript — uses structured message array when available
-function extractCustomerName(text: string, messages?: { role?: string; message?: string; text?: string }[]): string | null {
-  // Best method: find the user's reply right after the agent asks for the name
-  if (messages && messages.length > 0) {
-    for (let i = 0; i < messages.length - 1; i++) {
-      const m = messages[i];
-      if (m.role !== 'agent') continue;
-      const agentTxt = (m.message || m.text || '').toLowerCase();
-      if (/welke naam|op naam|naam mag ik|naam noteren/i.test(agentTxt)) {
-        // Next user message is the name
-        for (let j = i + 1; j < messages.length; j++) {
-          if (messages[j].role === 'user') {
-            const raw = (messages[j].message || messages[j].text || '').trim().replace(/[.!?,]+$/g, '');
-            if (raw.length >= 2 && raw.length <= 40) return raw;
-            break;
-          }
-        }
-      }
-    }
-    // Also extract from agent's summary: "Ok [NAME], even samenvatten:"
-    for (let i = messages.length - 1; i >= 0; i--) {
-      const m = messages[i];
-      if (m.role !== 'agent') continue;
-      const txt = m.message || m.text || '';
-      const sm = txt.match(/^ok\s+([A-Za-zÀ-ÿ][\w\s]{1,30}?)\s*,\s*even\s+samenvatten/i);
-      if (sm) return sm[1].trim();
-    }
-  }
-
-  // Fallback: regex on full text
-  const namePatterns = [
-    /(?:mijn naam is|ik ben|ik heet|naam is)\s+([A-Za-zÀ-ÿ]{2,}(?:\s+[A-Za-zÀ-ÿ]{2,})*)/im,
-    /(?:op naam van|onder de naam)\s+([A-Za-zÀ-ÿ]{2,}(?:\s+[A-Za-zÀ-ÿ]{2,})*)/im,
-    /(?:naam.*zetten|naam.*noteren)\??\s*\n\s*user:\s*([A-Za-zÀ-ÿ]{2,}(?:\s+[A-Za-zÀ-ÿ]{2,})*)/im,
-  ];
-  
-  const badWords = new Set(['agent', 'user', 'klant', 'unknown', 'telefoon', 'hallo', 'goeiedag',
-    'bestellen', 'bestelling', 'afhalen', 'bezorgen', 'leveren', 'doen', 'helpen',
-    'ja', 'nee', 'ok', 'goed', 'nog', 'iets', 'anders', 'dat', 'was', 'het', 'niet',
-    'voor', 'met', 'een', 'kan', 'wil', 'graag', 'zou']);
-  
-  for (const pattern of namePatterns) {
-    const match = text.match(pattern);
-    if (match) {
-      const name = match[1].trim().replace(/[.!?,]+$/g, '');
-      if (badWords.has(name.toLowerCase())) continue;
-      if (name.length < 2) continue;
-      return name;
-    }
-  }
-  return null;
-}
-
-// Check if transcript confirms an appointment
-function detectAppointmentConfirmation(text: string): boolean {
-  const confirmationPhrases = [
-    /afspraak\s+(?:is\s+)?(?:bevestigd|ingepland|gemaakt)/i,
-    /u\s+staat\s+(?:nu\s+)?ingepland/i,
-    /tot\s+(?:dan|ziens)/i,
-    /we\s+zien\s+u\s+(?:op|om)/i,
-  ];
-  
-  return confirmationPhrases.some(p => p.test(text));
-}
-
-// Check if transcript confirms an order
-function detectOrderConfirmation(text: string): boolean {
-  const confirmationPhrases = [
-    /bestelling\s+(?:is\s+)?(?:bevestigd|genoteerd|klaar)/i,
-    /totaal\s+(?:is|komt op|bedraagt)/i,
-    /(?:afhalen|bezorgen)\s+om/i,
-    /uw\s+bestelling/i,
-  ];
-  
-  return confirmationPhrases.some(p => p.test(text));
-}
-
-// Load menu prices from database for the given business
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function loadMenuPrices(supabase: any, businessId: string): Promise<Record<string, number>> {
-  const { data } = await supabase
-    .from('menu_items')
-    .select('name, price')
-    .eq('business_id', businessId)
-    .eq('is_available', true);
-  
-  const prices: Record<string, number> = {};
-  if (Array.isArray(data)) {
-    for (const item of data) {
-      if (item.name && typeof item.price === 'number') {
-        prices[item.name.toLowerCase()] = item.price;
-      }
-    }
-  }
-  return prices;
-}
-
-function lookupPrice(item: string, menuPrices: Record<string, number>): number {
-  const lower = item.toLowerCase().trim();
-  if (menuPrices[lower]) return menuPrices[lower];
-  for (const [key, price] of Object.entries(menuPrices)) {
-    if (lower.includes(key) || key.includes(lower)) return price;
-  }
-  return 0;
-}
-
-// Build a receipt from the conversation transcript
-function buildReceipt(
-  messages: { role?: string; message?: string; text?: string }[],
-  menuPrices: Record<string, number>
-): { notes: string; total: number } {
-  // --- STEP 1: Extract the order text from the agent's summary ---
-  let rawText = '';
-
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const m = messages[i];
-    if (m.role !== 'agent') continue;
-    const txt = m.message || m.text || '';
-    if (!/samenvatten|samenvatting|ik noem.*op|even op.*besteld|klopt\s*dat\s*\?/i.test(txt)) continue;
-
-    // Strip everything before the actual item list
-    rawText = txt
-      .replace(/^.*?even\s+samenvatten\s*:?\s*/i, '')
-      .replace(/^.*?ik noem.*?op\s*:?\s*/i, '')
-      .replace(/^.*?je\s+(?:hebt\s+)?besteld\s*:?\s*/i, '')
-      .replace(/klopt\s*(dat|dit)\s*\??/gi, '')
-      .replace(/dat\s+was\s+alles\s*\??/gi, '')
-      .trim().replace(/[.!]+\s*$/, '');
-    if (rawText.length > 5) break;
-    rawText = '';
-  }
-
-  // Fallback: collect user messages that contain food items
-  if (!rawText) {
-    const skip = /^(hallo|hey|goeie|dag|ja\b|nee\b|klopt|dat was|mijn naam|ik heet|ik ben|op naam|telefoon|mijn nummer|\d{4}|afhalen|bezorgen|leveren|kan ik bestellen|ik wil graag bestellen|ik wil bestellen|ik zou graag|dat is het|dat is alles|meer niet|niks meer|dank|bedankt|ok\b|ik kom|graag gedaan|tot ziens|goed zo|prima)/i;
-    const lines: string[] = [];
-    for (const m of messages) {
-      if (m.role !== 'user') continue;
-      const txt = (m.message || m.text || '').trim();
-      if (!txt || txt.length < 4 || skip.test(txt)) continue;
-      lines.push(txt);
-    }
-    rawText = lines.join(', ');
-  }
-
-  if (!rawText) return { notes: 'Bestelling via telefoon', total: 0 };
-
-  // --- STEP 2: Normalize with hardcoded replacements + fuzzy matching ---
-  const menuNames = Object.keys(menuPrices);
-  rawText = normalizeMenuText(rawText, menuNames);
-
-  // --- STEP 3: Split into individual items ---
-  // Split on comma, or "en" followed by a quantity word / food keyword
-  const parts = rawText
-    .split(/,\s*|\ben\s+(?=een\b|één\b|twee\b|drie\b|vier\b|vijf\b|\d+\s*x?\s|\bfriet|\bbicky|\bfrikandel|\bkroket|\bcola|\bfanta|\bwater|\bcurry|\bice|\bbrood|\bbol|\bgebak|\bstoof|\bgoulash)/i)
-    .map(p => p.trim())
-    .filter(p => p.length > 2);
-
-  // --- STEP 4: Parse each part into qty + item + price ---
-  const NUM_WORDS: Record<string, number> = { een: 1, één: 1, twee: 2, drie: 3, vier: 4, vijf: 5, zes: 6, zeven: 7, acht: 8, negen: 9, tien: 10 };
-  const sortedMenu = Object.entries(menuPrices).sort((a, b) => b[0].length - a[0].length);
-  let total = 0;
-  const receiptLines: string[] = [];
-
-  for (const part of parts) {
-    let qty = 1;
-    let itemText = part;
-
-    // Extract quantity (digit or Dutch number word)
-    const qm = itemText.match(/^(\d+)\s*[x×]?\s*/i);
-    const qw = !qm ? itemText.match(/^(een|één|twee|drie|vier|vijf|zes|zeven|acht|negen|tien)\s+/i) : null;
-    if (qm) {
-      qty = parseInt(qm[1]) || 1;
-      itemText = itemText.substring(qm[0].length).trim();
-    } else if (qw) {
-      qty = NUM_WORDS[qw[1].toLowerCase()] || 1;
-      itemText = itemText.substring(qw[0].length).trim();
-    }
-
-    // Remove filler words at the start
-    itemText = itemText.replace(/^(ik wil|ik zou graag|graag|eh|euh|uh|nog)\s+/i, '').trim();
-    itemText = itemText.replace(/^(een|één)\s+/i, '').trim();
-    if (itemText.length < 2) continue;
-
-    // Look up price — try longest menu name match first
-    const lower = itemText.toLowerCase();
-    let price = 0;
-    let displayName = itemText.charAt(0).toUpperCase() + itemText.slice(1);
-
-    for (const [menuName, menuPrice] of sortedMenu) {
-      if (lower.includes(menuName) || menuName.includes(lower)) {
-        price = menuPrice;
-        // Keep the full description (e.g., "grote friet met zoete mayo") but capitalize
-        displayName = itemText.charAt(0).toUpperCase() + itemText.slice(1);
-        break;
-      }
-    }
-
-    const lineTotal = price * qty;
-    total += lineTotal;
-    const priceStr = lineTotal > 0 ? `€${lineTotal.toFixed(2)}` : '';
-    receiptLines.push(`${qty}x ${displayName}  ${priceStr}`);
-  }
-
-  if (receiptLines.length === 0) return { notes: rawText, total: 0 };
-  return { notes: receiptLines.join('\n'), total };
-}
-
-// Extract date and time from transcript
-function extractDateTime(text: string): { date: string | null; time: string | null } {
-  let date: string | null = null;
-  let time: string | null = null;
-  
-  // Time patterns
-  const timeMatch = text.match(/(?:om|rond|tegen)\s+(\d{1,2})[\s:.](\d{2})?(?:\s*uur)?/i);
-  if (timeMatch) {
-    const hours = timeMatch[1].padStart(2, '0');
-    const minutes = timeMatch[2] || '00';
-    time = `${hours}:${minutes}`;
-  }
-  
-  // Date patterns
-  const today = new Date();
-  if (/vandaag/i.test(text)) {
-    date = today.toISOString().split('T')[0];
-  } else if (/morgen/i.test(text)) {
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    date = tomorrow.toISOString().split('T')[0];
-  } else if (/overmorgen/i.test(text)) {
-    const dayAfter = new Date(today);
-    dayAfter.setDate(dayAfter.getDate() + 2);
-    date = dayAfter.toISOString().split('T')[0];
-  }
-  
-  // Day names
-  const dayNames = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'];
-  const dayMatch = text.toLowerCase().match(new RegExp(`(${dayNames.join('|')})`));
-  if (dayMatch && !date) {
-    const targetDay = dayNames.indexOf(dayMatch[1]);
-    const current = today.getDay();
-    let daysToAdd = targetDay - current;
-    if (daysToAdd <= 0) daysToAdd += 7;
-    const targetDate = new Date(today);
-    targetDate.setDate(targetDate.getDate() + daysToAdd);
-    date = targetDate.toISOString().split('T')[0];
-  }
-  
-  return { date, time };
-}
-
-// Extract delivery type — match whole words only to avoid false positives (e.g. "stoofvleessaus" contains "lev")
-function extractDeliveryType(text: string): 'pickup' | 'delivery' {
-  if (/\bbezorg\w*\b|\blever\w*\b|\bbrengen\b/i.test(text)) {
-    if (/\bafhalen\b/i.test(text)) {
-      const afhalenIdx = text.search(/\bafhalen\b/i);
-      const bezorgIdx = text.search(/\bbezorg\w*\b|\blever\w*\b|\bbrengen\b/i);
-      return afhalenIdx > bezorgIdx ? 'pickup' : 'delivery';
-    }
-    return 'delivery';
-  }
-  return 'pickup';
-}
-
-// Extract address
-function extractAddress(text: string): string | null {
-  const addressPatterns = [
-    /(?:adres|bezorgen naar|leveren op|straat)\s*[:is]?\s*([A-Za-z0-9À-ÿ\s,]+\d+[A-Za-z]?(?:\s*,?\s*\d{4}\s*[A-Za-z]+)?)/i,
-  ];
-  
-  for (const pattern of addressPatterns) {
-    const match = text.match(pattern);
-    if (match) {
-      return match[1].trim();
-    }
-  }
-  return null;
-}
-
-// Create admin Supabase client for webhook handling
 function getSupabase() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  
   if (!supabaseUrl || !serviceRoleKey) {
     throw new Error('Missing Supabase environment variables');
   }
-  
   return createClient(supabaseUrl, serviceRoleKey);
 }
 
-// POST - Receive webhook from ElevenLabs after call completion
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
-    // Log EVERYTHING for debugging
+
     console.log('=== ELEVENLABS WEBHOOK RECEIVED ===');
     console.log('Full payload:', JSON.stringify(body, null, 2));
-    
-    // ElevenLabs post-call webhook wraps everything in body.data
+
     const d = body.data || body;
     const agent_id = d.agent_id || body.agent_id || null;
     const conversation_id = d.conversation_id || body.conversation_id || null;
@@ -422,14 +42,13 @@ export async function POST(request: NextRequest) {
     const summary = d.analysis?.transcript_summary || d.summary || body.summary || null;
     const metadata = d.metadata || body.metadata || null;
     const timestamp = body.event_timestamp ? new Date(body.event_timestamp * 1000).toISOString() : (body.timestamp || new Date().toISOString());
-    
+
     console.log('Parsed: agent_id=', agent_id, 'conversation_id=', conversation_id);
 
     const supabase = getSupabase();
 
-    // If no agent_id, try to find business by any means
     let business = null;
-    
+
     if (agent_id) {
       const { data } = await supabase
         .from('businesses')
@@ -438,8 +57,7 @@ export async function POST(request: NextRequest) {
         .single();
       business = data;
     }
-    
-    // Fallback: get first frituur business for testing
+
     if (!business) {
       const { data } = await supabase
         .from('businesses')
@@ -458,13 +76,13 @@ export async function POST(request: NextRequest) {
 
     const durationMinutes = Math.ceil((call_duration_seconds || 0) / 60);
 
-    // Insert call log
+    // ── CALL LOG ────────────────────────────────────────────
     const { error: insertError } = await supabase
       .from('call_logs')
       .insert({
         business_id: business.id,
-        conversation_id: conversation_id,
-        agent_id: agent_id,
+        conversation_id,
+        agent_id,
         duration_seconds: call_duration_seconds || 0,
         duration_minutes: durationMinutes,
         caller_phone: caller_phone_number || null,
@@ -477,12 +95,11 @@ export async function POST(request: NextRequest) {
 
     if (insertError) {
       console.error('Error inserting call log:', insertError);
-      // Return 200 anyway to prevent ElevenLabs from retrying
     }
 
-    // Update monthly usage aggregation
-    const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
-    
+    // ── USAGE TRACKING ─────────────────────────────────────
+    const currentMonth = new Date().toISOString().slice(0, 7);
+
     const { data: existingUsage } = await supabase
       .from('usage_monthly')
       .select('*')
@@ -491,7 +108,6 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (existingUsage) {
-      // Update existing record
       await supabase
         .from('usage_monthly')
         .update({
@@ -501,9 +117,8 @@ export async function POST(request: NextRequest) {
         })
         .eq('id', existingUsage.id);
     } else {
-      // Create new monthly record
       const planLimit = PLAN_MINUTES[business.subscription_plan || 'starter'] ?? PLAN_MINUTES.starter;
-      
+
       await supabase
         .from('usage_monthly')
         .insert({
@@ -518,7 +133,6 @@ export async function POST(request: NextRequest) {
         });
     }
 
-    // Check if over limit and update extra minutes
     const { data: updatedUsage } = await supabase
       .from('usage_monthly')
       .select('*')
@@ -534,131 +148,25 @@ export async function POST(request: NextRequest) {
         .eq('id', updatedUsage.id);
     }
 
-    // === AUTOMATIC APPOINTMENT/ORDER EXTRACTION ===
-    // Only process if we have a transcript
-    if (transcript && call_successful) {
-      // Convert transcript array to readable text for parsing
-      let transcriptText: string;
-      if (typeof transcript === 'string') {
-        transcriptText = transcript;
-      } else if (Array.isArray(transcript)) {
-        transcriptText = transcript.map((m: { role?: string; message?: string; text?: string }) => 
-          `${m.role || 'unknown'}: ${m.message || m.text || ''}`
-        ).join('\n');
-      } else {
-        transcriptText = JSON.stringify(transcript);
-      }
-      
-      // Get business type to determine if it's horeca or appointment-based
-      const { data: fullBusiness } = await supabase
-        .from('businesses')
-        .select('type')
-        .eq('id', business.id)
-        .single();
-      
-      const isHoreca = fullBusiness?.type && HORECA_TYPES.includes(fullBusiness.type);
-      
-      // For horeca businesses, ALWAYS create an order from successful calls
-      if (isHoreca) {
-        const customerName = extractCustomerName(transcriptText, Array.isArray(transcript) ? transcript : undefined) || 'Telefoon klant';
-        const customerPhone = extractPhoneNumber(transcriptText) || caller_phone_number || '';
-        const deliveryType = extractDeliveryType(transcriptText);
-        const customerAddress = deliveryType === 'delivery' ? extractAddress(transcriptText) : null;
-        const { time: deliveryTime } = extractDateTime(transcriptText);
-        
-        // Extract order from the agent's own summary + calculate total from menu prices
-        const menuPrices = await loadMenuPrices(supabase, business.id);
-        const { notes: orderNotes, total: totalAmount } = Array.isArray(transcript)
-          ? buildReceipt(transcript, menuPrices)
-          : { notes: transcriptText.substring(0, 500), total: 0 };
-        
-        const { error: orderError } = await supabase
-          .from('orders')
-          .insert({
-            business_id: business.id,
-            customer_name: customerName,
-            customer_phone: customerPhone,
-            order_type: deliveryType,
-            notes: orderNotes,
-            status: 'pending',
-            source: 'phone',
-            total_amount: totalAmount,
-            created_at: new Date().toISOString()
-          });
-        
-        if (orderError) {
-          console.error('Error creating order from transcript:', orderError);
-        } else {
-          console.log('Order created from call transcript for business:', business.id);
-        }
-        
-      } else if (!isHoreca && detectAppointmentConfirmation(transcriptText)) {
-        const customerName = extractCustomerName(transcriptText, Array.isArray(transcript) ? transcript : undefined) || 'Telefoon klant';
-        const customerPhone = extractPhoneNumber(transcriptText) || caller_phone_number || '';
-        const { date, time } = extractDateTime(transcriptText);
-        
-        if (date && time) {
-          const [hours, minutes] = time.split(':').map(Number);
-          const startTime = new Date(date);
-          startTime.setHours(hours, minutes, 0, 0);
-          const endTime = new Date(startTime.getTime() + 30 * 60000); // Default 30 min
-          
-          // Check for conflicts before inserting
-          const { data: conflicts } = await supabase
-            .from('appointments')
-            .select('id')
-            .eq('business_id', business.id)
-            .neq('status', 'cancelled')
-            .gte('start_time', startTime.toISOString())
-            .lt('start_time', endTime.toISOString());
-          
-          if (!conflicts || conflicts.length === 0) {
-            const { error: appointmentError } = await supabase
-              .from('appointments')
-              .insert({
-                business_id: business.id,
-                customer_name: customerName,
-                customer_phone: customerPhone,
-                start_time: startTime.toISOString(),
-                end_time: endTime.toISOString(),
-                status: 'scheduled',
-                booked_by: 'ai',
-                notes: summary || 'Afspraak via telefoon',
-              });
-            
-            if (appointmentError) {
-              console.error('Error creating appointment from transcript:', appointmentError);
-            } else {
-              console.log('Appointment created from call transcript for business:', business.id);
-            }
-          } else {
-            console.log('Appointment slot already taken, skipping creation');
-          }
-        }
-      }
-    }
-
-    return NextResponse.json({ 
-      received: true, 
+    return NextResponse.json({
+      received: true,
       processed: true,
       business_id: business.id,
       duration_minutes: durationMinutes,
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Webhook processing error:', error);
-    // Return 200 to prevent retries
-    return NextResponse.json({ 
-      received: true, 
-      error: error.message 
+    return NextResponse.json({
+      received: true,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 }
 
-// GET - Health check for webhook endpoint
 export async function GET() {
-  return NextResponse.json({ 
+  return NextResponse.json({
     status: 'ok',
-    endpoint: 'ElevenLabs webhook receiver',
+    endpoint: 'ElevenLabs webhook receiver (read-only — no order creation)',
   });
 }
