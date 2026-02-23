@@ -218,16 +218,25 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    let geminiItems: OrderItem[] | null = null;
+    let mappedItems: OrderItem[] | null = null;
     let geminiNamePhone: { name: string | null; phone: string | null } | null = null;
 
     if (session.state === OrderState.TAKING_ORDER) {
-      geminiItems = await extractWithGemini(userMessage, menu.raw);
+      const geminiResult = await extractWithGemini(userMessage, menu.raw);
+      if (geminiResult && geminiResult.items.length > 0) {
+        const { buildCatalog, mapProducts } = await import('@/lib/voice-engine/productMapper');
+        const catalog = buildCatalog(menu.raw.map(r => ({ name: r.name, price: r.price, is_modifier: r.is_modifier })));
+        const mapped = mapProducts(geminiResult.items, catalog);
+        const resolved = mapped.filter(m => !m.unresolved);
+        if (resolved.length > 0) {
+          mappedItems = resolved.map(m => ({ product: m.product, quantity: m.quantity, price: m.price }));
+        }
+      }
     } else if (session.state === OrderState.GET_NAME_PHONE) {
       geminiNamePhone = await extractNamePhoneWithGemini(userMessage);
     }
 
-    const result = engine.handle(session, userMessage, conversationId, geminiItems, geminiNamePhone);
+    const result = engine.handle(session, userMessage, conversationId, mappedItems, geminiNamePhone);
     session = result.session;
 
     if (session.state === OrderState.DONE) {
