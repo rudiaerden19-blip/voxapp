@@ -2,7 +2,7 @@
 
 const { createClient, LiveTranscriptionEvents } = require('@deepgram/sdk');
 
-function createStream({ onTranscript, onUtteranceEnd, onError }) {
+function createStream({ onTranscript, onUtteranceEnd, onError, onOpen }) {
   const deepgram = createClient(process.env.DEEPGRAM_API_KEY);
 
   const conn = deepgram.listen.live({
@@ -21,11 +21,21 @@ function createStream({ onTranscript, onUtteranceEnd, onError }) {
   });
 
   conn.on(LiveTranscriptionEvents.Open, () => {
-    console.log(JSON.stringify({ _tag: 'STT', event: 'connected' }));
+    console.log(JSON.stringify({ _tag: 'STT', event: 'connected', ts: new Date().toISOString() }));
+    if (onOpen) onOpen();
   });
 
+  conn.on(LiveTranscriptionEvents.Metadata, (data) => {
+    console.log(JSON.stringify({ _tag: 'STT', event: 'metadata', request_id: data?.request_id }));
+  });
+
+  let transcriptCount = 0;
   conn.on(LiveTranscriptionEvents.Transcript, (data) => {
+    transcriptCount++;
     const transcript = data.channel?.alternatives?.[0]?.transcript?.trim();
+    if (transcriptCount <= 3 || (transcript && transcript.length > 0)) {
+      console.log(JSON.stringify({ _tag: 'STT', event: 'transcript', num: transcriptCount, text: transcript || '(empty)', is_final: data.is_final }));
+    }
     if (!transcript) return;
 
     const confidence = data.channel?.alternatives?.[0]?.confidence || 0;

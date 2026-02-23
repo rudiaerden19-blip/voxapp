@@ -28,6 +28,7 @@ if (missingEnv.length > 0) {
 }
 
 const PORT = process.env.PORT || 8080;
+const logBuffer = [];
 const PUBLIC_URL = process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
 
 // ── SUPABASE (lazy — crasht niet bij start als env vars missen) ──
@@ -175,9 +176,18 @@ class CallSession {
     }
 
     // 2. WebSocket handlers
+    this.wsMessageCount = 0;
     this.ws.on('message', (raw) => {
-      try { this.handleTelnyxMessage(JSON.parse(raw)); }
-      catch (err) { this.log('Parse error', { error: err.message }); }
+      this.wsMessageCount++;
+      try {
+        const str = typeof raw === 'string' ? raw : raw.toString();
+        if (this.wsMessageCount <= 5) {
+          this.log('WS raw msg', { num: this.wsMessageCount, preview: str.slice(0, 200) });
+        }
+        this.handleTelnyxMessage(JSON.parse(str));
+      } catch (err) {
+        this.log('Parse error', { error: err.message, rawType: typeof raw, isBuffer: Buffer.isBuffer(raw) });
+      }
     });
     this.ws.on('close', () => { this.log('WS closed'); this.cleanup(); });
     this.ws.on('error', (err) => { this.log('WS error', { error: err.message }); this.cleanup(); });
@@ -199,19 +209,44 @@ class CallSession {
         this.log('Stream started', { callControlId: this.callControlId });
         break;
       case 'media':
-        if (this.deepgramConn && msg.media?.payload) {
-          this.deepgramConn.send(Buffer.from(msg.media.payload, 'base64'));
+        this.mediaCount = (this.mediaCount || 0) + 1;
+        if (this.mediaCount <= 3 || this.mediaCount % 500 === 0) {
+          this.log('Media received', { count: this.mediaCount, deepgramReady: !!this.deepgramReady });
+        }
+        if (msg.media?.payload) {
+          const buf = Buffer.from(msg.media.payload, 'base64');
+          if (this.deepgramConn && this.deepgramReady) {
+            this.deepgramConn.send(buf);
+          } else if (this.audioQueue) {
+            this.audioQueue.push(buf);
+          }
         }
         break;
       case 'stop':
         this.log('Stream stopped');
         this.cleanup();
         break;
+      default:
+        this.log('Unknown WS event', { event: msg.event, keys: Object.keys(msg) });
+        break;
     }
   }
 
   startSTT() {
+    this.deepgramReady = false;
+    this.audioQueue = [];
     this.deepgramConn = deepgram.createStream({
+      onOpen: () => {
+        this.deepgramReady = true;
+        this.log('Deepgram READY');
+        if (this.audioQueue.length > 0) {
+          this.log('Flushing queued audio', { chunks: this.audioQueue.length });
+          for (const chunk of this.audioQueue) {
+            this.deepgramConn.send(chunk);
+          }
+          this.audioQueue = [];
+        }
+      },
       onTranscript: (text, isFinal) => {
         if (isFinal) {
           this.utteranceBuffer += (this.utteranceBuffer ? ' ' : '') + text;
@@ -337,7 +372,10 @@ class CallSession {
   log(msg, data) {
     const entry = { ts: new Date().toISOString(), session: this.sessionId, msg };
     if (data) entry.data = data;
-    console.log(JSON.stringify(entry));
+    const line = JSON.stringify(entry);
+    console.log(line);
+    logBuffer.push(line);
+    if (logBuffer.length > 200) logBuffer.shift();
   }
 
   cleanup() {
@@ -356,6 +394,28 @@ const wss = new WebSocketServer({ noServer: true });
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', sessions: activeSessions.size });
+});
+
+app.get('/logs', (_req, res) => {
+  res.type('text/plain').send(logBuffer.join('\n'));
+});
+
+app.get('/debug', (_req, res) => {
+  res.json({
+    status: 'ok',
+    sessions: activeSessions.size,
+    env: {
+      DEEPGRAM: process.env.DEEPGRAM_API_KEY ? `set (${process.env.DEEPGRAM_API_KEY.slice(0, 6)}...)` : 'MISSING',
+      GEMINI: process.env.GEMINI_API_KEY ? `set (${process.env.GEMINI_API_KEY.slice(0, 6)}...)` : 'MISSING',
+      ELEVENLABS: process.env.ELEVENLABS_API_KEY ? `set (${process.env.ELEVENLABS_API_KEY.slice(0, 6)}...)` : 'MISSING',
+      VOICE_ID: process.env.ELEVENLABS_VOICE_ID ? `set (${process.env.ELEVENLABS_VOICE_ID.slice(0, 6)}...)` : 'MISSING',
+      TELNYX: process.env.TELNYX_API_KEY ? `set (${process.env.TELNYX_API_KEY.slice(0, 6)}...)` : 'MISSING',
+      SUPABASE_URL: process.env.SUPABASE_URL ? 'set' : 'MISSING',
+      SUPABASE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY ? 'set' : 'MISSING',
+      PUBLIC_URL: PUBLIC_URL,
+    },
+    logCount: logBuffer.length,
+  });
 });
 
 app.get('/audio/:id', (req, res) => {
