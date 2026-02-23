@@ -450,6 +450,7 @@ export class VoiceOrderSystem {
     transcript: string,
     conversationId?: string,
     preExtractedItems?: OrderItem[] | null,
+    preExtractedNamePhone?: { name: string | null; phone: string | null } | null,
   ): { response: string; session: SessionData } {
     const input = normalizeInput(transcript);
     const cid = conversationId || 'unknown';
@@ -492,10 +493,21 @@ export class VoiceOrderSystem {
 
       // ── STAP 3: NAAM + TELEFOON ───────────────────────────
       case OrderState.GET_NAME_PHONE: {
-        const { name, phone } = extractNameAndPhone(transcript);
+        // Gemini-extracted naam/telefoon hebben prioriteit
+        const fallback = extractNameAndPhone(transcript);
+        const nameResult = preExtractedNamePhone?.name || fallback.name;
+        const phoneResult = preExtractedNamePhone?.phone || fallback.phone;
 
-        if (name && !session.name) session.name = name;
-        if (phone && !session.phone) session.phone = phone;
+        const source = preExtractedNamePhone ? 'gemini' : 'regex';
+        console.log(JSON.stringify({
+          _tag: 'ORDER_TRACE', conversation_id: cid, step: '2B_NAME_PHONE',
+          extraction_source: source,
+          name: nameResult, phone: phoneResult,
+          gemini_result: preExtractedNamePhone, regex_result: fallback,
+        }));
+
+        if (nameResult && !session.name) session.name = nameResult;
+        if (phoneResult && !session.phone) session.phone = phoneResult;
 
         if (!session.name) {
           return this.traced(session, 'Mag ik uw naam alstublieft?', cid, stateBefore);

@@ -8,7 +8,7 @@ import {
   type BusinessConfig,
   type OrderItem,
 } from '@/lib/voice-engine/VoiceOrderSystem';
-import { extractWithGemini, type MenuItem } from '@/lib/voice-engine/geminiExtractor';
+import { extractWithGemini, extractNamePhoneWithGemini, type MenuItem } from '@/lib/voice-engine/geminiExtractor';
 import { requireTenantFromBusiness, TenantError } from '@/lib/tenant';
 import { createCallLog, logCall, logError } from '@/lib/logger';
 
@@ -219,11 +219,15 @@ export async function POST(request: NextRequest) {
     }
 
     let geminiItems: OrderItem[] | null = null;
+    let geminiNamePhone: { name: string | null; phone: string | null } | null = null;
+
     if (session.state === OrderState.TAKING_ORDER) {
       geminiItems = await extractWithGemini(userMessage, menu.raw);
+    } else if (session.state === OrderState.GET_NAME_PHONE) {
+      geminiNamePhone = await extractNamePhoneWithGemini(userMessage);
     }
 
-    const result = engine.handle(session, userMessage, conversationId, geminiItems);
+    const result = engine.handle(session, userMessage, conversationId, geminiItems, geminiNamePhone);
     session = result.session;
 
     if (session.state === OrderState.DONE) {

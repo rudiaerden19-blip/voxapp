@@ -8,6 +8,11 @@ export interface MenuItem {
   is_modifier: boolean;
 }
 
+export interface NamePhoneResult {
+  name: string | null;
+  phone: string | null;
+}
+
 const SAUCE_FREE_CATEGORIES = new Set([
   'warme broodjes',
   'belegde broodjes',
@@ -24,6 +29,16 @@ function getGenAI(): GoogleGenerativeAI {
     genAI = new GoogleGenerativeAI(key);
   }
   return genAI;
+}
+
+function getModel() {
+  return getGenAI().getGenerativeModel({
+    model: 'gemini-2.0-flash',
+    generationConfig: {
+      temperature: 0,
+      maxOutputTokens: 300,
+    },
+  });
 }
 
 function buildMenuBlock(menuItems: MenuItem[]): string {
@@ -67,15 +82,7 @@ export async function extractWithGemini(
   menuItems: MenuItem[],
 ): Promise<OrderItem[] | null> {
   try {
-    const ai = getGenAI();
-    const model = ai.getGenerativeModel({
-      model: 'gemini-2.0-flash',
-      generationConfig: {
-        temperature: 0,
-        maxOutputTokens: 500,
-      },
-    });
-
+    const model = getModel();
     const menuBlock = buildMenuBlock(menuItems);
     const prompt = `${SYSTEM_PROMPT}\n\nMENU:\n${menuBlock}\n\nTRANSCRIPT: "${transcript}"`;
 
@@ -115,6 +122,64 @@ export async function extractWithGemini(
   } catch (err) {
     console.log(JSON.stringify({
       _tag: 'GEMINI_EXTRACT',
+      status: 'error',
+      error: String(err),
+    }));
+    return null;
+  }
+}
+
+// ============================================================
+// NAAM + TELEFOON EXTRACTIE via Gemini
+// ============================================================
+
+const NAME_PHONE_PROMPT = `Je krijgt een spraak-naar-tekst transcript van iemand die zijn naam en telefoonnummer geeft.
+
+TAAK: Extraheer de naam en het telefoonnummer.
+
+REGELS:
+1. Naam: de voornaam (en eventueel achternaam) van de persoon. STT maakt fouten: "Relie"="Rudi", "Freddie"="Frederic". Kies de meest waarschijnlijke echte naam.
+2. Telefoonnummer: gesproken als woorden ("nul vier negen twee twaalf drieënnegentig drieëntachtig" = "0492129383"). Geef ALLEEN cijfers terug.
+3. Als je de naam of het nummer niet kunt vinden, geef null.
+
+Antwoord ALLEEN met JSON, geen uitleg:
+{"name":"Voornaam","phone":"0492129383"}`;
+
+export async function extractNamePhoneWithGemini(
+  transcript: string,
+): Promise<NamePhoneResult | null> {
+  try {
+    const model = getModel();
+    const prompt = `${NAME_PHONE_PROMPT}\n\nTRANSCRIPT: "${transcript}"`;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text().trim();
+
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      console.log(JSON.stringify({ _tag: 'GEMINI_NAME_PHONE', status: 'no_json', raw: text }));
+      return null;
+    }
+
+    const parsed = JSON.parse(jsonMatch[0]) as { name?: string | null; phone?: string | null };
+
+    const nameVal = parsed.name && parsed.name.length >= 2 ? parsed.name : null;
+    const phoneVal = parsed.phone && parsed.phone.replace(/\D/g, '').length >= 9
+      ? parsed.phone.replace(/\D/g, '')
+      : null;
+
+    console.log(JSON.stringify({
+      _tag: 'GEMINI_NAME_PHONE',
+      status: 'success',
+      name: nameVal,
+      phone: phoneVal,
+      raw_transcript: transcript,
+    }));
+
+    return { name: nameVal, phone: phoneVal };
+  } catch (err) {
+    console.log(JSON.stringify({
+      _tag: 'GEMINI_NAME_PHONE',
       status: 'error',
       error: String(err),
     }));
