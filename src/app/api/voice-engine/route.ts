@@ -6,7 +6,9 @@ import {
   createEmptySession,
   type SessionData,
   type BusinessConfig,
+  type OrderItem,
 } from '@/lib/voice-engine/VoiceOrderSystem';
+import { extractWithGemini, type MenuItem } from '@/lib/voice-engine/geminiExtractor';
 import { requireTenantFromBusiness, TenantError } from '@/lib/tenant';
 import { createCallLog, logCall, logError } from '@/lib/logger';
 
@@ -59,16 +61,31 @@ async function deleteSession(supabase: DB, conversationId: string): Promise<void
 // LOAD MENU FROM DATABASE
 // ============================================================
 
-async function loadMenu(supabase: DB, businessId: string) {
+const menuCache = new Map<string, { data: MenuData; ts: number }>();
+const MENU_CACHE_TTL = 5 * 60 * 1000;
+
+interface MenuData {
+  items: string[];
+  prices: Record<string, number>;
+  modifiers: Set<string>;
+  raw: MenuItem[];
+}
+
+async function loadMenu(supabase: DB, businessId: string): Promise<MenuData> {
+  const cached = menuCache.get(businessId);
+  if (cached && Date.now() - cached.ts < MENU_CACHE_TTL) return cached.data;
+
   const { data } = await supabase
     .from('menu_items')
-    .select('name, price, is_modifier')
+    .select('name, price, is_modifier, category')
     .eq('business_id', businessId)
     .eq('is_available', true);
 
   const items: string[] = [];
   const prices: Record<string, number> = {};
   const modifiers = new Set<string>();
+  const raw: MenuItem[] = [];
+
   if (Array.isArray(data)) {
     for (const row of data) {
       if (row.name && typeof row.price === 'number') {
@@ -76,10 +93,19 @@ async function loadMenu(supabase: DB, businessId: string) {
         items.push(lower);
         prices[lower] = row.price;
         if (row.is_modifier) modifiers.add(lower);
+        raw.push({
+          name: row.name,
+          price: row.price,
+          category: row.category || 'Overig',
+          is_modifier: !!row.is_modifier,
+        });
       }
     }
   }
-  return { items, prices, modifiers };
+
+  const menuData: MenuData = { items, prices, modifiers, raw };
+  menuCache.set(businessId, { data: menuData, ts: Date.now() });
+  return menuData;
 }
 
 // ============================================================
@@ -176,8 +202,8 @@ export async function POST(request: NextRequest) {
     const tenantId = tenant.tenant_id;
 
     const config = buildConfig(business!);
-    const { items: menuItems, prices: menuPrices, modifiers } = await loadMenu(supabase, tenantId);
-    const engine = new VoiceOrderSystem(menuItems, menuPrices, config, modifiers);
+    const menu = await loadMenu(supabase, tenantId);
+    const engine = new VoiceOrderSystem(menu.items, menu.prices, config, menu.modifiers);
     const callLog = createCallLog(conversationId, tenantId);
 
     if (!userMessage) {
@@ -191,7 +217,13 @@ export async function POST(request: NextRequest) {
         session.phone = callerPhone;
       }
     }
-    const result = engine.handle(session, userMessage, conversationId);
+
+    let geminiItems: OrderItem[] | null = null;
+    if (session.state === OrderState.TAKING_ORDER) {
+      geminiItems = await extractWithGemini(userMessage, menu.raw);
+    }
+
+    const result = engine.handle(session, userMessage, conversationId, geminiItems);
     session = result.session;
 
     if (session.state === OrderState.DONE) {

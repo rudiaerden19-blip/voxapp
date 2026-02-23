@@ -6,7 +6,9 @@ import {
   createEmptySession,
   type SessionData,
   type BusinessConfig,
+  type OrderItem,
 } from '@/lib/voice-engine/VoiceOrderSystem';
+import { extractWithGemini, type MenuItem } from '@/lib/voice-engine/geminiExtractor';
 import { requireTenantFromBusiness, TenantError } from '@/lib/tenant';
 import { createCallLog, logCall, logError } from '@/lib/logger';
 
@@ -48,15 +50,32 @@ async function deleteSession(supabase: DB, sessionId: string): Promise<void> {
   await supabase.from('voice_sessions').delete().eq('conversation_id', sessionId);
 }
 
-async function loadMenu(supabase: DB, tenantId: string) {
+// ── Menu cache: 1 DB call per tenant per 5 minuten ────────
+const menuCache = new Map<string, { data: MenuData; ts: number }>();
+const MENU_CACHE_TTL = 5 * 60 * 1000;
+
+interface MenuData {
+  items: string[];
+  prices: Record<string, number>;
+  modifiers: Set<string>;
+  raw: MenuItem[];
+}
+
+async function loadMenu(supabase: DB, tenantId: string): Promise<MenuData> {
+  const cached = menuCache.get(tenantId);
+  if (cached && Date.now() - cached.ts < MENU_CACHE_TTL) return cached.data;
+
   const { data } = await supabase
     .from('menu_items')
-    .select('name, price, is_modifier')
+    .select('name, price, is_modifier, category')
     .eq('business_id', tenantId)
     .eq('is_available', true);
+
   const items: string[] = [];
   const prices: Record<string, number> = {};
   const modifiers = new Set<string>();
+  const raw: MenuItem[] = [];
+
   if (Array.isArray(data)) {
     for (const row of data) {
       if (row.name && typeof row.price === 'number') {
@@ -64,10 +83,19 @@ async function loadMenu(supabase: DB, tenantId: string) {
         items.push(lower);
         prices[lower] = row.price;
         if (row.is_modifier) modifiers.add(lower);
+        raw.push({
+          name: row.name,
+          price: row.price,
+          category: row.category || 'Overig',
+          is_modifier: !!row.is_modifier,
+        });
       }
     }
   }
-  return { items, prices, modifiers };
+
+  const menuData: MenuData = { items, prices, modifiers, raw };
+  menuCache.set(tenantId, { data: menuData, ts: Date.now() });
+  return menuData;
 }
 
 interface BusinessRow {
@@ -206,8 +234,8 @@ export async function POST(request: NextRequest) {
     const callLog = createCallLog(sessionId, tenantId);
 
     const config = buildConfig(business!);
-    const { items: menuItems, prices: menuPrices, modifiers } = await loadMenu(supabase, tenantId);
-    const engine = new VoiceOrderSystem(menuItems, menuPrices, config, modifiers);
+    const menu = await loadMenu(supabase, tenantId);
+    const engine = new VoiceOrderSystem(menu.items, menu.prices, config, menu.modifiers);
 
     if (!userMessage) {
       callLog.state_transitions.push('GREETING');
@@ -226,7 +254,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const result = engine.handle(session, userMessage, sessionId);
+    // Gemini extractie alleen in TAKING_ORDER state
+    let geminiItems: OrderItem[] | null = null;
+    if (session.state === OrderState.TAKING_ORDER) {
+      geminiItems = await extractWithGemini(userMessage, menu.raw);
+    }
+
+    const result = engine.handle(session, userMessage, sessionId, geminiItems);
     session = result.session;
 
     callLog.state_transitions.push(`${prevState} → ${session.state}`);

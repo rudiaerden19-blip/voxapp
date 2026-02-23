@@ -445,7 +445,12 @@ export class VoiceOrderSystem {
     this.modifiers = modifiers;
   }
 
-  handle(session: SessionData, transcript: string, conversationId?: string): { response: string; session: SessionData } {
+  handle(
+    session: SessionData,
+    transcript: string,
+    conversationId?: string,
+    preExtractedItems?: OrderItem[] | null,
+  ): { response: string; session: SessionData } {
     const input = normalizeInput(transcript);
     const cid = conversationId || 'unknown';
     const stateBefore = session.state;
@@ -458,14 +463,17 @@ export class VoiceOrderSystem {
 
     switch (session.state) {
 
-      // ── BESTELLING OPNEMEN ─────────────────────────────────
-      // Klant zegt bestelling in één keer. Zodra items herkend:
-      // direct door naar naam+telefoon. Geen "nog iets anders?".
       case OrderState.TAKING_ORDER: {
-        const items = extractItems(input, this.menuItems, this.menuPrices, this.modifiers);
+        // Gemini-extracted items hebben prioriteit, fallback naar regex parser
+        const items = (preExtractedItems && preExtractedItems.length > 0)
+          ? preExtractedItems
+          : extractItems(input, this.menuItems, this.menuPrices, this.modifiers);
+
+        const source = (preExtractedItems && preExtractedItems.length > 0) ? 'gemini' : 'regex';
 
         console.log(JSON.stringify({
           _tag: 'ORDER_TRACE', conversation_id: cid, step: '2_EXTRACT',
+          extraction_source: source,
           extracted_items: items, menu_items_count: this.menuItems.length,
         }));
 
