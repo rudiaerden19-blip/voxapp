@@ -474,6 +474,53 @@ describe('CONFIRM — order behouden bij "nee"', () => {
 });
 
 // ============================================================
+// LEIDENDE CONNECTORS — strip "en", "ook", "doe daar", etc.
+// ============================================================
+
+describe('Leidende connectors — correct gestript', () => {
+  const menu = ['cola', 'fanta', 'cervela'];
+  const prices = { 'cola': 2.00, 'fanta': 2.00, 'cervela': 3.00 };
+  const config: BusinessConfig = {
+    name: 'Test', ai_name: 'AI', welcome_message: 'Hallo',
+    prep_time_pickup: 20, prep_time_delivery: 30, delivery_enabled: true,
+  };
+
+  test('"en twee cola" → 2x cola', () => {
+    const engine = new VoiceOrderSystem(menu, prices, config);
+    const session = createEmptySession();
+    engine.handle(session, 'en twee cola');
+    expect(session.order).toHaveLength(1);
+    expect(session.order[0].quantity).toBe(2);
+    expect(session.order[0].product).toBe('cola');
+  });
+
+  test('"ook een cola" → 1x cola', () => {
+    const engine = new VoiceOrderSystem(menu, prices, config);
+    const session = createEmptySession();
+    engine.handle(session, 'ook een cola');
+    expect(session.order).toHaveLength(1);
+    expect(session.order[0].product).toBe('cola');
+  });
+
+  test('"doe daar nog een cola bij" → 1x cola', () => {
+    const engine = new VoiceOrderSystem(menu, prices, config);
+    const session = createEmptySession();
+    engine.handle(session, 'doe daar nog een cola bij');
+    expect(session.order).toHaveLength(1);
+    expect(session.order[0].product).toBe('cola');
+  });
+
+  test('"zet er twee cola bij" → 2x cola', () => {
+    const engine = new VoiceOrderSystem(menu, prices, config);
+    const session = createEmptySession();
+    engine.handle(session, 'zet er twee cola bij');
+    expect(session.order).toHaveLength(1);
+    expect(session.order[0].quantity).toBe(2);
+    expect(session.order[0].product).toBe('cola');
+  });
+});
+
+// ============================================================
 // DELIVERY_TYPE — regex fix
 // ============================================================
 

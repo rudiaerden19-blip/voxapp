@@ -181,6 +181,11 @@ export function extractItems(
     let qty = 1;
     let rest = part;
 
+    // Strip connectors en filler VOOR quantity extractie
+    rest = rest.replace(/^(doe daar|doe er|zet er)\s+/i, '').trim();
+    rest = rest.replace(/^(en|ook)\s+/i, '').trim();
+    rest = rest.replace(/^(ik wil|ik zou graag|graag|nog|eh|euh|uh)\s+/i, '').trim();
+
     const numMatch = rest.match(/^(\d+)\s*[x×]?\s*/);
     if (numMatch) {
       qty = parseInt(numMatch[1]) || 1;
@@ -193,8 +198,8 @@ export function extractItems(
       }
     }
 
-    rest = rest.replace(/^(ik wil|ik zou graag|graag|nog|eh|euh|uh)\s+/i, '').trim();
     rest = rest.replace(/^(een|één|eén)\s+/i, '').trim();
+    rest = rest.replace(/\s+(bij|erbij)$/i, '').trim();
     if (rest.length < 2) continue;
 
     // "zonder X" — exclude X from matching, don't charge for it
