@@ -1,13 +1,11 @@
 const { createClient, LiveTranscriptionEvents } = require('@deepgram/sdk');
 
 const DEEPGRAM_API_KEY = process.env.DEEPGRAM_API_KEY;
-const TELNYX_API_KEY = process.env.TELNYX_API_KEY;
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
 const ELEVENLABS_VOICE_ID = process.env.ELEVENLABS_VOICE_ID;
 const VERCEL_API_URL = process.env.VERCEL_API_URL;
 
 const activeSessions = new Map();
-const audioStore = new Map();
 
 class TelnyxSession {
   constructor(ws, params) {
@@ -28,10 +26,6 @@ class TelnyxSession {
 
   static activeSessions() {
     return activeSessions.size;
-  }
-
-  static getAudio(id) {
-    return audioStore.get(id);
   }
 
   log(msg, data) {
@@ -209,129 +203,92 @@ class TelnyxSession {
   }
 
   async speak(text) {
-    if (!this.callControlId) {
-      this.log('Cannot speak: no call_control_id');
-      return;
-    }
-
     this.isSpeaking = true;
     const t0 = Date.now();
 
     try {
-      const audioBuffer = await this.generateTTS(text);
-      if (!audioBuffer || audioBuffer.length === 0) {
-        this.log('TTS returned empty audio');
+      const url = `https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_VOICE_ID}/stream?output_format=ulaw_8000`;
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'xi-api-key': ELEVENLABS_API_KEY,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text,
+          model_id: 'eleven_turbo_v2_5',
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.8,
+            style: 0.0,
+            use_speaker_boost: true,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        this.log('TTS error', { status: response.status, body: errText.slice(0, 200) });
         this.isSpeaking = false;
         return;
       }
 
-      const audioId = `a_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-      audioStore.set(audioId, audioBuffer);
-      setTimeout(() => audioStore.delete(audioId), 120000);
+      const reader = response.body.getReader();
+      let residual = Buffer.alloc(0);
+      const CHUNK_SIZE = 640;
+      let firstByteMs = 0;
 
-      const serverUrl = process.env.RENDER_EXTERNAL_URL || process.env.VOICE_SERVER_PUBLIC_URL;
-      if (!serverUrl) {
-        this.log('No public URL for audio serving, falling back to Telnyx speak');
-        await this.telnyxSpeak(text);
-        return;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (!this.isSpeaking) {
+          this.log('TTS interrupted mid-stream');
+          reader.cancel();
+          break;
+        }
+
+        if (!firstByteMs) {
+          firstByteMs = Date.now() - t0;
+          this.log('TTS first byte', { ms: firstByteMs });
+        }
+
+        let buf = Buffer.concat([residual, Buffer.from(value)]);
+        residual = Buffer.alloc(0);
+
+        while (buf.length >= CHUNK_SIZE) {
+          const chunk = buf.slice(0, CHUNK_SIZE);
+          buf = buf.slice(CHUNK_SIZE);
+
+          if (this.ws.readyState === 1) {
+            this.ws.send(JSON.stringify({
+              event: 'media',
+              media: { payload: chunk.toString('base64') },
+            }));
+          }
+        }
+        if (buf.length > 0) residual = buf;
       }
 
-      const audioUrl = `${serverUrl}/audio/${audioId}`;
-      this.log('Playing audio via Telnyx', { audioUrl, audio_size: audioBuffer.length });
-
-      const res = await fetch(`https://api.telnyx.com/v2/calls/${this.callControlId}/actions/playback_start`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${TELNYX_API_KEY}`,
-        },
-        body: JSON.stringify({
-          audio_url: audioUrl,
-          overlay: false,
-        }),
-      });
-
-      if (!res.ok) {
-        const errText = await res.text();
-        this.log('Telnyx playback_start failed, falling back to speak', { status: res.status, body: errText });
-        await this.telnyxSpeak(text);
+      if (residual.length > 0 && this.isSpeaking && this.ws.readyState === 1) {
+        this.ws.send(JSON.stringify({
+          event: 'media',
+          media: { payload: residual.toString('base64') },
+        }));
       }
 
-      this.log('TTS complete', { total_ms: Date.now() - t0 });
+      this.log('TTS complete', { total_ms: Date.now() - t0, first_byte_ms: firstByteMs });
     } catch (err) {
-      this.log('Speak error', { error: err.message });
-      await this.telnyxSpeak(text).catch(() => {});
+      this.log('TTS error', { error: err.message });
     }
 
     this.isSpeaking = false;
   }
 
-  async generateTTS(text) {
-    const url = `https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_VOICE_ID}?output_format=mp3_44100_128`;
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'xi-api-key': ELEVENLABS_API_KEY,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        text,
-        model_id: 'eleven_turbo_v2_5',
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.8,
-          style: 0.0,
-          use_speaker_boost: true,
-        },
-      }),
-    });
-
-    if (!response.ok) {
-      this.log('ElevenLabs TTS error', { status: response.status });
-      return null;
-    }
-
-    const arrayBuffer = await response.arrayBuffer();
-    return Buffer.from(arrayBuffer);
-  }
-
-  async telnyxSpeak(text) {
-    if (!this.callControlId) return;
-
-    const res = await fetch(`https://api.telnyx.com/v2/calls/${this.callControlId}/actions/speak`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${TELNYX_API_KEY}`,
-      },
-      body: JSON.stringify({
-        payload: text,
-        voice: 'female',
-        language: 'nl-NL',
-      }),
-    });
-
-    if (!res.ok) {
-      this.log('Telnyx speak failed', { status: res.status, body: await res.text() });
-    }
-  }
-
-  async stopPlayback() {
+  stopPlayback() {
     this.isSpeaking = false;
-    if (!this.callControlId) return;
-
-    try {
-      await fetch(`https://api.telnyx.com/v2/calls/${this.callControlId}/actions/playback_stop`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${TELNYX_API_KEY}`,
-        },
-        body: JSON.stringify({}),
-      });
-    } catch (err) {
-      this.log('Stop playback error', { error: err.message });
+    if (this.ws.readyState === 1) {
+      this.ws.send(JSON.stringify({ event: 'clear' }));
     }
   }
 

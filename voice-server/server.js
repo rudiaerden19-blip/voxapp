@@ -27,17 +27,6 @@ app.get('/health', (_req, res) => {
   });
 });
 
-app.get('/audio/:id', (req, res) => {
-  const audio = TelnyxSession.getAudio(req.params.id);
-  if (!audio) {
-    return res.status(404).send('Not found');
-  }
-  res.set('Content-Type', 'audio/mpeg');
-  res.set('Content-Length', audio.length);
-  res.set('Cache-Control', 'no-cache');
-  res.send(audio);
-});
-
 server.on('upgrade', (request, socket, head) => {
   const pathname = url.parse(request.url).pathname;
   const query = Object.fromEntries(new URL(request.url, `http://${request.headers.host}`).searchParams);
@@ -65,7 +54,5 @@ server.listen(PORT, () => {
   console.log(`Voice server listening on port ${PORT}`);
   console.log(`Deepgram: ready`);
   console.log(`ElevenLabs TTS voice: ${process.env.ELEVENLABS_VOICE_ID}`);
-  console.log(`Telnyx API: ${process.env.TELNYX_API_KEY ? 'configured' : 'NOT SET'}`);
-  console.log(`Public URL: ${process.env.RENDER_EXTERNAL_URL || process.env.VOICE_SERVER_PUBLIC_URL || 'NOT SET'}`);
   console.log(`Business logic: ${process.env.VERCEL_API_URL}`);
 });
