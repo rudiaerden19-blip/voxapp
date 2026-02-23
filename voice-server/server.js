@@ -30,11 +30,14 @@ if (missingEnv.length > 0) {
 const PORT = process.env.PORT || 8080;
 const PUBLIC_URL = process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
 
-// ── SUPABASE ────────────────────────────────────────────────
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+// ── SUPABASE (lazy — crasht niet bij start als env vars missen) ──
+let _supabase = null;
+function supabase() {
+  if (!_supabase) {
+    _supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+  }
+  return _supabase;
+}
 
 // ── MENU CACHE ──────────────────────────────────────────────
 const menuCache = new Map();
@@ -44,7 +47,7 @@ async function loadMenu(businessId) {
   const cached = menuCache.get(businessId);
   if (cached && Date.now() - cached.ts < MENU_TTL) return cached.data;
 
-  const { data } = await supabase
+  const { data } = await supabase()
     .from('menu_items')
     .select('name, price, is_modifier, category')
     .eq('business_id', businessId)
@@ -78,7 +81,7 @@ async function loadMenu(businessId) {
 }
 
 async function loadBusiness(businessId) {
-  const { data } = await supabase
+  const { data } = await supabase()
     .from('businesses')
     .select('id, name, welcome_message, ai_name, prep_time_pickup, prep_time_delivery, delivery_enabled')
     .eq('id', businessId)
@@ -313,7 +316,7 @@ class CallSession {
         order: orderData, notes, total,
       }));
 
-      await supabase.from('orders').insert({
+      await supabase().from('orders').insert({
         business_id: this.businessId,
         customer_name: orderData.name || 'Telefoon klant',
         customer_phone: orderData.phone || '',
