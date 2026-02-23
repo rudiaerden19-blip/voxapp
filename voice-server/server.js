@@ -21,11 +21,10 @@ const REQUIRED_ENV = [
   'SUPABASE_SERVICE_ROLE_KEY',
 ];
 
-for (const key of REQUIRED_ENV) {
-  if (!process.env[key]) {
-    console.error(`Missing required env: ${key}`);
-    process.exit(1);
-  }
+const missingEnv = REQUIRED_ENV.filter(k => !process.env[k]);
+if (missingEnv.length > 0) {
+  console.warn(`⚠️  Missing env vars: ${missingEnv.join(', ')}`);
+  console.warn('Server start maar zal fouten geven bij gebruik van ontbrekende services.');
 }
 
 const PORT = process.env.PORT || 8080;
