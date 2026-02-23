@@ -342,6 +342,77 @@ describe('Sector: Frituur — parser', () => {
 });
 
 // ============================================================
+// FASE 2 — GET_NAME STABILISATIE
+// ============================================================
+
+describe('GET_NAME — naam validatie', () => {
+  const menu = ['cola'];
+  const prices = { 'cola': 2.00 };
+  const config: BusinessConfig = {
+    name: 'Test', ai_name: 'AI', welcome_message: 'Hallo',
+    prep_time_pickup: 20, prep_time_delivery: 30, delivery_enabled: false,
+  };
+
+  function nameTest(input: string): { name: string | null; state: OrderState } {
+    const engine = new VoiceOrderSystem(menu, prices, config);
+    const session = createEmptySession();
+    session.state = OrderState.GET_NAME;
+    session.order = [{ product: 'cola', quantity: 1, price: 2.00 }];
+    session.delivery_type = 'afhalen';
+    engine.handle(session, input);
+    return { name: session.name, state: session.state };
+  }
+
+  test('"ja" → opnieuw vragen', () => {
+    const r = nameTest('ja');
+    expect(r.name).toBeNull();
+    expect(r.state).toBe(OrderState.GET_NAME);
+  });
+
+  test('"nee dat klopt niet" → opnieuw vragen', () => {
+    const r = nameTest('nee dat klopt niet');
+    expect(r.name).toBeNull();
+    expect(r.state).toBe(OrderState.GET_NAME);
+  });
+
+  test('"eh even denken" → opnieuw vragen', () => {
+    const r = nameTest('eh even denken');
+    expect(r.name).toBeNull();
+    expect(r.state).toBe(OrderState.GET_NAME);
+  });
+
+  test('"mijn naam is Frederic" → Frederic', () => {
+    const r = nameTest('mijn naam is Frederic');
+    expect(r.name).toBe('Frederic');
+    expect(r.state).toBe(OrderState.CONFIRM);
+  });
+
+  test('"het is Jan Peeters" → Jan Peeters', () => {
+    const r = nameTest('het is Jan Peeters');
+    expect(r.name).toBe('Jan Peeters');
+    expect(r.state).toBe(OrderState.CONFIRM);
+  });
+
+  test('"ik ben Tom" → Tom', () => {
+    const r = nameTest('ik ben Tom');
+    expect(r.name).toBe('Tom');
+    expect(r.state).toBe(OrderState.CONFIRM);
+  });
+
+  test('"Frederic" → Frederic', () => {
+    const r = nameTest('Frederic');
+    expect(r.name).toBe('Frederic');
+    expect(r.state).toBe(OrderState.CONFIRM);
+  });
+
+  test('"Frederic Janssens" → Frederic Janssens', () => {
+    const r = nameTest('Frederic Janssens');
+    expect(r.name).toBe('Frederic Janssens');
+    expect(r.state).toBe(OrderState.CONFIRM);
+  });
+});
+
+// ============================================================
 // SECTOR: KAPPER — parser tests
 // ============================================================
 

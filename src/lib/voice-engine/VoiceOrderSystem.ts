@@ -292,6 +292,31 @@ export function extractItems(
 }
 
 // ============================================================
+// NAME VALIDATION
+// ============================================================
+
+const NAME_INTRO = /^(mijn naam is|het is|ik ben|dit is)\s+/i;
+const NAME_REJECT = /^(ja|nee|neen|ok|oké|niet|klopt|wacht|even|denken|hmm|euh|eh|uh)$/i;
+const NAME_REJECT_WORDS = new Set(['ja', 'nee', 'neen', 'ok', 'oké', 'niet', 'klopt', 'wacht', 'even', 'denken']);
+
+function cleanName(transcript: string): string | null {
+  let name = transcript.trim();
+  name = name.replace(NAME_INTRO, '').trim();
+  name = name.replace(/[.!?,]+$/g, '');
+  name = name.trim();
+
+  if (name.length < 3) return null;
+
+  const words = name.split(/\s+/);
+  if (words.length > 3) return null;
+  if (words.some(w => NAME_REJECT_WORDS.has(w.toLowerCase()))) return null;
+  if (NAME_REJECT.test(name)) return null;
+  if (!/^[a-zA-ZÀ-ÿ\s'-]+$/.test(name)) return null;
+
+  return name;
+}
+
+// ============================================================
 // VOICE ORDER SYSTEM — STATE MACHINE (multi-tenant)
 // ============================================================
 
@@ -363,8 +388,8 @@ export class VoiceOrderSystem {
       }
 
       case OrderState.GET_NAME: {
-        const name = transcript.trim().replace(/[.!?,]+$/g, '');
-        if (name.length >= 2 && name.length <= 50) {
+        const name = cleanName(transcript);
+        if (name) {
           session.name = name;
           if (session.delivery_type === 'levering') {
             session.state = OrderState.GET_ADDRESS;
