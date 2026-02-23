@@ -70,43 +70,35 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // 2. Probeer via het gebelde nummer (direct op Telnyx nummer)
+      // 2. Probeer via het gebelde nummer (ai_phone_number in businesses)
       if (!businessId && to) {
-        const { data: phoneEntry } = await supabase
-          .from('phone_numbers')
-          .select('business_id')
-          .eq('phone_number', to)
+        const { data: bizByPhone } = await supabase
+          .from('businesses')
+          .select('id, agent_id')
+          .eq('ai_phone_number', to)
           .limit(1)
           .maybeSingle();
 
-        if (phoneEntry?.business_id) {
-          businessId = phoneEntry.business_id;
+        if (bizByPhone) {
+          businessId = bizByPhone.id;
+          agentId = bizByPhone.agent_id ?? null;
         }
       }
 
-      // 3. Fallback: eerste actieve business (voor test)
+      // 3. Fallback: frituur nolim (hardcoded voor nu)
       if (!businessId) {
-        const { data: anyBusiness } = await supabase
-          .from('businesses')
-          .select('id, elevenlabs_agent_id')
-          .limit(1)
-          .maybeSingle();
-
-        if (anyBusiness) {
-          businessId = anyBusiness.id;
-          agentId = anyBusiness.elevenlabs_agent_id ?? null;
-          console.log('Fallback: using first business', { id: businessId });
-        }
+        businessId = '0267c0ae-c997-421a-a259-e7559840897b';
+        console.log('Fallback: using frituur nolim');
       }
 
       // Agent ID ophalen als we een business hebben
       if (businessId && !agentId) {
         const { data: business } = await supabase
           .from('businesses')
-          .select('elevenlabs_agent_id')
+          .select('agent_id')
           .eq('id', businessId)
           .single();
-        agentId = business?.elevenlabs_agent_id ?? null;
+        agentId = business?.agent_id ?? null;
       }
 
       if (!businessId) {
