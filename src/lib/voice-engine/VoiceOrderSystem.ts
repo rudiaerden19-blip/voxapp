@@ -464,7 +464,7 @@ export class VoiceOrderSystem {
   private confirm(session: SessionData): { response: string; session: SessionData } {
     const summary = session.order
       .map(i => i.quantity === 1
-        ? `één ${i.product}`
+        ? i.product
         : `${i.quantity} keer ${i.product}`)
       .join(', ');
     const response = `Ok ${session.name}, even samenvatten: ${summary}. Klopt dat?`;
