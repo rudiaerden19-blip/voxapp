@@ -185,6 +185,7 @@ class TelnyxSession {
           transcript,
           conversation_id: this.conversationId,
           caller_id: this.callerId,
+          call_control_id: this.callControlId,
         }),
       });
 
