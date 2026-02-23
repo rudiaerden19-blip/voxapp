@@ -1,0 +1,15 @@
+{
+  "name": "voxapp-voice-server",
+  "version": "1.0.0",
+  "description": "Real-time voice pipeline: Twilio ↔ Deepgram STT ↔ Business Logic ↔ ElevenLabs TTS",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@deepgram/sdk": "^3.9.0",
+    "express": "^4.21.0",
+    "ws": "^8.18.0"
+  }
+}

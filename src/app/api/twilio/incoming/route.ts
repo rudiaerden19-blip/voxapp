@@ -102,9 +102,30 @@ export async function POST(request: NextRequest) {
     }
     
     // Generate TwiML response
-    if (agentId) {
-      // Connect to ElevenLabs via their Twilio integration
-      // ElevenLabs expects the call to be connected to their SIP endpoint
+    const voiceServerUrl = process.env.VOICE_SERVER_URL;
+
+    if (voiceServerUrl && businessId) {
+      // NEW PIPELINE: Twilio Media Streams → voice-server (Deepgram STT + ElevenLabs TTS)
+      const wsUrl = voiceServerUrl.replace('https://', 'wss://').replace('http://', 'ws://');
+      const callerNumber = from ? normalizePhoneNumber(from) : '';
+
+      console.log(`Using voice-server pipeline: ${wsUrl}/stream`);
+
+      const twiml = `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Connect>
+    <Stream url="${wsUrl}/stream">
+      <Parameter name="business_id" value="${businessId}" />
+      <Parameter name="caller_id" value="${callerNumber}" />
+    </Stream>
+  </Connect>
+</Response>`;
+
+      return new NextResponse(twiml, {
+        headers: { 'Content-Type': 'text/xml' },
+      });
+    } else if (agentId) {
+      // LEGACY: Connect to ElevenLabs via SIP
       const elevenlabsSipUri = `sip:${agentId}@phone.elevenlabs.io`;
       
       const twiml = `<?xml version="1.0" encoding="UTF-8"?>

@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+stt_test_env/
+stt_tests/
+test_audio_*.mp3
+samples/
