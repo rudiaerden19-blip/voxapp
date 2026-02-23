@@ -270,10 +270,26 @@ export function extractItems(
 // PHONE NUMBER EXTRACTION
 // ============================================================
 
+const SPOKEN_DIGITS: Record<string, string> = {
+  nul: '0', één: '1', een: '1', eén: '1', twee: '2', drie: '3',
+  vier: '4', vijf: '5', zes: '6', zeven: '7', acht: '8', negen: '9',
+  tien: '10', zero: '0', oh: '0',
+};
+
+function spokenToDigits(text: string): string {
+  let result = text.toLowerCase();
+  for (const [word, digit] of Object.entries(SPOKEN_DIGITS)) {
+    result = result.replace(new RegExp(`\\b${word}\\b`, 'gi'), digit);
+  }
+  return result;
+}
+
 function extractPhone(text: string): string | null {
-  const digits = text.replace(/[^\d+]/g, '');
+  const converted = spokenToDigits(text);
+  const digits = converted.replace(/[^\d+]/g, '');
   if (digits.length >= 9) return digits;
-  const spaced = text.match(/[\d]{2,4}[\s\-.]?[\d]{2,3}[\s\-.]?[\d]{2,3}[\s\-.]?[\d]{0,3}/);
+
+  const spaced = converted.match(/[\d]{2,4}[\s\-.]?[\d]{2,3}[\s\-.]?[\d]{2,3}[\s\-.]?[\d]{0,3}/);
   if (spaced) {
     const clean = spaced[0].replace(/[\s\-.]/g, '');
     if (clean.length >= 9) return clean;
@@ -313,6 +329,9 @@ function extractNameAndPhone(transcript: string): { name: string | null; phone: 
   let textForName = transcript;
   if (phone) {
     textForName = transcript.replace(/[\d+\s\-.]{9,}/g, '').trim();
+    const digitWords = Object.keys(SPOKEN_DIGITS).join('|');
+    textForName = textForName.replace(new RegExp(`\\b(${digitWords})\\b`, 'gi'), '').trim();
+    textForName = textForName.replace(/\s{2,}/g, ' ').trim();
   }
   const name = cleanName(textForName);
   return { name, phone };
