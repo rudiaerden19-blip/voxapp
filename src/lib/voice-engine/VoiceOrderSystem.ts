@@ -270,17 +270,67 @@ export function extractItems(
 // PHONE NUMBER EXTRACTION
 // ============================================================
 
-const SPOKEN_DIGITS: Record<string, string> = {
-  nul: '0', één: '1', een: '1', eén: '1', twee: '2', drie: '3',
-  vier: '4', vijf: '5', zes: '6', zeven: '7', acht: '8', negen: '9',
-  tien: '10', zero: '0', oh: '0',
+// Samengestelde getallen: "drieënnegentig" → 93, "twaalf" → 12
+const ONES: Record<string, number> = {
+  nul: 0, een: 1, één: 1, eén: 1, twee: 2, drie: 3,
+  vier: 4, vijf: 5, zes: 6, zeven: 7, acht: 8, negen: 9,
 };
+const TEENS: Record<string, string> = {
+  tien: '10', elf: '11', twaalf: '12', dertien: '13', veertien: '14',
+  vijftien: '15', zestien: '16', zeventien: '17', achttien: '18', negentien: '19',
+};
+const TENS: Record<string, number> = {
+  twintig: 20, dertig: 30, veertig: 40, vijftig: 50,
+  zestig: 60, zeventig: 70, tachtig: 80, negentig: 90,
+};
+
+function buildCompoundMap(): [string, string][] {
+  const entries: [string, string][] = [];
+  const onesWords = Object.keys(ONES).filter(w => w !== 'nul');
+  const tensWords = Object.keys(TENS);
+  for (const t of tensWords) {
+    for (const o of onesWords) {
+      const val = ONES[o] + TENS[t];
+      // "drieënnegentig", "drieennegentig", "drie en negentig"
+      entries.push([`${o}ën${t}`, String(val)]);
+      entries.push([`${o}en${t}`, String(val)]);
+      entries.push([`${o} en ${t}`, String(val)]);
+    }
+  }
+  // Langste eerst zodat "drieënnegentig" vóór "drie" matcht
+  entries.sort((a, b) => b[0].length - a[0].length);
+  return entries;
+}
+
+const COMPOUND_NUMBERS = buildCompoundMap();
 
 function spokenToDigits(text: string): string {
   let result = text.toLowerCase();
-  for (const [word, digit] of Object.entries(SPOKEN_DIGITS)) {
-    result = result.replace(new RegExp(`\\b${word}\\b`, 'gi'), digit);
+
+  // Stap 1: samengestelde getallen ("drieënnegentig" → "93")
+  for (const [word, digits] of COMPOUND_NUMBERS) {
+    result = result.replace(new RegExp(word, 'gi'), digits);
   }
+
+  // Stap 2: tientallen ("twintig" → "20", "negentig" → "90")
+  for (const [word, val] of Object.entries(TENS)) {
+    result = result.replace(new RegExp(`\\b${word}\\b`, 'gi'), String(val));
+  }
+
+  // Stap 3: teens ("twaalf" → "12")
+  for (const [word, val] of Object.entries(TEENS)) {
+    result = result.replace(new RegExp(`\\b${word}\\b`, 'gi'), val);
+  }
+
+  // Stap 4: losse cijfers ("nul" → "0", "vier" → "4")
+  for (const [word, val] of Object.entries(ONES)) {
+    result = result.replace(new RegExp(`\\b${word}\\b`, 'gi'), String(val));
+  }
+
+  // Stap 5: extras
+  result = result.replace(/\boh\b/gi, '0');
+  result = result.replace(/\bzero\b/gi, '0');
+
   return result;
 }
 
@@ -324,12 +374,16 @@ function cleanName(transcript: string): string | null {
 // NAME + PHONE COMBINED EXTRACTION
 // ============================================================
 
+const ALL_NUMBER_WORDS = [
+  ...Object.keys(ONES), ...Object.keys(TEENS), ...Object.keys(TENS), 'oh', 'zero',
+];
+
 function extractNameAndPhone(transcript: string): { name: string | null; phone: string | null } {
   const phone = extractPhone(transcript);
   let textForName = transcript;
   if (phone) {
     textForName = transcript.replace(/[\d+\s\-.]{9,}/g, '').trim();
-    const digitWords = Object.keys(SPOKEN_DIGITS).join('|');
+    const digitWords = ALL_NUMBER_WORDS.join('|');
     textForName = textForName.replace(new RegExp(`\\b(${digitWords})\\b`, 'gi'), '').trim();
     textForName = textForName.replace(/\s{2,}/g, ' ').trim();
   }

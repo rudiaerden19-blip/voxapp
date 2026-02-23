@@ -145,12 +145,22 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    // ElevenLabs Custom LLM sends conversation context
     const conversationId: string = body.conversation_id || body.session_id || `tmp_${Date.now()}`;
     const agentId: string | null = body.agent_id || null;
     const transcript: { role?: string; message?: string; text?: string }[] = body.transcript || body.messages || [];
 
-    // Get the LAST user message only
+    // Caller ID van Twilio
+    const callerPhone: string | null =
+      body.caller_id || body.from || body.phone_number || null;
+
+    console.log(JSON.stringify({
+      _tag: 'CALLER_ID_DEBUG',
+      conversation_id: conversationId,
+      caller_phone: callerPhone,
+      body_keys: Object.keys(body),
+      body_full: body,
+    }));
+
     let userMessage = '';
     for (let i = transcript.length - 1; i >= 0; i--) {
       if (transcript[i].role === 'user') {
@@ -177,6 +187,9 @@ export async function POST(request: NextRequest) {
     let session = await loadSession(supabase, conversationId);
     if (!session) {
       session = createEmptySession();
+      if (callerPhone) {
+        session.phone = callerPhone;
+      }
     }
     const result = engine.handle(session, userMessage, conversationId);
     session = result.session;

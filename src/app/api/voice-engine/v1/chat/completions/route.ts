@@ -169,6 +169,25 @@ export async function POST(request: NextRequest) {
       userId ||
       `session_${hashMessages(messages)}`;
 
+    // Caller ID van Twilio (beller telefoonnummer)
+    const callerPhone: string | null =
+      extraBody.caller_id ||
+      extraBody.from ||
+      body.caller_id ||
+      body.from ||
+      body.phone_number ||
+      extraBody.phone_number ||
+      null;
+
+    console.log(JSON.stringify({
+      _tag: 'CALLER_ID_DEBUG',
+      conversation_id: sessionId,
+      caller_phone: callerPhone,
+      extra_body_keys: Object.keys(extraBody),
+      extra_body_full: extraBody,
+      body_keys: Object.keys(body),
+    }));
+
     let userMessage = '';
     for (let i = messages.length - 1; i >= 0; i--) {
       if (messages[i].role === 'user') {
@@ -202,6 +221,9 @@ export async function POST(request: NextRequest) {
     const prevState = session?.state || 'NEW';
     if (!session) {
       session = createEmptySession();
+      if (callerPhone) {
+        session.phone = callerPhone;
+      }
     }
 
     const result = engine.handle(session, userMessage, sessionId);
