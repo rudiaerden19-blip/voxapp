@@ -1,14 +1,16 @@
 // ============================================================
-// VOICE ORDER SYSTEM — Multi-tenant State Machine
+// VOICE ORDER SYSTEM v2 — Geen productnamen uitspreken
 // ============================================================
+//
+// De AI spreekt NOOIT productnamen uit. Alleen vaste zinnen.
+// Bestelling gaat naar de bon + SMS. Uitspraakproblemen opgelost.
+//
 
 export enum OrderState {
   TAKING_ORDER = 'TAKING_ORDER',
+  GET_NAME_PHONE = 'GET_NAME_PHONE',
   DELIVERY_TYPE = 'DELIVERY_TYPE',
-  GET_NAME = 'GET_NAME',
   GET_ADDRESS = 'GET_ADDRESS',
-  GET_PHONE = 'GET_PHONE',
-  CONFIRM = 'CONFIRM',
   DONE = 'DONE',
 }
 
@@ -79,21 +81,15 @@ const HARDCODED_REPLACEMENTS: [string, string][] = [
   ['met look', 'met looksaus'],
 ];
 
-// ============================================================
-// TTS PHONETIC REWRITER — fixes pronunciation for ElevenLabs
-// ============================================================
-
-const TTS_REPLACEMENTS: [string, string][] = [
-  ['gebakken boulet', 'gebakken boelett'],
-  ['bicky burger', 'bikkie burger'],
-  ['zoete mayonaise', 'zoete mayonéze'],
-  ['andalouse', 'andaloeze'],
-  ['cervela', 'servela'],
-  ['americaine', 'amerikèn'],
-  ['samurai', 'samourai'],
-  ['frikandel speciaal', 'frikandel spessjaal'],
-  ['tom ketchup', 'tomaten ketchup'],
-];
+function normalizeInput(text: string): string {
+  let t = text.toLowerCase().trim();
+  for (const [wrong, correct] of HARDCODED_REPLACEMENTS) {
+    const escaped = wrong.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (correct.length > wrong.length && t.includes(correct)) continue;
+    t = t.replace(new RegExp(escaped, 'gi'), correct);
+  }
+  return t;
+}
 
 // ============================================================
 // MATCHING HELPERS
@@ -129,32 +125,9 @@ function fuzzyMatch(phrase: string, menuItems: string[], cutoff = 0.82): string 
   return best;
 }
 
-function normalizeInput(text: string): string {
-  let t = text.toLowerCase().trim();
-  for (const [wrong, correct] of HARDCODED_REPLACEMENTS) {
-    const escaped = wrong.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    // Voorkom dubbeling: als correct langer is, check of de langere vorm er al staat
-    if (correct.length > wrong.length && t.includes(correct)) continue;
-    t = t.replace(new RegExp(escaped, 'gi'), correct);
-  }
-  return t;
-}
-
-function normalizeForTts(text: string): string {
-  let t = text;
-  for (const [correct, phonetic] of TTS_REPLACEMENTS) {
-    t = t.replace(new RegExp(correct, 'gi'), phonetic);
-  }
-  return t;
-}
-
 // ============================================================
-// ITEM EXTRACTION — sector-agnostisch
+// ITEM EXTRACTION
 // ============================================================
-//
-// Geen hardcoded productnamen. Alles komt uit tenant menu.
-// modifiers (Set) komt uit is_modifier vlag in menu_items tabel.
-//
 
 const NUM_WORDS: Record<string, number> = {
   een: 1, één: 1, twee: 2, drie: 3, vier: 4, vijf: 5,
@@ -162,8 +135,6 @@ const NUM_WORDS: Record<string, number> = {
 };
 
 const QTY_PATTERN = /^(een|één|eén|twee|drie|vier|vijf|zes|zeven|acht|negen|tien)\s+/i;
-
-// Split op punt, komma, of "en"/"eén"/"één" (altijd, ook zonder hoeveelheid erna)
 const SPLIT_PATTERN = /[.]\s*|,\s*|\s+(?:en|eén|één)\s+/i;
 
 export function extractItems(
@@ -184,10 +155,9 @@ export function extractItems(
     let qty = 1;
     let rest = part;
 
-    // Strip connectors en filler VOOR quantity extractie
     rest = rest.replace(/^(doe daar|doe er|zet er)\s+/i, '').trim();
     rest = rest.replace(/^(en|ook)\s+/i, '').trim();
-    rest = rest.replace(/^(ik wil|ik zou graag|graag|nog|eh|euh|uh)\s+/i, '').trim();
+    rest = rest.replace(/^(ik wil\w*|ik wou|ik zou graag|graag|nog|eh|euh|uh|voor mij)\s+/i, '').trim();
 
     const numMatch = rest.match(/^(\d+)\s*[x×]?\s*/);
     if (numMatch) {
@@ -201,11 +171,11 @@ export function extractItems(
       }
     }
 
-    rest = rest.replace(/^(een|één|eén)\s+/i, '').trim();
-    rest = rest.replace(/\s+(bij|erbij)$/i, '').trim();
+    rest = rest.replace(/^(een|één|eén|ene)\s+/i, '').trim();
+    rest = rest.replace(/^(blikje|bakje|potje|portie|stuk)\s+/i, '').trim();
+    rest = rest.replace(/\s+(bij|erbij|alsjeblieft|aub|asjeblieft)$/i, '').trim();
     if (rest.length < 2) continue;
 
-    // "zonder X" — exclude X from matching, don't charge for it
     const excludedItems = new Set<string>();
     let zonderNote = '';
     const zonderMatch = rest.match(/\s+zonder\s+(.+)$/i);
@@ -268,13 +238,11 @@ export function extractItems(
       }
     }
 
-    // Geen menu-match → fragment overslaan (niet als "onbekend item" toevoegen)
     if (!baseProduct) continue;
 
-    let displayName = baseProduct;
-    if (lower.length > baseProduct.length + 3) {
-      displayName = rest;
-    }
+    let displayName = allMatches.length > 1
+      ? allMatches.map(m => m.item).join(' met ')
+      : baseProduct;
     if (zonderNote) displayName += zonderNote;
 
     const existing = items.find(i => i.product === displayName);
@@ -286,11 +254,10 @@ export function extractItems(
     }
   }
 
-  // Modifier-only fragmenten (bv. losse saus na "en" split) → terug mergen met vorig item
   for (let i = items.length - 1; i >= 1; i--) {
     if (modOnlyFlags[i] && items[i].quantity === 1) {
       items[i - 1].price += items[i].price;
-      items[i - 1].product += ' en ' + items[i].product;
+      items[i - 1].product += ' met ' + items[i].product;
       items.splice(i, 1);
       modOnlyFlags.splice(i, 1);
     }
@@ -300,32 +267,59 @@ export function extractItems(
 }
 
 // ============================================================
-// NAME VALIDATION
+// PHONE NUMBER EXTRACTION
 // ============================================================
 
-const NAME_INTRO = /^(mijn naam is|het is|ik ben|dit is)\s+/i;
-const NAME_REJECT = /^(ja|nee|neen|ok|oké|niet|klopt|wacht|even|denken|hmm|euh|eh|uh)$/i;
-const NAME_REJECT_WORDS = new Set(['ja', 'nee', 'neen', 'ok', 'oké', 'niet', 'klopt', 'wacht', 'even', 'denken']);
+function extractPhone(text: string): string | null {
+  const digits = text.replace(/[^\d+]/g, '');
+  if (digits.length >= 9) return digits;
+  const spaced = text.match(/[\d]{2,4}[\s\-.]?[\d]{2,3}[\s\-.]?[\d]{2,3}[\s\-.]?[\d]{0,3}/);
+  if (spaced) {
+    const clean = spaced[0].replace(/[\s\-.]/g, '');
+    if (clean.length >= 9) return clean;
+  }
+  return null;
+}
+
+// ============================================================
+// NAME EXTRACTION
+// ============================================================
+
+const NAME_INTRO = /^(mijn naam is|het is|ik ben|dit is|naam is)\s+/i;
+const NAME_REJECT_WORDS = new Set([
+  'ja', 'nee', 'neen', 'ok', 'oké', 'niet', 'klopt', 'wacht', 'even', 'denken',
+  'goed', 'idee', 'prima', 'perfect', 'lekker', 'mooi', 'precies', 'juist',
+  'dat', 'het', 'een', 'nog', 'best', 'graag', 'dank', 'bedankt', 'euh',
+]);
 
 function cleanName(transcript: string): string | null {
   let name = transcript.trim();
   name = name.replace(NAME_INTRO, '').trim();
-  name = name.replace(/[.!?,]+$/g, '');
-  name = name.trim();
-
-  if (name.length < 3) return null;
-
+  name = name.replace(/[.!?,]+$/g, '').trim();
+  if (name.length < 2) return null;
   const words = name.split(/\s+/);
-  if (words.length > 3) return null;
+  if (words.length > 4) return null;
   if (words.some(w => NAME_REJECT_WORDS.has(w.toLowerCase()))) return null;
-  if (NAME_REJECT.test(name)) return null;
   if (!/^[a-zA-ZÀ-ÿ\s'-]+$/.test(name)) return null;
-
   return name;
 }
 
 // ============================================================
-// VOICE ORDER SYSTEM — STATE MACHINE (multi-tenant)
+// NAME + PHONE COMBINED EXTRACTION
+// ============================================================
+
+function extractNameAndPhone(transcript: string): { name: string | null; phone: string | null } {
+  const phone = extractPhone(transcript);
+  let textForName = transcript;
+  if (phone) {
+    textForName = transcript.replace(/[\d+\s\-.]{9,}/g, '').trim();
+  }
+  const name = cleanName(textForName);
+  return { name, phone };
+}
+
+// ============================================================
+// VOICE ORDER SYSTEM v2 — STATE MACHINE
 // ============================================================
 
 export class VoiceOrderSystem {
@@ -352,195 +346,146 @@ export class VoiceOrderSystem {
     const stateBefore = session.state;
 
     console.log(JSON.stringify({
-      _tag: 'ORDER_TRACE',
-      conversation_id: cid,
-      step: '1_INPUT',
-      raw_transcript: transcript,
-      normalized_input: input,
-      state_before: stateBefore,
-      order_before: session.order,
+      _tag: 'ORDER_TRACE', conversation_id: cid, step: '1_INPUT',
+      raw_transcript: transcript, normalized_input: input,
+      state_before: stateBefore, order_before: session.order,
     }));
 
     switch (session.state) {
 
+      // ── STAP 1+2: BESTELLING OPNEMEN ──────────────────────
       case OrderState.TAKING_ORDER: {
-        if (/\b(nee|neen|dat was het|dat is het|dat is alles|meer niet|niks meer|dat was alles|klaar)\b/i.test(input)) {
+        if (/\b(nee|neen|dat was het|dat is het|dat is alles|meer niet|niks meer|dat was alles|klaar|nee dank|nee bedankt)\b/i.test(input)) {
           if (session.order.length === 0) {
-            return this._traceReply(session, 'Ik heb nog geen bestelling genoteerd. Wat mag het zijn?', cid, stateBefore);
+            return this.traced(session, 'Wat mag ik voor u noteren?', cid, stateBefore);
           }
-          if (this.config.delivery_enabled) {
-            session.state = OrderState.DELIVERY_TYPE;
-            return this._traceReply(session, 'Moet het geleverd worden of kom je het afhalen?', cid, stateBefore);
-          }
-          session.delivery_type = 'afhalen';
-          session.state = OrderState.GET_NAME;
-          return this._traceReply(session, 'Op welke naam mag ik de bestelling zetten?', cid, stateBefore);
+          session.state = OrderState.GET_NAME_PHONE;
+          return this.traced(session, 'Ok, dat heb ik genoteerd. Mag ik uw naam en telefoonnummer alstublieft?', cid, stateBefore);
         }
 
         if (/\b(bestellen|ik wil|mag ik|kan ik)\b/i.test(input) && !this.containsMenuItem(input)) {
-          return this._traceReply(session, 'Ja, zeg het maar.', cid, stateBefore);
+          return this.traced(session, 'Ja, zeg het maar.', cid, stateBefore);
         }
 
         const items = extractItems(input, this.menuItems, this.menuPrices, this.modifiers);
 
         console.log(JSON.stringify({
-          _tag: 'ORDER_TRACE',
-          conversation_id: cid,
-          step: '2_EXTRACT',
-          extracted_items: items,
-          menu_items_count: this.menuItems.length,
+          _tag: 'ORDER_TRACE', conversation_id: cid, step: '2_EXTRACT',
+          extracted_items: items, menu_items_count: this.menuItems.length,
         }));
 
         if (items.length > 0) {
-          const orderBefore = [...session.order];
           session.order.push(...items);
-
-          console.log(JSON.stringify({
-            _tag: 'ORDER_TRACE',
-            conversation_id: cid,
-            step: '3_PUSH',
-            new_items: items,
-            order_before_push: orderBefore,
-            order_after_push: session.order,
-          }));
-
-          return this._traceReply(session, 'Ok, genoteerd. Nog iets anders?', cid, stateBefore);
+          return this.traced(session, 'Ok, genoteerd. Nog iets anders?', cid, stateBefore);
         }
 
         if (session.order.length === 0) {
-          return this._traceReply(session, 'Dat heb ik niet goed begrepen, kan je het herhalen?', cid, stateBefore);
+          return this.traced(session, 'Excuseer, dat heb ik niet goed verstaan. Kan u dat herhalen?', cid, stateBefore);
         }
-        return this._traceReply(session, 'Dat heb ik niet goed begrepen, kan je het herhalen?', cid, stateBefore);
+        return this.traced(session, 'Dat heb ik niet goed verstaan, kan u dat herhalen?', cid, stateBefore);
       }
 
+      // ── STAP 3: NAAM + TELEFOON ───────────────────────────
+      case OrderState.GET_NAME_PHONE: {
+        const { name, phone } = extractNameAndPhone(transcript);
+
+        if (name && !session.name) session.name = name;
+        if (phone && !session.phone) session.phone = phone;
+
+        if (!session.name) {
+          return this.traced(session, 'Mag ik uw naam alstublieft?', cid, stateBefore);
+        }
+        if (!session.phone) {
+          return this.traced(session, `Ok ${session.name}, en uw telefoonnummer?`, cid, stateBefore);
+        }
+
+        if (this.config.delivery_enabled) {
+          session.state = OrderState.DELIVERY_TYPE;
+          return this.traced(session,
+            `Ok ${session.name}, wil je het komen afhalen of moeten wij het leveren?`,
+            cid, stateBefore);
+        }
+
+        session.delivery_type = 'afhalen';
+        session.state = OrderState.DONE;
+
+        console.log(JSON.stringify({
+          _tag: 'ORDER_TRACE', conversation_id: cid, step: '5_DONE',
+          final_order: session.order, final_json: this.buildOrderData(session),
+        }));
+
+        return this.traced(session,
+          `Ok ${session.name}, jouw bestelling staat klaar binnen ${this.config.prep_time_pickup} minuten. Bedankt en eet smakelijk.`,
+          cid, stateBefore);
+      }
+
+      // ── STAP 4: AFHALEN OF LEVEREN ────────────────────────
       case OrderState.DELIVERY_TYPE: {
         if (/\blever\w*|bezorg\w*|brengen|thuis\b/i.test(input)) {
           session.delivery_type = 'levering';
-          session.state = OrderState.GET_NAME;
-          return this._traceReply(session, 'Op welke naam mag ik de bestelling zetten?', cid, stateBefore);
+          session.state = OrderState.GET_ADDRESS;
+          return this.traced(session, 'Mag ik je adres alstublieft?', cid, stateBefore);
         }
-        if (/\bafhaal\w*|ophaal\w*|ophalen|halen|kom\w*\s+halen\b/i.test(input)) {
+        if (/\bafhaal\w*|ophaal\w*|ophalen|halen|kom\w*\b/i.test(input)) {
           session.delivery_type = 'afhalen';
-          session.state = OrderState.GET_NAME;
-          return this._traceReply(session, 'Op welke naam mag ik de bestelling zetten?', cid, stateBefore);
+          session.state = OrderState.DONE;
+
+          console.log(JSON.stringify({
+            _tag: 'ORDER_TRACE', conversation_id: cid, step: '5_DONE',
+            final_order: session.order, final_json: this.buildOrderData(session),
+          }));
+
+          return this.traced(session,
+            `Ok, jouw bestelling staat klaar binnen ${this.config.prep_time_pickup} minuten. Bedankt en eet smakelijk.`,
+            cid, stateBefore);
         }
-        return this._traceReply(session, 'Moet het geleverd worden of kom je het afhalen?', cid, stateBefore);
+        return this.traced(session, 'Wil je het komen afhalen of moeten wij het leveren?', cid, stateBefore);
       }
 
-      case OrderState.GET_NAME: {
-        const name = cleanName(transcript);
-        if (name) {
-          session.name = name;
-          if (session.delivery_type === 'levering') {
-            session.state = OrderState.GET_ADDRESS;
-            return this._traceReply(session, 'Op welk adres mogen we leveren?', cid, stateBefore);
-          }
-          session.state = OrderState.CONFIRM;
-          return this._traceConfirm(session, cid, stateBefore);
-        }
-        return this._traceReply(session, 'Op welke naam mag ik de bestelling zetten?', cid, stateBefore);
-      }
-
+      // ── STAP 4B: ADRES BIJ LEVERING ──────────────────────
       case OrderState.GET_ADDRESS: {
         const address = transcript.trim().replace(/[.!?,]+$/g, '');
         if (address.length >= 3) {
           session.address = address;
-          session.state = OrderState.GET_PHONE;
-          return this._traceReply(session, 'En welk telefoonnummer voor onze chauffeur?', cid, stateBefore);
-        }
-        return this._traceReply(session, 'Op welk adres mogen we leveren?', cid, stateBefore);
-      }
-
-      case OrderState.GET_PHONE: {
-        const phone = transcript.replace(/[^\d+\s\-]/g, '').trim();
-        if (phone.length >= 6) {
-          session.phone = phone;
-          session.state = OrderState.CONFIRM;
-          return this._traceConfirm(session, cid, stateBefore);
-        }
-        return this._traceReply(session, 'En welk telefoonnummer voor onze chauffeur?', cid, stateBefore);
-      }
-
-      case OrderState.CONFIRM: {
-        if (/\b(ja|klopt|juist|correct|dat klopt|precies)\b/i.test(input)) {
           session.state = OrderState.DONE;
-          const msg = session.delivery_type === 'levering'
-            ? `Je bestelling wordt binnen ${this.config.prep_time_delivery} minuten geleverd. Dank je wel en eet smakelijk.`
-            : `Je bestelling is klaar over ${this.config.prep_time_pickup} minuten. Dank je wel en eet smakelijk.`;
 
           console.log(JSON.stringify({
-            _tag: 'ORDER_TRACE',
-            conversation_id: cid,
-            step: '5_DONE',
-            final_order: session.order,
-            final_json: this.buildOrderData(session),
+            _tag: 'ORDER_TRACE', conversation_id: cid, step: '5_DONE',
+            final_order: session.order, final_json: this.buildOrderData(session),
           }));
 
-          return this._traceReply(session, msg, cid, stateBefore);
+          return this.traced(session,
+            `Ok ${session.name}, onze chauffeur stopt bij u binnen ${this.config.prep_time_delivery} minuten. Bedankt voor je bestelling en eet smakelijk.`,
+            cid, stateBefore);
         }
-        if (/\b(nee|neen|niet|fout)\b/i.test(input)) {
-          session.state = OrderState.TAKING_ORDER;
-          return this._traceReply(session, 'Wat klopt er niet? Zeg maar wat ik moet aanpassen.', cid, stateBefore);
-        }
-        return this._traceConfirm(session, cid, stateBefore);
+        return this.traced(session, 'Mag ik je adres alstublieft?', cid, stateBefore);
       }
 
+      // ── KLAAR ─────────────────────────────────────────────
       case OrderState.DONE: {
-        return this._traceReply(session, 'De bestelling is al geplaatst. Dank je wel en tot ziens.', cid, stateBefore);
+        return this.traced(session, 'Uw bestelling is al geplaatst. Dank u wel en tot ziens.', cid, stateBefore);
       }
 
       default:
-        return this._traceReply(session, 'Excuseer, kan je dat herhalen?', cid, stateBefore);
+        return this.traced(session, 'Excuseer, kan u dat herhalen?', cid, stateBefore);
     }
   }
 
   getGreeting(): string {
-    return normalizeForTts(this.config.welcome_message);
+    return this.config.welcome_message;
   }
 
   private containsMenuItem(text: string): boolean {
     return this.menuItems.some(item => text.includes(item));
   }
 
-  private _traceReply(session: SessionData, text: string, cid: string, stateBefore: string): { response: string; session: SessionData } {
+  private traced(session: SessionData, text: string, cid: string, stateBefore: string): { response: string; session: SessionData } {
     console.log(JSON.stringify({
-      _tag: 'ORDER_TRACE',
-      conversation_id: cid,
-      step: '4_REPLY',
-      state_before: stateBefore,
-      state_after: session.state,
-      response_text: text,
-      order_snapshot: session.order,
+      _tag: 'ORDER_TRACE', conversation_id: cid, step: '4_REPLY',
+      state_before: stateBefore, state_after: session.state,
+      response_text: text, order_snapshot: session.order,
     }));
-    return this.reply(session, text);
-  }
-
-  private _traceConfirm(session: SessionData, cid: string, stateBefore: string): { response: string; session: SessionData } {
-    const result = this.confirm(session);
-    console.log(JSON.stringify({
-      _tag: 'ORDER_TRACE',
-      conversation_id: cid,
-      step: '4_CONFIRM',
-      state_before: stateBefore,
-      state_after: session.state,
-      response_text: result.response,
-      order_snapshot: session.order,
-    }));
-    return result;
-  }
-
-  private confirm(session: SessionData): { response: string; session: SessionData } {
-    const summary = session.order
-      .map(i => i.quantity === 1
-        ? i.product
-        : `${i.quantity} keer ${i.product}`)
-      .join(', ');
-    const response = `Ok ${session.name}, even samenvatten: ${summary}. Klopt dat?`;
-    return this.reply(session, response);
-  }
-
-  private reply(session: SessionData, text: string): { response: string; session: SessionData } {
-    return { response: normalizeForTts(text), session };
+    return { response: text, session };
   }
 
   buildOrderData(session: SessionData): OrderData {

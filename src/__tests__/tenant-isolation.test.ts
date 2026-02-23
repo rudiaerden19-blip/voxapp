@@ -148,22 +148,24 @@ describe('VoiceOrderSystem — tenant isolation', () => {
     const engineA = new VoiceOrderSystem(menuA, pricesA, configA);
     const engineB = new VoiceOrderSystem(menuB, pricesB, configB);
 
+    // Tenant A: delivery_enabled=false → goes to DONE via GET_NAME_PHONE
     const sessionA = createEmptySession();
     sessionA.order = [{ product: 'cola', quantity: 1, price: 2.00 }];
-    sessionA.delivery_type = 'afhalen';
+    sessionA.state = OrderState.GET_NAME_PHONE;
     sessionA.name = 'Test';
-    sessionA.state = OrderState.CONFIRM;
+    sessionA.phone = '0412345678';
+    // delivery_enabled=false → skip DELIVERY_TYPE → DONE with pickup time
+    const resultA = engineA.handle(sessionA, 'dummy');
+    // Already has name+phone, so goes to DONE (delivery_enabled=false)
+    expect(resultA.response).toContain('15 minuten');
 
+    // Tenant B: delivery_enabled=true → needs DELIVERY_TYPE first
     const sessionB = createEmptySession();
     sessionB.order = [{ product: 'water', quantity: 1, price: 1.50 }];
-    sessionB.delivery_type = 'afhalen';
+    sessionB.state = OrderState.DELIVERY_TYPE;
     sessionB.name = 'Test';
-    sessionB.state = OrderState.CONFIRM;
-
-    const resultA = engineA.handle(sessionA, 'ja klopt');
-    const resultB = engineB.handle(sessionB, 'ja klopt');
-
-    expect(resultA.response).toContain('15 minuten');
+    sessionB.phone = '0412345678';
+    const resultB = engineB.handle(sessionB, 'afhalen');
     expect(resultB.response).toContain('30 minuten');
   });
 
@@ -174,8 +176,7 @@ describe('VoiceOrderSystem — tenant isolation', () => {
     engine.handle(session, 'een cola');
     const result = engine.handle(session, 'nee dat was het');
 
-    expect(result.session.state).toBe(OrderState.GET_NAME);
-    expect(result.session.delivery_type).toBe('afhalen');
+    expect(result.session.state).toBe(OrderState.GET_NAME_PHONE);
   });
 });
 
@@ -217,7 +218,7 @@ describe('Sector: Frituur — parser', () => {
     const session = createEmptySession();
     engine.handle(session, 'grote friet met zoete mayonaise en tom ketchup');
     expect(session.order).toHaveLength(1);
-    expect(session.order[0].price).toBeCloseTo(6.30, 2); // 4.10 + 1.10 + 1.10
+    expect(session.order[0].price).toBeCloseTo(6.30, 2);
   });
 
   test('splits items on periods', () => {
@@ -257,10 +258,9 @@ describe('Sector: Frituur — parser', () => {
   });
 
   // ========================================================
-  // FASE 1 — KRITIEKE ORDER BUGS (10 testcases)
+  // FASE 1 — KRITIEKE ORDER BUGS
   // ========================================================
 
-  // FIX 1: "en" splitst altijd
   test('FIX1: "en" splitst twee producten met hoeveelheid', () => {
     const items = extractItems('een grote friet en een cola', menu, prices, modifiers);
     expect(items).toHaveLength(2);
@@ -282,7 +282,7 @@ describe('Sector: Frituur — parser', () => {
     expect(items).toHaveLength(1);
     expect(items[0].product).toContain('grote friet');
     expect(items[0].product).toContain('samurai saus');
-    expect(items[0].price).toBeCloseTo(6.30, 2); // 4.10 + 1.10 + 1.10
+    expect(items[0].price).toBeCloseTo(6.30, 2);
   });
 
   test('FIX1: drie items via "en"', () => {
@@ -302,7 +302,6 @@ describe('Sector: Frituur — parser', () => {
     expect(items[1].price).toBe(2.00);
   });
 
-  // FIX 2: "zonder" sluit modifier uit
   test('FIX2: "zonder" voorkomt modifier-prijs', () => {
     const items = extractItems('grote friet zonder zoete mayonaise', menu, prices, modifiers);
     expect(items).toHaveLength(1);
@@ -313,7 +312,7 @@ describe('Sector: Frituur — parser', () => {
   test('FIX2: "zonder" met andere modifier wel meegeteld', () => {
     const items = extractItems('grote friet met samurai saus zonder zoete mayonaise', menu, prices, modifiers);
     expect(items).toHaveLength(1);
-    expect(items[0].price).toBeCloseTo(5.20, 2); // 4.10 + 1.10 (samurai), NIET +1.10 (mayo)
+    expect(items[0].price).toBeCloseTo(5.20, 2);
   });
 
   test('FIX2: "zonder" op base product, alleen base prijs', () => {
@@ -322,154 +321,172 @@ describe('Sector: Frituur — parser', () => {
     expect(items[0].price).toBe(3.00);
   });
 
-  // FIX 3: Nooit "genoteerd" als niets geparsed
-  test('FIX3: onherkenbare input → "niet begrepen" (lege order)', () => {
+  test('FIX3: onherkenbare input → "niet verstaan" (lege order)', () => {
     const engine = new VoiceOrderSystem(menu, prices, config, modifiers);
     const session = createEmptySession();
     const result = engine.handle(session, 'blabla onzin tekst');
-    expect(result.response).toContain('niet goed begrepen');
+    expect(result.response).toContain('niet goed verstaan');
     expect(session.order).toHaveLength(0);
   });
 
-  test('FIX3: onherkenbare input → "niet begrepen" (order heeft items)', () => {
+  test('FIX3: onherkenbare input → "niet verstaan" (order heeft items)', () => {
     const engine = new VoiceOrderSystem(menu, prices, config, modifiers);
     const session = createEmptySession();
     session.order = [{ product: 'cola', quantity: 1, price: 2.00 }];
     const result = engine.handle(session, 'hmm euh wacht even');
-    expect(result.response).toContain('niet goed begrepen');
-    expect(session.order).toHaveLength(1); // bestaande order ongewijzigd
+    expect(result.response).toContain('niet goed verstaan');
+    expect(session.order).toHaveLength(1);
   });
 });
 
 // ============================================================
-// FASE 2 — GET_NAME STABILISATIE
+// NEW FLOW — GET_NAME_PHONE combined
 // ============================================================
 
-describe('GET_NAME — naam validatie', () => {
+describe('GET_NAME_PHONE — naam + telefoon samen', () => {
   const menu = ['cola'];
   const prices = { 'cola': 2.00 };
   const config: BusinessConfig = {
     name: 'Test', ai_name: 'AI', welcome_message: 'Hallo',
-    prep_time_pickup: 20, prep_time_delivery: 30, delivery_enabled: false,
+    prep_time_pickup: 20, prep_time_delivery: 30, delivery_enabled: true,
   };
 
-  function nameTest(input: string): { name: string | null; state: OrderState } {
+  test('naam + telefoon in één zin', () => {
     const engine = new VoiceOrderSystem(menu, prices, config);
     const session = createEmptySession();
-    session.state = OrderState.GET_NAME;
+    session.state = OrderState.GET_NAME_PHONE;
     session.order = [{ product: 'cola', quantity: 1, price: 2.00 }];
-    session.delivery_type = 'afhalen';
-    engine.handle(session, input);
-    return { name: session.name, state: session.state };
-  }
 
-  test('"ja" → opnieuw vragen', () => {
-    const r = nameTest('ja');
-    expect(r.name).toBeNull();
-    expect(r.state).toBe(OrderState.GET_NAME);
+    engine.handle(session, 'Rudi 0476123456');
+    expect(session.name).toBe('Rudi');
+    expect(session.phone).toBe('0476123456');
+    expect(session.state).toBe(OrderState.DELIVERY_TYPE);
   });
 
-  test('"nee dat klopt niet" → opnieuw vragen', () => {
-    const r = nameTest('nee dat klopt niet');
-    expect(r.name).toBeNull();
-    expect(r.state).toBe(OrderState.GET_NAME);
+  test('alleen naam → vraagt telefoon', () => {
+    const engine = new VoiceOrderSystem(menu, prices, config);
+    const session = createEmptySession();
+    session.state = OrderState.GET_NAME_PHONE;
+    session.order = [{ product: 'cola', quantity: 1, price: 2.00 }];
+
+    const result = engine.handle(session, 'Frederic');
+    expect(session.name).toBe('Frederic');
+    expect(session.phone).toBeNull();
+    expect(result.response).toContain('telefoonnummer');
   });
 
-  test('"eh even denken" → opnieuw vragen', () => {
-    const r = nameTest('eh even denken');
-    expect(r.name).toBeNull();
-    expect(r.state).toBe(OrderState.GET_NAME);
+  test('daarna telefoon → door naar DELIVERY_TYPE', () => {
+    const engine = new VoiceOrderSystem(menu, prices, config);
+    const session = createEmptySession();
+    session.state = OrderState.GET_NAME_PHONE;
+    session.order = [{ product: 'cola', quantity: 1, price: 2.00 }];
+    session.name = 'Frederic';
+
+    engine.handle(session, '0412 34 56 78');
+    expect(session.phone).toBe('0412345678');
+    expect(session.state).toBe(OrderState.DELIVERY_TYPE);
   });
 
   test('"mijn naam is Frederic" → Frederic', () => {
-    const r = nameTest('mijn naam is Frederic');
-    expect(r.name).toBe('Frederic');
-    expect(r.state).toBe(OrderState.CONFIRM);
+    const engine = new VoiceOrderSystem(menu, prices, config);
+    const session = createEmptySession();
+    session.state = OrderState.GET_NAME_PHONE;
+    session.order = [{ product: 'cola', quantity: 1, price: 2.00 }];
+
+    engine.handle(session, 'mijn naam is Frederic');
+    expect(session.name).toBe('Frederic');
   });
 
-  test('"het is Jan Peeters" → Jan Peeters', () => {
-    const r = nameTest('het is Jan Peeters');
-    expect(r.name).toBe('Jan Peeters');
-    expect(r.state).toBe(OrderState.CONFIRM);
+  test('"ja" → opnieuw vragen (ongeldig)', () => {
+    const engine = new VoiceOrderSystem(menu, prices, config);
+    const session = createEmptySession();
+    session.state = OrderState.GET_NAME_PHONE;
+    session.order = [{ product: 'cola', quantity: 1, price: 2.00 }];
+
+    const result = engine.handle(session, 'ja');
+    expect(session.name).toBeNull();
+    expect(result.response).toContain('naam');
   });
 
-  test('"ik ben Tom" → Tom', () => {
-    const r = nameTest('ik ben Tom');
-    expect(r.name).toBe('Tom');
-    expect(r.state).toBe(OrderState.CONFIRM);
-  });
+  test('delivery_enabled=false → skip DELIVERY_TYPE naar DONE', () => {
+    const noDeliveryConfig = { ...config, delivery_enabled: false };
+    const engine = new VoiceOrderSystem(menu, prices, noDeliveryConfig);
+    const session = createEmptySession();
+    session.state = OrderState.GET_NAME_PHONE;
+    session.order = [{ product: 'cola', quantity: 1, price: 2.00 }];
 
-  test('"Frederic" → Frederic', () => {
-    const r = nameTest('Frederic');
-    expect(r.name).toBe('Frederic');
-    expect(r.state).toBe(OrderState.CONFIRM);
-  });
-
-  test('"Frederic Janssens" → Frederic Janssens', () => {
-    const r = nameTest('Frederic Janssens');
-    expect(r.name).toBe('Frederic Janssens');
-    expect(r.state).toBe(OrderState.CONFIRM);
+    engine.handle(session, 'Rudi 0476123456');
+    expect(session.state).toBe(OrderState.DONE);
+    expect(session.delivery_type).toBe('afhalen');
   });
 });
 
 // ============================================================
-// FASE 2 — CONFIRM LOGICA FIX
+// VOLLEDIGE FLOW TEST
 // ============================================================
 
-describe('CONFIRM — order behouden bij "nee"', () => {
+describe('Volledige flow — afhalen', () => {
   const menu = ['grote friet', 'cola', 'cervela'];
   const prices = { 'grote friet': 4.10, 'cola': 2.00, 'cervela': 3.00 };
   const config: BusinessConfig = {
-    name: 'Test', ai_name: 'AI', welcome_message: 'Hallo',
-    prep_time_pickup: 20, prep_time_delivery: 30, delivery_enabled: false,
+    name: 'Frituur Nolim', ai_name: 'Anja', welcome_message: 'Hallo met Frituur Nolim, met Anja. Wat is uw bestelling?',
+    prep_time_pickup: 20, prep_time_delivery: 30, delivery_enabled: true,
   };
 
-  test('"nee" behoudt order en gaat terug naar TAKING_ORDER', () => {
+  test('complete afhaal flow', () => {
     const engine = new VoiceOrderSystem(menu, prices, config);
     const session = createEmptySession();
-    session.state = OrderState.CONFIRM;
-    session.order = [
-      { product: 'grote friet', quantity: 1, price: 4.10 },
-      { product: 'cola', quantity: 2, price: 2.00 },
-    ];
-    session.name = 'Frederic';
-    session.delivery_type = 'afhalen';
 
-    const result = engine.handle(session, 'nee');
+    // Stap 1: bestelling
+    engine.handle(session, 'een grote friet en twee cola');
+    expect(session.order).toHaveLength(2);
+    expect(session.state).toBe(OrderState.TAKING_ORDER);
 
-    expect(result.session.state).toBe(OrderState.TAKING_ORDER);
-    expect(result.session.order).toHaveLength(2);
-    expect(result.session.order[0].product).toBe('grote friet');
-    expect(result.session.order[1].product).toBe('cola');
-    expect(result.response).toContain('aanpassen');
+    // Stap 2: klaar met bestellen
+    const r2 = engine.handle(session, 'nee dat was het');
+    expect(session.state).toBe(OrderState.GET_NAME_PHONE);
+    expect(r2.response).toContain('naam');
+    expect(r2.response).toContain('telefoonnummer');
+
+    // Stap 3: naam + telefoon
+    engine.handle(session, 'Rudi 0476123456');
+    expect(session.state).toBe(OrderState.DELIVERY_TYPE);
+
+    // Stap 4: afhalen
+    const r4 = engine.handle(session, 'afhalen');
+    expect(session.state).toBe(OrderState.DONE);
+    expect(r4.response).toContain('20 minuten');
+    expect(r4.response).toContain('eet smakelijk');
   });
+});
 
-  test('klant kan daarna nieuw item toevoegen', () => {
+describe('Volledige flow — levering', () => {
+  const menu = ['grote friet', 'cola'];
+  const prices = { 'grote friet': 4.10, 'cola': 2.00 };
+  const config: BusinessConfig = {
+    name: 'Frituur Nolim', ai_name: 'Anja', welcome_message: 'Hallo',
+    prep_time_pickup: 20, prep_time_delivery: 30, delivery_enabled: true,
+  };
+
+  test('complete levering flow', () => {
     const engine = new VoiceOrderSystem(menu, prices, config);
     const session = createEmptySession();
-    session.state = OrderState.TAKING_ORDER;
-    session.order = [
-      { product: 'grote friet', quantity: 1, price: 4.10 },
-      { product: 'cola', quantity: 2, price: 2.00 },
-    ];
 
-    engine.handle(session, 'een cervela');
+    engine.handle(session, 'een grote friet');
+    engine.handle(session, 'nee dat was het');
+    expect(session.state).toBe(OrderState.GET_NAME_PHONE);
 
-    expect(session.order).toHaveLength(3);
-    expect(session.order[2].product).toBe('cervela');
-    expect(session.order[2].price).toBe(3.00);
-  });
+    engine.handle(session, 'Rudi 0476123456');
+    expect(session.state).toBe(OrderState.DELIVERY_TYPE);
 
-  test('"ja" bij confirm gaat nog steeds naar DONE', () => {
-    const engine = new VoiceOrderSystem(menu, prices, config);
-    const session = createEmptySession();
-    session.state = OrderState.CONFIRM;
-    session.order = [{ product: 'cola', quantity: 1, price: 2.00 }];
-    session.name = 'Test';
-    session.delivery_type = 'afhalen';
+    engine.handle(session, 'levering');
+    expect(session.state).toBe(OrderState.GET_ADDRESS);
 
-    const result = engine.handle(session, 'ja klopt');
-    expect(result.session.state).toBe(OrderState.DONE);
+    const r = engine.handle(session, 'Kerkstraat 15 Antwerpen');
+    expect(session.state).toBe(OrderState.DONE);
+    expect(session.address).toBe('Kerkstraat 15 Antwerpen');
+    expect(r.response).toContain('30 minuten');
+    expect(r.response).toContain('eet smakelijk');
   });
 });
 
@@ -584,6 +601,8 @@ describe('DELIVERY_TYPE — herkent alle varianten', () => {
     const session = createEmptySession();
     session.state = OrderState.DELIVERY_TYPE;
     session.order = [{ product: 'cola', quantity: 1, price: 2.00 }];
+    session.name = 'Test';
+    session.phone = '0412345678';
     engine.handle(session, input);
     return { type: session.delivery_type, state: session.state };
   }
@@ -591,7 +610,7 @@ describe('DELIVERY_TYPE — herkent alle varianten', () => {
   test('"levering" → levering', () => {
     const r = deliveryTest('levering');
     expect(r.type).toBe('levering');
-    expect(r.state).toBe(OrderState.GET_NAME);
+    expect(r.state).toBe(OrderState.GET_ADDRESS);
   });
 
   test('"leveren" → levering', () => {
@@ -609,7 +628,7 @@ describe('DELIVERY_TYPE — herkent alle varianten', () => {
   test('"ophalen" → afhalen', () => {
     const r = deliveryTest('ophalen');
     expect(r.type).toBe('afhalen');
-    expect(r.state).toBe(OrderState.GET_NAME);
+    expect(r.state).toBe(OrderState.DONE);
   });
 
   test('"afhalen" → afhalen', () => {
@@ -643,13 +662,13 @@ describe('Sector: Kapper — parser', () => {
   test('service + modifier (knipbeurt + kleuring)', () => {
     const items = extractItems('een dames knipbeurt met kleuring', menu, prices, modifiers);
     expect(items).toHaveLength(1);
-    expect(items[0].price).toBeCloseTo(80.00, 2); // 45 + 35
+    expect(items[0].price).toBeCloseTo(80.00, 2);
   });
 
   test('service + two modifiers', () => {
     const items = extractItems('dames knipbeurt met kleuring en föhnen', menu, prices, modifiers);
     expect(items).toHaveLength(1);
-    expect(items[0].price).toBeCloseTo(92.00, 2); // 45 + 35 + 12
+    expect(items[0].price).toBeCloseTo(92.00, 2);
   });
 
   test('multiple separate services', () => {
@@ -679,11 +698,10 @@ describe('Sector: Kapper — parser', () => {
 
     engine.handle(session, 'een dames knipbeurt met föhnen');
     expect(session.order).toHaveLength(1);
-    expect(session.order[0].price).toBeCloseTo(57.00, 2); // 45 + 12
+    expect(session.order[0].price).toBeCloseTo(57.00, 2);
 
     const result = engine.handle(session, 'nee dat was het');
-    expect(result.session.state).toBe(OrderState.GET_NAME);
-    expect(result.session.delivery_type).toBe('afhalen');
+    expect(result.session.state).toBe(OrderState.GET_NAME_PHONE);
   });
 });
 
@@ -713,7 +731,7 @@ describe('Sector: Garage — parser', () => {
   test('service + modifier', () => {
     const items = extractItems('een kleine beurt met olie verversen', menu, prices, modifiers);
     expect(items).toHaveLength(1);
-    expect(items[0].price).toBeCloseTo(150.00, 2); // 95 + 55
+    expect(items[0].price).toBeCloseTo(150.00, 2);
   });
 
   test('multiple services via comma', () => {
@@ -745,9 +763,9 @@ describe('Sector: Garage — parser', () => {
 
     engine.handle(session, 'een grote beurt met olie verversen');
     expect(session.order).toHaveLength(1);
-    expect(session.order[0].price).toBeCloseTo(230.00, 2); // 175 + 55
+    expect(session.order[0].price).toBeCloseTo(230.00, 2);
 
     const result = engine.handle(session, 'dat was het');
-    expect(result.session.state).toBe(OrderState.GET_NAME);
+    expect(result.session.state).toBe(OrderState.GET_NAME_PHONE);
   });
 });
