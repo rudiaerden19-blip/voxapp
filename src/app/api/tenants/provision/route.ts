@@ -30,7 +30,8 @@ function getSupabase() {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DB = any;
 
-const CUSTOM_LLM_URL = 'https://www.voxapp.tech/api/voice-engine/v1/chat/completions';
+// ElevenLabs appends /chat/completions when api_type is "chat_completions"
+const CUSTOM_LLM_URL = 'https://www.voxapp.tech/api/voice-engine/v1';
 
 async function createElevenLabsAgent(
   businessName: string,
