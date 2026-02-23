@@ -374,12 +374,12 @@ export class VoiceOrderSystem {
       }
 
       case OrderState.DELIVERY_TYPE: {
-        if (/\b(lever|bezorg|brengen|thuis)\b/i.test(input)) {
+        if (/\blever\w*|bezorg\w*|brengen|thuis\b/i.test(input)) {
           session.delivery_type = 'levering';
           session.state = OrderState.GET_NAME;
           return this.reply(session, 'Op welke naam mag ik de bestelling zetten?');
         }
-        if (/\b(afhaal|afhalen|ophalen|halen|komen halen|kom het halen|kom halen)\b/i.test(input)) {
+        if (/\bafhaal\w*|ophaal\w*|ophalen|halen|kom\w*\s+halen\b/i.test(input)) {
           session.delivery_type = 'afhalen';
           session.state = OrderState.GET_NAME;
           return this.reply(session, 'Op welke naam mag ik de bestelling zetten?');

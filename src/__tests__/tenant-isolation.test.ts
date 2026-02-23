@@ -474,6 +474,56 @@ describe('CONFIRM — order behouden bij "nee"', () => {
 });
 
 // ============================================================
+// DELIVERY_TYPE — regex fix
+// ============================================================
+
+describe('DELIVERY_TYPE — herkent alle varianten', () => {
+  const menu = ['cola'];
+  const prices = { 'cola': 2.00 };
+  const config: BusinessConfig = {
+    name: 'Test', ai_name: 'AI', welcome_message: 'Hallo',
+    prep_time_pickup: 20, prep_time_delivery: 30, delivery_enabled: true,
+  };
+
+  function deliveryTest(input: string): { type: string | null; state: OrderState } {
+    const engine = new VoiceOrderSystem(menu, prices, config);
+    const session = createEmptySession();
+    session.state = OrderState.DELIVERY_TYPE;
+    session.order = [{ product: 'cola', quantity: 1, price: 2.00 }];
+    engine.handle(session, input);
+    return { type: session.delivery_type, state: session.state };
+  }
+
+  test('"levering" → levering', () => {
+    const r = deliveryTest('levering');
+    expect(r.type).toBe('levering');
+    expect(r.state).toBe(OrderState.GET_NAME);
+  });
+
+  test('"leveren" → levering', () => {
+    expect(deliveryTest('leveren').type).toBe('levering');
+  });
+
+  test('"thuis leveren" → levering', () => {
+    expect(deliveryTest('thuis leveren').type).toBe('levering');
+  });
+
+  test('"bezorgen" → levering', () => {
+    expect(deliveryTest('bezorgen').type).toBe('levering');
+  });
+
+  test('"ophalen" → afhalen', () => {
+    const r = deliveryTest('ophalen');
+    expect(r.type).toBe('afhalen');
+    expect(r.state).toBe(OrderState.GET_NAME);
+  });
+
+  test('"afhalen" → afhalen', () => {
+    expect(deliveryTest('afhalen').type).toBe('afhalen');
+  });
+});
+
+// ============================================================
 // SECTOR: KAPPER — parser tests
 // ============================================================
 
