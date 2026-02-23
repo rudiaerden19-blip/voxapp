@@ -255,6 +255,90 @@ describe('Sector: Frituur — parser', () => {
     expect(items).toHaveLength(1);
     expect(items[0].price).toBe(1.10);
   });
+
+  // ========================================================
+  // FASE 1 — KRITIEKE ORDER BUGS (10 testcases)
+  // ========================================================
+
+  // FIX 1: "en" splitst altijd
+  test('FIX1: "en" splitst twee producten met hoeveelheid', () => {
+    const items = extractItems('een grote friet en een cola', menu, prices, modifiers);
+    expect(items).toHaveLength(2);
+    expect(items[0].product).toContain('grote friet');
+    expect(items[0].price).toBe(4.10);
+    expect(items[1].product).toBe('cola');
+    expect(items[1].price).toBe(2.00);
+  });
+
+  test('FIX1: "en" splitst twee producten zonder hoeveelheid', () => {
+    const items = extractItems('grote friet en cola', menu, prices, modifiers);
+    expect(items).toHaveLength(2);
+    expect(items[0].product).toContain('grote friet');
+    expect(items[1].product).toBe('cola');
+  });
+
+  test('FIX1: "en" tussen modifiers mergt terug naar base', () => {
+    const items = extractItems('grote friet met zoete mayonaise en samurai saus', menu, prices, modifiers);
+    expect(items).toHaveLength(1);
+    expect(items[0].product).toContain('grote friet');
+    expect(items[0].product).toContain('samurai saus');
+    expect(items[0].price).toBeCloseTo(6.30, 2); // 4.10 + 1.10 + 1.10
+  });
+
+  test('FIX1: drie items via "en"', () => {
+    const items = extractItems('cola en cervela en cheeseburger', menu, prices, modifiers);
+    expect(items).toHaveLength(3);
+    expect(items[0].price).toBe(2.00);
+    expect(items[1].price).toBe(3.00);
+    expect(items[2].price).toBe(5.00);
+  });
+
+  test('FIX1: "en" met verschillende hoeveelheden', () => {
+    const items = extractItems('twee grote friet en drie cola', menu, prices, modifiers);
+    expect(items).toHaveLength(2);
+    expect(items[0].quantity).toBe(2);
+    expect(items[0].price).toBe(4.10);
+    expect(items[1].quantity).toBe(3);
+    expect(items[1].price).toBe(2.00);
+  });
+
+  // FIX 2: "zonder" sluit modifier uit
+  test('FIX2: "zonder" voorkomt modifier-prijs', () => {
+    const items = extractItems('grote friet zonder zoete mayonaise', menu, prices, modifiers);
+    expect(items).toHaveLength(1);
+    expect(items[0].price).toBe(4.10);
+    expect(items[0].product).toContain('zonder');
+  });
+
+  test('FIX2: "zonder" met andere modifier wel meegeteld', () => {
+    const items = extractItems('grote friet met samurai saus zonder zoete mayonaise', menu, prices, modifiers);
+    expect(items).toHaveLength(1);
+    expect(items[0].price).toBeCloseTo(5.20, 2); // 4.10 + 1.10 (samurai), NIET +1.10 (mayo)
+  });
+
+  test('FIX2: "zonder" op base product, alleen base prijs', () => {
+    const items = extractItems('cervela zonder samurai saus', menu, prices, modifiers);
+    expect(items).toHaveLength(1);
+    expect(items[0].price).toBe(3.00);
+  });
+
+  // FIX 3: Nooit "genoteerd" als niets geparsed
+  test('FIX3: onherkenbare input → "niet begrepen" (lege order)', () => {
+    const engine = new VoiceOrderSystem(menu, prices, config, modifiers);
+    const session = createEmptySession();
+    const result = engine.handle(session, 'blabla onzin tekst');
+    expect(result.response).toContain('niet goed begrepen');
+    expect(session.order).toHaveLength(0);
+  });
+
+  test('FIX3: onherkenbare input → "niet begrepen" (order heeft items)', () => {
+    const engine = new VoiceOrderSystem(menu, prices, config, modifiers);
+    const session = createEmptySession();
+    session.order = [{ product: 'cola', quantity: 1, price: 2.00 }];
+    const result = engine.handle(session, 'hmm euh wacht even');
+    expect(result.response).toContain('niet goed begrepen');
+    expect(session.order).toHaveLength(1); // bestaande order ongewijzigd
+  });
 });
 
 // ============================================================

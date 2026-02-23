@@ -160,8 +160,8 @@ const NUM_WORDS: Record<string, number> = {
 
 const QTY_PATTERN = /^(een|één|eén|twee|drie|vier|vijf|zes|zeven|acht|negen|tien)\s+/i;
 
-// Split op punt, komma, of "en" gevolgd door een hoeveelheid — geen sector-specifieke woorden
-const SPLIT_PATTERN = /[.]\s*|,\s*|\b(?:en|eén|één)\s+(?=een\b|één\b|eén\b|twee\b|drie\b|vier\b|vijf\b|zes\b|zeven\b|acht\b|negen\b|tien\b|\d)/i;
+// Split op punt, komma, of "en"/"eén"/"één" (altijd, ook zonder hoeveelheid erna)
+const SPLIT_PATTERN = /[.]\s*|,\s*|\s+(?:en|eén|één)\s+/i;
 
 export function extractItems(
   text: string,
@@ -170,6 +170,7 @@ export function extractItems(
   modifiers: Set<string> = new Set()
 ): OrderItem[] {
   const items: OrderItem[] = [];
+  const modOnlyFlags: boolean[] = [];
 
   const parts = text
     .split(SPLIT_PATTERN)
@@ -196,11 +197,27 @@ export function extractItems(
     rest = rest.replace(/^(een|één|eén)\s+/i, '').trim();
     if (rest.length < 2) continue;
 
+    // "zonder X" — exclude X from matching, don't charge for it
+    const excludedItems = new Set<string>();
+    let zonderNote = '';
+    const zonderMatch = rest.match(/\s+zonder\s+(.+)$/i);
+    if (zonderMatch) {
+      const zonderText = zonderMatch[1].toLowerCase();
+      for (const menuItem of menuItems) {
+        if (zonderText.includes(menuItem)) {
+          excludedItems.add(menuItem);
+        }
+      }
+      zonderNote = ' ' + zonderMatch[0].trim();
+      rest = rest.replace(/\s+zonder\s+.+$/i, '').trim();
+    }
+
+    if (rest.length < 2) continue;
     const lower = rest.toLowerCase();
 
-    // Find ALL menu items in this fragment (base + modifiers)
     const allMatches: { item: string; pos: number }[] = [];
     for (const menuItem of menuItems) {
+      if (excludedItems.has(menuItem)) continue;
       const pos = lower.indexOf(menuItem);
       if (pos >= 0) {
         const dominated = allMatches.some(
@@ -222,17 +239,17 @@ export function extractItems(
 
     let baseProduct: string | null = null;
     let totalPrice = 0;
+    let isModifierOnly = false;
 
     if (allMatches.length > 0) {
-      // First non-modifier is the base product; modifiers come from DB
       const baseMatch = allMatches.find(m => !modifiers.has(m.item)) || allMatches[0];
       baseProduct = baseMatch.item;
+      isModifierOnly = allMatches.every(m => modifiers.has(m.item));
       for (const m of allMatches) {
         totalPrice += menuPrices[m.item] || 0;
       }
     }
 
-    // Fuzzy fallback
     if (!baseProduct) {
       const words = rest.split(/\s+/);
       if (words.length >= 3) baseProduct = fuzzyMatch(`${words[0]} ${words[1]} ${words[2]}`, menuItems);
@@ -243,17 +260,31 @@ export function extractItems(
       }
     }
 
-    // Display: full text if modifiers attached, otherwise just the product
-    let displayName = baseProduct || rest;
-    if (baseProduct && lower.length > baseProduct.length + 3) {
+    // Geen menu-match → fragment overslaan (niet als "onbekend item" toevoegen)
+    if (!baseProduct) continue;
+
+    let displayName = baseProduct;
+    if (lower.length > baseProduct.length + 3) {
       displayName = rest;
     }
+    if (zonderNote) displayName += zonderNote;
 
     const existing = items.find(i => i.product === displayName);
     if (existing) {
       existing.quantity += qty;
     } else {
       items.push({ product: displayName, quantity: qty, price: totalPrice });
+      modOnlyFlags.push(isModifierOnly);
+    }
+  }
+
+  // Modifier-only fragmenten (bv. losse saus na "en" split) → terug mergen met vorig item
+  for (let i = items.length - 1; i >= 1; i--) {
+    if (modOnlyFlags[i] && items[i].quantity === 1) {
+      items[i - 1].price += items[i].price;
+      items[i - 1].product += ' en ' + items[i].product;
+      items.splice(i, 1);
+      modOnlyFlags.splice(i, 1);
     }
   }
 
@@ -312,9 +343,9 @@ export class VoiceOrderSystem {
         }
 
         if (session.order.length === 0) {
-          return this.reply(session, 'Ja, zeg het maar.');
+          return this.reply(session, 'Dat heb ik niet goed begrepen, kan je het herhalen?');
         }
-        return this.reply(session, 'Ok, genoteerd. Nog iets anders?');
+        return this.reply(session, 'Dat heb ik niet goed begrepen, kan je het herhalen?');
       }
 
       case OrderState.DELIVERY_TYPE: {
