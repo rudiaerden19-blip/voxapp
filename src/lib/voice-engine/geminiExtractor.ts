@@ -1,5 +1,4 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import type { OrderItem } from './VoiceOrderSystem';
 
 export interface MenuItem {
   name: string;
@@ -8,17 +7,21 @@ export interface MenuItem {
   is_modifier: boolean;
 }
 
+export interface GeminiItem {
+  product: string;
+  quantity: number;
+  options: string[];
+}
+
+export interface GeminiExtraction {
+  intent: 'order' | 'info' | 'other';
+  items: GeminiItem[];
+}
+
 export interface NamePhoneResult {
   name: string | null;
   phone: string | null;
 }
-
-const SAUCE_FREE_CATEGORIES = new Set([
-  'warme broodjes',
-  'belegde broodjes',
-  'bickys',
-  'rundsburgers',
-]);
 
 let genAI: GoogleGenerativeAI | null = null;
 
@@ -34,115 +37,127 @@ function getGenAI(): GoogleGenerativeAI {
 function getModel() {
   return getGenAI().getGenerativeModel({
     model: 'gemini-2.0-flash',
-    generationConfig: {
-      temperature: 0,
-      maxOutputTokens: 300,
-    },
+    generationConfig: { temperature: 0, maxOutputTokens: 300 },
   });
 }
 
-function buildMenuBlock(menuItems: MenuItem[]): string {
-  const grouped: Record<string, MenuItem[]> = {};
-  for (const item of menuItems) {
-    const cat = item.category || 'Overig';
-    if (!grouped[cat]) grouped[cat] = [];
-    grouped[cat].push(item);
-  }
-
-  const lines: string[] = [];
-  for (const [cat, items] of Object.entries(grouped)) {
-    const sausFree = SAUCE_FREE_CATEGORIES.has(cat.toLowerCase());
-    lines.push(`[${cat}]${sausFree ? ' (saus inbegrepen)' : ''}`);
-    for (const item of items) {
-      const mod = item.is_modifier ? ' (saus/modifier)' : '';
-      lines.push(`  - ${item.name}: €${item.price.toFixed(2)}${mod}`);
-    }
-  }
-  return lines.join('\n');
+function buildMenuList(menuItems: MenuItem[]): string {
+  return menuItems
+    .filter(i => !i.is_modifier)
+    .map(i => `- ${i.name}`)
+    .join('\n');
 }
 
-const SYSTEM_PROMPT = `Je bent een bestelparser voor een Belgische frituur. Je krijgt een spraak-naar-tekst transcript van een klant die bestelt, plus het volledige menu.
+function buildModifierList(menuItems: MenuItem[]): string {
+  return menuItems
+    .filter(i => i.is_modifier)
+    .map(i => `- ${i.name}`)
+    .join('\n');
+}
 
-TAAK: Extraheer de bestelde items als JSON array.
+// ============================================================
+// ITEM EXTRACTION — STRICT JSON, GEEN PRIJZEN
+// ============================================================
+
+const EXTRACT_PROMPT = `Je bent een bestelparser voor een Belgische frituur.
+Je krijgt een transcript van een klant die bestelt.
+
+TAAK: Extraheer ALLEEN de bestelde producten en hoeveelheden.
 
 REGELS:
-1. Match elk genoemd product op het DICHTSTBIJZIJNDE menu-item (STT maakt spelfouten: "serbela"="Cervela", "frikadellen"="Frikandel", "biggie burger"="Bicky classic", etc.)
-2. Let op "special"/"speciaal" varianten — als de klant "frikandel speciaal" zegt en "Frikandel special" bestaat, kies die
-3. Hoeveelheden: "twee cola" = qty 2. Geen getal = qty 1
-4. Sauzen bij categorieën met "(saus inbegrepen)": modifier toevoegen aan productnaam MAAR prijs NIET optellen. Bv: "Cheese burger met samurai saus" = €6.00 (niet €7.10)
-5. Sauzen bij Friet: prijs WEL optellen. Bv: "Grote friet met mayonaise" = €4.10 + €1.10 = €5.20
-6. "zonder X": voeg toe aan productnaam maar tel X niet mee
-7. Als je een item NIET kunt matchen, sla het over
+1. Match elk product op het DICHTSTBIJZIJNDE item uit de PRODUCTEN lijst
+2. Gebruik de EXACTE productnaam uit de lijst, NIET je eigen versie
+3. Hoeveelheden: "twee cola" = quantity 2. Geen getal = quantity 1
+4. Sauzen/opties uit de SAUZEN lijst gaan in "options" array
+5. "zonder X" gaat ook in options als "zonder X"
+6. GEEN prijzen berekenen — dat doet het systeem
+7. Als je iets NIET kunt matchen aan de lijst, sla het OVER
 
-Antwoord ALLEEN met een JSON array, geen uitleg:
-[{"product":"Productnaam","quantity":1,"price":5.20}]`;
+Return ONLY valid JSON. No text outside JSON.
+
+Output formaat:
+{"intent":"order","items":[{"product":"Exacte Productnaam","quantity":1,"options":["Mayonaise"]}]}`;
 
 export async function extractWithGemini(
   transcript: string,
   menuItems: MenuItem[],
-): Promise<OrderItem[] | null> {
+): Promise<GeminiExtraction | null> {
   try {
     const model = getModel();
-    const menuBlock = buildMenuBlock(menuItems);
-    const prompt = `${SYSTEM_PROMPT}\n\nMENU:\n${menuBlock}\n\nTRANSCRIPT: "${transcript}"`;
+    const products = buildMenuList(menuItems);
+    const modifiers = buildModifierList(menuItems);
+
+    const prompt = `${EXTRACT_PROMPT}
+
+PRODUCTEN:
+${products}
+
+SAUZEN/OPTIES:
+${modifiers}
+
+TRANSCRIPT: "${transcript}"`;
 
     const result = await model.generateContent(prompt);
     const text = result.response.text().trim();
 
-    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      console.log(JSON.stringify({ _tag: 'GEMINI_EXTRACT', status: 'no_json', raw: text }));
-      return null;
+      console.log(JSON.stringify({ _tag: 'GEMINI', status: 'no_json', raw: text.slice(0, 200) }));
+      // Retry 1x
+      const retry = await model.generateContent(prompt + '\n\nREMINDER: Return ONLY valid JSON.');
+      const retryText = retry.response.text().trim();
+      const retryMatch = retryText.match(/\{[\s\S]*\}/);
+      if (!retryMatch) return null;
+      return parseExtraction(retryMatch[0]);
     }
 
-    const parsed = JSON.parse(jsonMatch[0]) as Array<{
-      product: string;
-      quantity: number;
-      price: number;
-    }>;
-
-    if (!Array.isArray(parsed) || parsed.length === 0) return null;
-
-    const items: OrderItem[] = parsed
-      .filter(i => i.product && i.quantity > 0 && i.price >= 0)
-      .map(i => ({
-        product: i.product,
-        quantity: i.quantity,
-        price: Math.round(i.price * 100) / 100,
-      }));
-
-    console.log(JSON.stringify({
-      _tag: 'GEMINI_EXTRACT',
-      status: 'success',
-      items_count: items.length,
-      items,
-    }));
-
-    return items.length > 0 ? items : null;
+    return parseExtraction(jsonMatch[0]);
   } catch (err) {
-    console.log(JSON.stringify({
-      _tag: 'GEMINI_EXTRACT',
-      status: 'error',
-      error: String(err),
-    }));
+    console.log(JSON.stringify({ _tag: 'GEMINI', status: 'error', error: String(err) }));
+    return null;
+  }
+}
+
+function parseExtraction(jsonStr: string): GeminiExtraction | null {
+  try {
+    const parsed = JSON.parse(jsonStr);
+    const intent = parsed.intent === 'order' ? 'order' : (parsed.intent === 'info' ? 'info' : 'other');
+
+    const items: GeminiItem[] = [];
+    if (Array.isArray(parsed.items)) {
+      for (const i of parsed.items) {
+        if (i.product && typeof i.product === 'string') {
+          items.push({
+            product: i.product,
+            quantity: typeof i.quantity === 'number' && i.quantity > 0 ? i.quantity : 1,
+            options: Array.isArray(i.options) ? i.options.filter((o: unknown) => typeof o === 'string') : [],
+          });
+        }
+      }
+    }
+
+    console.log(JSON.stringify({ _tag: 'GEMINI', status: 'ok', intent, items_count: items.length, items }));
+    return { intent, items };
+  } catch {
+    console.log(JSON.stringify({ _tag: 'GEMINI', status: 'parse_error', raw: jsonStr.slice(0, 200) }));
     return null;
   }
 }
 
 // ============================================================
-// NAAM + TELEFOON EXTRACTIE via Gemini
+// NAAM + TELEFOON EXTRACTIE
 // ============================================================
 
-const NAME_PHONE_PROMPT = `Je krijgt een spraak-naar-tekst transcript van iemand die zijn naam en telefoonnummer geeft.
+const NAME_PHONE_PROMPT = `Je krijgt een transcript van iemand die zijn naam en telefoonnummer geeft.
 
-TAAK: Extraheer de naam en het telefoonnummer.
+TAAK: Extraheer naam en telefoonnummer.
 
 REGELS:
-1. Naam: de voornaam (en eventueel achternaam) van de persoon. STT maakt fouten: "Relie"="Rudi", "Freddie"="Frederic". Kies de meest waarschijnlijke echte naam.
-2. Telefoonnummer: gesproken als woorden ("nul vier negen twee twaalf drieënnegentig drieëntachtig" = "0492129383"). Geef ALLEEN cijfers terug.
-3. Als je de naam of het nummer niet kunt vinden, geef null.
+1. Naam: voornaam (eventueel achternaam). STT fouten: "Relie"="Rudi", "Freddie"="Frederic"
+2. Telefoonnummer: gesproken als woorden omzetten naar cijfers
+3. Als je iets niet vindt, geef null
 
-Antwoord ALLEEN met JSON, geen uitleg:
+Return ONLY valid JSON:
 {"name":"Voornaam","phone":"0492129383"}`;
 
 export async function extractNamePhoneWithGemini(
@@ -156,33 +171,18 @@ export async function extractNamePhoneWithGemini(
     const text = result.response.text().trim();
 
     const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      console.log(JSON.stringify({ _tag: 'GEMINI_NAME_PHONE', status: 'no_json', raw: text }));
-      return null;
-    }
+    if (!jsonMatch) return null;
 
-    const parsed = JSON.parse(jsonMatch[0]) as { name?: string | null; phone?: string | null };
-
+    const parsed = JSON.parse(jsonMatch[0]);
     const nameVal = parsed.name && parsed.name.length >= 2 ? parsed.name : null;
     const phoneVal = parsed.phone && parsed.phone.replace(/\D/g, '').length >= 9
       ? parsed.phone.replace(/\D/g, '')
       : null;
 
-    console.log(JSON.stringify({
-      _tag: 'GEMINI_NAME_PHONE',
-      status: 'success',
-      name: nameVal,
-      phone: phoneVal,
-      raw_transcript: transcript,
-    }));
-
+    console.log(JSON.stringify({ _tag: 'GEMINI_NP', name: nameVal, phone: phoneVal }));
     return { name: nameVal, phone: phoneVal };
   } catch (err) {
-    console.log(JSON.stringify({
-      _tag: 'GEMINI_NAME_PHONE',
-      status: 'error',
-      error: String(err),
-    }));
+    console.log(JSON.stringify({ _tag: 'GEMINI_NP', status: 'error', error: String(err) }));
     return null;
   }
 }

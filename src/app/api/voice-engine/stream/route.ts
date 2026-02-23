@@ -9,6 +9,8 @@ import {
   type OrderItem,
 } from '@/lib/voice-engine/VoiceOrderSystem';
 import { extractWithGemini, extractNamePhoneWithGemini, type MenuItem } from '@/lib/voice-engine/geminiExtractor';
+import { normalizeTranscript } from '@/lib/voice-engine/transcriptNormalizer';
+import { buildCatalog, mapProducts } from '@/lib/voice-engine/productMapper';
 import { createCallLog, logCall, logError } from '@/lib/logger';
 
 // ============================================================
@@ -186,16 +188,55 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    let geminiItems: OrderItem[] | null = null;
+    // ── PIPELINE: Normalize → Gemini → ProductMapper → State Machine ──
+    const normalized = normalizeTranscript(transcript);
+
+    console.log(JSON.stringify({
+      _tag: 'PIPELINE', step: 'normalize',
+      raw: transcript.slice(0, 100), normalized: normalized.slice(0, 100),
+    }));
+
+    let mappedItems: OrderItem[] | null = null;
     let geminiNamePhone: { name: string | null; phone: string | null } | null = null;
 
     if (session.state === OrderState.TAKING_ORDER) {
-      geminiItems = await extractWithGemini(transcript, menu.raw);
+      // Step 1: Gemini extracts product names + quantities (NO prices)
+      const geminiResult = await extractWithGemini(normalized, menu.raw);
+
+      if (geminiResult && geminiResult.items.length > 0) {
+        // Step 2: Product Mapper validates against catalog (deterministic)
+        const catalog = buildCatalog(menu.raw.map(r => ({
+          name: r.name,
+          price: r.price,
+          is_modifier: r.is_modifier,
+        })));
+
+        const mapped = mapProducts(geminiResult.items, catalog);
+
+        // Only keep resolved items
+        const resolved = mapped.filter(m => !m.unresolved);
+        const unresolved = mapped.filter(m => m.unresolved);
+
+        if (unresolved.length > 0) {
+          console.log(JSON.stringify({
+            _tag: 'PIPELINE', step: 'unresolved_items',
+            items: unresolved.map(u => u.product),
+          }));
+        }
+
+        if (resolved.length > 0) {
+          mappedItems = resolved.map(m => ({
+            product: m.product,
+            quantity: m.quantity,
+            price: m.price,
+          }));
+        }
+      }
     } else if (session.state === OrderState.GET_NAME_PHONE) {
-      geminiNamePhone = await extractNamePhoneWithGemini(transcript);
+      geminiNamePhone = await extractNamePhoneWithGemini(normalized);
     }
 
-    const result = engine.handle(session, transcript, conversationId, geminiItems, geminiNamePhone);
+    const result = engine.handle(session, normalized, conversationId, mappedItems, geminiNamePhone);
     session = result.session;
 
     console.log(JSON.stringify({
