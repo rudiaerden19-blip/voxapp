@@ -346,53 +346,85 @@ export class VoiceOrderSystem {
     this.modifiers = modifiers;
   }
 
-  handle(session: SessionData, transcript: string): { response: string; session: SessionData } {
+  handle(session: SessionData, transcript: string, conversationId?: string): { response: string; session: SessionData } {
     const input = normalizeInput(transcript);
+    const cid = conversationId || 'unknown';
+    const stateBefore = session.state;
+
+    console.log(JSON.stringify({
+      _tag: 'ORDER_TRACE',
+      conversation_id: cid,
+      step: '1_INPUT',
+      raw_transcript: transcript,
+      normalized_input: input,
+      state_before: stateBefore,
+      order_before: session.order,
+    }));
 
     switch (session.state) {
 
       case OrderState.TAKING_ORDER: {
         if (/\b(nee|neen|dat was het|dat is het|dat is alles|meer niet|niks meer|dat was alles|klaar)\b/i.test(input)) {
           if (session.order.length === 0) {
-            return this.reply(session, 'Ik heb nog geen bestelling genoteerd. Wat mag het zijn?');
+            return this._traceReply(session, 'Ik heb nog geen bestelling genoteerd. Wat mag het zijn?', cid, stateBefore);
           }
           if (this.config.delivery_enabled) {
             session.state = OrderState.DELIVERY_TYPE;
-            return this.reply(session, 'Moet het geleverd worden of kom je het afhalen?');
+            return this._traceReply(session, 'Moet het geleverd worden of kom je het afhalen?', cid, stateBefore);
           }
           session.delivery_type = 'afhalen';
           session.state = OrderState.GET_NAME;
-          return this.reply(session, 'Op welke naam mag ik de bestelling zetten?');
+          return this._traceReply(session, 'Op welke naam mag ik de bestelling zetten?', cid, stateBefore);
         }
 
         if (/\b(bestellen|ik wil|mag ik|kan ik)\b/i.test(input) && !this.containsMenuItem(input)) {
-          return this.reply(session, 'Ja, zeg het maar.');
+          return this._traceReply(session, 'Ja, zeg het maar.', cid, stateBefore);
         }
 
         const items = extractItems(input, this.menuItems, this.menuPrices, this.modifiers);
+
+        console.log(JSON.stringify({
+          _tag: 'ORDER_TRACE',
+          conversation_id: cid,
+          step: '2_EXTRACT',
+          extracted_items: items,
+          menu_items_count: this.menuItems.length,
+        }));
+
         if (items.length > 0) {
+          const orderBefore = [...session.order];
           session.order.push(...items);
-          return this.reply(session, 'Ok, genoteerd. Nog iets anders?');
+
+          console.log(JSON.stringify({
+            _tag: 'ORDER_TRACE',
+            conversation_id: cid,
+            step: '3_PUSH',
+            new_items: items,
+            order_before_push: orderBefore,
+            order_after_push: session.order,
+          }));
+
+          return this._traceReply(session, 'Ok, genoteerd. Nog iets anders?', cid, stateBefore);
         }
 
         if (session.order.length === 0) {
-          return this.reply(session, 'Dat heb ik niet goed begrepen, kan je het herhalen?');
+          return this._traceReply(session, 'Dat heb ik niet goed begrepen, kan je het herhalen?', cid, stateBefore);
         }
-        return this.reply(session, 'Dat heb ik niet goed begrepen, kan je het herhalen?');
+        return this._traceReply(session, 'Dat heb ik niet goed begrepen, kan je het herhalen?', cid, stateBefore);
       }
 
       case OrderState.DELIVERY_TYPE: {
         if (/\blever\w*|bezorg\w*|brengen|thuis\b/i.test(input)) {
           session.delivery_type = 'levering';
           session.state = OrderState.GET_NAME;
-          return this.reply(session, 'Op welke naam mag ik de bestelling zetten?');
+          return this._traceReply(session, 'Op welke naam mag ik de bestelling zetten?', cid, stateBefore);
         }
         if (/\bafhaal\w*|ophaal\w*|ophalen|halen|kom\w*\s+halen\b/i.test(input)) {
           session.delivery_type = 'afhalen';
           session.state = OrderState.GET_NAME;
-          return this.reply(session, 'Op welke naam mag ik de bestelling zetten?');
+          return this._traceReply(session, 'Op welke naam mag ik de bestelling zetten?', cid, stateBefore);
         }
-        return this.reply(session, 'Moet het geleverd worden of kom je het afhalen?');
+        return this._traceReply(session, 'Moet het geleverd worden of kom je het afhalen?', cid, stateBefore);
       }
 
       case OrderState.GET_NAME: {
@@ -401,12 +433,12 @@ export class VoiceOrderSystem {
           session.name = name;
           if (session.delivery_type === 'levering') {
             session.state = OrderState.GET_ADDRESS;
-            return this.reply(session, 'Op welk adres mogen we leveren?');
+            return this._traceReply(session, 'Op welk adres mogen we leveren?', cid, stateBefore);
           }
           session.state = OrderState.CONFIRM;
-          return this.confirm(session);
+          return this._traceConfirm(session, cid, stateBefore);
         }
-        return this.reply(session, 'Op welke naam mag ik de bestelling zetten?');
+        return this._traceReply(session, 'Op welke naam mag ik de bestelling zetten?', cid, stateBefore);
       }
 
       case OrderState.GET_ADDRESS: {
@@ -414,9 +446,9 @@ export class VoiceOrderSystem {
         if (address.length >= 3) {
           session.address = address;
           session.state = OrderState.GET_PHONE;
-          return this.reply(session, 'En welk telefoonnummer voor onze chauffeur?');
+          return this._traceReply(session, 'En welk telefoonnummer voor onze chauffeur?', cid, stateBefore);
         }
-        return this.reply(session, 'Op welk adres mogen we leveren?');
+        return this._traceReply(session, 'Op welk adres mogen we leveren?', cid, stateBefore);
       }
 
       case OrderState.GET_PHONE: {
@@ -424,32 +456,41 @@ export class VoiceOrderSystem {
         if (phone.length >= 6) {
           session.phone = phone;
           session.state = OrderState.CONFIRM;
-          return this.confirm(session);
+          return this._traceConfirm(session, cid, stateBefore);
         }
-        return this.reply(session, 'En welk telefoonnummer voor onze chauffeur?');
+        return this._traceReply(session, 'En welk telefoonnummer voor onze chauffeur?', cid, stateBefore);
       }
 
       case OrderState.CONFIRM: {
         if (/\b(ja|klopt|juist|correct|dat klopt|precies)\b/i.test(input)) {
           session.state = OrderState.DONE;
-          if (session.delivery_type === 'levering') {
-            return this.reply(session, `Je bestelling wordt binnen ${this.config.prep_time_delivery} minuten geleverd. Dank je wel en eet smakelijk.`);
-          }
-          return this.reply(session, `Je bestelling is klaar over ${this.config.prep_time_pickup} minuten. Dank je wel en eet smakelijk.`);
+          const msg = session.delivery_type === 'levering'
+            ? `Je bestelling wordt binnen ${this.config.prep_time_delivery} minuten geleverd. Dank je wel en eet smakelijk.`
+            : `Je bestelling is klaar over ${this.config.prep_time_pickup} minuten. Dank je wel en eet smakelijk.`;
+
+          console.log(JSON.stringify({
+            _tag: 'ORDER_TRACE',
+            conversation_id: cid,
+            step: '5_DONE',
+            final_order: session.order,
+            final_json: this.buildOrderData(session),
+          }));
+
+          return this._traceReply(session, msg, cid, stateBefore);
         }
         if (/\b(nee|neen|niet|fout)\b/i.test(input)) {
           session.state = OrderState.TAKING_ORDER;
-          return this.reply(session, 'Wat klopt er niet? Zeg maar wat ik moet aanpassen.');
+          return this._traceReply(session, 'Wat klopt er niet? Zeg maar wat ik moet aanpassen.', cid, stateBefore);
         }
-        return this.confirm(session);
+        return this._traceConfirm(session, cid, stateBefore);
       }
 
       case OrderState.DONE: {
-        return this.reply(session, 'De bestelling is al geplaatst. Dank je wel en tot ziens.');
+        return this._traceReply(session, 'De bestelling is al geplaatst. Dank je wel en tot ziens.', cid, stateBefore);
       }
 
       default:
-        return this.reply(session, 'Excuseer, kan je dat herhalen?');
+        return this._traceReply(session, 'Excuseer, kan je dat herhalen?', cid, stateBefore);
     }
   }
 
@@ -459,6 +500,33 @@ export class VoiceOrderSystem {
 
   private containsMenuItem(text: string): boolean {
     return this.menuItems.some(item => text.includes(item));
+  }
+
+  private _traceReply(session: SessionData, text: string, cid: string, stateBefore: string): { response: string; session: SessionData } {
+    console.log(JSON.stringify({
+      _tag: 'ORDER_TRACE',
+      conversation_id: cid,
+      step: '4_REPLY',
+      state_before: stateBefore,
+      state_after: session.state,
+      response_text: text,
+      order_snapshot: session.order,
+    }));
+    return this.reply(session, text);
+  }
+
+  private _traceConfirm(session: SessionData, cid: string, stateBefore: string): { response: string; session: SessionData } {
+    const result = this.confirm(session);
+    console.log(JSON.stringify({
+      _tag: 'ORDER_TRACE',
+      conversation_id: cid,
+      step: '4_CONFIRM',
+      state_before: stateBefore,
+      state_after: session.state,
+      response_text: result.response,
+      order_snapshot: session.order,
+    }));
+    return result;
   }
 
   private confirm(session: SessionData): { response: string; session: SessionData } {

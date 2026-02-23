@@ -204,7 +204,7 @@ export async function POST(request: NextRequest) {
       session = createEmptySession();
     }
 
-    const result = engine.handle(session, userMessage);
+    const result = engine.handle(session, userMessage, sessionId);
     session = result.session;
 
     callLog.state_transitions.push(`${prevState} → ${session.state}`);
@@ -212,6 +212,15 @@ export async function POST(request: NextRequest) {
     if (session.state === OrderState.DONE) {
       const orderData = engine.buildOrderData(session);
       const { notes, total } = engine.buildReceiptNotes(session);
+
+      console.log(JSON.stringify({
+        _tag: 'ORDER_TRACE',
+        conversation_id: sessionId,
+        step: '6_KITCHEN',
+        order_data: orderData,
+        receipt_notes: notes,
+        receipt_total: total,
+      }));
 
       await supabase.from('orders').insert({
         business_id: tenantId,

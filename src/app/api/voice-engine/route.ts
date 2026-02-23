@@ -178,13 +178,21 @@ export async function POST(request: NextRequest) {
     if (!session) {
       session = createEmptySession();
     }
-    const result = engine.handle(session, userMessage);
+    const result = engine.handle(session, userMessage, conversationId);
     session = result.session;
 
-    // If DONE → insert order into Supabase, delete session
     if (session.state === OrderState.DONE) {
       const orderData = engine.buildOrderData(session);
       const { notes, total } = engine.buildReceiptNotes(session);
+
+      console.log(JSON.stringify({
+        _tag: 'ORDER_TRACE',
+        conversation_id: conversationId,
+        step: '6_KITCHEN',
+        order_data: orderData,
+        receipt_notes: notes,
+        receipt_total: total,
+      }));
 
       const { error: orderError } = await supabase
         .from('orders')
