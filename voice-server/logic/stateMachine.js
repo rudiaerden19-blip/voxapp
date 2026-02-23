@@ -103,7 +103,7 @@ class VoiceOrderSystem {
           session.state = OrderState.GET_ADDRESS;
           return this._reply(session, 'Mag ik je adres alstublieft?', cid, stateBefore);
         }
-        if (/\bafhaal|ophaal|ophalen|halen|kom\b/.test(input)) {
+        if (/\bafhal|ophal|halen|ophalen|afhalen|komen|kom\b/.test(input)) {
           session.delivery_type = 'afhalen';
           session.state = OrderState.DONE;
           return this._reply(session,
