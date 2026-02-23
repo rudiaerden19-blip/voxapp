@@ -38,9 +38,10 @@ const NAME_PHONE_PROMPT = `Je krijgt een transcript van iemand die zijn naam en 
 TAAK: Extraheer naam en telefoonnummer.
 
 REGELS:
-1. Naam: voornaam (eventueel achternaam). STT fouten: "Relie"="Rudi", "Freddie"="Frederic"
-2. Telefoonnummer: gesproken als woorden omzetten naar cijfers
-3. Als je iets niet vindt, geef null
+1. Naam: voornaam (eventueel achternaam). STT fouten zijn normaal: "Relie"="Rudi", "Ruud"="Rudy"
+2. Telefoonnummer: zet gesproken cijfers om naar getallen. Belgische nummers beginnen met 04. Als de gebruiker "494" zegt bedoelt hij "0494". Als er 9 cijfers zijn zonder leading 0, voeg dan 0 toe vooraan.
+3. Minimaal 9 cijfers nodig voor een geldig nummer. Wees soepel: "4 92 12 93 83" = "0492129383"
+4. Als je iets niet vindt, geef null
 
 Return ONLY valid JSON:
 {"name":"Voornaam","phone":"0492129383"}`;

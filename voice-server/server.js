@@ -283,7 +283,7 @@ class CallSession {
             }));
           }
         }
-      } else if (this.session.state === OrderState.GET_NAME_PHONE) {
+      } else if ([OrderState.GET_NAME_PHONE, OrderState.GET_NAME, OrderState.GET_PHONE].includes(this.session.state)) {
         namePhone = await gemini.extractNamePhone(normalized);
       }
 

@@ -3,6 +3,8 @@
 const OrderState = {
   TAKING_ORDER: 'TAKING_ORDER',
   GET_NAME_PHONE: 'GET_NAME_PHONE',
+  GET_NAME: 'GET_NAME',
+  GET_PHONE: 'GET_PHONE',
   DELIVERY_TYPE: 'DELIVERY_TYPE',
   GET_ADDRESS: 'GET_ADDRESS',
   DONE: 'DONE',
@@ -68,18 +70,26 @@ class VoiceOrderSystem {
           cid, stateBefore);
       }
 
-      case OrderState.GET_NAME_PHONE: {
+      case OrderState.GET_NAME_PHONE:
+      case OrderState.GET_NAME: {
         const nameResult = namePhone?.name || null;
-        const phoneResult = namePhone?.phone || null;
-
-        if (nameResult && !session.name) session.name = nameResult;
-        if (phoneResult && !session.phone) session.phone = phoneResult;
+        if (nameResult) session.name = nameResult;
 
         if (!session.name) {
+          session.state = OrderState.GET_NAME;
           return this._reply(session, 'Mag ik uw naam alstublieft?', cid, stateBefore);
         }
+
+        session.state = OrderState.GET_PHONE;
+        return this._reply(session, `Ok ${session.name}, en uw telefoonnummer?`, cid, stateBefore);
+      }
+
+      case OrderState.GET_PHONE: {
+        const phoneResult = namePhone?.phone || null;
+        if (phoneResult) session.phone = phoneResult;
+
         if (!session.phone) {
-          return this._reply(session, `Ok ${session.name}, en uw telefoonnummer?`, cid, stateBefore);
+          return this._reply(session, 'Kan u uw telefoonnummer herhalen alstublieft?', cid, stateBefore);
         }
 
         if (this.config.delivery_enabled) {
