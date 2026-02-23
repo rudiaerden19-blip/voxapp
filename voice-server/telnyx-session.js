@@ -1,9 +1,13 @@
 const { createClient, LiveTranscriptionEvents } = require('@deepgram/sdk');
 
 const DEEPGRAM_API_KEY = process.env.DEEPGRAM_API_KEY;
+const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
+const ELEVENLABS_VOICE_ID = process.env.ELEVENLABS_VOICE_ID;
 const VERCEL_API_URL = process.env.VERCEL_API_URL;
+const RENDER_EXTERNAL_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 8080}`;
 
 const activeSessions = new Map();
+const audioStore = new Map();
 
 class TelnyxSession {
   constructor(ws, params) {
@@ -13,17 +17,15 @@ class TelnyxSession {
     this.callerId = params.caller_id || null;
     this.conversationId = `telnyx_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     this.sessionId = `ts_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-
     this.deepgramConn = null;
     this.utteranceBuffer = '';
     this.processing = false;
 
-    this.log('TelnyxSession created', { callControlId: this.callControlId, businessId: this.businessId });
+    this.log('Session created', { callControlId: this.callControlId, businessId: this.businessId });
   }
 
-  static activeSessions() {
-    return activeSessions.size;
-  }
+  static activeSessions() { return activeSessions.size; }
+  static getAudio(id) { return audioStore.get(id); }
 
   log(msg, data) {
     const entry = { ts: new Date().toISOString(), session: this.sessionId, msg };
@@ -35,23 +37,11 @@ class TelnyxSession {
     activeSessions.set(this.sessionId, this);
 
     this.ws.on('message', (raw) => {
-      try {
-        const msg = JSON.parse(raw);
-        this.handleMessage(msg);
-      } catch (err) {
-        this.log('Parse error', { error: err.message });
-      }
+      try { this.handleMessage(JSON.parse(raw)); }
+      catch (err) { this.log('Parse error', { error: err.message }); }
     });
-
-    this.ws.on('close', () => {
-      this.log('WebSocket closed');
-      this.cleanup();
-    });
-
-    this.ws.on('error', (err) => {
-      this.log('WebSocket error', { error: err.message });
-      this.cleanup();
-    });
+    this.ws.on('close', () => { this.log('WS closed'); this.cleanup(); });
+    this.ws.on('error', (err) => { this.log('WS error', { error: err.message }); this.cleanup(); });
 
     this.startDeepgram();
     this.sendGreeting();
@@ -62,30 +52,17 @@ class TelnyxSession {
       case 'connected':
         this.log('Telnyx stream connected');
         break;
-
       case 'start':
-        if (msg.start?.call_control_id) {
-          this.callControlId = msg.start.call_control_id;
-        }
-        if (msg.start?.stream_id) {
-          this.streamId = msg.start.stream_id;
-        }
-        this.log('Telnyx stream started', {
-          callControlId: this.callControlId,
-          streamId: this.streamId,
-          mediaFormat: msg.start?.media_format,
-        });
+        if (msg.start?.call_control_id) this.callControlId = msg.start.call_control_id;
+        this.log('Stream started', { callControlId: this.callControlId });
         break;
-
       case 'media':
         if (this.deepgramConn && msg.media?.payload) {
-          const audio = Buffer.from(msg.media.payload, 'base64');
-          this.deepgramConn.send(audio);
+          this.deepgramConn.send(Buffer.from(msg.media.payload, 'base64'));
         }
         break;
-
       case 'stop':
-        this.log('Telnyx stream stopped');
+        this.log('Stream stopped');
         this.cleanup();
         break;
     }
@@ -93,35 +70,21 @@ class TelnyxSession {
 
   startDeepgram() {
     const deepgram = createClient(DEEPGRAM_API_KEY);
-
     this.deepgramConn = deepgram.listen.live({
-      language: 'nl',
-      model: 'nova-2',
-      encoding: 'mulaw',
-      sample_rate: 8000,
-      channels: 1,
-      punctuate: true,
-      interim_results: true,
-      utterance_end_ms: 800,
-      vad_events: true,
-      smart_format: true,
-      endpointing: 200,
+      language: 'nl', model: 'nova-2', encoding: 'mulaw',
+      sample_rate: 8000, channels: 1, punctuate: true,
+      interim_results: true, utterance_end_ms: 800,
+      vad_events: true, smart_format: true, endpointing: 200,
     });
 
-    this.deepgramConn.on(LiveTranscriptionEvents.Open, () => {
-      this.log('Deepgram connected');
-    });
+    this.deepgramConn.on(LiveTranscriptionEvents.Open, () => this.log('Deepgram connected'));
 
     this.deepgramConn.on(LiveTranscriptionEvents.Transcript, (data) => {
-      const alt = data.channel?.alternatives?.[0];
-      if (!alt) return;
-
-      const transcript = alt.transcript?.trim();
+      const transcript = data.channel?.alternatives?.[0]?.transcript?.trim();
       if (!transcript) return;
-
       if (data.is_final) {
         this.utteranceBuffer += (this.utteranceBuffer ? ' ' : '') + transcript;
-        this.log('Deepgram final', { text: transcript, buffer: this.utteranceBuffer });
+        this.log('STT final', { text: transcript, buffer: this.utteranceBuffer });
       }
     });
 
@@ -133,40 +96,27 @@ class TelnyxSession {
       }
     });
 
-    this.deepgramConn.on(LiveTranscriptionEvents.SpeechStarted, () => {
-      this.log('Speech detected');
-    });
-
-    this.deepgramConn.on(LiveTranscriptionEvents.Error, (err) => {
-      this.log('Deepgram error', { error: err.message });
-    });
-
-    this.deepgramConn.on(LiveTranscriptionEvents.Close, () => {
-      this.log('Deepgram closed');
-    });
+    this.deepgramConn.on(LiveTranscriptionEvents.Error, (err) => this.log('Deepgram error', { error: err.message }));
+    this.deepgramConn.on(LiveTranscriptionEvents.Close, () => this.log('Deepgram closed'));
   }
 
   async sendGreeting() {
-    const response = await this.callBusinessLogic('__greeting__');
-    this.log('Greeting sent via Telnyx speak', { response: response?.slice(0, 80) });
+    await this.processAndSpeak('__greeting__');
   }
 
   async processUtterance(text) {
     this.processing = true;
-    this.log('Processing', { text });
-    const t0 = Date.now();
-
-    const response = await this.callBusinessLogic(text);
-    const elapsed = Date.now() - t0;
-    this.log('Response via Telnyx speak', { elapsed_ms: elapsed, response: response?.slice(0, 100) });
-
+    await this.processAndSpeak(text);
     this.processing = false;
   }
 
-  async callBusinessLogic(transcript) {
+  async processAndSpeak(transcript) {
+    const t0 = Date.now();
+
+    // Step 1: Get response text from business logic
+    let responseText;
     try {
-      const url = `${VERCEL_API_URL}/api/voice-engine/stream`;
-      const response = await fetch(url, {
+      const res = await fetch(`${VERCEL_API_URL}/api/voice-engine/stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -174,21 +124,78 @@ class TelnyxSession {
           transcript,
           conversation_id: this.conversationId,
           caller_id: this.callerId,
-          call_control_id: this.callControlId,
         }),
       });
-
-      if (!response.ok) {
-        const errText = await response.text();
-        this.log('Business logic error', { status: response.status, body: errText });
-        return null;
+      if (!res.ok) {
+        this.log('Business logic error', { status: res.status });
+        return;
       }
-
-      const data = await response.json();
-      return data.response;
+      const data = await res.json();
+      responseText = data.response;
     } catch (err) {
       this.log('Business logic fetch error', { error: err.message });
-      return null;
+      return;
+    }
+
+    if (!responseText) return;
+    this.log('Got response', { ms: Date.now() - t0, text: responseText.slice(0, 80) });
+
+    // Step 2: Generate ElevenLabs TTS → MP3
+    let audioBuffer;
+    try {
+      const ttsRes = await fetch(
+        `https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_VOICE_ID}?output_format=mp3_44100_64`,
+        {
+          method: 'POST',
+          headers: { 'xi-api-key': ELEVENLABS_API_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: responseText,
+            model_id: 'eleven_turbo_v2_5',
+            voice_settings: { stability: 0.5, similarity_boost: 0.8 },
+          }),
+        }
+      );
+      if (!ttsRes.ok) {
+        this.log('ElevenLabs TTS error', { status: ttsRes.status });
+        return;
+      }
+      audioBuffer = Buffer.from(await ttsRes.arrayBuffer());
+    } catch (err) {
+      this.log('TTS fetch error', { error: err.message });
+      return;
+    }
+
+    this.log('TTS generated', { ms: Date.now() - t0, bytes: audioBuffer.length });
+
+    // Step 3: Store audio and get URL
+    const audioId = `a_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    audioStore.set(audioId, audioBuffer);
+    setTimeout(() => audioStore.delete(audioId), 120000);
+
+    const audioUrl = `${RENDER_EXTERNAL_URL}/audio/${audioId}`;
+
+    // Step 4: Tell Vercel to call Telnyx playback_start
+    if (!this.callControlId) {
+      this.log('No call_control_id, cannot play audio');
+      return;
+    }
+
+    try {
+      const playRes = await fetch(`${VERCEL_API_URL}/api/telnyx/play`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          call_control_id: this.callControlId,
+          audio_url: audioUrl,
+        }),
+      });
+      if (!playRes.ok) {
+        this.log('Play endpoint error', { status: playRes.status, body: await playRes.text() });
+      } else {
+        this.log('Audio playing', { total_ms: Date.now() - t0, audioUrl });
+      }
+    } catch (err) {
+      this.log('Play fetch error', { error: err.message });
     }
   }
 

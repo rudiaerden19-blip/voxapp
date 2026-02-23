@@ -144,32 +144,6 @@ function buildConfig(biz: BusinessRow): BusinessConfig {
 }
 
 // ============================================================
-// TELNYX SPEAK — audio terugsturen naar beller
-// ============================================================
-
-async function telnyxSpeak(callControlId: string, text: string) {
-  const apiKey = process.env.TELNYX_API_KEY;
-  if (!apiKey) return;
-
-  const res = await fetch(`https://api.telnyx.com/v2/calls/${callControlId}/actions/speak`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      payload: text,
-      voice: 'female',
-      language: 'nl-NL',
-    }),
-  });
-
-  if (!res.ok) {
-    console.error('Telnyx speak failed:', res.status, await res.text());
-  }
-}
-
-// ============================================================
 // POST — Simplified endpoint for voice-server pipeline
 // Input:  { business_id, transcript, conversation_id, caller_id }
 // Output: { response: string }
@@ -184,8 +158,6 @@ export async function POST(request: NextRequest) {
     const transcript: string = body.transcript || '';
     const conversationId: string = body.conversation_id || `stream_${Date.now()}`;
     const callerPhone: string | null = body.caller_id || null;
-
-    const callControlId: string | null = body.call_control_id || null;
 
     if (!businessId) {
       return NextResponse.json({ response: 'Configuratiefout. Probeer later opnieuw.' }, { status: 400 });
@@ -202,12 +174,8 @@ export async function POST(request: NextRequest) {
     const engine = new VoiceOrderSystem(menu.items, menu.prices, config, menu.modifiers);
 
     if (transcript === '__greeting__') {
-      const greeting = engine.getGreeting();
-      console.log(JSON.stringify({ _tag: 'STREAM', event: 'greeting', business_id: businessId, call_control_id: callControlId, elapsed: Date.now() - t0 }));
-      if (callControlId && process.env.TELNYX_API_KEY) {
-        await telnyxSpeak(callControlId, greeting);
-      }
-      return NextResponse.json({ response: greeting });
+      console.log(JSON.stringify({ _tag: 'STREAM', event: 'greeting', business_id: businessId, elapsed: Date.now() - t0 }));
+      return NextResponse.json({ response: engine.getGreeting() });
     }
 
     let session = await loadSession(supabase, conversationId);
@@ -272,11 +240,6 @@ export async function POST(request: NextRequest) {
       await deleteSession(supabase, conversationId);
     } else {
       await saveSession(supabase, conversationId, session, businessId);
-    }
-
-    // Telnyx speak: stuur audio terug naar de beller
-    if (callControlId && process.env.TELNYX_API_KEY) {
-      await telnyxSpeak(callControlId, result.response);
     }
 
     return NextResponse.json({ response: result.response });

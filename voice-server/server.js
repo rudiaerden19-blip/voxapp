@@ -27,6 +27,14 @@ app.get('/health', (_req, res) => {
   });
 });
 
+app.get('/audio/:id', (req, res) => {
+  const audio = TelnyxSession.getAudio(req.params.id);
+  if (!audio) return res.status(404).send('Not found');
+  res.set('Content-Type', 'audio/mpeg');
+  res.set('Content-Length', audio.length);
+  res.send(audio);
+});
+
 server.on('upgrade', (request, socket, head) => {
   const pathname = url.parse(request.url).pathname;
   const query = Object.fromEntries(new URL(request.url, `http://${request.headers.host}`).searchParams);
