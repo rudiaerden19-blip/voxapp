@@ -100,6 +100,21 @@ export async function POST(request: NextRequest) {
         console.log('Using default pool agent:', agentId);
       }
     }
+
+    // Resolve businessId from agentId if not yet set
+    if (!businessId && agentId) {
+      const { data: bizFromAgent } = await supabase
+        .from('businesses')
+        .select('id, name')
+        .or(`agent_id.eq.${agentId},elevenlabs_agent_id.eq.${agentId}`)
+        .single();
+      
+      if (bizFromAgent) {
+        businessId = bizFromAgent.id;
+        businessName = bizFromAgent.name || 'VoxApp';
+        console.log(`Resolved business from agent: ${businessName} (${businessId})`);
+      }
+    }
     
     // Generate TwiML response
     const voiceServerUrl = process.env.VOICE_SERVER_URL;
