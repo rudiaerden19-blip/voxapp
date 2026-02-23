@@ -146,30 +146,33 @@ function normalizeForTts(text: string): string {
 }
 
 // ============================================================
-// ITEM EXTRACTION
+// ITEM EXTRACTION — sector-agnostisch
 // ============================================================
+//
+// Geen hardcoded productnamen. Alles komt uit tenant menu.
+// modifiers (Set) komt uit is_modifier vlag in menu_items tabel.
+//
 
 const NUM_WORDS: Record<string, number> = {
   een: 1, één: 1, twee: 2, drie: 3, vier: 4, vijf: 5,
   zes: 6, zeven: 7, acht: 8, negen: 9, tien: 10,
 };
 
-const SAUCE_ITEMS = new Set([
-  'mayonaise', 'zoete mayonaise', 'tom ketchup', 'curry ketchup',
-  'cocktail saus', 'andalouse saus', 'amerikaanse saus', 'curry saus',
-  'looksaus', 'joppie saus', 'samurai saus', 'mezzomix', 'bbq saus',
-  'mosterd', 'tartaar',
-]);
+const QTY_PATTERN = /^(een|één|eén|twee|drie|vier|vijf|zes|zeven|acht|negen|tien)\s+/i;
 
-function extractItems(
+// Split op punt, komma, of "en" gevolgd door een hoeveelheid — geen sector-specifieke woorden
+const SPLIT_PATTERN = /[.]\s*|,\s*|\b(?:en|eén|één)\s+(?=een\b|één\b|eén\b|twee\b|drie\b|vier\b|vijf\b|zes\b|zeven\b|acht\b|negen\b|tien\b|\d)/i;
+
+export function extractItems(
   text: string,
   menuItems: string[],
-  menuPrices: Record<string, number>
+  menuPrices: Record<string, number>,
+  modifiers: Set<string> = new Set()
 ): OrderItem[] {
   const items: OrderItem[] = [];
 
   const parts = text
-    .split(/[.]\s*|,\s*|\b(?:en|eén|één)\s+(?=een\b|één\b|eén\b|twee\b|drie\b|vier\b|vijf\b|\d|\bfriet|\bbicky|\bfrikandel|\bkroket|\bcola|\bfanta|\bwater|\bcurry|\bice|\bbrood|\bcervela|\bboulet|\bcurryworst|\bbitterballen|\bblikje|\bcheeseburger|\bhamburger|\bservela)/i)
+    .split(SPLIT_PATTERN)
     .map(p => p.trim())
     .filter(p => p.length > 2);
 
@@ -182,7 +185,7 @@ function extractItems(
       qty = parseInt(numMatch[1]) || 1;
       rest = rest.substring(numMatch[0].length).trim();
     } else {
-      const wordMatch = rest.match(/^(een|één|eén|twee|drie|vier|vijf|zes|zeven|acht|negen|tien)\s+/i);
+      const wordMatch = rest.match(QTY_PATTERN);
       if (wordMatch) {
         qty = NUM_WORDS[wordMatch[1].toLowerCase()] || NUM_WORDS[wordMatch[1].toLowerCase().replace('eé', 'éé')] || 1;
         rest = rest.substring(wordMatch[0].length).trim();
@@ -191,11 +194,11 @@ function extractItems(
 
     rest = rest.replace(/^(ik wil|ik zou graag|graag|nog|eh|euh|uh)\s+/i, '').trim();
     rest = rest.replace(/^(een|één|eén)\s+/i, '').trim();
-    rest = rest.replace(/\b(blikje|bakje)\s+/gi, '').trim();
     if (rest.length < 2) continue;
 
     const lower = rest.toLowerCase();
 
+    // Find ALL menu items in this fragment (base + modifiers)
     const allMatches: { item: string; pos: number }[] = [];
     for (const menuItem of menuItems) {
       const pos = lower.indexOf(menuItem);
@@ -221,13 +224,15 @@ function extractItems(
     let totalPrice = 0;
 
     if (allMatches.length > 0) {
-      const baseMatch = allMatches.find(m => !SAUCE_ITEMS.has(m.item)) || allMatches[0];
+      // First non-modifier is the base product; modifiers come from DB
+      const baseMatch = allMatches.find(m => !modifiers.has(m.item)) || allMatches[0];
       baseProduct = baseMatch.item;
       for (const m of allMatches) {
         totalPrice += menuPrices[m.item] || 0;
       }
     }
 
+    // Fuzzy fallback
     if (!baseProduct) {
       const words = rest.split(/\s+/);
       if (words.length >= 3) baseProduct = fuzzyMatch(`${words[0]} ${words[1]} ${words[2]}`, menuItems);
@@ -238,6 +243,7 @@ function extractItems(
       }
     }
 
+    // Display: full text if modifiers attached, otherwise just the product
     let displayName = baseProduct || rest;
     if (baseProduct && lower.length > baseProduct.length + 3) {
       displayName = rest;
@@ -261,16 +267,19 @@ function extractItems(
 export class VoiceOrderSystem {
   private menuItems: string[];
   private menuPrices: Record<string, number>;
+  private modifiers: Set<string>;
   private config: BusinessConfig;
 
   constructor(
     menuItems: string[],
     menuPrices: Record<string, number>,
-    config: BusinessConfig
+    config: BusinessConfig,
+    modifiers: Set<string> = new Set()
   ) {
     this.menuItems = menuItems;
     this.menuPrices = menuPrices;
     this.config = config;
+    this.modifiers = modifiers;
   }
 
   handle(session: SessionData, transcript: string): { response: string; session: SessionData } {
@@ -296,7 +305,7 @@ export class VoiceOrderSystem {
           return this.reply(session, 'Ja, zeg het maar.');
         }
 
-        const items = extractItems(input, this.menuItems, this.menuPrices);
+        const items = extractItems(input, this.menuItems, this.menuPrices, this.modifiers);
         if (items.length > 0) {
           session.order.push(...items);
           return this.reply(session, 'Ok, genoteerd. Nog iets anders?');

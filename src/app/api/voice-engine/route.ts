@@ -59,25 +59,27 @@ async function deleteSession(supabase: DB, conversationId: string): Promise<void
 // LOAD MENU FROM DATABASE
 // ============================================================
 
-async function loadMenu(supabase: DB, businessId: string): Promise<{ items: string[]; prices: Record<string, number> }> {
+async function loadMenu(supabase: DB, businessId: string) {
   const { data } = await supabase
     .from('menu_items')
-    .select('name, price')
+    .select('name, price, is_modifier')
     .eq('business_id', businessId)
     .eq('is_available', true);
 
   const items: string[] = [];
   const prices: Record<string, number> = {};
+  const modifiers = new Set<string>();
   if (Array.isArray(data)) {
     for (const row of data) {
       if (row.name && typeof row.price === 'number') {
         const lower = row.name.toLowerCase();
         items.push(lower);
         prices[lower] = row.price;
+        if (row.is_modifier) modifiers.add(lower);
       }
     }
   }
-  return { items, prices };
+  return { items, prices, modifiers };
 }
 
 // ============================================================
@@ -164,8 +166,8 @@ export async function POST(request: NextRequest) {
     const tenantId = tenant.tenant_id;
 
     const config = buildConfig(business!);
-    const { items: menuItems, prices: menuPrices } = await loadMenu(supabase, tenantId);
-    const engine = new VoiceOrderSystem(menuItems, menuPrices, config);
+    const { items: menuItems, prices: menuPrices, modifiers } = await loadMenu(supabase, tenantId);
+    const engine = new VoiceOrderSystem(menuItems, menuPrices, config, modifiers);
     const callLog = createCallLog(conversationId, tenantId);
 
     if (!userMessage) {

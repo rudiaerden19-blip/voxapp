@@ -51,21 +51,23 @@ async function deleteSession(supabase: DB, sessionId: string): Promise<void> {
 async function loadMenu(supabase: DB, tenantId: string) {
   const { data } = await supabase
     .from('menu_items')
-    .select('name, price')
+    .select('name, price, is_modifier')
     .eq('business_id', tenantId)
     .eq('is_available', true);
   const items: string[] = [];
   const prices: Record<string, number> = {};
+  const modifiers = new Set<string>();
   if (Array.isArray(data)) {
     for (const row of data) {
       if (row.name && typeof row.price === 'number') {
         const lower = row.name.toLowerCase();
         items.push(lower);
         prices[lower] = row.price;
+        if (row.is_modifier) modifiers.add(lower);
       }
     }
   }
-  return { items, prices };
+  return { items, prices, modifiers };
 }
 
 interface BusinessRow {
@@ -185,8 +187,8 @@ export async function POST(request: NextRequest) {
     const callLog = createCallLog(sessionId, tenantId);
 
     const config = buildConfig(business!);
-    const { items: menuItems, prices: menuPrices } = await loadMenu(supabase, tenantId);
-    const engine = new VoiceOrderSystem(menuItems, menuPrices, config);
+    const { items: menuItems, prices: menuPrices, modifiers } = await loadMenu(supabase, tenantId);
+    const engine = new VoiceOrderSystem(menuItems, menuPrices, config, modifiers);
 
     if (!userMessage) {
       callLog.state_transitions.push('GREETING');
