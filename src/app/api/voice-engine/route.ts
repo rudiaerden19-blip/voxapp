@@ -9,6 +9,8 @@ import {
   type OrderItem,
 } from '@/lib/voice-engine/VoiceOrderSystem';
 import { extractWithGemini, extractNamePhoneWithGemini, type MenuItem } from '@/lib/voice-engine/geminiExtractor';
+import { normalizeTranscript } from '@/lib/voice-engine/transcriptNormalizer';
+import { buildCatalog, mapProducts } from '@/lib/voice-engine/productMapper';
 import { requireTenantFromBusiness, TenantError } from '@/lib/tenant';
 import { createCallLog, logCall, logError } from '@/lib/logger';
 
@@ -218,13 +220,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // ── PIPELINE: Normalize → Gemini → ProductMapper → State Machine ──
+    const normalized = normalizeTranscript(userMessage);
+
     let mappedItems: OrderItem[] | null = null;
     let geminiNamePhone: { name: string | null; phone: string | null } | null = null;
 
     if (session.state === OrderState.TAKING_ORDER) {
-      const geminiResult = await extractWithGemini(userMessage, menu.raw);
+      const geminiResult = await extractWithGemini(normalized, menu.raw);
       if (geminiResult && geminiResult.items.length > 0) {
-        const { buildCatalog, mapProducts } = await import('@/lib/voice-engine/productMapper');
         const catalog = buildCatalog(menu.raw.map(r => ({ name: r.name, price: r.price, is_modifier: r.is_modifier })));
         const mapped = mapProducts(geminiResult.items, catalog);
         const resolved = mapped.filter(m => !m.unresolved);
@@ -233,10 +237,10 @@ export async function POST(request: NextRequest) {
         }
       }
     } else if (session.state === OrderState.GET_NAME_PHONE) {
-      geminiNamePhone = await extractNamePhoneWithGemini(userMessage);
+      geminiNamePhone = await extractNamePhoneWithGemini(normalized);
     }
 
-    const result = engine.handle(session, userMessage, conversationId, mappedItems, geminiNamePhone);
+    const result = engine.handle(session, normalized, conversationId, mappedItems, geminiNamePhone);
     session = result.session;
 
     if (session.state === OrderState.DONE) {
