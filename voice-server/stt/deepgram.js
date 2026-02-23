@@ -3,21 +3,19 @@
 const { createClient, LiveTranscriptionEvents } = require('@deepgram/sdk');
 
 function createStream({ onTranscript, onUtteranceEnd, onError, onOpen }) {
-  const deepgram = createClient(process.env.DEEPGRAM_API_KEY);
+  const client = createClient(process.env.DEEPGRAM_API_KEY);
 
-  const conn = deepgram.listen.live({
+  // Minimale, bewezen werkende opties voor Nova-2 mulaw
+  const conn = client.listen.live({
     language: 'nl',
     model: 'nova-2',
     encoding: 'mulaw',
     sample_rate: 8000,
     channels: 1,
-    punctuate: true,
     interim_results: true,
-    utterance_end_ms: 800,
-    vad_events: true,
+    utterance_end_ms: 1000,
     smart_format: true,
-    numerals: true,
-    endpointing: 200,
+    punctuate: true,
   });
 
   conn.on(LiveTranscriptionEvents.Open, () => {
@@ -33,11 +31,10 @@ function createStream({ onTranscript, onUtteranceEnd, onError, onOpen }) {
   conn.on(LiveTranscriptionEvents.Transcript, (data) => {
     transcriptCount++;
     const transcript = data.channel?.alternatives?.[0]?.transcript?.trim();
-    if (transcriptCount <= 3 || (transcript && transcript.length > 0)) {
+    if (transcriptCount <= 5 || (transcript && transcript.length > 0)) {
       console.log(JSON.stringify({ _tag: 'STT', event: 'transcript', num: transcriptCount, text: transcript || '(empty)', is_final: data.is_final }));
     }
     if (!transcript) return;
-
     const confidence = data.channel?.alternatives?.[0]?.confidence || 0;
     onTranscript(transcript, data.is_final, confidence);
   });
@@ -47,7 +44,7 @@ function createStream({ onTranscript, onUtteranceEnd, onError, onOpen }) {
   });
 
   conn.on(LiveTranscriptionEvents.Error, (err) => {
-    console.log(JSON.stringify({ _tag: 'STT', event: 'error', error: err.message }));
+    console.log(JSON.stringify({ _tag: 'STT', event: 'error', error: String(err) }));
     if (onError) onError(err);
   });
 
@@ -55,11 +52,9 @@ function createStream({ onTranscript, onUtteranceEnd, onError, onOpen }) {
     console.log(JSON.stringify({ _tag: 'STT', event: 'closed' }));
   });
 
-  // #region agent log H-C: Catch any connection-level errors BEFORE Open fires
   conn.on('error', (err) => {
-    console.log(JSON.stringify({ _tag: 'DBG', hyp: 'H-C', msg: 'Deepgram raw error (pre-Open)', error: String(err) }));
+    console.log(JSON.stringify({ _tag: 'STT', event: 'raw_error', error: String(err) }));
   });
-  // #endregion
 
   return conn;
 }
