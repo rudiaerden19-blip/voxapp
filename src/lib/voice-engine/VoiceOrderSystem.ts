@@ -353,20 +353,10 @@ export class VoiceOrderSystem {
 
     switch (session.state) {
 
-      // ── STAP 1+2: BESTELLING OPNEMEN ──────────────────────
+      // ── BESTELLING OPNEMEN ─────────────────────────────────
+      // Klant zegt bestelling in één keer. Zodra items herkend:
+      // direct door naar naam+telefoon. Geen "nog iets anders?".
       case OrderState.TAKING_ORDER: {
-        if (/\b(nee|neen|dat was het|dat is het|dat is alles|meer niet|niks meer|dat was alles|klaar|nee dank|nee bedankt)\b/i.test(input)) {
-          if (session.order.length === 0) {
-            return this.traced(session, 'Wat mag ik voor u noteren?', cid, stateBefore);
-          }
-          session.state = OrderState.GET_NAME_PHONE;
-          return this.traced(session, 'Ok, dat heb ik genoteerd. Mag ik uw naam en telefoonnummer alstublieft?', cid, stateBefore);
-        }
-
-        if (/\b(bestellen|ik wil|mag ik|kan ik)\b/i.test(input) && !this.containsMenuItem(input)) {
-          return this.traced(session, 'Ja, zeg het maar.', cid, stateBefore);
-        }
-
         const items = extractItems(input, this.menuItems, this.menuPrices, this.modifiers);
 
         console.log(JSON.stringify({
@@ -376,13 +366,15 @@ export class VoiceOrderSystem {
 
         if (items.length > 0) {
           session.order.push(...items);
-          return this.traced(session, 'Ok, genoteerd. Nog iets anders?', cid, stateBefore);
+          session.state = OrderState.GET_NAME_PHONE;
+          return this.traced(session,
+            'Ok, dat heb ik genoteerd. Mag ik uw naam en telefoonnummer alstublieft?',
+            cid, stateBefore);
         }
 
-        if (session.order.length === 0) {
-          return this.traced(session, 'Excuseer, dat heb ik niet goed verstaan. Kan u dat herhalen?', cid, stateBefore);
-        }
-        return this.traced(session, 'Dat heb ik niet goed verstaan, kan u dat herhalen?', cid, stateBefore);
+        return this.traced(session,
+          'Excuseer, dat heb ik niet goed verstaan. Kan u uw bestelling herhalen?',
+          cid, stateBefore);
       }
 
       // ── STAP 3: NAAM + TELEFOON ───────────────────────────
