@@ -13,7 +13,7 @@ function createStream({ onTranscript, onUtteranceEnd, onError, onOpen }) {
     sample_rate: 8000,
     channels: 1,
     interim_results: true,
-    utterance_end_ms: 1000,
+    utterance_end_ms: 2500,
     smart_format: true,
     punctuate: true,
   });
