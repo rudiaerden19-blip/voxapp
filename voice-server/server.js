@@ -202,16 +202,22 @@ class CallSession {
   handleTelnyxMessage(msg) {
     switch (msg.event) {
       case 'connected':
-        this.log('Stream connected');
+        // #region agent log H-A: WS 'connected' event received
+        this.log('Stream connected [H-A: WS works]');
+        // #endregion
         break;
       case 'start':
         if (msg.start?.call_control_id) this.callControlId = msg.start.call_control_id;
-        this.log('Stream started', { callControlId: this.callControlId });
+        // #region agent log H-A + H-D: Stream started, does it have callControlId?
+        this.log('Stream started [H-A OK, H-D check]', { callControlId: this.callControlId, startKeys: Object.keys(msg.start || {}) });
+        // #endregion
         break;
       case 'media':
         this.mediaCount = (this.mediaCount || 0) + 1;
         if (this.mediaCount <= 3 || this.mediaCount % 500 === 0) {
-          this.log('Media received', { count: this.mediaCount, deepgramReady: !!this.deepgramReady });
+          // #region agent log H-B: Are media events coming in? Is payload present?
+          this.log('Media event [H-B]', { count: this.mediaCount, deepgramReady: !!this.deepgramReady, hasPayload: !!msg.media?.payload, payloadLen: msg.media?.payload?.length });
+          // #endregion
         }
         if (msg.media?.payload) {
           const buf = Buffer.from(msg.media.payload, 'base64');
@@ -235,10 +241,15 @@ class CallSession {
   startSTT() {
     this.deepgramReady = false;
     this.audioQueue = [];
+    // #region agent log H-C: Log when STT is being started
+    this.log('Starting Deepgram [H-C]', { apiKeySet: !!process.env.DEEPGRAM_API_KEY });
+    // #endregion
     this.deepgramConn = deepgram.createStream({
       onOpen: () => {
         this.deepgramReady = true;
-        this.log('Deepgram READY');
+        // #region agent log H-C: Did Deepgram Open fire?
+        this.log('Deepgram OPEN fired [H-C: CONFIRMED OPEN]', { queuedChunks: this.audioQueue.length });
+        // #endregion
         if (this.audioQueue.length > 0) {
           this.log('Flushing queued audio', { chunks: this.audioQueue.length });
           for (const chunk of this.audioQueue) {
@@ -432,7 +443,11 @@ server.on('upgrade', (request, socket, head) => {
     new URL(request.url, `http://${request.headers.host}`).searchParams
   );
 
-  console.log(JSON.stringify({ _tag: 'WS', event: 'upgrade', params }));
+  // #region agent log H-A: Did Telnyx actually connect to the WS?
+  const wsLog = { ts: new Date().toISOString(), _tag: 'DBG', hyp: 'H-A', msg: 'WS upgrade received', url: request.url, params, headers: { host: request.headers.host, origin: request.headers.origin, upgrade: request.headers.upgrade } };
+  console.log(JSON.stringify(wsLog));
+  logBuffer.push(JSON.stringify(wsLog));
+  // #endregion
 
   wss.handleUpgrade(request, socket, head, (ws) => {
     const session = new CallSession(ws, {

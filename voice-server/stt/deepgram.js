@@ -55,6 +55,12 @@ function createStream({ onTranscript, onUtteranceEnd, onError, onOpen }) {
     console.log(JSON.stringify({ _tag: 'STT', event: 'closed' }));
   });
 
+  // #region agent log H-C: Catch any connection-level errors BEFORE Open fires
+  conn.on('error', (err) => {
+    console.log(JSON.stringify({ _tag: 'DBG', hyp: 'H-C', msg: 'Deepgram raw error (pre-Open)', error: String(err) }));
+  });
+  // #endregion
+
   return conn;
 }
 

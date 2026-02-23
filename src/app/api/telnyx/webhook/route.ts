@@ -133,35 +133,47 @@ export async function POST(request: NextRequest) {
         }
       } catch {}
 
-      console.log('Telnyx call.answered:', { clientData, voiceServerUrl: !!voiceServerUrl });
+      // #region agent log H-D: Which pipeline is chosen? Is business_id present?
+      const wsUrl = voiceServerUrl.replace('https://', 'wss://').replace('http://', 'ws://');
+      console.log('[H-D] call.answered details:', JSON.stringify({ voiceServerUrl, voiceServerUrlSet: !!voiceServerUrl, businessId: clientData.business_id, callerId: clientData.caller_id, wsUrl, callControlId }));
+      // #endregion
 
       if (voiceServerUrl && clientData.business_id) {
         // NEW PIPELINE: Start WebSocket stream to voice-server
-        const wsUrl = voiceServerUrl.replace('https://', 'wss://').replace('http://', 'ws://');
         const streamParams = new URLSearchParams({
           call_control_id: callControlId || '',
           business_id: clientData.business_id || '',
           caller_id: clientData.caller_id || '',
         });
 
+        const streamUrl = `${wsUrl}/telnyx-stream?${streamParams.toString()}`;
+        // #region agent log H-A: What URL is sent to Telnyx streaming_start?
+        console.log('[H-A] streaming_start URL:', streamUrl);
+        // #endregion
+
         const streamRes = await fetch(`https://api.telnyx.com/v2/calls/${callControlId}/actions/streaming_start`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
           body: JSON.stringify({
-            stream_url: `${wsUrl}/telnyx-stream?${streamParams.toString()}`,
+            stream_url: streamUrl,
             stream_track: 'inbound_track',
             enable_dialogflow: false,
             client_state: payload.client_state,
           }),
         });
 
+        // #region agent log H-A: Did streaming_start succeed?
+        const streamBody = await streamRes.text();
+        console.log('[H-A] streaming_start result:', streamRes.status, streamBody.slice(0, 300));
+        // #endregion
+
         if (!streamRes.ok) {
-          console.error('Telnyx streaming_start failed:', streamRes.status, await streamRes.text());
+          console.error('Telnyx streaming_start failed:', streamRes.status, streamBody);
         } else {
           console.log('Telnyx streaming started to voice-server');
         }
 
-        return NextResponse.json({ accepted: true, pipeline: 'deepgram', streaming: true });
+        return NextResponse.json({ accepted: true, pipeline: 'deepgram', streaming: true, streamUrl });
       } else {
         // LEGACY: Transfer to ElevenLabs SIP
         const agentId = clientData.agent_id;
