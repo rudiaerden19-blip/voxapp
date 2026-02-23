@@ -1,17 +1,66 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createHash, randomBytes } from 'crypto';
 
-// NO LOGIN REQUIRED - Always authenticated
-// POST - Login (always succeeds)
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@voxapp.tech';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'voxapp2026!';
+
+function generateSessionToken(): string {
+  return createHash('sha256')
+    .update(randomBytes(32))
+    .digest('hex');
+}
+
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax' as const,
+  path: '/',
+  maxAge: 60 * 60 * 24 * 7, // 7 dagen
+};
+
+// POST — Login
 export async function POST(request: NextRequest) {
-  return NextResponse.json({ success: true, message: 'Admin access granted' });
+  try {
+    const body = await request.json();
+    const { email, password } = body;
+
+    if (email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
+      return NextResponse.json(
+        { error: 'Ongeldige admin credentials' },
+        { status: 401 }
+      );
+    }
+
+    const sessionToken = generateSessionToken();
+    const response = NextResponse.json({ success: true });
+
+    response.cookies.set('voxapp_admin_session', sessionToken, COOKIE_OPTIONS);
+    response.cookies.set('voxapp_admin_email', ADMIN_EMAIL, COOKIE_OPTIONS);
+
+    return response;
+  } catch {
+    return NextResponse.json({ error: 'Login mislukt' }, { status: 500 });
+  }
 }
 
-// GET - Check session (always authenticated)
+// GET — Check session
 export async function GET(request: NextRequest) {
-  return NextResponse.json({ authenticated: true, email: 'admin@voxapp.tech' });
+  const session = request.cookies.get('voxapp_admin_session')?.value;
+  const email = request.cookies.get('voxapp_admin_email')?.value;
+
+  if (session && session.length === 64 && email === ADMIN_EMAIL) {
+    return NextResponse.json({ authenticated: true, email });
+  }
+
+  return NextResponse.json({ authenticated: false }, { status: 401 });
 }
 
-// DELETE - Logout (no-op)
-export async function DELETE(request: NextRequest) {
-  return NextResponse.json({ success: true, message: 'Logged out' });
+// DELETE — Logout
+export async function DELETE() {
+  const response = NextResponse.json({ success: true });
+
+  response.cookies.set('voxapp_admin_session', '', { ...COOKIE_OPTIONS, maxAge: 0 });
+  response.cookies.set('voxapp_admin_email', '', { ...COOKIE_OPTIONS, maxAge: 0 });
+
+  return response;
 }
