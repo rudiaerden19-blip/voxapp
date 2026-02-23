@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: voxapp-voice
+    runtime: node
+    region: frankfurt
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: DEEPGRAM_API_KEY
+        sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: ELEVENLABS_VOICE_ID
+        sync: false
+      - key: VERCEL_API_URL
+        sync: false
