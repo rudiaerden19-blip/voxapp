@@ -27,8 +27,9 @@ export async function GET(request: NextRequest) {
         text: sampleText,
         model_id: 'eleven_multilingual_v2',
         voice_settings: {
-          stability: 0.5,
+          stability: 0.97,
           similarity_boost: 0.75,
+          speed: 1.0,
         },
       }),
     });

@@ -64,8 +64,9 @@ async function createElevenLabsAgent(
           tts: {
             voice_id: '7qdUFMklKPaaAVMsBTBt',
             model_id: 'eleven_multilingual_v2',
-            stability: 0.75,
-            similarity_boost: 0.85,
+            stability: 0.97,
+            similarity_boost: 0.75,
+            speed: 1.0,
           },
         },
         platform_settings: {
