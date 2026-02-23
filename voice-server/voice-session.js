@@ -119,10 +119,10 @@ class VoiceSession {
       channels: 1,
       punctuate: true,
       interim_results: true,
-      utterance_end_ms: 1200,
+      utterance_end_ms: 800,
       vad_events: true,
       smart_format: true,
-      endpointing: 300,
+      endpointing: 200,
     });
 
     this.deepgramConn.on(LiveTranscriptionEvents.Open, () => {
@@ -224,31 +224,79 @@ class VoiceSession {
   async speak(text) {
     this.log('TTS start', { text: text.slice(0, 100) });
     this.ttsPlaying = true;
+    const t0 = Date.now();
+    let firstByteMs = 0;
 
     try {
-      const audioBuffer = await this.textToSpeech(text);
-      if (!audioBuffer || audioBuffer.length === 0) {
+      const url = `https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_VOICE_ID}/stream?output_format=ulaw_8000`;
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'xi-api-key': ELEVENLABS_API_KEY,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text,
+          model_id: 'eleven_turbo_v2_5',
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.8,
+            style: 0.0,
+            use_speaker_boost: true,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        this.log('TTS error', { status: response.status, body: errText.slice(0, 200) });
         this.ttsPlaying = false;
         return;
       }
 
+      const reader = response.body.getReader();
+      let residual = Buffer.alloc(0);
       const CHUNK_SIZE = 640;
-      for (let i = 0; i < audioBuffer.length; i += CHUNK_SIZE) {
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
         if (!this.ttsPlaying) {
-          this.log('TTS interrupted');
+          this.log('TTS interrupted mid-stream');
+          reader.cancel();
           break;
         }
 
-        const chunk = audioBuffer.slice(i, i + CHUNK_SIZE);
-        const payload = chunk.toString('base64');
-
-        if (this.ws.readyState === 1) {
-          this.ws.send(JSON.stringify({
-            event: 'media',
-            streamSid: this.streamSid,
-            media: { payload },
-          }));
+        if (!firstByteMs) {
+          firstByteMs = Date.now() - t0;
+          this.log('TTS first byte', { ms: firstByteMs });
         }
+
+        let buf = Buffer.concat([residual, Buffer.from(value)]);
+        residual = Buffer.alloc(0);
+
+        while (buf.length >= CHUNK_SIZE) {
+          const chunk = buf.slice(0, CHUNK_SIZE);
+          buf = buf.slice(CHUNK_SIZE);
+
+          if (this.ws.readyState === 1) {
+            this.ws.send(JSON.stringify({
+              event: 'media',
+              streamSid: this.streamSid,
+              media: { payload: chunk.toString('base64') },
+            }));
+          }
+        }
+        if (buf.length > 0) residual = buf;
+      }
+
+      if (residual.length > 0 && this.ttsPlaying && this.ws.readyState === 1) {
+        this.ws.send(JSON.stringify({
+          event: 'media',
+          streamSid: this.streamSid,
+          media: { payload: residual.toString('base64') },
+        }));
       }
 
       const markName = `tts_${++this.markCounter}`;
@@ -260,41 +308,12 @@ class VoiceSession {
           mark: { name: markName },
         }));
       }
+
+      this.log('TTS complete', { total_ms: Date.now() - t0, first_byte_ms: firstByteMs });
     } catch (err) {
       this.log('TTS error', { error: err.message });
       this.ttsPlaying = false;
     }
-  }
-
-  async textToSpeech(text) {
-    const url = `https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_VOICE_ID}?output_format=ulaw_8000`;
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'xi-api-key': ELEVENLABS_API_KEY,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        text,
-        model_id: 'eleven_multilingual_v2',
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.8,
-          style: 0.0,
-          use_speaker_boost: true,
-        },
-      }),
-    });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      this.log('ElevenLabs TTS error', { status: response.status, body: errText.slice(0, 200) });
-      return null;
-    }
-
-    const arrayBuffer = await response.arrayBuffer();
-    return Buffer.from(arrayBuffer);
   }
 
   stopTTS() {
