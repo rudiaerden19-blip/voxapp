@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Phone, Calendar, Users, Settings, LogOut, TrendingUp, MessageSquare, Menu, X, Briefcase, Globe, ChevronDown, Shield, Package, Wrench, CreditCard, Home, Car, FileText, ShoppingBag, UtensilsCrossed, CalendarCheck, Scissors, ExternalLink, Building2 } from 'lucide-react';
+import { Phone, Calendar, Users, Settings, LogOut, TrendingUp, MessageSquare, Menu, X, Briefcase, Globe, ChevronDown, Shield, Package, Wrench, CreditCard, Home, Car, FileText, ShoppingBag, UtensilsCrossed, CalendarCheck, Scissors, ExternalLink, Building2, Bot } from 'lucide-react';
 import { useLanguage, Language } from '@/lib/LanguageContext';
 import { useBusiness } from '@/lib/BusinessContext';
 import { getBusinessType, hasModule, ModuleId } from '@/lib/modules';
@@ -276,6 +276,17 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             width: '100%', textAlign: 'left', marginBottom: 4, textDecoration: 'none',
           }}>
             <Phone size={18} />{t('dashboard.nav.reception')}
+          </Link>
+
+          {/* Anja Instellingen — Frituur Nolim */}
+          <Link href={getHref('/dashboard/anja-instellingen')} onClick={() => setSidebarOpen(false)} style={{
+            display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
+            background: pathname.startsWith('/dashboard/anja-instellingen') ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
+            border: 'none', borderRadius: 8, color: pathname.startsWith('/dashboard/anja-instellingen') ? '#f97316' : '#9ca3af',
+            fontSize: 14, fontWeight: pathname.startsWith('/dashboard/anja-instellingen') ? 600 : 400, cursor: 'pointer',
+            width: '100%', textAlign: 'left', marginBottom: 4, textDecoration: 'none',
+          }}>
+            <Bot size={18} /> Anja (Frituur)
           </Link>
 
           {/* Bedrijfsinfo */}
