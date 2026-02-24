@@ -27,8 +27,6 @@ interface RetellCallData {
   metadata?: Record<string, string>;
   from_number?: string;
   to_number?: string;
-  start_timestamp?: number;
-  end_timestamp?: number;
 }
 
 interface RetellWebhookBody {
@@ -38,7 +36,6 @@ interface RetellWebhookBody {
 
 export async function POST(request: NextRequest) {
   let body: RetellWebhookBody;
-
   try {
     body = await request.json();
   } catch {
@@ -49,34 +46,32 @@ export async function POST(request: NextRequest) {
   console.log('[Retell webhook]', event, call?.call_id);
 
   if (event === 'call_started') {
-    console.log('[Retell] call started:', call.call_id, 'from:', call.from_number);
     return NextResponse.json({ received: true });
   }
 
   if (event === 'call_ended' || event === 'call_analyzed') {
     const analysis = call.call_analysis;
     const supabase = getSupabase();
-
-    const businessId = call.metadata?.business_id ?? null;
+    const businessId = call.metadata?.business_id ?? '0267c0ae-c997-421a-a259-e7559840897b';
     const callerPhone = call.from_number ?? null;
+    const durationMs = call.duration_ms ?? 0;
 
-    if (analysis?.bestelling_geslaagd === 'ja' && analysis?.bestelde_items) {
+    // Bestelling opslaan in orders tabel (correct kolomnamen)
+    if (analysis?.bestelde_items) {
       try {
+        const orderType = analysis.levering_type === 'levering' ? 'delivery' : 'pickup';
+
         const { data: order, error } = await supabase
           .from('orders')
           .insert({
             business_id: businessId,
-            retell_call_id: call.call_id,
-            caller_phone: callerPhone,
             customer_name: analysis.naam_klant ?? null,
             customer_phone: analysis.telefoon_klant ?? callerPhone,
-            delivery_type: analysis.levering_type ?? 'afhalen',
-            delivery_address: analysis.leveringsadres ?? null,
-            items_text: analysis.bestelde_items,
-            total_price: analysis.totaalprijs ?? null,
-            transcript: call.transcript ?? null,
-            duration_ms: call.duration_ms ?? null,
-            status: 'nieuw',
+            order_type: orderType,
+            status: 'pending',
+            total_amount: analysis.totaalprijs ?? 0,
+            notes: analysis.bestelde_items,
+            source: 'ai_phone',
             created_at: new Date().toISOString(),
           })
           .select('id')
@@ -88,19 +83,23 @@ export async function POST(request: NextRequest) {
           console.log('[Retell] Order opgeslagen:', order?.id);
         }
       } catch (err) {
-        console.error('[Retell] Order opslaan fout:', err);
+        console.error('[Retell] Order fout:', err);
       }
     }
 
+    // Gesprek loggen in call_logs tabel
     try {
-      await supabase.from('calls').insert({
+      await supabase.from('call_logs').insert({
         business_id: businessId,
-        retell_call_id: call.call_id,
+        conversation_id: call.call_id,
+        agent_id: call.agent_id ?? null,
         caller_phone: callerPhone,
-        duration_ms: call.duration_ms ?? null,
+        duration_seconds: Math.round(durationMs / 1000),
+        duration_minutes: Math.round(durationMs / 60000 * 10) / 10,
+        status: call.call_status,
         transcript: call.transcript ?? null,
         summary: analysis?.bestelde_items ?? null,
-        status: call.call_status,
+        metadata: { bestelling_geslaagd: analysis?.bestelling_geslaagd ?? 'onbekend' },
         created_at: new Date().toISOString(),
       });
     } catch (err) {
