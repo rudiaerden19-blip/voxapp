@@ -36,7 +36,8 @@ interface RetellWebhookBody {
 
 async function logToSupabase(supabase: ReturnType<typeof createClient>, message: string, data: Record<string, unknown>) {
   try {
-    await supabase.from('call_logs').insert({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase.from('call_logs') as any).insert({
       business_id: '0267c0ae-c997-421a-a259-e7559840897b',
       conversation_id: `dbg_${Date.now()}`,
       status: 'debug',
@@ -119,7 +120,8 @@ export async function POST(request: NextRequest) {
 
     // Gesprek loggen in call_logs tabel
     try {
-      await supabase.from('call_logs').insert({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase.from('call_logs') as any).insert({
         business_id: businessId,
         conversation_id: call.call_id,
         agent_id: call.agent_id ?? null,
