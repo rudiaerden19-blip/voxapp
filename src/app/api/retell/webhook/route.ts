@@ -36,16 +36,6 @@ interface RetellWebhookBody {
   call: RetellCallData;
 }
 
-// #region agent log - Retell webhook instrumentation
-async function dbgLog(message: string, data: Record<string, unknown>) {
-  fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ location: 'retell/webhook/route.ts', message, data, timestamp: Date.now() }),
-  }).catch(() => {});
-}
-// #endregion
-
 export async function POST(request: NextRequest) {
   let body: RetellWebhookBody;
 
@@ -57,10 +47,6 @@ export async function POST(request: NextRequest) {
 
   const { event, call } = body;
   console.log('[Retell webhook]', event, call?.call_id);
-
-  // #region agent log
-  dbgLog('retell webhook received', { event, call_id: call?.call_id, agent_id: call?.agent_id });
-  // #endregion
 
   if (event === 'call_started') {
     console.log('[Retell] call started:', call.call_id, 'from:', call.from_number);
@@ -74,37 +60,25 @@ export async function POST(request: NextRequest) {
     const businessId = call.metadata?.business_id ?? null;
     const callerPhone = call.from_number ?? null;
 
-    // #region agent log
-    dbgLog('call ended/analyzed', {
-      event,
-      business_id: businessId,
-      bestelling_geslaagd: analysis?.bestelling_geslaagd,
-      naam: analysis?.naam_klant,
-      items: analysis?.bestelde_items,
-    });
-    // #endregion
-
     if (analysis?.bestelling_geslaagd === 'ja' && analysis?.bestelde_items) {
       try {
-        const orderData = {
-          business_id: businessId,
-          retell_call_id: call.call_id,
-          caller_phone: callerPhone,
-          customer_name: analysis.naam_klant ?? null,
-          customer_phone: analysis.telefoon_klant ?? callerPhone,
-          delivery_type: analysis.levering_type ?? 'afhalen',
-          delivery_address: analysis.leveringsadres ?? null,
-          items_text: analysis.bestelde_items,
-          total_price: analysis.totaalprijs ?? null,
-          transcript: call.transcript ?? null,
-          duration_ms: call.duration_ms ?? null,
-          status: 'nieuw',
-          created_at: new Date().toISOString(),
-        };
-
         const { data: order, error } = await supabase
           .from('orders')
-          .insert(orderData)
+          .insert({
+            business_id: businessId,
+            retell_call_id: call.call_id,
+            caller_phone: callerPhone,
+            customer_name: analysis.naam_klant ?? null,
+            customer_phone: analysis.telefoon_klant ?? callerPhone,
+            delivery_type: analysis.levering_type ?? 'afhalen',
+            delivery_address: analysis.leveringsadres ?? null,
+            items_text: analysis.bestelde_items,
+            total_price: analysis.totaalprijs ?? null,
+            transcript: call.transcript ?? null,
+            duration_ms: call.duration_ms ?? null,
+            status: 'nieuw',
+            created_at: new Date().toISOString(),
+          })
           .select('id')
           .single();
 
@@ -118,7 +92,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Log the call regardless
     try {
       await supabase.from('calls').insert({
         business_id: businessId,
