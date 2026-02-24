@@ -34,10 +34,11 @@ interface RetellWebhookBody {
   call: RetellCallData;
 }
 
-async function logToSupabase(supabase: ReturnType<typeof createClient>, message: string, data: Record<string, unknown>) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function logToSupabase(message: string, data: Record<string, unknown>) {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase.from('call_logs') as any).insert({
+    const sb = getSupabase() as any;
+    await sb.from('call_logs').insert({
       business_id: '0267c0ae-c997-421a-a259-e7559840897b',
       conversation_id: `dbg_${Date.now()}`,
       status: 'debug',
@@ -49,7 +50,6 @@ async function logToSupabase(supabase: ReturnType<typeof createClient>, message:
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = getSupabase();
   let rawBody: string;
   let body: RetellWebhookBody;
 
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Log raw payload naar Supabase voor debugging
-  await logToSupabase(supabase, 'webhook_ontvangen', {
+  await logToSupabase('webhook_ontvangen', {
     raw: rawBody.slice(0, 500),
     headers: Object.fromEntries(request.headers),
   });
@@ -79,13 +79,15 @@ export async function POST(request: NextRequest) {
     const callerPhone = call.from_number ?? null;
     const durationMs = call.duration_ms ?? 0;
 
-    await logToSupabase(supabase, 'call_ended_analyzed', {
+    await logToSupabase('call_ended_analyzed', {
       event,
       call_id: call.call_id,
       has_analysis: !!analysis,
       bestelling_geslaagd: analysis?.bestelling_geslaagd,
       has_items: !!analysis?.bestelde_items,
     });
+
+    const supabase = getSupabase();
 
     // Bestelling opslaan in orders tabel (correct kolomnamen)
     if (analysis?.bestelde_items) {
