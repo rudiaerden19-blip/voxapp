@@ -26,6 +26,9 @@ function parseDiversion(diversion: string | undefined): string | null {
 
 async function registerRetellCall(agentId: string, fromNumber: string, toNumber: string, businessId: string): Promise<string | null> {
   const retellKey = process.env.RETELL_API_KEY;
+  // #region agent log A: is RETELL_API_KEY aanwezig?
+  fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'telnyx/webhook/route.ts:registerRetellCall',message:'retell key check',data:{hasKey:!!retellKey,agentId,fromNumber,toNumber,businessId},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
+  // #endregion
   if (!retellKey) {
     console.error('[Retell] RETELL_API_KEY niet gezet');
     return null;
@@ -49,10 +52,16 @@ async function registerRetellCall(agentId: string, fromNumber: string, toNumber:
   if (!res.ok) {
     const err = await res.text();
     console.error('[Retell] register-phone-call mislukt:', res.status, err);
+    // #region agent log A+C: Retell registratie mislukt
+    fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'telnyx/webhook/route.ts:registerRetellCall',message:'retell register FAILED',data:{status:res.status,error:err},timestamp:Date.now(),hypothesisId:'A+C'})}).catch(()=>{});
+    // #endregion
     return null;
   }
 
   const data = await res.json();
+  // #region agent log A+C: Retell registratie gelukt
+  fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'telnyx/webhook/route.ts:registerRetellCall',message:'retell register OK',data:{call_id:data.call_id},timestamp:Date.now(),hypothesisId:'A+C'})}).catch(()=>{});
+  // #endregion
   console.log('[Retell] call geregistreerd:', data.call_id);
   return data.call_id as string;
 }
@@ -80,6 +89,9 @@ export async function POST(request: NextRequest) {
         payload.diversion ?? payload.sip_headers?.['Diversion'] ?? payload.original_dialed_number
       );
 
+      // #region agent log B+D: webhook ontvangen?
+      fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'telnyx/webhook/route.ts:call.initiated',message:'call initiated ontvangen',data:{to,from,diversion,eventType},timestamp:Date.now(),hypothesisId:'B+D'})}).catch(()=>{});
+      // #endregion
       console.log('Telnyx call.initiated:', { to, from, diversion });
 
       const supabase = getSupabase();
@@ -173,6 +185,9 @@ export async function POST(request: NextRequest) {
       const callerNumber = clientData.caller_id ?? payload.from ?? '';
       const toNumber = clientData.to_number ?? payload.to ?? '';
 
+      // #region agent log D: call.answered client_state inhoud
+      fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'telnyx/webhook/route.ts:call.answered',message:'call answered details',data:{retellAgentId,businessId,callerNumber,toNumber,hasClientState:!!payload.client_state},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
+      // #endregion
       console.log('[Retell] call.answered:', { retellAgentId, businessId, callerNumber, toNumber });
 
       if (!retellAgentId) {
@@ -218,9 +233,15 @@ export async function POST(request: NextRequest) {
       if (!transferRes.ok) {
         const transferErr = await transferRes.text();
         console.error('[Retell] Transfer mislukt:', transferRes.status, transferErr);
+        // #region agent log C: SIP transfer mislukt
+        fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'telnyx/webhook/route.ts:transfer',message:'SIP transfer FAILED',data:{status:transferRes.status,error:transferErr,sipUri:retellSipUri},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
         return NextResponse.json({ error: 'Transfer mislukt', detail: transferErr }, { status: 500 });
       }
 
+      // #region agent log C: SIP transfer gelukt
+      fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'telnyx/webhook/route.ts:transfer',message:'SIP transfer OK',data:{sipUri:retellSipUri,retellCallId},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
+      // #endregion
       console.log('[Retell] Transfer gestart naar Retell SIP');
       return NextResponse.json({ accepted: true, pipeline: 'retell', retell_call_id: retellCallId, sip_uri: retellSipUri });
     }
