@@ -24,6 +24,39 @@ function parseDiversion(diversion: string | undefined): string | null {
   return m ? normalizePhoneNumber(m[1]) : null;
 }
 
+async function registerRetellCall(agentId: string, fromNumber: string, toNumber: string, businessId: string): Promise<string | null> {
+  const retellKey = process.env.RETELL_API_KEY;
+  if (!retellKey) {
+    console.error('[Retell] RETELL_API_KEY niet gezet');
+    return null;
+  }
+
+  const res = await fetch('https://api.retellai.com/v2/register-phone-call', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${retellKey}`,
+    },
+    body: JSON.stringify({
+      agent_id: agentId,
+      from_number: fromNumber,
+      to_number: toNumber,
+      direction: 'inbound',
+      metadata: { business_id: businessId },
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    console.error('[Retell] register-phone-call mislukt:', res.status, err);
+    return null;
+  }
+
+  const data = await res.json();
+  console.log('[Retell] call geregistreerd:', data.call_id);
+  return data.call_id as string;
+}
+
 // Telnyx Call Control webhook: inkomende gesprekken
 export async function POST(request: NextRequest) {
   try {
@@ -38,7 +71,6 @@ export async function POST(request: NextRequest) {
     }
 
     const callControlId = payload.call_control_id;
-    const voiceServerUrl = process.env.VOICE_SERVER_URL || 'https://voxapp-voice.onrender.com';
 
     // ======== CALL INITIATED ========
     if (eventType === 'call.initiated') {
@@ -48,12 +80,12 @@ export async function POST(request: NextRequest) {
         payload.diversion ?? payload.sip_headers?.['Diversion'] ?? payload.original_dialed_number
       );
 
-      console.log('Telnyx call.initiated:', { to, from, diversion, voiceServerUrl: !!voiceServerUrl });
+      console.log('Telnyx call.initiated:', { to, from, diversion });
 
       const supabase = getSupabase();
 
       let businessId: string | null = null;
-      let agentId: string | null = null;
+      let retellAgentId: string | null = null;
 
       // 1. Probeer via Diversion header (doorgestuurd nummer)
       if (diversion) {
@@ -65,9 +97,7 @@ export async function POST(request: NextRequest) {
           .limit(1)
           .maybeSingle();
 
-        if (forwarding?.business_id) {
-          businessId = forwarding.business_id;
-        }
+        if (forwarding?.business_id) businessId = forwarding.business_id;
       }
 
       // 2. Probeer via het gebelde nummer (ai_phone_number in businesses)
@@ -81,29 +111,29 @@ export async function POST(request: NextRequest) {
 
         if (bizByPhone) {
           businessId = bizByPhone.id;
-          agentId = bizByPhone.agent_id ?? null;
+          retellAgentId = bizByPhone.agent_id ?? null;
         }
       }
 
-      // 3. Fallback: frituur nolim (hardcoded voor nu)
+      // 3. Fallback: frituur nolim
       if (!businessId) {
         businessId = '0267c0ae-c997-421a-a259-e7559840897b';
+        retellAgentId = 'agent_5fa359e670973594f991a6e750';
         console.log('Fallback: using frituur nolim');
       }
 
-      // Agent ID ophalen als we een business hebben
-      if (businessId && !agentId) {
+      // Agent ID ophalen als we het nog niet hebben
+      if (businessId && !retellAgentId) {
         const { data: business } = await supabase
           .from('businesses')
           .select('agent_id')
           .eq('id', businessId)
           .single();
-        agentId = business?.agent_id ?? null;
+        retellAgentId = business?.agent_id ?? null;
       }
 
-      if (!businessId) {
-        console.error('No business found for call', { to, from, diversion });
-        return NextResponse.json({ message: 'no_agent_configured' }, { status: 200 });
+      if (!retellAgentId) {
+        console.error('Geen Retell agent gevonden voor business:', businessId);
       }
 
       // Answer the call
@@ -111,7 +141,12 @@ export async function POST(request: NextRequest) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
         body: JSON.stringify({
-          client_state: Buffer.from(JSON.stringify({ business_id: businessId, caller_id: from, agent_id: agentId })).toString('base64'),
+          client_state: Buffer.from(JSON.stringify({
+            business_id: businessId,
+            caller_id: from,
+            retell_agent_id: retellAgentId,
+            to_number: to,
+          })).toString('base64'),
         }),
       });
 
@@ -120,78 +155,74 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Answer failed' }, { status: 500 });
       }
 
-      console.log('Call answered, waiting for call.answered event');
-      return NextResponse.json({ accepted: true, pipeline: voiceServerUrl ? 'deepgram' : 'elevenlabs' });
+      console.log('Call answered, wacht op call.answered');
+      return NextResponse.json({ accepted: true, pipeline: 'retell' });
     }
 
     // ======== CALL ANSWERED ========
     if (eventType === 'call.answered') {
-      let clientData: { business_id?: string; caller_id?: string; agent_id?: string } = {};
+      let clientData: { business_id?: string; caller_id?: string; retell_agent_id?: string; to_number?: string } = {};
       try {
         if (payload.client_state) {
           clientData = JSON.parse(Buffer.from(payload.client_state, 'base64').toString());
         }
       } catch {}
 
-      // #region agent log H-D: Which pipeline is chosen? Is business_id present?
-      const wsUrl = voiceServerUrl.replace('https://', 'wss://').replace('http://', 'ws://');
-      console.log('[H-D] call.answered details:', JSON.stringify({ voiceServerUrl, voiceServerUrlSet: !!voiceServerUrl, businessId: clientData.business_id, callerId: clientData.caller_id, wsUrl, callControlId }));
-      // #endregion
+      const retellAgentId = clientData.retell_agent_id;
+      const businessId = clientData.business_id;
+      const callerNumber = clientData.caller_id ?? payload.from ?? '';
+      const toNumber = clientData.to_number ?? payload.to ?? '';
 
-      if (voiceServerUrl && clientData.business_id) {
-        // NEW PIPELINE: Start WebSocket stream to voice-server
-        const streamParams = new URLSearchParams({
-          call_control_id: callControlId || '',
-          business_id: clientData.business_id || '',
-          caller_id: clientData.caller_id || '',
-        });
+      console.log('[Retell] call.answered:', { retellAgentId, businessId, callerNumber, toNumber });
 
-        const streamUrl = `${wsUrl}/telnyx-stream?${streamParams.toString()}`;
-        // #region agent log H-A: What URL is sent to Telnyx streaming_start?
-        console.log('[H-A] streaming_start URL:', streamUrl);
-        // #endregion
-
-        const streamRes = await fetch(`https://api.telnyx.com/v2/calls/${callControlId}/actions/streaming_start`, {
+      if (!retellAgentId) {
+        console.error('[Retell] Geen agent ID – oproep beëindigen');
+        await fetch(`https://api.telnyx.com/v2/calls/${callControlId}/actions/hangup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-          body: JSON.stringify({
-            stream_url: streamUrl,
-            stream_track: 'inbound_track',
-            enable_dialogflow: false,
-            client_state: payload.client_state,
-          }),
+          body: JSON.stringify({}),
         });
-
-        // #region agent log H-A: Did streaming_start succeed?
-        const streamBody = await streamRes.text();
-        console.log('[H-A] streaming_start result:', streamRes.status, streamBody.slice(0, 300));
-        // #endregion
-
-        if (!streamRes.ok) {
-          console.error('Telnyx streaming_start failed:', streamRes.status, streamBody);
-        } else {
-          console.log('Telnyx streaming started to voice-server');
-        }
-
-        return NextResponse.json({ accepted: true, pipeline: 'deepgram', streaming: true, streamUrl });
-      } else {
-        // LEGACY: Transfer to ElevenLabs SIP
-        const agentId = clientData.agent_id;
-        if (!agentId) {
-          return NextResponse.json({ error: 'No agent' }, { status: 200 });
-        }
-
-        const elevenlabsSipDomain = process.env.ELEVENLABS_SIP_DOMAIN || 'sip.rtc.elevenlabs.io';
-        const sipUri = `sip:${agentId}@${elevenlabsSipDomain}`;
-
-        await fetch(`https://api.telnyx.com/v2/calls/${callControlId}/actions/transfer`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-          body: JSON.stringify({ to: sipUri, from: payload.to ?? '', timeout_secs: 30 }),
-        });
-
-        return NextResponse.json({ accepted: true, pipeline: 'elevenlabs', transferred_to: sipUri });
+        return NextResponse.json({ error: 'Geen agent geconfigureerd' }, { status: 200 });
       }
+
+      // Registreer de oproep bij Retell en krijg een call_id terug
+      const retellCallId = await registerRetellCall(retellAgentId, callerNumber, toNumber, businessId ?? '');
+
+      if (!retellCallId) {
+        console.error('[Retell] Registratie mislukt – oproep beëindigen');
+        await fetch(`https://api.telnyx.com/v2/calls/${callControlId}/actions/hangup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+          body: JSON.stringify({}),
+        });
+        return NextResponse.json({ error: 'Retell registratie mislukt' }, { status: 200 });
+      }
+
+      // Transfer de oproep naar Retell's SIP URI
+      const retellSipUri = `sip:${retellCallId}@sip.retellai.com`;
+      console.log('[Retell] SIP transfer naar:', retellSipUri);
+
+      const transferRes = await fetch(`https://api.telnyx.com/v2/calls/${callControlId}/actions/transfer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          to: retellSipUri,
+          from: toNumber,
+          timeout_secs: 30,
+          sip_headers: [
+            { name: 'X-Retell-Call-Id', value: retellCallId },
+          ],
+        }),
+      });
+
+      if (!transferRes.ok) {
+        const transferErr = await transferRes.text();
+        console.error('[Retell] Transfer mislukt:', transferRes.status, transferErr);
+        return NextResponse.json({ error: 'Transfer mislukt', detail: transferErr }, { status: 500 });
+      }
+
+      console.log('[Retell] Transfer gestart naar Retell SIP');
+      return NextResponse.json({ accepted: true, pipeline: 'retell', retell_call_id: retellCallId, sip_uri: retellSipUri });
     }
 
     // ======== OTHER EVENTS ========
@@ -207,7 +238,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   return NextResponse.json({
-    service: 'Telnyx webhook',
+    service: 'Telnyx webhook – Retell AI pipeline',
     usage: 'POST only – stel deze URL in als Webhook bij je Telnyx Connection',
   });
 }
