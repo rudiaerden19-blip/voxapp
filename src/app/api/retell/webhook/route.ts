@@ -34,13 +34,36 @@ interface RetellWebhookBody {
   call: RetellCallData;
 }
 
-export async function POST(request: NextRequest) {
-  let body: RetellWebhookBody;
+async function logToSupabase(supabase: ReturnType<typeof createClient>, message: string, data: Record<string, unknown>) {
   try {
-    body = await request.json();
+    await supabase.from('call_logs').insert({
+      business_id: '0267c0ae-c997-421a-a259-e7559840897b',
+      conversation_id: `dbg_${Date.now()}`,
+      status: 'debug',
+      summary: message,
+      metadata: data,
+      created_at: new Date().toISOString(),
+    });
+  } catch { /* silent */ }
+}
+
+export async function POST(request: NextRequest) {
+  const supabase = getSupabase();
+  let rawBody: string;
+  let body: RetellWebhookBody;
+
+  try {
+    rawBody = await request.text();
+    body = JSON.parse(rawBody);
   } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
+
+  // Log raw payload naar Supabase voor debugging
+  await logToSupabase(supabase, 'webhook_ontvangen', {
+    raw: rawBody.slice(0, 500),
+    headers: Object.fromEntries(request.headers),
+  });
 
   const { event, call } = body;
   console.log('[Retell webhook]', event, call?.call_id);
@@ -51,10 +74,17 @@ export async function POST(request: NextRequest) {
 
   if (event === 'call_ended' || event === 'call_analyzed') {
     const analysis = call.call_analysis;
-    const supabase = getSupabase();
     const businessId = call.metadata?.business_id ?? '0267c0ae-c997-421a-a259-e7559840897b';
     const callerPhone = call.from_number ?? null;
     const durationMs = call.duration_ms ?? 0;
+
+    await logToSupabase(supabase, 'call_ended_analyzed', {
+      event,
+      call_id: call.call_id,
+      has_analysis: !!analysis,
+      bestelling_geslaagd: analysis?.bestelling_geslaagd,
+      has_items: !!analysis?.bestelde_items,
+    });
 
     // Bestelling opslaan in orders tabel (correct kolomnamen)
     if (analysis?.bestelde_items) {
