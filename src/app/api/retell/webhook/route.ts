@@ -38,15 +38,16 @@ interface RetellWebhookBody {
 async function logToSupabase(message: string, data: Record<string, unknown>) {
   try {
     const sb = getSupabase() as any;
-    await sb.from('call_logs').insert({
+    const { error } = await sb.from('call_logs').insert({
       business_id: '0267c0ae-c997-421a-a259-e7559840897b',
       conversation_id: `dbg_${Date.now()}`,
-      status: 'debug',
+      status: 'completed',
       summary: message,
       metadata: data,
       created_at: new Date().toISOString(),
     });
-  } catch { /* silent */ }
+    if (error) console.error('[logToSupabase]', error.message);
+  } catch (e) { console.error('[logToSupabase catch]', e); }
 }
 
 export async function POST(request: NextRequest) {
@@ -130,10 +131,10 @@ export async function POST(request: NextRequest) {
         caller_phone: callerPhone,
         duration_seconds: Math.round(durationMs / 1000),
         duration_minutes: Math.round(durationMs / 60000 * 10) / 10,
-        status: call.call_status,
+        status: 'completed',
         transcript: call.transcript ?? null,
         summary: analysis?.bestelde_items ?? null,
-        metadata: { bestelling_geslaagd: analysis?.bestelling_geslaagd ?? 'onbekend' },
+        metadata: { bestelling_geslaagd: analysis?.bestelling_geslaagd ?? 'onbekend', retell_status: call.call_status },
         created_at: new Date().toISOString(),
       });
     } catch (err) {
