@@ -46,17 +46,38 @@ async function deleteSession(supabase: DB, sessionId: string): Promise<void> {
 }
 
 // ============================================================
+// AGENDA CHECK — is datum+uur vrij?
+// ============================================================
+
+async function isSlotVrij(
+  supabase: DB,
+  tenantId: string,
+  datumIso: string,
+  uur: number,
+): Promise<boolean> {
+  const { data } = await supabase
+    .from('appointments')
+    .select('id')
+    .eq('business_id', tenantId)
+    .eq('appointment_date', datumIso)
+    .eq('appointment_time', `${String(uur).padStart(2, '0')}:00`)
+    .neq('status', 'cancelled');
+
+  return !data || data.length === 0;
+}
+
+// ============================================================
 // BUSINESS + DIENSTEN LOADER
 // ============================================================
 
-const bizCache = new Map<string, { data: BusinessConfig; ts: number }>();
+const bizCache = new Map<string, { config: BusinessConfig; tenantId: string; ts: number }>();
 const CACHE_TTL = 5 * 60 * 1000;
 
 async function loadBusiness(supabase: DB, agentId?: string): Promise<{ config: BusinessConfig; tenantId: string } | null> {
   const cacheKey = agentId || 'default';
   const cached = bizCache.get(cacheKey);
   if (cached && Date.now() - cached.ts < CACHE_TTL) {
-    return { config: cached.data, tenantId: cacheKey };
+    return { config: cached.config, tenantId: cached.tenantId };
   }
 
   let bizRow: DB = null;
@@ -94,29 +115,27 @@ async function loadBusiness(supabase: DB, agentId?: string): Promise<{ config: B
     duration_minutes: s.duration_minutes || 30,
   }));
 
-  // Fallback kapper diensten als DB leeg is
   const finalServices = services.length > 0 ? services : [
     { name: 'Knippen', duration_minutes: 30 },
     { name: 'Knippen en wassen', duration_minutes: 45 },
+    { name: 'Brushen', duration_minutes: 45 },
     { name: 'Kleuren', duration_minutes: 90 },
     { name: 'Highlights', duration_minutes: 120 },
     { name: 'Baard trimmen', duration_minutes: 20 },
   ];
 
   const config: BusinessConfig = {
-    name: bizRow.name,
+    name: bizRow.name || 'ons kapsalon',
     ai_name: bizRow.ai_name || 'Anja',
-    welcome_message: bizRow.welcome_message ||
-      `Goeiedag, u spreekt met ${bizRow.name}. Waarvoor wil u een afspraak maken?`,
     services: finalServices,
   };
 
-  bizCache.set(cacheKey, { data: config, ts: Date.now() });
+  bizCache.set(cacheKey, { config, tenantId: bizRow.id, ts: Date.now() });
   return { config, tenantId: bizRow.id };
 }
 
 // ============================================================
-// SSE HELPERS — OpenAI Chat Completions formaat
+// SSE HELPERS
 // ============================================================
 
 function sseChunk(content: string, model: string, finish: string | null = null): string {
@@ -158,14 +177,16 @@ export async function POST(request: NextRequest) {
     const messages: { role: string; content: string }[] = body.messages || [];
     const model = body.model || 'appointment-system';
 
-    const extraBody = body.vapi_extra_body || body.extra_body || {};
+    // Vapi stuurt call metadata mee
+    const call = body.call || {};
     const agentId: string | undefined =
-      extraBody.assistant_id || body.assistant_id ||
+      call.assistantId || body.assistantId ||
       request.nextUrl.searchParams.get('agent_id') || undefined;
 
-    const sessionId: string =
-      extraBody.call_id || body.call_id ||
-      `session_${Date.now()}`;
+    const sessionId: string = call.id || `session_${Date.now()}`;
+
+    // Caller ID automatisch van Vapi
+    const callerPhone: string | null = call.customer?.number || null;
 
     // Laatste user bericht
     let userMessage = '';
@@ -186,31 +207,56 @@ export async function POST(request: NextRequest) {
     const { config, tenantId } = biz;
     const engine = new AppointmentSystem(config);
 
-    // Eerste begroeting (geen user message)
+    // Begroeting (geen user message)
     if (!userMessage) {
       return sseResponse(engine.getGreeting(), model);
     }
 
     let session = await loadSession(supabase, sessionId);
-    if (!session) session = createEmptySession();
+    if (!session) {
+      session = createEmptySession();
+    }
+
+    // Sla caller ID op in sessie (eenmalig)
+    if (callerPhone && !session.telefoon) {
+      session.telefoon = callerPhone;
+    }
 
     const result = engine.handle(session, userMessage);
     session = result.session;
 
+    // ── AGENDACHECK ──────────────────────────────────────────
+    if (result.shouldCheckAvailability && session.datum_iso && session.tijdstip_h !== null) {
+      const vrij = await isSlotVrij(supabase, tenantId, session.datum_iso, session.tijdstip_h);
+
+      if (vrij) {
+        const available = engine.availableResponse(session);
+        session = available.session;
+        await saveSession(supabase, sessionId, session, tenantId);
+        return sseResponse(available.response, model);
+      } else {
+        const unavailable = engine.unavailableResponse(session);
+        session = unavailable.session;
+        await saveSession(supabase, sessionId, session, tenantId);
+        return sseResponse(unavailable.response, model);
+      }
+    }
+
+    // ── AFSPRAAK OPSLAAN BIJ DONE ────────────────────────────
     if (session.state === AppointmentState.DONE) {
       const data = engine.buildAppointmentData(session);
 
       await supabase.from('appointments').insert({
         business_id: tenantId,
         customer_name: data.naam,
-        customer_phone: data.telefoon,
+        customer_phone: data.telefoon || session.telefoon || '',
         service_name: data.dienst,
-        appointment_date: data.datum,
-        appointment_time: data.tijdstip,
-        status: 'pending',
+        appointment_date: data.datum_iso,
+        appointment_time: `${String(session.tijdstip_h ?? 0).padStart(2, '0')}:00`,
+        status: 'confirmed',
         source: 'phone',
-        notes: `Geboekt via AI | ${data.dienst} op ${data.datum} om ${data.tijdstip}`,
-        created_at: data.timestamp,
+        notes: `${data.dienst} op ${data.datum} om ${data.tijdstip}`,
+        created_at: new Date().toISOString(),
       });
 
       await deleteSession(supabase, sessionId);
