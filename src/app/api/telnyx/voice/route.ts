@@ -275,12 +275,10 @@ export async function POST(request: NextRequest) {
         if (sessionData?.session.state === 'DONE') {
           await telnyxAction(callControlId, 'hangup', {});
         } else {
-          await telnyxAction(callControlId, 'gather_using_speech', {
-            language: STT_LANGUAGE,
-            speech_timeout: SPEECH_TIMEOUT,
-            maximum_tries: 1,
-            minimum_length: 1,
-          });
+    await telnyxAction(callControlId, 'gather_using_speech', {
+      language: STT_LANGUAGE,
+      speech_timeout: SPEECH_TIMEOUT,
+    });
         }
         break;
       }
