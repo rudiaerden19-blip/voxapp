@@ -56,25 +56,14 @@ async function telnyxAction(
 }
 
 /**
- * Speelt ElevenLabs audio af. Na afloop stuurt Telnyx call.playback.ended.
- * Dan starten we het luisteren apart.
+ * Spreekt tekst uit via Telnyx TTS + start daarna luisteren.
+ * speak triggert call.speak.ended event.
  */
-async function playAudio(callControlId: string, audioUrl: string): Promise<void> {
-  await telnyxAction(callControlId, 'play_audio', {
-    audio_url: audioUrl,
-    loop: 1,
-  });
-}
-
-/**
- * Start luisteren zonder audio (audio was al afgespeeld).
- */
-async function startListening(callControlId: string): Promise<void> {
-  await telnyxAction(callControlId, 'gather_using_speech', {
-    language: STT_LANGUAGE,
-    speech_timeout: SPEECH_TIMEOUT,
-    maximum_tries: 1,
-    minimum_length: 1,
+async function speakAndListen(callControlId: string, text: string): Promise<void> {
+  await telnyxAction(callControlId, 'speak', {
+    payload: text,
+    voice: 'female',
+    language: 'nl-NL',
   });
 }
 
@@ -267,17 +256,21 @@ export async function POST(request: NextRequest) {
         const { name: businessName } = await loadBusinessInfo(businessId);
         await createSession(callControlId, businessId, businessName, fromNumber);
         const greetingText = getGreeting(businessName);
-        const audioUrl = await textToAudioUrl(greetingText);
-        await playAudio(callControlId, audioUrl);
+        await speakAndListen(callControlId, greetingText);
         break;
       }
 
-      case 'call.playback.ended': {
+      case 'call.speak.ended': {
         const sessionData = await getSession(callControlId);
         if (sessionData?.session.state === 'DONE') {
           await telnyxAction(callControlId, 'hangup', {});
         } else {
-          await startListening(callControlId);
+          await telnyxAction(callControlId, 'gather_using_speech', {
+            language: STT_LANGUAGE,
+            speech_timeout: SPEECH_TIMEOUT,
+            maximum_tries: 1,
+            minimum_length: 1,
+          });
         }
         break;
       }
@@ -288,13 +281,9 @@ export async function POST(request: NextRequest) {
         const status = (payload.status as string) ?? '';
 
         console.log('[telnyx/voice] transcript:', transcript, '| status:', status);
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12fe0b'},body:JSON.stringify({sessionId:'12fe0b',location:'route.ts:gather.ended',message:'transcript ontvangen',data:{transcript,status},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion
 
         const sessionData = await getSession(callControlId);
         if (!sessionData) {
-          console.error('[telnyx/voice] sessie niet gevonden:', callControlId);
           await telnyxAction(callControlId, 'hangup', {});
           break;
         }
@@ -302,29 +291,21 @@ export async function POST(request: NextRequest) {
         const { session, businessId, businessName, menu } = sessionData;
 
         if (!transcript || status === 'no_input') {
-          const audioUrl = await textToAudioUrl('Sorry, ik heb u niet gehoord. Kunt u dat herhalen?');
-          await playAudio(callControlId, audioUrl);
+          await speakAndListen(callControlId, 'Sorry, ik heb u niet gehoord. Kunt u dat herhalen?');
           break;
         }
 
-        // State machine verwerkt de input
         const result = processInput(session, transcript, menu, businessName);
         console.log('[telnyx/voice] state:', session.state, '→', result.nextState, '|', result.response.slice(0, 60));
 
-        // Sessie bijwerken
         await updateSession(callControlId, result.updatedSession);
-
-        const audioUrl = await textToAudioUrl(result.response);
 
         if (result.endCall) {
           await saveOrder(callControlId, businessId, result.updatedSession);
-          await playAudio(callControlId, audioUrl);
-          // Hangup via call.playback.ended event (endCall flag opslaan in sessie)
           await updateSession(callControlId, { ...result.updatedSession, state: 'DONE' });
-        } else {
-          await playAudio(callControlId, audioUrl);
-          // Luisteren start automatisch na call.playback.ended
         }
+
+        await speakAndListen(callControlId, result.response);
         break;
       }
 
