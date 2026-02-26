@@ -231,12 +231,12 @@ export async function POST(request: NextRequest) {
 
   console.log('[telnyx/voice] event:', eventType, callControlId?.slice(0, 20));
   // Log elk event naar Supabase voor diagnose
-  getSupabase().from('webhook_logs').insert({
+  void getSupabase().from('webhook_logs').insert({
     event_type: eventType,
     call_control_id: callControlId?.slice(0, 40),
     payload_summary: JSON.stringify(payload).slice(0, 500),
     created_at: new Date().toISOString(),
-  }).then(() => {}).catch(() => {});
+  });
 
   if (!callControlId || !eventType || !payload) {
     return NextResponse.json({ received: true });
