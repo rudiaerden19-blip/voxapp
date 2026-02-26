@@ -132,30 +132,56 @@ export async function POST(request: NextRequest) {
     call?.metadata?.business_id ?? '0267c0ae-c997-421a-a259-e7559840897b';
   const callId = call?.id;
 
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12fe0b'},body:JSON.stringify({sessionId:'12fe0b',location:'chat/route.ts:entry',message:'Request ontvangen',data:{callId,businessId,messageCount:messages.length,roles:messages.map((m:Message)=>m.role),supabaseUrl:process.env.NEXT_PUBLIC_SUPABASE_URL?.slice(0,30),hasServiceKey:!!process.env.SUPABASE_SERVICE_ROLE_KEY},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
+
   // Filter out system messages — our state machine handles state, not the system prompt
   const conversationMessages = messages.filter(
     (m): m is Message => m.role === 'user' || m.role === 'assistant'
   );
 
-  const [menu, businessName] = await Promise.all([
-    loadMenu(businessId),
-    loadBusinessName(businessId),
-  ]);
+  let menu: MenuItem[] = [];
+  let businessName = 'Frituur';
+  try {
+    [menu, businessName] = await Promise.all([
+      loadMenu(businessId),
+      loadBusinessName(businessId),
+    ]);
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12fe0b'},body:JSON.stringify({sessionId:'12fe0b',location:'chat/route.ts:menu-loaded',message:'Menu geladen',data:{menuCount:menu.length,businessName,businessId},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+  } catch (err) {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12fe0b'},body:JSON.stringify({sessionId:'12fe0b',location:'chat/route.ts:menu-error',message:'FOUT bij laden menu',data:{error:String(err)},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+    console.error('[voice-engine] Menu load error:', err);
+  }
 
-  const result = processConversation(conversationMessages, menu, businessName);
+  let result;
+  try {
+    result = processConversation(conversationMessages, menu, businessName);
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12fe0b'},body:JSON.stringify({sessionId:'12fe0b',location:'chat/route.ts:state-result',message:'State machine resultaat',data:{state:result.state,response:result.response,endCall:result.endCall,lastUserMsg:conversationMessages.filter(m=>m.role==='user').slice(-1)[0]?.content},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+  } catch (err) {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12fe0b'},body:JSON.stringify({sessionId:'12fe0b',location:'chat/route.ts:state-error',message:'FOUT in state machine',data:{error:String(err)},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+    console.error('[voice-engine] State machine error:', err);
+    result = { state: 'TAKING_ORDER' as const, response: 'Kunt u dat herhalen?', endCall: false };
+  }
 
   console.log(
-    `[voice-engine] state=${result.state} business=${businessId} call=${callId ?? 'unknown'}`
+    `[voice-engine] state=${result.state} business=${businessId} call=${callId ?? 'unknown'} response="${result.response}"`
   );
 
-  // When the call is done, save the order asynchronously
   if (result.endCall) {
     saveCompletedOrder(businessId, callId, conversationMessages, menu).catch(err =>
       console.error('[voice-engine] Order save error:', err)
     );
   }
 
-  // OpenAI-compatible response
   return NextResponse.json({
     id: `chatcmpl-${Date.now()}`,
     object: 'chat.completion',
@@ -168,7 +194,7 @@ export async function POST(request: NextRequest) {
           role: 'assistant',
           content: result.response,
         },
-        finish_reason: result.endCall ? 'stop' : 'stop',
+        finish_reason: 'stop',
       },
     ],
     usage: {
