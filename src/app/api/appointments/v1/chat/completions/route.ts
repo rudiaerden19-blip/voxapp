@@ -228,7 +228,11 @@ export async function POST(request: NextRequest) {
     session = result.session;
 
     // ── AGENDACHECK ──────────────────────────────────────────
-    if (result.shouldCheckAvailability && session.datum_iso && session.tijdstip_h !== null) {
+    if (
+      result.shouldCheckAvailability === true &&
+      typeof session.datum_iso === "string" &&
+      typeof session.tijdstip_h === "number"
+    ) {
       const vrij = await isSlotVrij(supabase, tenantId, session.datum_iso, session.tijdstip_h);
 
       if (vrij) {
@@ -264,6 +268,10 @@ export async function POST(request: NextRequest) {
       await deleteSession(supabase, sessionId);
     } else {
       await saveSession(supabase, sessionId, session, tenantId);
+    }
+
+    if (!result.response || result.response.trim() === "") {
+      return sseResponse("Kan je dat even herhalen?", model);
     }
 
     return sseResponse(result.response, model);
