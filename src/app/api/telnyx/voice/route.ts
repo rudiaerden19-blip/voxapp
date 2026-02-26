@@ -302,9 +302,8 @@ export async function POST(request: NextRequest) {
         const { session, businessId, businessName, menu } = sessionData;
 
         if (!transcript || status === 'no_input') {
-          // Geen input → herhaal vraag
           const audioUrl = await textToAudioUrl('Sorry, ik heb u niet gehoord. Kunt u dat herhalen?');
-          await gatherWithAudio(callControlId, audioUrl);
+          await playAudio(callControlId, audioUrl);
           break;
         }
 
