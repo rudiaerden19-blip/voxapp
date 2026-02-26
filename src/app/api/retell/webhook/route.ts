@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
       event,
       call_id: call.call_id,
       has_analysis: !!analysis,
-      bestelling_geslaagd: analysis?.bestelling_geslaagd,
+      bestelling_geslaagd: (analysis as Record<string, unknown>)?.bestelling_geslaagd,
       has_items: !!analysis?.bestelde_items,
     });
 
