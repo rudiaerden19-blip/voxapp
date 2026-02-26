@@ -176,30 +176,14 @@ function sseResponse(text: string, model: string): Response {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const messages = body.messages || [];
+    const messages: { role: string; content: string }[] = body.messages || [];
     const model = body.model || "appointment-system";
-
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12fe0b'},body:JSON.stringify({sessionId:'12fe0b',location:'route.ts:POST_ENTRY',message:'POST ontvangen',data:{messageCount:messages.length,lastRoles:messages.slice(-3).map((m: {role:string;content:string})=>m.role),model},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
-
-    console.log("DEBUG BODY:", JSON.stringify(body));
 
     const call = body.call || {};
     const agentId: string | undefined =
       call.assistantId || body.assistantId ||
       request.nextUrl.searchParams.get('agent_id') || undefined;
-
-    const sessionId: string = call.id || `session_${Date.now()}`;
     const callerPhone: string | null = call.customer?.number || null;
-
-    let userMessage = '';
-    for (let i = messages.length - 1; i >= 0; i--) {
-      if (messages[i].role === 'user') {
-        userMessage = messages[i].content?.trim() || '';
-        break;
-      }
-    }
 
     const supabase = getSupabase();
     const biz = await loadBusiness(supabase, agentId);
@@ -211,26 +195,37 @@ export async function POST(request: NextRequest) {
     const { config, tenantId } = biz;
     const engine = new AppointmentSystem(config);
 
-    if (!userMessage) {
+    // Haal alle user messages op uit de volledige gespreksgeschiedenis
+    const userMessages = messages
+      .filter(m => m.role === 'user')
+      .map(m => m.content?.trim() || '');
+
+    // Geen user message → begroeting
+    if (userMessages.length === 0) {
       return sseResponse(engine.getGreeting(), model);
     }
 
-    let session = await loadSession(supabase, sessionId);
-    if (!session) {
-      session = createEmptySession();
+    // STATELESS: reconstrueer sessie door vorige berichten te herspelen
+    // Vapi stuurt altijd de volledige history mee → geen Supabase sessie nodig
+    let session = createEmptySession();
+    if (callerPhone) session.telefoon = callerPhone;
+
+    for (let i = 0; i < userMessages.length - 1; i++) {
+      const r = engine.handle(session, userMessages[i]);
+      session = r.session;
+      // Als vorig bericht agenda-check triggerde → simuleer beschikbaar zodat state verder gaat
+      if (r.shouldCheckAvailability) {
+        const available = engine.availableResponse(session);
+        session = available.session;
+      }
     }
 
-    if (callerPhone && !session.telefoon) {
-      session.telefoon = callerPhone;
-    }
-
+    // Verwerk het huidige (laatste) user bericht
+    const userMessage = userMessages[userMessages.length - 1];
     const result = engine.handle(session, userMessage);
     session = result.session;
 
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12fe0b'},body:JSON.stringify({sessionId:'12fe0b',location:'route.ts:AFTER_HANDLE',message:'handle() resultaat',data:{userMessage,state:session.state,dienst:session.dienst,response:result.response,shouldCheckAvailability:result.shouldCheckAvailability},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
-
+    // ── AGENDACHECK ──────────────────────────────────────────
     if (
       result.shouldCheckAvailability === true &&
       typeof session.datum_iso === "string" &&
@@ -240,24 +235,20 @@ export async function POST(request: NextRequest) {
 
       if (vrij) {
         const available = engine.availableResponse(session);
-        session = available.session;
-        await saveSession(supabase, sessionId, session, tenantId);
         return sseResponse(available.response, model);
       } else {
         const unavailable = engine.unavailableResponse(session);
-        session = unavailable.session;
-        await saveSession(supabase, sessionId, session, tenantId);
         return sseResponse(unavailable.response, model);
       }
     }
 
+    // ── AFSPRAAK OPSLAAN BIJ DONE ────────────────────────────
     if (session.state === AppointmentState.DONE) {
       const data = engine.buildAppointmentData(session);
-
       await supabase.from('appointments').insert({
         business_id: tenantId,
         customer_name: data.naam,
-        customer_phone: data.telefoon || session.telefoon || '',
+        customer_phone: data.telefoon || callerPhone || '',
         service_name: data.dienst,
         appointment_date: data.datum_iso,
         appointment_time: `${String(session.tijdstip_h ?? 0).padStart(2, '0')}:00`,
@@ -266,28 +257,16 @@ export async function POST(request: NextRequest) {
         notes: `${data.dienst} op ${data.datum} om ${data.tijdstip}`,
         created_at: new Date().toISOString(),
       });
-
-      await deleteSession(supabase, sessionId);
-    } else {
-      await saveSession(supabase, sessionId, session, tenantId);
     }
 
     if (!result.response || result.response.trim() === "") {
       return sseResponse("Kan je dat even herhalen?", model);
     }
 
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12fe0b'},body:JSON.stringify({sessionId:'12fe0b',location:'route.ts:FINAL_RESPONSE',message:'response terugsturen',data:{response:result.response,state:session.state},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
     return sseResponse(result.response, model);
 
   } catch (error) {
     console.error("[appointments] Error:", error);
-
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12fe0b'},body:JSON.stringify({sessionId:'12fe0b',location:'route.ts:CATCH',message:'CRASH in POST',data:{error:String(error)},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
-
     return sseResponse("Excuseer, kan u dat herhalen?", "appointment-system");
   }
 }
