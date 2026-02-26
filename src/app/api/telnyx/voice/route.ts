@@ -47,9 +47,15 @@ async function telnyxAction(
     body: JSON.stringify(payload),
   });
 
+  const responseText = await response.text();
   if (!response.ok) {
-    const text = await response.text();
-    console.error(`[telnyx/voice] action ${action} failed (${response.status}):`, text);
+    console.error(`[telnyx/voice] action ${action} failed (${response.status}):`, responseText);
+    await getSupabase().from('webhook_logs').insert({
+      event_type: `ACTION_FAIL:${action}`,
+      call_control_id: callControlId.slice(0, 40),
+      payload_summary: `${response.status}: ${responseText.slice(0, 400)}`,
+      created_at: new Date().toISOString(),
+    });
   } else {
     console.log(`[telnyx/voice] action ${action} OK`);
   }
