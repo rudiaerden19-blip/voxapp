@@ -5,7 +5,3 @@ buildCommand = "npm install && npm run build"
 [deploy]
 startCommand = "npm start"
 restartPolicyType = "on_failure"
-restartPolicyMaxRetries = 3
-
-[environments.production]
-PORT = { default = "8080" }
