@@ -261,20 +261,12 @@ export async function POST(request: NextRequest) {
       }
 
       case 'call.answered': {
-        const toNumber = (payload.to as string) ?? '';
-        const fromNumber = (payload.from as string) ?? '';
-        const businessId = await getBusinessIdForNumber(toNumber);
-        const { name: businessName, menu } = await loadBusinessInfo(businessId);
-
-        await createSession(callControlId, businessId, businessName, fromNumber);
-
-        const greetingText = getGreeting(businessName);
-        console.log('[telnyx/voice] greeting:', greetingText);
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12fe0b'},body:JSON.stringify({sessionId:'12fe0b',location:'route.ts:call.answered',message:'call beantwoord',data:{toNumber,fromNumber,businessId,businessName,greetingText},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion
-        const audioUrl = await textToAudioUrl(greetingText);
-        await gatherWithAudio(callControlId, audioUrl);
+        // DIAGNOSE: spreek tekst via Telnyx eigen TTS (geen ElevenLabs, geen Supabase)
+        await telnyxAction(callControlId, 'speak', {
+          payload: 'Goeiedag, dit is een test van VoxApp. Als u dit hoort werkt de verbinding.',
+          voice: 'female',
+          language: 'nl-NL',
+        });
         break;
       }
 
