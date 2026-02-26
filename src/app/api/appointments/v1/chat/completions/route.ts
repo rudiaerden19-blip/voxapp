@@ -176,22 +176,31 @@ function sseResponse(text: string, model: string): Response {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const messages: { role: string; content: string }[] = body.messages || [];
-    const model = body.model || 'appointment-system';
+    const model: string = body.model || 'appointment-system';
+
+    // ── DEBUG TEST — verwijder deze regel zodra endpoint werkt ──
     return sseResponse("Test antwoord werkt", model);
 
-    // Vapi stuurt call metadata mee
+  } catch (error) {
+    console.error('[appointments] Error:', error);
+    return sseResponse('Excuseer, kan u dat herhalen?', 'appointment-system');
+  }
+}
+
+export async function POST_REAL(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const messages: { role: string; content: string }[] = body.messages || [];
+    const model: string = body.model || 'appointment-system';
+
     const call = body.call || {};
     const agentId: string | undefined =
       call.assistantId || body.assistantId ||
       request.nextUrl.searchParams.get('agent_id') || undefined;
 
     const sessionId: string = call.id || `session_${Date.now()}`;
-
-    // Caller ID automatisch van Vapi
     const callerPhone: string | null = call.customer?.number || null;
 
-    // Laatste user bericht
     let userMessage = '';
     for (let i = messages.length - 1; i >= 0; i--) {
       if (messages[i].role === 'user') {
@@ -207,7 +216,7 @@ export async function POST(request: NextRequest) {
       return sseResponse('Excuseer, er is een technisch probleem. Probeer later opnieuw.', model);
     }
 
-    const { config, tenantId } = biz!;
+    const { config, tenantId } = biz;
     const engine = new AppointmentSystem(config);
 
     // Begroeting (geen user message)
