@@ -178,6 +178,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const messages: { role: string; content: string }[] = body.messages || [];
     const model = body.model || 'appointment-system';
+    return sseResponse("Test antwoord werkt", model);
+    const model = body.model || 'appointment-system';
 
     // Vapi stuurt call metadata mee
     const call = body.call || {};
