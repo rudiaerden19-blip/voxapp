@@ -71,12 +71,7 @@ function formatOpeningHours(openingHours: Record<string, { open: string; close: 
   return lines.join(', ');
 }
 
-// GET /api/vapi/business-info?business_id=xxx
-// VAPI roept dit aan als tool tijdens een gesprek
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const businessId = searchParams.get('business_id') ?? '0267c0ae-c997-421a-a259-e7559840897b';
+async function handleRequest(businessId: string) {
 
     const supabase = getSupabase();
     const { data, error } = await supabase
@@ -118,5 +113,23 @@ export async function GET(request: NextRequest) {
   } catch (err) {
     console.error('[vapi/business-info]', err);
     return NextResponse.json({ error: 'Serverfout' }, { status: 500 });
+  }
+}
+
+// GET ?business_id=xxx (directe aanroep of test)
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const businessId = searchParams.get('business_id') ?? '0267c0ae-c997-421a-a259-e7559840897b';
+  return handleRequest(businessId);
+}
+
+// POST { business_id: "xxx" } — VAPI tool call
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const businessId = body.business_id ?? '0267c0ae-c997-421a-a259-e7559840897b';
+    return handleRequest(businessId);
+  } catch {
+    return NextResponse.json({ error: 'Ongeldige request' }, { status: 400 });
   }
 }
