@@ -179,6 +179,10 @@ export async function POST(request: NextRequest) {
     const messages = body.messages || [];
     const model = body.model || "appointment-system";
 
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12fe0b'},body:JSON.stringify({sessionId:'12fe0b',location:'route.ts:POST_ENTRY',message:'POST ontvangen',data:{messageCount:messages.length,lastRoles:messages.slice(-3).map((m: {role:string;content:string})=>m.role),model},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+
     console.log("DEBUG BODY:", JSON.stringify(body));
 
     const call = body.call || {};
@@ -222,6 +226,10 @@ export async function POST(request: NextRequest) {
 
     const result = engine.handle(session, userMessage);
     session = result.session;
+
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12fe0b'},body:JSON.stringify({sessionId:'12fe0b',location:'route.ts:AFTER_HANDLE',message:'handle() resultaat',data:{userMessage,state:session.state,dienst:session.dienst,response:result.response,shouldCheckAvailability:result.shouldCheckAvailability},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
 
     if (
       result.shouldCheckAvailability === true &&
@@ -268,18 +276,17 @@ export async function POST(request: NextRequest) {
       return sseResponse("Kan je dat even herhalen?", model);
     }
 
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12fe0b'},body:JSON.stringify({sessionId:'12fe0b',location:'route.ts:FINAL_RESPONSE',message:'response terugsturen',data:{response:result.response,state:session.state},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
     return sseResponse(result.response, model);
 
   } catch (error) {
     console.error("[appointments] Error:", error);
 
-    try {
-      const cloned = request.clone();
-      const debugBody = await cloned.json();
-      console.error("[appointments] Request body:", JSON.stringify(debugBody));
-    } catch (e) {
-      console.error("[appointments] Could not log request body");
-    }
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12fe0b'},body:JSON.stringify({sessionId:'12fe0b',location:'route.ts:CATCH',message:'CRASH in POST',data:{error:String(error)},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
 
     return sseResponse("Excuseer, kan u dat herhalen?", "appointment-system");
   }
