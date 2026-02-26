@@ -20,7 +20,7 @@ import { MenuItem, ParsedItem } from '@/lib/voice-engine/types';
 
 const TELNYX_API_BASE = 'https://api.telnyx.com/v2';
 const STT_LANGUAGE = 'nl-NL';
-const SPEECH_TIMEOUT = 'auto'; // Telnyx detecteert automatisch einde van speech
+const SPEECH_TIMEOUT = 8; // seconden stilte voor einde herkenning
 const DEFAULT_BUSINESS_ID = '0267c0ae-c997-421a-a259-e7559840897b';
 
 function getSupabase() {
