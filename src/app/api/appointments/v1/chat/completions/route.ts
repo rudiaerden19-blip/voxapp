@@ -207,7 +207,7 @@ export async function POST(request: NextRequest) {
       return sseResponse('Excuseer, er is een technisch probleem. Probeer later opnieuw.', model);
     }
 
-    const { config, tenantId } = biz;
+    const { config, tenantId } = biz!;
     const engine = new AppointmentSystem(config);
 
     // Begroeting (geen user message)
