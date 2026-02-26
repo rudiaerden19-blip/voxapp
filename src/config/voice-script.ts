@@ -21,7 +21,8 @@
  * ============================================================
  */
 
-import { ParsedItem, DeliveryType } from '@/lib/voice-engine/types';
+type DeliveryType = 'pickup' | 'delivery' | null;
+interface ParsedItem { id: string; name: string; price: number; qty: number; }
 
 export const SCRIPT = {
 
