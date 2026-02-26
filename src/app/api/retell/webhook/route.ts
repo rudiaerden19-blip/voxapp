@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (event === 'call_ended' || event === 'call_analyzed') {
-    const analysis = call.call_analysis;
+    const analysis = call.call_analysis?.custom_analysis_data;
     const businessId = call.metadata?.business_id ?? '0267c0ae-c997-421a-a259-e7559840897b';
     const callerPhone = call.from_number ?? null;
     const durationMs = call.duration_ms ?? 0;
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
       event,
       call_id: call.call_id,
       has_analysis: !!analysis,
-      bestelling_geslaagd: (analysis as Record<string, unknown>)?.bestelling_geslaagd,
+      bestelling_geslaagd: analysis?.bestelling_geslaagd,
       has_items: !!analysis?.bestelde_items,
     });
 
