@@ -5,7 +5,7 @@
  */
 
 import { ConversationState, DeliveryType, MenuItem, ParsedItem } from './types';
-import { TEMPLATES } from './templates';
+import { SCRIPT } from '@/config/voice-script';
 import { parseMenuItems, detectYesNo, detectDelivery, extractName } from './menuParser';
 
 export interface SessionState {
@@ -41,7 +41,7 @@ export function processInput(
       if (newItems.length === 0) {
         return {
           nextState: 'TAKING_ORDER',
-          response: TEMPLATES.itemNotFound(),
+          response: SCRIPT.artikelNietGevonden(),
           updatedSession: session,
           endCall: false,
         };
@@ -49,37 +49,37 @@ export function processInput(
       const merged = mergeItems([...orderItems, ...newItems]);
       return {
         nextState: 'CONFIRM_MORE',
-        response: TEMPLATES.confirmMore(),
+        response: SCRIPT.nogIets(),
         updatedSession: { ...session, state: 'CONFIRM_MORE', orderItems: merged },
         endCall: false,
       };
     }
 
     case 'CONFIRM_MORE': {
-      const intent = detectYesNo(userInput);
-      // Klant zegt "ja en ook een cola" → eerst ja detecteren, maar ook items parsen
+      // Klant zegt "ja en ook een cola" → ook items parsen
       const extraItems = parseMenuItems(userInput, menu);
       if (extraItems.length > 0) {
         const merged = mergeItems([...orderItems, ...extraItems]);
         return {
           nextState: 'CONFIRM_MORE',
-          response: TEMPLATES.confirmMore(),
+          response: SCRIPT.nogIets(),
           updatedSession: { ...session, state: 'CONFIRM_MORE', orderItems: merged },
           endCall: false,
         };
       }
+      const intent = detectYesNo(userInput);
       if (intent === 'no') {
         return {
           nextState: 'PICKUP_OR_DELIVERY',
-          response: TEMPLATES.pickupOrDelivery(),
+          response: SCRIPT.afhalenOfLeveren(),
           updatedSession: { ...session, state: 'PICKUP_OR_DELIVERY' },
           endCall: false,
         };
       }
-      // "ja" zonder extra items → vraag opnieuw wat ze willen
+      // "ja" zonder extra items → laat ze opnieuw bestellen
       return {
         nextState: 'TAKING_ORDER',
-        response: TEMPLATES.confirmMore(),
+        response: SCRIPT.nogIets(),
         updatedSession: { ...session, state: 'TAKING_ORDER' },
         endCall: false,
       };
@@ -90,14 +90,14 @@ export function processInput(
       if (delivery === 'unknown') {
         return {
           nextState: 'PICKUP_OR_DELIVERY',
-          response: TEMPLATES.pickupOrDelivery(),
+          response: SCRIPT.afhalenOfLeveren(),
           updatedSession: session,
           endCall: false,
         };
       }
       return {
         nextState: 'GET_NAME',
-        response: TEMPLATES.getName(),
+        response: SCRIPT.naamVragen(),
         updatedSession: { ...session, state: 'GET_NAME', deliveryType: delivery },
         endCall: false,
       };
@@ -108,15 +108,14 @@ export function processInput(
       if (deliveryType === 'delivery') {
         return {
           nextState: 'GET_ADDRESS',
-          response: TEMPLATES.getAddress(name),
+          response: SCRIPT.adresVragen(name),
           updatedSession: { ...session, state: 'GET_ADDRESS', customerName: name },
           endCall: false,
         };
       }
-      const confirmText = TEMPLATES.confirmOrder(orderItems, deliveryType, name, null);
       return {
         nextState: 'CONFIRM_ORDER',
-        response: confirmText,
+        response: SCRIPT.bevestiging(orderItems, deliveryType, name, null),
         updatedSession: { ...session, state: 'CONFIRM_ORDER', customerName: name },
         endCall: false,
       };
@@ -125,10 +124,9 @@ export function processInput(
     case 'GET_ADDRESS': {
       const address = userInput.trim();
       const name = customerName ?? 'u';
-      const confirmText = TEMPLATES.confirmOrder(orderItems, deliveryType, name, address);
       return {
         nextState: 'CONFIRM_ORDER',
-        response: confirmText,
+        response: SCRIPT.bevestiging(orderItems, deliveryType, name, address),
         updatedSession: { ...session, state: 'CONFIRM_ORDER', deliveryAddress: address },
         endCall: false,
       };
@@ -139,7 +137,7 @@ export function processInput(
       if (intent === 'no') {
         return {
           nextState: 'GREETING',
-          response: `Geen probleem, laten we opnieuw beginnen. ${TEMPLATES.greeting(businessName)}`,
+          response: SCRIPT.opnieuwBeginnen(businessName),
           updatedSession: {
             state: 'GREETING',
             orderItems: [],
@@ -152,8 +150,8 @@ export function processInput(
       }
       const name = customerName ?? 'u';
       const doneText = deliveryType === 'delivery'
-        ? TEMPLATES.doneDelivery(name)
-        : TEMPLATES.donePickup(name);
+        ? SCRIPT.klaarLevering(name)
+        : SCRIPT.klaarAfhalen(name);
       return {
         nextState: 'DONE',
         response: doneText,
@@ -165,7 +163,7 @@ export function processInput(
     default:
       return {
         nextState: 'GREETING',
-        response: TEMPLATES.greeting(businessName),
+        response: SCRIPT.begroeting(businessName),
         updatedSession: { ...session, state: 'GREETING' },
         endCall: false,
       };
@@ -173,10 +171,10 @@ export function processInput(
 }
 
 /**
- * Genereert de openingszin (vóór de eerste user input).
+ * Openingszin — eerste zin die Anja zegt als de call beantwoord wordt.
  */
 export function getGreeting(businessName: string): string {
-  return TEMPLATES.greeting(businessName);
+  return SCRIPT.begroeting(businessName);
 }
 
 /**
