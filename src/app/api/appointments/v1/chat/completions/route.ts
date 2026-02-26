@@ -176,22 +176,10 @@ function sseResponse(text: string, model: string): Response {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const model: string = body.model || 'appointment-system';
+    const messages = body.messages || [];
+    const model = body.model || "appointment-system";
 
-    // ── DEBUG TEST — verwijder deze regel zodra endpoint werkt ──
-    return sseResponse("Test antwoord werkt", model);
-
-  } catch (error) {
-    console.error('[appointments] Error:', error);
-    return sseResponse('Excuseer, kan u dat herhalen?', 'appointment-system');
-  }
-}
-
-export async function POST_REAL(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const messages: { role: string; content: string }[] = body.messages || [];
-    const model: string = body.model || 'appointment-system';
+    console.log("DEBUG BODY:", JSON.stringify(body));
 
     const call = body.call || {};
     const agentId: string | undefined =
@@ -219,7 +207,6 @@ export async function POST_REAL(request: NextRequest) {
     const { config, tenantId } = biz;
     const engine = new AppointmentSystem(config);
 
-    // Begroeting (geen user message)
     if (!userMessage) {
       return sseResponse(engine.getGreeting(), model);
     }
@@ -229,7 +216,6 @@ export async function POST_REAL(request: NextRequest) {
       session = createEmptySession();
     }
 
-    // Sla caller ID op in sessie (eenmalig)
     if (callerPhone && !session.telefoon) {
       session.telefoon = callerPhone;
     }
@@ -237,7 +223,6 @@ export async function POST_REAL(request: NextRequest) {
     const result = engine.handle(session, userMessage);
     session = result.session;
 
-    // ── AGENDACHECK ──────────────────────────────────────────
     if (
       result.shouldCheckAvailability === true &&
       typeof session.datum_iso === "string" &&
@@ -258,7 +243,6 @@ export async function POST_REAL(request: NextRequest) {
       }
     }
 
-    // ── AFSPRAAK OPSLAAN BIJ DONE ────────────────────────────
     if (session.state === AppointmentState.DONE) {
       const data = engine.buildAppointmentData(session);
 
@@ -287,7 +271,16 @@ export async function POST_REAL(request: NextRequest) {
     return sseResponse(result.response, model);
 
   } catch (error) {
-    console.error('[appointments] Error:', error);
-    return sseResponse('Excuseer, kan u dat herhalen?', 'appointment-system');
+    console.error("[appointments] Error:", error);
+
+    try {
+      const cloned = request.clone();
+      const debugBody = await cloned.json();
+      console.error("[appointments] Request body:", JSON.stringify(debugBody));
+    } catch (e) {
+      console.error("[appointments] Could not log request body");
+    }
+
+    return sseResponse("Excuseer, kan u dat herhalen?", "appointment-system");
   }
 }
