@@ -242,7 +242,7 @@ export async function POST(request: NextRequest) {
 
   console.log('[telnyx/voice] event:', eventType, callControlId?.slice(0, 20));
 
-  if (!callControlId || !eventType) {
+  if (!callControlId || !eventType || !payload) {
     return NextResponse.json({ received: true });
   }
 
@@ -256,8 +256,8 @@ export async function POST(request: NextRequest) {
       }
 
       case 'call.answered': {
-        const toNumber = payload.to as string ?? '';
-        const fromNumber = payload.from as string ?? '';
+        const toNumber = (payload.to as string) ?? '';
+        const fromNumber = (payload.from as string) ?? '';
         const businessId = await getBusinessIdForNumber(toNumber);
         const { name: businessName, menu } = await loadBusinessInfo(businessId);
 
@@ -273,8 +273,8 @@ export async function POST(request: NextRequest) {
 
       case 'call.gather.ended': {
         const gatherResult = payload.speech_result as Record<string, unknown> | undefined;
-        const transcript = (gatherResult?.transcript as string ?? '').trim();
-        const status = payload.status as string ?? '';
+        const transcript = ((gatherResult?.transcript as string) ?? '').trim();
+        const status = (payload.status as string) ?? '';
 
         console.log('[telnyx/voice] transcript:', transcript, '| status:', status);
 
