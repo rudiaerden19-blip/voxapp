@@ -1,19 +1,6 @@
 /**
  * VAPI Custom LLM endpoint — OpenAI-compatible Chat Completions API.
- *
- * VAPI calls this endpoint on every conversation turn.
- * The state machine derives the current state from the conversation history
- * and returns a deterministic, fixed-template response.
- *
- * No free AI text generation — 100% deterministic workflow.
- *
- * Configure in VAPI assistant:
- *   Model → Custom LLM
- *   URL: https://www.voxapp.tech/api/voice-engine/chat
- *   Model ID: voice-order-v1
- *
- * Pass business_id in VAPI assistant metadata:
- *   metadata.business_id: "<uuid>"
+ * Supports both streaming (SSE) and non-streaming responses.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -54,7 +41,6 @@ async function loadMenu(businessId: string): Promise<MenuItem[]> {
     console.error('[voice-engine] Failed to load menu:', error?.message);
     return [];
   }
-
   return data as MenuItem[];
 }
 
@@ -65,8 +51,21 @@ async function loadBusinessName(businessId: string): Promise<string> {
     .select('name')
     .eq('id', businessId)
     .single();
-
   return data?.name ?? 'Frituur';
+}
+
+async function logToSupabase(callId: string | undefined, event: string, data: Record<string, unknown>) {
+  try {
+    const supabase = getSupabase();
+    await supabase.from('voice_debug_logs').insert({
+      call_id: callId ?? 'unknown',
+      event,
+      data,
+      created_at: new Date().toISOString(),
+    });
+  } catch {
+    // Non-critical — ignore
+  }
 }
 
 async function saveCompletedOrder(
@@ -119,6 +118,53 @@ async function saveCompletedOrder(
   }
 }
 
+/**
+ * Returns an SSE streaming response — required when VAPI sends stream: true.
+ */
+function streamResponse(content: string): Response {
+  const id = `chatcmpl-${Date.now()}`;
+  const created = Math.floor(Date.now() / 1000);
+  const model = 'voice-order-v1';
+
+  const encoder = new TextEncoder();
+
+  const stream = new ReadableStream({
+    start(controller) {
+      // First chunk: role
+      const roleChunk = {
+        id, object: 'chat.completion.chunk', created, model,
+        choices: [{ index: 0, delta: { role: 'assistant', content: '' }, finish_reason: null }],
+      };
+      controller.enqueue(encoder.encode(`data: ${JSON.stringify(roleChunk)}\n\n`));
+
+      // Content in one chunk (no need to split for voice)
+      const contentChunk = {
+        id, object: 'chat.completion.chunk', created, model,
+        choices: [{ index: 0, delta: { content }, finish_reason: null }],
+      };
+      controller.enqueue(encoder.encode(`data: ${JSON.stringify(contentChunk)}\n\n`));
+
+      // Finish chunk
+      const finishChunk = {
+        id, object: 'chat.completion.chunk', created, model,
+        choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
+      };
+      controller.enqueue(encoder.encode(`data: ${JSON.stringify(finishChunk)}\n\n`));
+      controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+
+      controller.close();
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+    },
+  });
+}
+
 export async function POST(request: NextRequest) {
   let body: VapiChatRequest;
   try {
@@ -127,16 +173,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  const { messages = [], call } = body;
+  const { messages = [], call, stream } = body;
   const businessId =
     call?.metadata?.business_id ?? '0267c0ae-c997-421a-a259-e7559840897b';
   const callId = call?.id;
 
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12fe0b'},body:JSON.stringify({sessionId:'12fe0b',location:'chat/route.ts:entry',message:'Request ontvangen',data:{callId,businessId,messageCount:messages.length,roles:messages.map((m:Message)=>m.role),supabaseUrl:process.env.NEXT_PUBLIC_SUPABASE_URL?.slice(0,30),hasServiceKey:!!process.env.SUPABASE_SERVICE_ROLE_KEY},timestamp:Date.now()})}).catch(()=>{});
-  // #endregion
+  console.log('[voice-engine] entry', { callId, businessId, messageCount: messages.length, stream, hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY });
 
-  // Filter out system messages — our state machine handles state, not the system prompt
+  // Filter out system messages
   const conversationMessages = messages.filter(
     (m): m is Message => m.role === 'user' || m.role === 'assistant'
   );
@@ -148,38 +192,41 @@ export async function POST(request: NextRequest) {
       loadMenu(businessId),
       loadBusinessName(businessId),
     ]);
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12fe0b'},body:JSON.stringify({sessionId:'12fe0b',location:'chat/route.ts:menu-loaded',message:'Menu geladen',data:{menuCount:menu.length,businessName,businessId},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
+    console.log('[voice-engine] menu loaded', { count: menu.length, businessName });
   } catch (err) {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12fe0b'},body:JSON.stringify({sessionId:'12fe0b',location:'chat/route.ts:menu-error',message:'FOUT bij laden menu',data:{error:String(err)},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
-    console.error('[voice-engine] Menu load error:', err);
+    console.error('[voice-engine] menu load error:', err);
+    await logToSupabase(callId, 'menu_error', { error: String(err) });
   }
 
   let result;
   try {
     result = processConversation(conversationMessages, menu, businessName);
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12fe0b'},body:JSON.stringify({sessionId:'12fe0b',location:'chat/route.ts:state-result',message:'State machine resultaat',data:{state:result.state,response:result.response,endCall:result.endCall,lastUserMsg:conversationMessages.filter(m=>m.role==='user').slice(-1)[0]?.content},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
   } catch (err) {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12fe0b'},body:JSON.stringify({sessionId:'12fe0b',location:'chat/route.ts:state-error',message:'FOUT in state machine',data:{error:String(err)},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
-    console.error('[voice-engine] State machine error:', err);
+    console.error('[voice-engine] state machine error:', err);
+    await logToSupabase(callId, 'state_error', { error: String(err) });
     result = { state: 'TAKING_ORDER' as const, response: 'Kunt u dat herhalen?', endCall: false };
   }
 
-  console.log(
-    `[voice-engine] state=${result.state} business=${businessId} call=${callId ?? 'unknown'} response="${result.response}"`
-  );
+  const lastUserMsg = conversationMessages.filter(m => m.role === 'user').slice(-1)[0]?.content;
+  console.log('[voice-engine] result', { state: result.state, response: result.response, stream, lastUserMsg });
+  await logToSupabase(callId, 'turn', {
+    state: result.state,
+    response: result.response,
+    stream: !!stream,
+    messageCount: conversationMessages.length,
+    lastUserMsg,
+    menuCount: menu.length,
+  });
 
   if (result.endCall) {
     saveCompletedOrder(businessId, callId, conversationMessages, menu).catch(err =>
-      console.error('[voice-engine] Order save error:', err)
+      console.error('[voice-engine] order save error:', err)
     );
+  }
+
+  // VAPI requires SSE streaming when stream: true
+  if (stream) {
+    return streamResponse(result.response);
   }
 
   return NextResponse.json({
@@ -190,17 +237,10 @@ export async function POST(request: NextRequest) {
     choices: [
       {
         index: 0,
-        message: {
-          role: 'assistant',
-          content: result.response,
-        },
+        message: { role: 'assistant', content: result.response },
         finish_reason: 'stop',
       },
     ],
-    usage: {
-      prompt_tokens: 0,
-      completion_tokens: 0,
-      total_tokens: 0,
-    },
+    usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
   });
 }
