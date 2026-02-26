@@ -230,9 +230,13 @@ export async function POST(request: NextRequest) {
   const callControlId = payload?.call_control_id as string | undefined;
 
   console.log('[telnyx/voice] event:', eventType, callControlId?.slice(0, 20));
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12fe0b'},body:JSON.stringify({sessionId:'12fe0b',location:'route.ts:webhook-entry',message:'webhook ontvangen',data:{eventType,callControlId:callControlId?.slice(0,20)},timestamp:Date.now()})}).catch(()=>{});
-  // #endregion
+  // Log elk event naar Supabase voor diagnose
+  getSupabase().from('webhook_logs').insert({
+    event_type: eventType,
+    call_control_id: callControlId?.slice(0, 40),
+    payload_summary: JSON.stringify(payload).slice(0, 500),
+    created_at: new Date().toISOString(),
+  }).then(() => {}).catch(() => {});
 
   if (!callControlId || !eventType || !payload) {
     return NextResponse.json({ received: true });
