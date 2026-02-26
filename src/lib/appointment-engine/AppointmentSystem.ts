@@ -129,7 +129,7 @@ const UUR_WOORDEN: Record<string, number> = {
 export function parseTijdstip(text: string): { leesbaar: string; uur: number } | null {
   const t = text.toLowerCase();
 
-  // "16u", "16:00", "16 uur", "om 16"
+  // "16u", "16:00", "16 uur", "om 16" — uren 7-20
   const digitMatch = t.match(/\b(1[0-9]|[7-9])(?::(\d{2})|h|u| uur)?\b/);
   if (digitMatch) {
     const uur = parseInt(digitMatch[1]);
@@ -139,12 +139,18 @@ export function parseTijdstip(text: string): { leesbaar: string; uur: number } |
     }
   }
 
+  // "om 2", "2 uur", "om 3" → interpreteer als PM (afspraken zijn overdag)
+  const pmMatch = t.match(/\b(?:om\s+)?([1-6])(?:\s+uur|u|h)?\b/);
+  if (pmMatch) {
+    const uur = parseInt(pmMatch[1]) + 12; // 2 → 14, 3 → 15, etc.
+    return { leesbaar: `${uur}u`, uur };
+  }
+
   // Woorden: "om twee uur", "om tien"
   for (const [woord, uur] of Object.entries(UUR_WOORDEN)) {
     if (new RegExp(`\\b(om\\s+)?${woord}(\\s+uur)?\\b`).test(t)) {
-      if (uur >= 7 && uur <= 20) {
-        return { leesbaar: `${uur}u`, uur };
-      }
+      const h = uur >= 7 ? uur : uur + 12; // "twee" → 14u
+      return { leesbaar: `${h}u`, uur: h };
     }
   }
 
@@ -236,7 +242,7 @@ export class AppointmentSystem {
           session.dienst = dienst;
           session.state = AppointmentState.DATUM_TIJD;
           return {
-            response: `Dat kan. Welke dag zou je graag komen en hoe laat? Dan kijk ik of dat nog vrij is.`,
+            response: `Dat kan. Welke dag en hoe laat?`,
             session,
             shouldCheckAvailability: false,
           };
@@ -253,22 +259,27 @@ export class AppointmentSystem {
         const datum = parseDatum(t);
         const tijdstip = parseTijdstip(t);
 
-        if (datum && tijdstip) {
+        // Sla op wat we nieuw gevonden hebben
+        if (datum) {
           session.datum = datum.leesbaar;
           session.datum_iso = datum.iso;
+        }
+        if (tijdstip) {
           session.tijdstip = tijdstip.leesbaar;
           session.tijdstip_h = tijdstip.uur;
-          // Endpoint checkt beschikbaarheid en beslist verder
+        }
+
+        // Beide bekend (uit huidig bericht OF eerder in de sessie)
+        if (session.datum_iso && session.tijdstip_h !== null) {
           return {
-            response: '', // Wordt ingevuld door endpoint na agendacheck
+            response: '',
             session,
             shouldCheckAvailability: true,
           };
         }
 
-        if (datum && !tijdstip) {
-          session.datum = datum.leesbaar;
-          session.datum_iso = datum.iso;
+        // Alleen datum bekend
+        if (session.datum_iso && session.tijdstip_h === null) {
           return {
             response: `En hoe laat?`,
             session,
@@ -276,9 +287,8 @@ export class AppointmentSystem {
           };
         }
 
-        if (!datum && tijdstip) {
-          session.tijdstip = tijdstip.leesbaar;
-          session.tijdstip_h = tijdstip.uur;
+        // Alleen tijdstip bekend
+        if (!session.datum_iso && session.tijdstip_h !== null) {
           return {
             response: `En welke dag?`,
             session,
@@ -287,7 +297,7 @@ export class AppointmentSystem {
         }
 
         return {
-          response: `Welke dag en hoe laat wil je langskomen?`,
+          response: `Welke dag en hoe laat?`,
           session,
           shouldCheckAvailability: false,
         };
@@ -340,13 +350,15 @@ export class AppointmentSystem {
 
   // Niet beschikbaar → vraag andere datum
   unavailableResponse(session: AppointmentSession): { response: string; session: AppointmentSession } {
+    const dag = session.datum || 'Die dag';
+    const uur = session.tijdstip || 'dat uur';
     session.datum = null;
     session.datum_iso = null;
     session.tijdstip = null;
     session.tijdstip_h = null;
     session.state = AppointmentState.DATUM_TIJD;
     return {
-      response: `${session.datum || 'Die dag'} om ${session.tijdstip || 'dat uur'} lukt helaas niet meer. Kan je een andere dag of een ander uur?`,
+      response: `${dag} om ${uur} lukt helaas niet. Welke andere dag en uur past u?`,
       session,
     };
   }
