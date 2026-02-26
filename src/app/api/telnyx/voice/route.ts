@@ -241,6 +241,9 @@ export async function POST(request: NextRequest) {
   const callControlId = payload?.call_control_id as string | undefined;
 
   console.log('[telnyx/voice] event:', eventType, callControlId?.slice(0, 20));
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12fe0b'},body:JSON.stringify({sessionId:'12fe0b',location:'route.ts:webhook-entry',message:'webhook ontvangen',data:{eventType,callControlId:callControlId?.slice(0,20)},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
 
   if (!callControlId || !eventType || !payload) {
     return NextResponse.json({ received: true });
@@ -250,7 +253,9 @@ export async function POST(request: NextRequest) {
     switch (eventType) {
 
       case 'call.initiated': {
-        // Beantwoord de inkomende call
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12fe0b'},body:JSON.stringify({sessionId:'12fe0b',location:'route.ts:call.initiated',message:'call beantwoorden',data:{callControlId:callControlId?.slice(0,20)},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
         await telnyxAction(callControlId, 'answer', {});
         break;
       }
@@ -263,9 +268,11 @@ export async function POST(request: NextRequest) {
 
         await createSession(callControlId, businessId, businessName, fromNumber);
 
-        // Genereer begroeting en start luisteren
         const greetingText = getGreeting(businessName);
         console.log('[telnyx/voice] greeting:', greetingText);
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12fe0b'},body:JSON.stringify({sessionId:'12fe0b',location:'route.ts:call.answered',message:'call beantwoord',data:{toNumber,fromNumber,businessId,businessName,greetingText},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
         const audioUrl = await textToAudioUrl(greetingText);
         await gatherWithAudio(callControlId, audioUrl);
         break;
@@ -277,6 +284,9 @@ export async function POST(request: NextRequest) {
         const status = (payload.status as string) ?? '';
 
         console.log('[telnyx/voice] transcript:', transcript, '| status:', status);
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12fe0b'},body:JSON.stringify({sessionId:'12fe0b',location:'route.ts:gather.ended',message:'transcript ontvangen',data:{transcript,status},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
 
         const sessionData = await getSession(callControlId);
         if (!sessionData) {
