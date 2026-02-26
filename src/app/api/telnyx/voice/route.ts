@@ -320,10 +320,15 @@ export async function POST(request: NextRequest) {
         break;
     }
   } catch (err) {
-    console.error('[telnyx/voice] unhandled error:', err);
-    // Probeer call netjes te beëindigen bij een onverwachte fout
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[telnyx/voice] unhandled error:', msg);
     try {
-      await telnyxAction(callControlId, 'hangup', {});
+      // Spreek de fout uit zodat we het horen bij een testcall
+      await telnyxAction(callControlId, 'speak', {
+        payload: `Er is een technische fout: ${msg.slice(0, 100)}`,
+        voice: 'female',
+        language: 'nl-NL',
+      });
     } catch { /* ignore */ }
   }
 
