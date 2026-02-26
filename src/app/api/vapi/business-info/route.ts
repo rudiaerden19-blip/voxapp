@@ -72,7 +72,7 @@ function formatOpeningHours(openingHours: Record<string, { open: string; close: 
 }
 
 async function handleRequest(businessId: string) {
-
+  try {
     const supabase = getSupabase();
     const { data, error } = await supabase
       .from('businesses')
@@ -84,7 +84,6 @@ async function handleRequest(businessId: string) {
       return NextResponse.json({ error: 'Business niet gevonden' }, { status: 404 });
     }
 
-    // Bepaal levering beschikbaar
     const deliveryConfig = data.delivery_config as Record<string, unknown> | null;
     const deliveryEnabled: boolean = deliveryConfig?.delivery_enabled !== false;
     const deliveryFee: number = typeof deliveryConfig?.delivery_fee === 'number'
