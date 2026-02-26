@@ -72,68 +72,90 @@ async function isSlotVrij(
 // BUSINESS + DIENSTEN LOADER
 // ============================================================
 
-const bizCache = new Map<string, { config: BusinessConfig; tenantId: string; ts: number }>();
-const CACHE_TTL = 5 * 60 * 1000;
-
-async function loadBusiness(supabase: DB, agentId?: string): Promise<{ config: BusinessConfig; tenantId: string } | null> {
-  const cacheKey = agentId || 'default';
-  const cached = bizCache.get(cacheKey);
-  if (cached && Date.now() - cached.ts < CACHE_TTL) {
-    return { config: cached.config, tenantId: cached.tenantId };
-  }
-
-  let bizRow: DB = null;
-
-  if (agentId) {
-    const { data } = await supabase
-      .from('businesses')
-      .select('id, name, ai_name, welcome_message')
-      .eq('agent_id', agentId)
-      .single();
-    bizRow = data;
-  }
-
-  if (!bizRow) {
-    const { data } = await supabase
-      .from('businesses')
-      .select('id, name, ai_name, welcome_message')
-      .order('created_at', { ascending: true })
-      .limit(1)
-      .single();
-    bizRow = data;
-  }
-
-  if (!bizRow) return null;
-
-  const { data: servicesData } = await supabase
-    .from('services')
-    .select('name, duration_minutes')
-    .eq('business_id', bizRow.id)
-    .eq('is_active', true)
-    .order('name');
-
-  const services: ServiceConfig[] = (servicesData || []).map((s: DB) => ({
-    name: s.name,
-    duration_minutes: s.duration_minutes || 30,
-  }));
-
-  const finalServices = services.length > 0 ? services : [
+// Hardcoded fallback — werkt altijd zonder Supabase (voor snelheid)
+const DEFAULT_CONFIG: BusinessConfig = {
+  name: 'ons kapsalon',
+  ai_name: 'Anja',
+  services: [
     { name: 'Knippen', duration_minutes: 30 },
     { name: 'Knippen en wassen', duration_minutes: 45 },
     { name: 'Brushen', duration_minutes: 45 },
     { name: 'Kleuren', duration_minutes: 90 },
     { name: 'Highlights', duration_minutes: 120 },
     { name: 'Baard trimmen', duration_minutes: 20 },
-  ];
+  ],
+};
+const DEFAULT_TENANT_ID = process.env.DEFAULT_TENANT_ID || 'default';
 
-  const config: BusinessConfig = {
-    name: bizRow.name || 'ons kapsalon',
-    ai_name: bizRow.ai_name || 'Anja',
-    services: finalServices,
-  };
+const bizCache = new Map<string, { config: BusinessConfig; tenantId: string; ts: number }>();
+const CACHE_TTL = 10 * 60 * 1000;
 
-  bizCache.set(cacheKey, { config, tenantId: bizRow.id, ts: Date.now() });
-  return { config, tenantId: bizRow.id };
+async function loadBusiness(supabase: DB, agentId?: string): Promise<{ config: BusinessConfig; tenantId: string }> {
+  const cacheKey = agentId || 'default';
+  const cached = bizCache.get(cacheKey);
+  if (cached && Date.now() - cached.ts < CACHE_TTL) {
+    return { config: cached.config, tenantId: cached.tenantId };
+  }
+
+  // Laad vanuit Supabase met 2 seconden timeout — gebruik fallback bij te traag
+  try {
+    const timeout = new Promise<null>((_, reject) =>
+      setTimeout(() => reject(new Error('timeout')), 2000)
+    );
+
+    const fetchBiz = async () => {
+      let bizRow: DB = null;
+
+      if (agentId) {
+        const { data } = await supabase
+          .from('businesses')
+          .select('id, name, ai_name, welcome_message')
+          .eq('agent_id', agentId)
+          .single();
+        bizRow = data;
+      }
+
+      if (!bizRow) {
+        const { data } = await supabase
+          .from('businesses')
+          .select('id, name, ai_name, welcome_message')
+          .order('created_at', { ascending: true })
+          .limit(1)
+          .single();
+        bizRow = data;
+      }
+
+      if (!bizRow) return null;
+
+      const { data: servicesData } = await supabase
+        .from('services')
+        .select('name, duration_minutes')
+        .eq('business_id', bizRow.id)
+        .eq('is_active', true)
+        .order('name');
+
+      const services: ServiceConfig[] = (servicesData || []).map((s: DB) => ({
+        name: s.name,
+        duration_minutes: s.duration_minutes || 30,
+      }));
+
+      const config: BusinessConfig = {
+        name: bizRow.name || DEFAULT_CONFIG.name,
+        ai_name: bizRow.ai_name || DEFAULT_CONFIG.ai_name,
+        services: services.length > 0 ? services : DEFAULT_CONFIG.services,
+      };
+
+      bizCache.set(cacheKey, { config, tenantId: bizRow.id, ts: Date.now() });
+      return { config, tenantId: bizRow.id };
+    };
+
+    const result = await Promise.race([fetchBiz(), timeout]);
+    if (result) return result;
+  } catch {
+    // Supabase te traag of niet beschikbaar → gebruik fallback
+  }
+
+  return { config: DEFAULT_CONFIG, tenantId: DEFAULT_TENANT_ID };
 }
 
 // ============================================================
@@ -187,10 +209,6 @@ export async function POST(request: NextRequest) {
 
     const supabase = getSupabase();
     const biz = await loadBusiness(supabase, agentId);
-
-    if (!biz) {
-      return sseResponse('Excuseer, er is een technisch probleem. Probeer later opnieuw.', model);
-    }
 
     const { config, tenantId } = biz;
     const engine = new AppointmentSystem(config);
