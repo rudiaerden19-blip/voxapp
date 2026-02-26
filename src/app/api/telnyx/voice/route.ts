@@ -56,25 +56,25 @@ async function telnyxAction(
 }
 
 /**
- * Speelt audio af + start luisteren in één Telnyx-commando.
- */
-async function gatherWithAudio(callControlId: string, audioUrl: string): Promise<void> {
-  await telnyxAction(callControlId, 'gather_using_speech', {
-    audio_url: audioUrl,
-    language: STT_LANGUAGE,
-    speech_timeout: SPEECH_TIMEOUT,
-    maximum_tries: 3,
-    minimum_length: 1,
-  });
-}
-
-/**
- * Speelt audio af zonder daarna te luisteren (voor eindbevestiging).
+ * Speelt ElevenLabs audio af. Na afloop stuurt Telnyx call.playback.ended.
+ * Dan starten we het luisteren apart.
  */
 async function playAudio(callControlId: string, audioUrl: string): Promise<void> {
   await telnyxAction(callControlId, 'play_audio', {
     audio_url: audioUrl,
     loop: 1,
+  });
+}
+
+/**
+ * Start luisteren zonder audio (audio was al afgespeeld).
+ */
+async function startListening(callControlId: string): Promise<void> {
+  await telnyxAction(callControlId, 'gather_using_speech', {
+    language: STT_LANGUAGE,
+    speech_timeout: SPEECH_TIMEOUT,
+    maximum_tries: 1,
+    minimum_length: 1,
   });
 }
 
@@ -261,12 +261,24 @@ export async function POST(request: NextRequest) {
       }
 
       case 'call.answered': {
-        // DIAGNOSE: spreek tekst via Telnyx eigen TTS (geen ElevenLabs, geen Supabase)
-        await telnyxAction(callControlId, 'speak', {
-          payload: 'Goeiedag, dit is een test van VoxApp. Als u dit hoort werkt de verbinding.',
-          voice: 'female',
-          language: 'nl-NL',
-        });
+        const toNumber = (payload.to as string) ?? '';
+        const fromNumber = (payload.from as string) ?? '';
+        const businessId = await getBusinessIdForNumber(toNumber);
+        const { name: businessName } = await loadBusinessInfo(businessId);
+        await createSession(callControlId, businessId, businessName, fromNumber);
+        const greetingText = getGreeting(businessName);
+        const audioUrl = await textToAudioUrl(greetingText);
+        await playAudio(callControlId, audioUrl);
+        break;
+      }
+
+      case 'call.playback.ended': {
+        const sessionData = await getSession(callControlId);
+        if (sessionData?.session.state === 'DONE') {
+          await telnyxAction(callControlId, 'hangup', {});
+        } else {
+          await startListening(callControlId);
+        }
         break;
       }
 
@@ -306,16 +318,13 @@ export async function POST(request: NextRequest) {
         const audioUrl = await textToAudioUrl(result.response);
 
         if (result.endCall) {
-          // Bestelling opslaan
           await saveOrder(callControlId, businessId, result.updatedSession);
-          // Speel eindbevestiging af en hang op
           await playAudio(callControlId, audioUrl);
-          // Geef audio tijd om af te spelen (5 seconden) dan hangup
-          setTimeout(() => {
-            telnyxAction(callControlId, 'hangup', {}).catch(console.error);
-          }, 5000);
+          // Hangup via call.playback.ended event (endCall flag opslaan in sessie)
+          await updateSession(callControlId, { ...result.updatedSession, state: 'DONE' });
         } else {
-          await gatherWithAudio(callControlId, audioUrl);
+          await playAudio(callControlId, audioUrl);
+          // Luisteren start automatisch na call.playback.ended
         }
         break;
       }
