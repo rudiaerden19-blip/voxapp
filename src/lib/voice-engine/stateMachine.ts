@@ -12,6 +12,9 @@ import { parseMenuItems, detectYesNo, detectDelivery, extractName } from './menu
 
 /**
  * Determines the current state by looking at the last assistant message.
+ * Priority order matters — check most specific states first.
+ * GREETING markers (goeiedag / wat mag het zijn) map to TAKING_ORDER
+ * because the greeting has already been spoken; we're now collecting items.
  */
 function deriveState(messages: Message[]): ConversationState {
   const assistantMsgs = messages.filter(m => m.role === 'assistant');
@@ -19,11 +22,14 @@ function deriveState(messages: Message[]): ConversationState {
 
   const last = assistantMsgs[assistantMsgs.length - 1].content.toLowerCase();
 
-  for (const [state, markers] of Object.entries(STATE_MARKERS)) {
-    if (markers.some(marker => last.includes(marker))) {
-      return state as ConversationState;
-    }
-  }
+  if (STATE_MARKERS.DONE.some(m => last.includes(m))) return 'DONE';
+  if (STATE_MARKERS.CONFIRM_ORDER.some(m => last.includes(m))) return 'CONFIRM_ORDER';
+  if (STATE_MARKERS.GET_ADDRESS.some(m => last.includes(m))) return 'GET_ADDRESS';
+  if (STATE_MARKERS.GET_NAME.some(m => last.includes(m))) return 'GET_NAME';
+  if (STATE_MARKERS.PICKUP_OR_DELIVERY.some(m => last.includes(m))) return 'PICKUP_OR_DELIVERY';
+  if (STATE_MARKERS.CONFIRM_MORE.some(m => last.includes(m))) return 'CONFIRM_MORE';
+  // Greeting markers → we already greeted, now taking order
+  if (STATE_MARKERS.GREETING.some(m => last.includes(m))) return 'TAKING_ORDER';
 
   return 'TAKING_ORDER';
 }
