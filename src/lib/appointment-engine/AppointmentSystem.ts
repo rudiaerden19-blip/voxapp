@@ -70,6 +70,21 @@ const DAG_OFFSET: Record<string, number> = {
   donderdag: 4, vrijdag: 5, zaterdag: 6,
 };
 
+// Deepgram schrijft dagnamen soms fout — correcties
+const DAG_CORRECTIES: Record<string, string> = {
+  dinddag: 'dinsdag', dinkdag: 'dinsdag', dindag: 'dinsdag', dinsag: 'dinsdag',
+  woendag: 'woensdag', winsdag: 'woensdag', wendag: 'woensdag',
+  maanda: 'maandag', maadag: 'maandag',
+  donddag: 'donderdag', donderda: 'donderdag',
+  vrijda: 'vrijdag', vrida: 'vrijdag',
+  zaterddag: 'zaterdag', zaterda: 'zaterdag',
+  zonda: 'zondag', zonddag: 'zondag',
+};
+
+function normaliseerDagen(text: string): string {
+  return text.replace(/\b\w+\b/g, w => DAG_CORRECTIES[w.toLowerCase()] || w);
+}
+
 function dagNaarISO(dagNaam: string): string {
   const today = new Date();
   const todayDay = today.getDay(); // 0=zo, 1=ma, ...
@@ -82,7 +97,7 @@ function dagNaarISO(dagNaam: string): string {
 }
 
 export function parseDatum(text: string): { leesbaar: string; iso: string } | null {
-  const t = text.toLowerCase();
+  const t = normaliseerDagen(text.toLowerCase());
 
   if (/morgen/.test(t)) {
     const d = new Date();
