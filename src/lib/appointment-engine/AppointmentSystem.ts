@@ -141,8 +141,26 @@ const UUR_WOORDEN: Record<string, number> = {
   zeven: 7, acht: 8, negen: 9, tien: 10, elf: 11, twaalf: 12,
 };
 
+// Deepgram schrijft tijdwoorden soms fout — correcties
+const TIJDSTIP_CORRECTIES: Record<string, string> = {
+  klier: 'vier', kier: 'vier', fier: 'vier',
+  drij: 'drie', drie: 'drie',
+  twie: 'twee', twe: 'twee',
+  vief: 'vijf', vyf: 'vijf',
+  zeven: 'zeven', seve: 'zeven',
+  acht: 'acht', agt: 'acht',
+  nege: 'negen', negen: 'negen',
+  tein: 'tien', tein: 'tien',
+  elf: 'elf', elft: 'elf',
+  twaalf: 'twaalf', twalef: 'twaalf',
+};
+
+function normaliseerTijdstip(text: string): string {
+  return text.replace(/\b\w+\b/g, w => TIJDSTIP_CORRECTIES[w.toLowerCase()] || w);
+}
+
 export function parseTijdstip(text: string): { leesbaar: string; uur: number } | null {
-  const t = text.toLowerCase();
+  const t = normaliseerTijdstip(text.toLowerCase());
 
   // "16u", "16:00", "16 uur", "om 16" — uren 7-20
   const digitMatch = t.match(/\b(1[0-9]|[7-9])(?::(\d{2})|h|u| uur)?\b/);
