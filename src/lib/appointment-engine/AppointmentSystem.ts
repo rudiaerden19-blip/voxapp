@@ -144,15 +144,15 @@ const UUR_WOORDEN: Record<string, number> = {
 // Deepgram schrijft tijdwoorden soms fout — correcties
 const TIJDSTIP_CORRECTIES: Record<string, string> = {
   klier: 'vier', kier: 'vier', fier: 'vier',
-  drij: 'drie', drie: 'drie',
+  drij: 'drie',
   twie: 'twee', twe: 'twee',
   vief: 'vijf', vyf: 'vijf',
-  zeven: 'zeven', seve: 'zeven',
-  acht: 'acht', agt: 'acht',
-  nege: 'negen', negen: 'negen',
-  tein: 'tien', tein: 'tien',
-  elf: 'elf', elft: 'elf',
-  twaalf: 'twaalf', twalef: 'twaalf',
+  seve: 'zeven',
+  agt: 'acht',
+  nege: 'negen',
+  tein: 'tien',
+  elft: 'elf',
+  twalef: 'twaalf',
 };
 
 function normaliseerTijdstip(text: string): string {
