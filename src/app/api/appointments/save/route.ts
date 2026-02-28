@@ -93,12 +93,40 @@ export async function POST(request: NextRequest) {
       return Response.json([{ toolCallId, result: 'Ontbrekende gegevens: naam, datum en tijdstip zijn verplicht.' }]);
     }
 
+    // ── Service lookup (tenant-scoped) ───────────────────────
+    let serviceId: string | null = null;
+    let durationMinutes = 30;
+    let servicePrice: number | null = null;
+
+    if (dienst) {
+      const { data: allServices } = await supabase
+        .from('services')
+        .select('id, name, duration_minutes, price')
+        .eq('business_id', businessId)
+        .eq('is_active', true);
+
+      if (allServices && allServices.length > 0) {
+        const d = dienst.toLowerCase();
+        const match =
+          allServices.find(s => s.name.toLowerCase() === d) ||
+          allServices.find(s => s.name.toLowerCase().includes(d)) ||
+          allServices.find(s => d.includes(s.name.toLowerCase())) ||
+          allServices.find(s => s.name.toLowerCase().slice(0, 4) === d.slice(0, 4));
+
+        if (match) {
+          serviceId = match.id;
+          durationMinutes = match.duration_minutes || 30;
+          servicePrice = match.price ?? null;
+        }
+      }
+    }
+
     // ── Datum + tijdstip berekening ───────────────────────────
     const isoDate = dagNaarDatum(datum);
     const uurMatch = tijdstip.match(/(\d{1,2})/);
     const uur = uurMatch ? parseInt(uurMatch[1]) : 9;
     const startTime = new Date(`${isoDate}T${String(uur).padStart(2, '0')}:00:00`);
-    const endTime = new Date(startTime.getTime() + 30 * 60 * 1000);
+    const endTime = new Date(startTime.getTime() + durationMinutes * 60 * 1000);
 
     // ── Availability check ────────────────────────────────────
     const { data: existing } = await supabase
@@ -118,6 +146,7 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Insert ────────────────────────────────────────────────
+    const prijsTekst = servicePrice !== null ? ` — €${servicePrice.toFixed(0)}` : '';
     const { error: insertError } = await supabase.from('appointments').insert({
       business_id: businessId,
       customer_name: naam,
@@ -126,7 +155,8 @@ export async function POST(request: NextRequest) {
       end_time: endTime.toISOString(),
       status: 'confirmed',
       booked_by: 'ai',
-      notes: `${dienst} op ${datum} om ${tijdstip}`,
+      service_id: serviceId,
+      notes: `${dienst}${prijsTekst} — ${durationMinutes} min`,
     });
 
     if (insertError) {
@@ -136,10 +166,11 @@ export async function POST(request: NextRequest) {
       throw new Error(insertError.message);
     }
 
-    return Response.json([{
-      toolCallId,
-      result: `Afspraak bevestigd voor ${naam} op ${datum} om ${tijdstip}u.`,
-    }]);
+    const bevestiging = servicePrice !== null
+      ? `Afspraak bevestigd voor ${naam}: ${dienst} op ${datum} om ${tijdstip}u. Duur: ${durationMinutes} minuten, prijs: €${servicePrice.toFixed(0)}.`
+      : `Afspraak bevestigd voor ${naam}: ${dienst} op ${datum} om ${tijdstip}u. Duur: ${durationMinutes} minuten.`;
+
+    return Response.json([{ toolCallId, result: bevestiging }]);
 
   } catch (err) {
     console.error('[appointments/save]', err);
