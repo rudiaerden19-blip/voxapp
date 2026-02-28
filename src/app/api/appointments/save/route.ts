@@ -44,11 +44,10 @@ export async function POST(request: NextRequest) {
   try {
     // ── Webhook secret verificatie ────────────────────────────
     const webhookSecret = process.env.VAPI_WEBHOOK_SECRET;
-    if (webhookSecret) {
-      const incoming = request.headers.get('x-vapi-secret');
-      if (incoming !== webhookSecret) {
-        return Response.json({ error: 'Unauthorized' }, { status: 401 });
-      }
+    if (!webhookSecret) throw new Error('VAPI_WEBHOOK_SECRET is not configured');
+    const incoming = request.headers.get('x-webhook-secret');
+    if (incoming !== webhookSecret) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -130,7 +129,12 @@ export async function POST(request: NextRequest) {
       notes: `${dienst} op ${datum} om ${tijdstip}`,
     });
 
-    if (insertError) throw new Error(insertError.message);
+    if (insertError) {
+      if (insertError.code === '23505') {
+        return Response.json({ error: 'Timeslot already booked' }, { status: 409 });
+      }
+      throw new Error(insertError.message);
+    }
 
     return Response.json([{
       toolCallId,
