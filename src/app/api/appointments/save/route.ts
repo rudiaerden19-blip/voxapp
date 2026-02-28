@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
     });
 
     // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d', {method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12fe0b'},body:JSON.stringify({sessionId:'12fe0b',location:'save/route.ts:INSERT',message:'Supabase insert resultaat',data:{isoDate,appointmentTime,tenantId,error: insertError ? JSON.stringify(insertError) : null},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7242/ingest/0f1a73aa-b288-4694-976b-ca856d570f3d', {method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'12fe0b'},body:JSON.stringify({sessionId:'12fe0b',location:'save/route.ts:INSERT',message:'Supabase insert resultaat',data:{isoDate,startTime:startTime.toISOString(),businessId,error: insertError ? JSON.stringify(insertError) : null},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
     // #endregion
 
     if (insertError) {
