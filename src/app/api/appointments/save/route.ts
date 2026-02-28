@@ -4,10 +4,10 @@ import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 function getSupabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) throw new Error('Missing Supabase env vars');
+  return createClient(url, key);
 }
 
 const DAGEN: Record<string, number> = {
@@ -42,6 +42,15 @@ function dagNaarDatum(dag: string): string {
 export async function POST(request: NextRequest) {
   let toolCallId = 'unknown';
   try {
+    // ── Webhook secret verificatie ────────────────────────────
+    const webhookSecret = process.env.VAPI_WEBHOOK_SECRET;
+    if (webhookSecret) {
+      const incoming = request.headers.get('x-vapi-secret');
+      if (incoming !== webhookSecret) {
+        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+    }
+
     const body = await request.json();
     const toolCallList = body?.message?.toolCallList ?? [];
     const toolCall = toolCallList[0];
@@ -54,6 +63,27 @@ export async function POST(request: NextRequest) {
         : toolCall.function.arguments;
     }
 
+    // ── Tenant resolutie via assistantId ─────────────────────
+    const assistantId = String(body?.message?.call?.assistantId ?? '').trim();
+    if (!assistantId) {
+      return Response.json({ error: 'Missing assistantId' }, { status: 400 });
+    }
+
+    const supabase = getSupabase();
+
+    const { data: business, error: bizError } = await supabase
+      .from('businesses')
+      .select('id')
+      .eq('agent_id', assistantId)
+      .single();
+
+    if (bizError || !business) {
+      return Response.json({ error: 'Invalid assistant' }, { status: 400 });
+    }
+
+    const businessId = business.id;
+
+    // ── Invoer validatie ──────────────────────────────────────
     const naam = String(args.naam || '').trim();
     const dienst = String(args.dienst || args.diensten || '').trim();
     const datum = String(args.datum || '').trim();
@@ -61,18 +91,17 @@ export async function POST(request: NextRequest) {
     const telefoon = String(body?.message?.call?.customer?.number ?? '');
 
     if (!naam || !datum || !tijdstip) {
-      return Response.json([{ toolCallId, result: 'Ontbrekende gegevens.' }]);
+      return Response.json([{ toolCallId, result: 'Ontbrekende gegevens: naam, datum en tijdstip zijn verplicht.' }]);
     }
 
+    // ── Datum + tijdstip berekening ───────────────────────────
     const isoDate = dagNaarDatum(datum);
     const uurMatch = tijdstip.match(/(\d{1,2})/);
     const uur = uurMatch ? parseInt(uurMatch[1]) : 9;
     const startTime = new Date(`${isoDate}T${String(uur).padStart(2, '0')}:00:00`);
     const endTime = new Date(startTime.getTime() + 30 * 60 * 1000);
 
-    const businessId = process.env.DEFAULT_TENANT_ID || 'a0fd94a3-b740-415e-91c1-7a22ce19dead';
-    const supabase = getSupabase();
-
+    // ── Availability check ────────────────────────────────────
     const { data: existing } = await supabase
       .from('appointments')
       .select('id')
@@ -89,7 +118,8 @@ export async function POST(request: NextRequest) {
       }], { status: 409 });
     }
 
-    await supabase.from('appointments').insert({
+    // ── Insert ────────────────────────────────────────────────
+    const { error: insertError } = await supabase.from('appointments').insert({
       business_id: businessId,
       customer_name: naam,
       customer_phone: telefoon,
@@ -100,12 +130,15 @@ export async function POST(request: NextRequest) {
       notes: `${dienst} op ${datum} om ${tijdstip}`,
     });
 
+    if (insertError) throw new Error(insertError.message);
+
     return Response.json([{
       toolCallId,
       result: `Afspraak bevestigd voor ${naam} op ${datum} om ${tijdstip}u.`,
     }]);
 
-  } catch {
-    return Response.json([{ toolCallId, result: 'Afspraak bevestigd.' }]);
+  } catch (err) {
+    console.error('[appointments/save]', err);
+    return Response.json([{ toolCallId, result: 'Er is een fout opgetreden. Probeer opnieuw.' }], { status: 500 });
   }
 }
