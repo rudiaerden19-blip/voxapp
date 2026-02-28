@@ -79,22 +79,23 @@ export async function POST(request: NextRequest) {
     const isoDate = dagNaarDatum(datum);
     const uurMatch = String(tijdstip).match(/(\d{1,2})/);
     const uur = uurMatch ? parseInt(uurMatch[1]) : 9;
-    const appointmentTime = `${String(uur).padStart(2, '0')}:00`;
+
+    // Bouw start_time en end_time als ISO timestamps
+    const startTime = new Date(`${isoDate}T${String(uur).padStart(2, '0')}:00:00`);
+    const endTime = new Date(startTime.getTime() + 30 * 60 * 1000); // +30 min
 
     const supabase = getSupabase();
-    const tenantId = process.env.DEFAULT_TENANT_ID || 'demo-kapsalon';
+    const businessId = process.env.DEFAULT_TENANT_ID || 'a0fd94a3-b740-415e-91c1-7a22ce19dead';
 
     const { error: insertError } = await supabase.from('appointments').insert({
-      business_id: tenantId,
+      business_id: businessId,
       customer_name: naam,
       customer_phone: telefoon,
-      service_name: dienst || 'Afspraak',
-      appointment_date: isoDate,
-      appointment_time: appointmentTime,
+      start_time: startTime.toISOString(),
+      end_time: endTime.toISOString(),
       status: 'confirmed',
-      source: 'phone',
+      booked_by: 'ai',
       notes: `${dienst} op ${datum} om ${tijdstip}`,
-      created_at: new Date().toISOString(),
     });
 
     // #region agent log
