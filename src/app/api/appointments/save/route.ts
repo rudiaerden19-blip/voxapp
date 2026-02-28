@@ -92,3 +92,4 @@ export async function POST(request: NextRequest) {
     return Response.json([{ toolCallId, result: 'Afspraak bevestigd.' }]);
   }
 }
+// deploy trigger
