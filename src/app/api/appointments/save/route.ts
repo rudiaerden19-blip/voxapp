@@ -71,8 +71,25 @@ export async function POST(request: NextRequest) {
     const endTime = new Date(startTime.getTime() + 30 * 60 * 1000);
 
     const businessId = process.env.DEFAULT_TENANT_ID || 'a0fd94a3-b740-415e-91c1-7a22ce19dead';
+    const supabase = getSupabase();
 
-    await getSupabase().from('appointments').insert({
+    const { data: existing } = await supabase
+      .from('appointments')
+      .select('id')
+      .eq('business_id', businessId)
+      .eq('start_time', startTime.toISOString())
+      .in('status', ['confirmed', 'scheduled'])
+      .limit(1)
+      .single();
+
+    if (existing) {
+      return Response.json([{
+        toolCallId,
+        result: `${datum} om ${tijdstip}u is helaas al bezet. Kies een ander tijdstip.`,
+      }], { status: 409 });
+    }
+
+    await supabase.from('appointments').insert({
       business_id: businessId,
       customer_name: naam,
       customer_phone: telefoon,
