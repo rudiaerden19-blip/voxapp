@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * Voeg Belgisch nummer +32480210478 toe aan Vapi (als het ontbreekt).
+ * Voeg Belgisch nummer +32480210478 toe aan Vapi EU (als het ontbreekt).
  * Run: node scripts/add-vapi-belgian-number.mjs
- * Vereist: VAPI_API_KEY in .env.local
+ * Vereist: VAPI_API_KEY in .env.local (EU key)
  */
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
@@ -24,24 +24,30 @@ if (!VAPI_API_KEY) {
   process.exit(1);
 }
 
+const VAPI_BASE = process.env.VAPI_API_BASE || 'https://api.eu.vapi.ai';
 const PHONE = '+32480210478';
-const ASSISTANT_ID = '0951136f-27b1-42cb-856c-32678ad1de57';
-const CREDENTIAL_ID = '22a72fe7-a07a-4963-a158-f34ec14397e1';
+const ASSISTANT_ID = process.env.VAPI_ASSISTANT_ID;
+const CREDENTIAL_ID = process.env.VAPI_CREDENTIAL_ID;
 
-// Check of nummer al bestaat
-const list = await fetch('https://api.vapi.ai/phone-number', {
+if (!ASSISTANT_ID || !CREDENTIAL_ID) {
+  console.error('VAPI_ASSISTANT_ID of VAPI_CREDENTIAL_ID ontbreekt in .env.local');
+  process.exit(1);
+}
+
+console.log(`Vapi regio: EU (${VAPI_BASE})`);
+
+const list = await fetch(`${VAPI_BASE}/phone-number`, {
   headers: { Authorization: `Bearer ${VAPI_API_KEY}` },
 });
 const numbers = await list.json();
 const exists = numbers.find((n) => n.number === PHONE);
 
 if (exists) {
-  console.log(`✓ Nummer ${PHONE} staat al in Vapi (${exists.name})`);
+  console.log(`✓ Nummer ${PHONE} staat al in Vapi EU (${exists.name})`);
   process.exit(0);
 }
 
-// Toevoegen
-const res = await fetch('https://api.vapi.ai/phone-number', {
+const res = await fetch(`${VAPI_BASE}/phone-number`, {
   method: 'POST',
   headers: {
     Authorization: `Bearer ${VAPI_API_KEY}`,
@@ -58,7 +64,7 @@ const res = await fetch('https://api.vapi.ai/phone-number', {
 
 const data = await res.json();
 if (res.ok) {
-  console.log(`✓ Nummer ${PHONE} toegevoegd aan Vapi`);
+  console.log(`✓ Nummer ${PHONE} toegevoegd aan Vapi EU`);
 } else {
   console.error('Fout:', data);
   process.exit(1);

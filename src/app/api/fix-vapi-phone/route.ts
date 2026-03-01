@@ -1,20 +1,17 @@
 import { NextResponse } from 'next/server';
 
 const PHONE = '+32480210478';
-const ASSISTANT_ID = '0951136f-27b1-42cb-856c-32678ad1de57';
-const CREDENTIAL_ID = '22a72fe7-a07a-4963-a158-f34ec14397e1';
 const VAPI_TELNYX_WEBHOOK = 'https://api.eu.vapi.ai/telnyx/inbound_call';
 
 /**
  * POST /api/fix-vapi-phone
- * Oplost "geen aansluiting": zet Telnyx webhook naar Vapi + voeg nummer toe in Vapi.
- * Roept alles automatisch aan — geen handmatige stappen.
+ * Oplost "geen aansluiting": zet Telnyx webhook naar Vapi EU + controleert nummer in Vapi EU.
  */
 export async function POST() {
   const results: { step: string; ok: boolean; message: string }[] = [];
+  const VAPI_BASE = process.env.VAPI_API_BASE || 'https://api.eu.vapi.ai';
 
   try {
-    // Stap 1: Telnyx webhook naar Vapi zetten (als webhook nu naar voxapp wijst)
     const telnyxKey = process.env.TELNYX_API_KEY;
     if (telnyxKey) {
       const listRes = await fetch('https://api.telnyx.com/v2/call_control_applications?page[size]=50', {
@@ -39,7 +36,7 @@ export async function POST() {
               }),
             });
             if (patchRes.ok) {
-              results.push({ step: 'telnyx_webhook', ok: true, message: `Webhook gezet naar Vapi (app ${app.id})` });
+              results.push({ step: 'telnyx_webhook', ok: true, message: `Webhook gezet naar Vapi EU (app ${app.id})` });
             } else {
               const err = await patchRes.text();
               results.push({ step: 'telnyx_webhook', ok: false, message: `Telnyx PATCH mislukt: ${err}` });
@@ -58,41 +55,46 @@ export async function POST() {
       results.push({ step: 'telnyx_webhook', ok: false, message: 'TELNYX_API_KEY ontbreekt' });
     }
 
-    // Stap 2: Nummer in Vapi
     const vapiKey = process.env.VAPI_API_KEY;
     if (!vapiKey) {
       results.push({ step: 'vapi_number', ok: false, message: 'VAPI_API_KEY ontbreekt' });
     } else {
-      const listRes = await fetch('https://api.vapi.ai/phone-number', {
+      const listRes = await fetch(`${VAPI_BASE}/phone-number`, {
         headers: { Authorization: `Bearer ${vapiKey}` },
       });
       if (!listRes.ok) {
-        results.push({ step: 'vapi_number', ok: false, message: `Vapi list failed: ${listRes.status}` });
+        results.push({ step: 'vapi_number', ok: false, message: `Vapi EU list failed: ${listRes.status}` });
       } else {
         const numbers = await listRes.json();
         const exists = Array.isArray(numbers) && numbers.find((n: { number: string }) => n.number === PHONE);
         if (exists) {
-          results.push({ step: 'vapi_number', ok: true, message: `Nummer ${PHONE} staat al in Vapi` });
+          results.push({ step: 'vapi_number', ok: true, message: `Nummer ${PHONE} staat in Vapi EU` });
         } else {
-          const createRes = await fetch('https://api.vapi.ai/phone-number', {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${vapiKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              provider: 'telnyx',
-              number: PHONE,
-              credentialId: CREDENTIAL_ID,
-              assistantId: ASSISTANT_ID,
-              name: 'VoxApp Kapper BE',
-            }),
-          });
-          const data = await createRes.json();
-          if (createRes.ok) {
-            results.push({ step: 'vapi_number', ok: true, message: `Nummer ${PHONE} toegevoegd aan Vapi` });
+          const assistantId = process.env.VAPI_ASSISTANT_ID;
+          const credentialId = process.env.VAPI_CREDENTIAL_ID;
+          if (!assistantId || !credentialId) {
+            results.push({ step: 'vapi_number', ok: false, message: 'VAPI_ASSISTANT_ID of VAPI_CREDENTIAL_ID ontbreekt' });
           } else {
-            results.push({ step: 'vapi_number', ok: false, message: `Vapi create failed: ${JSON.stringify(data)}` });
+            const createRes = await fetch(`${VAPI_BASE}/phone-number`, {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${vapiKey}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                provider: 'telnyx',
+                number: PHONE,
+                credentialId,
+                assistantId,
+                name: 'VoxApp Kapper BE',
+              }),
+            });
+            const data = await createRes.json();
+            if (createRes.ok) {
+              results.push({ step: 'vapi_number', ok: true, message: `Nummer ${PHONE} toegevoegd aan Vapi EU` });
+            } else {
+              results.push({ step: 'vapi_number', ok: false, message: `Vapi EU create failed: ${JSON.stringify(data)}` });
+            }
           }
         }
       }
@@ -102,6 +104,7 @@ export async function POST() {
     return NextResponse.json({
       ok: allOk,
       results,
+      region: 'EU (api.eu.vapi.ai)',
       message: allOk ? 'Fix voltooid. Bel +32480210478 om te testen.' : 'Sommige stappen mislukt.',
     });
   } catch (err) {
