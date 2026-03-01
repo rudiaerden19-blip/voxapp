@@ -31,11 +31,16 @@ function dagNaarDatum(dag: string): string {
   return d.toISOString().split("T")[0]
 }
 
+function vapiResult(toolCallId: string, text: string) {
+  return Response.json({ results: [{ toolCallId, result: text }] })
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json()
 
     const toolCall = body?.message?.toolCallList?.[0]
+    const toolCallId = toolCall?.id || ""
     let args: Record<string, string> = {}
     if (toolCall?.function?.arguments) {
       args = typeof toolCall.function.arguments === "string"
@@ -46,7 +51,7 @@ export async function POST(req: Request) {
     const { naam, dienst, datum, tijdstip } = args
 
     if (!naam || !datum || !tijdstip) {
-      return new Response("Ik heb je naam, dag en tijdstip nodig.", { status: 200 })
+      return vapiResult(toolCallId, "Ik heb je naam, dag en tijdstip nodig.")
     }
 
     const isoDate = dagNaarDatum(datum)
@@ -69,13 +74,13 @@ export async function POST(req: Request) {
 
     if (error) {
       console.error("[appointments/save] DB error:", error.message, error.code)
-      return new Response("Er ging iets mis bij het opslaan.", { status: 200 })
+      return vapiResult(toolCallId, "Er ging iets mis bij het opslaan.")
     }
 
-    return new Response(`Afspraak bevestigd voor ${naam} op ${datum} om ${tijdstip}.`, { status: 200 })
+    return vapiResult(toolCallId, `Afspraak bevestigd voor ${naam} op ${datum} om ${tijdstip}.`)
 
   } catch (e) {
     console.error("[appointments/save] Error:", e)
-    return new Response("Er ging iets mis.", { status: 200 })
+    return vapiResult("", "Er ging iets mis.")
   }
 }
