@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     const { naam, dienst, datum, tijdstip } = args
 
     if (!naam || !datum || !tijdstip) {
-      return Response.json({ success: false, message: "Ontbrekende velden" })
+      return new Response("Ik heb je naam, dag en tijdstip nodig.", { status: 200 })
     }
 
     const isoDate = dagNaarDatum(datum)
@@ -69,13 +69,13 @@ export async function POST(req: Request) {
 
     if (error) {
       console.error("[appointments/save] DB error:", error.message, error.code)
-      return Response.json({ success: false, message: "Database fout" })
+      return new Response("Er ging iets mis bij het opslaan.", { status: 200 })
     }
 
-    return Response.json({ success: true, message: `Afspraak bevestigd voor ${naam} op ${datum} om ${tijdstip}.` })
+    return new Response(`Afspraak bevestigd voor ${naam} op ${datum} om ${tijdstip}.`, { status: 200 })
 
   } catch (e) {
     console.error("[appointments/save] Error:", e)
-    return Response.json({ success: false, message: "Server fout" })
+    return new Response("Er ging iets mis.", { status: 200 })
   }
 }
