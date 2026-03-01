@@ -36,6 +36,21 @@ function maandNaam(m: number): string {
 }
 
 /**
+ * Zet HH:mm om naar gesproken Nederlands.
+ * "09:30" → "half 10", "13:00" → "1 uur", "14:15" → "kwart over 2"
+ */
+function formatTijdGesproken(time: string): string {
+  const [h, m] = time.split(':').map(Number);
+  const uur12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
+
+  if (m === 0) return `${uur12} uur`;
+  if (m === 30) return `half ${uur12 + 1 > 12 ? 1 : uur12 + 1}`;
+  if (m === 15) return `kwart over ${uur12}`;
+  if (m === 45) return `kwart voor ${uur12 + 1 > 12 ? 1 : uur12 + 1}`;
+  return `${uur12} uur ${m}`;
+}
+
+/**
  * Genereer een deterministische response op basis van de response-code
  * uit de state machine. Geen LLM nodig.
  */
@@ -94,7 +109,7 @@ export function generateResponse(
 
     case 'CONFIRM_DETAILS': {
       const datum = collected.date ? formatDatum(collected.date) : 'onbekend';
-      const tijd = collected.time || 'onbekend';
+      const tijd = collected.time ? formatTijdGesproken(collected.time) : 'onbekend';
       const dienst = collected.service || 'afspraak';
       text = `${collected.name}, ik kan je inplannen op ${datum} om ${tijd} voor ${dienst}. Klopt dat?`;
       break;
@@ -102,7 +117,7 @@ export function generateResponse(
 
     case 'SLOT_UNAVAILABLE': {
       if (extra?.availability?.alternatives && extra.availability.alternatives.length > 0) {
-        const alts = extra.availability.alternatives.slice(0, 2).join(' of ');
+        const alts = extra.availability.alternatives.slice(0, 2).map(formatTijdGesproken).join(' of ');
         text = `Dat tijdstip is helaas bezet. Ik heb nog ${alts} vrij. Past een van die tijden?`;
       } else if (extra?.availability?.reason) {
         text = `${extra.availability.reason} Heb je een ander moment in gedachten?`;
@@ -128,7 +143,8 @@ export function generateResponse(
 
     case 'BOOKING_SUCCESS': {
       const datum = collected.date ? formatDatum(collected.date) : '';
-      text = `Dat is genoteerd. ${collected.name}, je afspraak staat op ${datum} om ${collected.time}. Tot dan.`;
+      const tijd = collected.time ? formatTijdGesproken(collected.time) : '';
+      text = `Dat is genoteerd. ${collected.name}, je afspraak staat op ${datum} om ${tijd}. Tot dan.`;
       break;
     }
 

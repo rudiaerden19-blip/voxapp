@@ -175,6 +175,15 @@ export async function POST(request: NextRequest) {
             console.log('[vapi/chat] Service gematcht:', matched.name);
           }
         }
+        // Geen services in DB of geen match: accepteer input als service
+        if (!session.collected.service && transcript.length >= 2) {
+          const cleaned = transcript.replace(/^(om te|ik wil|graag|een)\s+/i, '').trim();
+          if (cleaned.length >= 2) {
+            intent.entities.service = cleaned;
+            session.collected.service = cleaned;
+            console.log('[vapi/chat] Service uit vrije tekst:', cleaned);
+          }
+        }
       } catch { /* services ophalen mislukt, gaat door met state machine */ }
     }
 
