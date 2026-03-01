@@ -47,16 +47,6 @@ function dagNaarDatum(dag: string): string {
 export async function POST(request: NextRequest) {
   let toolCallId = 'unknown';
   try {
-    // ── Webhook secret verificatie ──
-    const webhookSecret = process.env.VAPI_WEBHOOK_SECRET;
-    if (webhookSecret) {
-      const incoming = request.headers.get('x-webhook-secret') ?? request.headers.get('x-vapi-secret');
-      if (incoming !== webhookSecret) {
-        console.error('[appointments/save] Webhook secret mismatch');
-        return Response.json({ error: 'Unauthorized' }, { status: 401 });
-      }
-    }
-
     const body = await request.json();
 
     const toolCallList = body?.message?.toolCallList ?? [];
