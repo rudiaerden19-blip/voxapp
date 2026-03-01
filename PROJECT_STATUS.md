@@ -1,6 +1,6 @@
 # PROJECT STATUS — VOXAPP ENTERPRISE PLATFORM
 # ⚠ ELKE AGENT MOET DIT EERST LEZEN ⚠
-# Laatste update: 2026-02-28
+# Laatste update: 2026-03-01
 
 =====================================================================
 WAT IS DIT?
@@ -100,6 +100,17 @@ WAT IS AF ✅
   - Zet trial van 14 dagen
   - Retourneert tenant_id, agent_id, status
 
+## Eigen Orchestratie — Appointment Engine (2026-03-01)
+- [x] `src/lib/appointment-engine/types.ts` — SessionState, CollectedData, AppointmentState enum, ParsedIntent
+- [x] `src/lib/appointment-engine/NLU.ts` — Regex + hybrid NLU: dag/uur/naam herkenning, dag+uur combo, ja/nee
+- [x] `src/lib/appointment-engine/StateMachine.ts` — Deterministische state machine (GREETING → COLLECT → CONFIRM → BOOK)
+- [x] `src/lib/appointment-engine/SessionStore.ts` — Supabase voice_sessions CRUD per call_id
+- [x] `src/lib/appointment-engine/ResponseGenerator.ts` — Templates per state, blacklist, max 2 zinnen
+- [x] `src/lib/appointment-engine/AvailabilityChecker.ts` — Openingsuren check, conflict check, nearest alternatives
+- [x] `src/app/api/vapi/chat/route.ts` — Custom LLM endpoint (SSE streaming, OpenAI-compatible)
+- [x] Vapi EU assistant omgezet naar Custom LLM mode (api.eu.vapi.ai)
+- [x] Vapi stuurt transcripts naar onze backend, wij beslissen wat AI zegt
+
 ## Governance
 - [x] ENTERPRISE_PROJECT_CONSTITUTION.md — bindende regels
 - [x] START_HERE.md — verplichte lezing
@@ -156,8 +167,10 @@ KEY FILES
 =====================================================================
 
 ```
-src/lib/voice-engine/VoiceOrderSystem.ts    — State machine + parser + TTS rewrite
-src/app/api/voice-engine/v1/chat/completions/route.ts — Custom LLM endpoint (SSE)
+src/lib/appointment-engine/                 — Eigen orchestratie (state machine, NLU, availability)
+src/app/api/vapi/chat/route.ts              — Custom LLM endpoint voor Vapi EU (SSE streaming)
+src/lib/voice-engine/VoiceOrderSystem.ts    — State machine + parser + TTS rewrite (orders)
+src/app/api/voice-engine/v1/chat/completions/route.ts — Custom LLM endpoint (SSE, orders)
 src/app/api/voice-engine/route.ts           — Legacy endpoint (JSON)
 src/app/api/metrics/route.ts                — Metrics endpoint (per tenant)
 src/app/api/tenants/provision/route.ts      — Zero-touch tenant provisioning
