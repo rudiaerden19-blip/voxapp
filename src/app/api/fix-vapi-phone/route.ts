@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { verifyAdminCookie } from '@/lib/adminAuth';
 
 const PHONE = '+32480210478';
 const VAPI_TELNYX_WEBHOOK = 'https://api.eu.vapi.ai/telnyx/inbound_call';
@@ -7,7 +8,11 @@ const VAPI_TELNYX_WEBHOOK = 'https://api.eu.vapi.ai/telnyx/inbound_call';
  * POST /api/fix-vapi-phone
  * Oplost "geen aansluiting": zet Telnyx webhook naar Vapi EU + controleert nummer in Vapi EU.
  */
-export async function POST() {
+export async function POST(request: NextRequest) {
+  const auth = verifyAdminCookie(request);
+  if (!auth.isAdmin) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   const results: { step: string; ok: boolean; message: string }[] = [];
   const VAPI_BASE = process.env.VAPI_API_BASE || 'https://api.eu.vapi.ai';
 

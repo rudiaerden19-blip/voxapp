@@ -30,7 +30,14 @@ export async function GET(request: NextRequest) {
   if (supabaseCheck.status === 'fail') overallStatus = 'unhealthy';
   else if (supabaseCheck.status === 'warn') overallStatus = 'degraded';
 
-  // Check 3: ElevenLabs API
+  // Check 3: Vapi EU
+  const vapiCheck = await checkVapiEU();
+  checks.push(vapiCheck);
+  if (vapiCheck.status === 'fail') {
+    if (overallStatus === 'healthy') overallStatus = 'degraded';
+  }
+
+  // Check 4: ElevenLabs API
   const elevenlabsCheck = await checkElevenLabs();
   checks.push(elevenlabsCheck);
   if (elevenlabsCheck.status === 'fail') {
@@ -103,11 +110,51 @@ async function checkSupabase(): Promise<HealthStatus['checks'][0]> {
       message: latency > 5000 ? 'High latency' : 'Connected',
       latency_ms: latency,
     };
-  } catch (error: any) {
+  } catch (error) {
     return { 
       name: 'supabase', 
       status: 'fail', 
-      message: error.message,
+      message: error instanceof Error ? error.message : String(error),
+      latency_ms: Date.now() - start,
+    };
+  }
+}
+
+async function checkVapiEU(): Promise<HealthStatus['checks'][0]> {
+  const start = Date.now();
+  try {
+    const apiKey = process.env.VAPI_API_KEY;
+    const base = process.env.VAPI_API_BASE || 'https://api.eu.vapi.ai';
+
+    if (!apiKey) {
+      return { name: 'vapi_eu', status: 'warn', message: 'VAPI_API_KEY niet geconfigureerd' };
+    }
+
+    const response = await fetch(`${base}/phone-number`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    const latency = Date.now() - start;
+
+    if (response.ok) {
+      return {
+        name: 'vapi_eu',
+        status: latency > 5000 ? 'warn' : 'pass',
+        message: latency > 5000 ? 'High latency' : 'Connected (EU)',
+        latency_ms: latency,
+      };
+    } else {
+      return {
+        name: 'vapi_eu',
+        status: 'fail',
+        message: `HTTP ${response.status}`,
+        latency_ms: latency,
+      };
+    }
+  } catch (error) {
+    return {
+      name: 'vapi_eu',
+      status: 'fail',
+      message: error instanceof Error ? error.message : String(error),
       latency_ms: Date.now() - start,
     };
   }
@@ -145,11 +192,11 @@ async function checkElevenLabs(): Promise<HealthStatus['checks'][0]> {
         latency_ms: latency,
       };
     }
-  } catch (error: any) {
+  } catch (error) {
     return { 
       name: 'elevenlabs', 
       status: 'warn', 
-      message: error.message,
+      message: error instanceof Error ? error.message : String(error),
       latency_ms: Date.now() - start,
     };
   }

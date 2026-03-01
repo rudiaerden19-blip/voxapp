@@ -1,20 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { PLAN_MINUTES } from '@/lib/planFacts';
-
-// ============================================================
-// ELEVENLABS POST-CALL WEBHOOK — READ-ONLY
-// ============================================================
-//
-// Order creation is handled exclusively by the Custom LLM flow
-// (VoiceOrderSystem state machine → DONE state → orders insert).
-//
-// This webhook only:
-//   1. Logs the call to call_logs
-//   2. Updates monthly usage counters
-//
-// NO orders, appointments, or other business data are created here.
-//
+import { verifyElevenLabsSecret } from '@/lib/apiAuth';
 
 function getSupabase() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -26,11 +13,11 @@ function getSupabase() {
 }
 
 export async function POST(request: NextRequest) {
+  const authError = verifyElevenLabsSecret(request);
+  if (authError) return authError;
+
   try {
     const body = await request.json();
-
-    console.log('=== ELEVENLABS WEBHOOK RECEIVED ===');
-    console.log('Full payload:', JSON.stringify(body, null, 2));
 
     const d = body.data || body;
     const agent_id = d.agent_id || body.agent_id || null;

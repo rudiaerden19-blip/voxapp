@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/adminAuth';
+import { createAdminClient, verifyAdminCookie } from '@/lib/adminAuth';
 
-// GET - Debug: toon business + afspraken (geen auth voor eenvoud)
 export async function GET(request: NextRequest) {
+  const auth = verifyAdminCookie(request);
+  if (!auth.isAdmin) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   try {
     const { searchParams } = new URL(request.url);
     const businessId = searchParams.get('business_id');

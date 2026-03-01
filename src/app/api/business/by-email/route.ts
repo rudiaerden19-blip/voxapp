@@ -1,20 +1,11 @@
-import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { createAdminClient, verifyAdminCookie } from '@/lib/adminAuth';
 
-// Create admin client with service role key (bypasses RLS)
-function createAdminClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error('Missing Supabase environment variables');
-  }
-
-  return createClient(supabaseUrl, serviceRoleKey);
-}
-
-// GET - Get business by email
 export async function GET(request: NextRequest) {
+  const auth = verifyAdminCookie(request);
+  if (!auth.isAdmin) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   try {
     const { searchParams } = new URL(request.url);
     const email = searchParams.get('email');

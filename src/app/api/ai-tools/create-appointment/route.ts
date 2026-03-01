@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyWebhookSecret } from '@/lib/apiAuth';
 
 function createAdminClient() {
   return createClient(
@@ -8,8 +9,10 @@ function createAdminClient() {
   );
 }
 
-// Create an appointment (called by AI agent)
 export async function POST(request: NextRequest) {
+  const authError = verifyWebhookSecret(request);
+  if (authError) return authError;
+
   try {
     const body = await request.json();
     const {

@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHash, randomBytes } from 'crypto';
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@voxapp.tech';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'voxapp2026!';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
+  console.error('[admin/auth] ADMIN_EMAIL of ADMIN_PASSWORD env var ontbreekt');
+}
 
 function generateSessionToken(): string {
   return createHash('sha256')
@@ -18,9 +22,15 @@ const COOKIE_OPTIONS = {
   maxAge: 60 * 60 * 24 * 7, // 7 dagen
 };
 
-// POST — Login
 export async function POST(request: NextRequest) {
   try {
+    if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
+      return NextResponse.json(
+        { error: 'Admin login niet geconfigureerd. Stel ADMIN_EMAIL en ADMIN_PASSWORD in.' },
+        { status: 500 }
+      );
+    }
+
     const body = await request.json();
     const { email, password } = body;
 

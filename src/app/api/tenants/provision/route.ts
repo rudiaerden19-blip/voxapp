@@ -175,6 +175,12 @@ async function retryAgentForTenant(
 }
 
 export async function POST(request: NextRequest) {
+  const { verifyAdminCookie } = await import('@/lib/adminAuth');
+  const auth = verifyAdminCookie(request);
+  if (!auth.isAdmin) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
 

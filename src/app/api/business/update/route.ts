@@ -51,7 +51,11 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Ongeldig business ID formaat' }, { status: 400 });
     }
 
-    // Autorisatie check overgeslagen - admin panel gebruikt localStorage auth
+    const { verifyAdminCookie: checkAdmin } = await import('@/lib/adminAuth');
+    const auth = checkAdmin(request);
+    if (!auth.isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     // Filter updates naar alleen toegestane velden
     const safeUpdates: Record<string, unknown> = {};

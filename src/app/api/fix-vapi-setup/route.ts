@@ -1,11 +1,16 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { verifyAdminCookie } from '@/lib/adminAuth';
 
 /**
  * POST /api/fix-vapi-setup
  * Koppelt vapi_assistant_id (uit env) aan alle businesses.
  */
-export async function POST() {
+export async function POST(request: NextRequest) {
+  const auth = verifyAdminCookie(request);
+  if (!auth.isAdmin) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   try {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY;

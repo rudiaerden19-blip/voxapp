@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyWebhookSecret } from '@/lib/apiAuth';
 
 function createAdminClient() {
   return createClient(
@@ -17,8 +18,10 @@ interface OrderItem {
   notes?: string;
 }
 
-// Create an order (called by AI agent for horeca)
 export async function POST(request: NextRequest) {
+  const authError = verifyWebhookSecret(request);
+  if (authError) return authError;
+
   try {
     const body = await request.json();
     const {
