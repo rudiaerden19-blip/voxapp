@@ -1,3 +1,5 @@
+export const runtime = 'nodejs';
+
 import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { parseTranscript } from '@/lib/appointment-engine/NLU';
@@ -333,39 +335,33 @@ async function bookAppointment(
 }
 
 /**
- * SSE streaming response in OpenAI format.
- * Vapi verwacht dit formaat.
+ * SSE streaming response via ReadableStream.
+ * Vapi vereist een echte stream, geen platte string.
  */
 function sseResponse(content: string): Response {
-  const id = `chatcmpl-voxapp-${Date.now()}`;
+  const encoder = new TextEncoder();
 
   const chunk = {
-    id,
+    id: `chatcmpl-voxapp-${Date.now()}`,
     object: 'chat.completion.chunk',
     created: Math.floor(Date.now() / 1000),
     model: 'voxapp-orchestrator',
     choices: [{
       index: 0,
-      delta: { role: 'assistant', content },
+      delta: { content },
       finish_reason: null,
     }],
   };
 
-  const doneChunk = {
-    id,
-    object: 'chat.completion.chunk',
-    created: Math.floor(Date.now() / 1000),
-    model: 'voxapp-orchestrator',
-    choices: [{
-      index: 0,
-      delta: {},
-      finish_reason: 'stop',
-    }],
-  };
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+      controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+      controller.close();
+    },
+  });
 
-  const body = `data: ${JSON.stringify(chunk)}\n\ndata: ${JSON.stringify(doneChunk)}\n\ndata: [DONE]\n\n`;
-
-  return new Response(body, {
+  return new Response(stream, {
     headers: {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
