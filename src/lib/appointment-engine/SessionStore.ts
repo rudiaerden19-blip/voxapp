@@ -26,7 +26,7 @@ export async function getSession(
 ): Promise<SessionState> {
   const supabase = getSupabase();
 
-  const { data } = await supabase
+  const { data, error: selectError } = await supabase
     .from('voice_sessions')
     .select('*')
     .eq('conversation_id', callId)
@@ -55,7 +55,9 @@ export async function getSession(
     updatedAt: now,
   };
 
-  await supabase.from('voice_sessions').insert({
+  const { error: insertError } = await supabase.from('voice_sessions').insert({
+    call_control_id: `appt_${callId}`,
+    business_id: businessId,
     conversation_id: callId,
     tenant_id: businessId,
     state: AppointmentState.GREETING,
@@ -64,6 +66,10 @@ export async function getSession(
     created_at: now,
     updated_at: now,
   });
+
+  if (insertError) {
+    console.error('[SessionStore] Insert failed:', insertError.message, insertError.code);
+  }
 
   return newSession;
 }
@@ -75,16 +81,19 @@ export async function saveSession(session: SessionState): Promise<void> {
   const supabase = getSupabase();
   const now = new Date().toISOString();
 
-  await supabase
+  const { error } = await supabase
     .from('voice_sessions')
-    .upsert({
-      conversation_id: session.callId,
-      tenant_id: session.businessId,
+    .update({
       state: session.state,
       collected_data: session.collected,
       retries: session.retries,
       updated_at: now,
-    }, { onConflict: 'conversation_id' });
+    })
+    .eq('conversation_id', session.callId);
+
+  if (error) {
+    console.error('[SessionStore] Update failed:', error.message);
+  }
 }
 
 /**

@@ -216,8 +216,11 @@ export function matchService(input: string, services: ServiceInfo[]): ServiceInf
 
 /**
  * Haal business config op via assistant ID.
+ * Zoekt op vapi_assistant_id. Als niets gevonden, probeer via env VAPI_ASSISTANT_ID match.
  */
 export async function getBusinessByAssistantId(assistantId: string): Promise<BusinessConfig | null> {
+  if (!assistantId) return null;
+
   const supabase = getSupabase();
 
   const { data } = await supabase
@@ -226,17 +229,20 @@ export async function getBusinessByAssistantId(assistantId: string): Promise<Bus
     .eq('vapi_assistant_id', assistantId)
     .single();
 
-  if (!data) {
-    // Probeer ook op elevenlabs_agent_id of agent_id
-    const { data: byAgent } = await supabase
+  if (data) return data as BusinessConfig;
+
+  // Als de assistantId overeenkomt met VAPI_ASSISTANT_ID uit env,
+  // probeer de eerste actieve business op te halen als fallback
+  const envAssistantId = process.env.VAPI_ASSISTANT_ID;
+  if (envAssistantId && assistantId === envAssistantId) {
+    const { data: fallbackBiz } = await supabase
       .from('businesses')
       .select('id, name, type, opening_hours')
-      .eq('elevenlabs_agent_id', assistantId)
+      .limit(1)
       .single();
 
-    if (!byAgent) return null;
-    return byAgent as BusinessConfig;
+    if (fallbackBiz) return fallbackBiz as BusinessConfig;
   }
 
-  return data as BusinessConfig;
+  return null;
 }

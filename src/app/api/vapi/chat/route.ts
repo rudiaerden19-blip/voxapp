@@ -10,7 +10,7 @@ import {
   matchService,
   getBusinessByAssistantId,
 } from '@/lib/appointment-engine/AvailabilityChecker';
-import { AppointmentState } from '@/lib/appointment-engine/types';
+import { AppointmentState, SessionState, CollectedData } from '@/lib/appointment-engine/types';
 import { logInfo, logError } from '@/lib/apiLogger';
 
 const ROUTE = '/api/vapi/chat';
@@ -22,181 +22,248 @@ function getSupabase() {
   return createClient(url, key);
 }
 
+const EMPTY_COLLECTED: CollectedData = {
+  service: null, date: null, time: null, name: null, phone: null,
+};
+
+/**
+ * Rebuild session state from Vapi message history.
+ * Vapi stuurt het volledige gesprek als messages[] bij elk request,
+ * zodat we state kunnen reconstrueren als de DB sessie ontbreekt.
+ */
+function rebuildSessionFromMessages(
+  messages: { role: string; content: string }[],
+  callId: string,
+  businessId: string,
+): SessionState {
+  const session: SessionState = {
+    callId,
+    businessId,
+    state: AppointmentState.GREETING,
+    collected: { ...EMPTY_COLLECTED },
+    retries: {},
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  // Replay alle user messages om entities te verzamelen
+  for (const msg of messages) {
+    if (msg.role !== 'user' || !msg.content?.trim()) continue;
+    const intent = parseTranscript(msg.content.trim());
+
+    if (intent.entities.service) session.collected.service = intent.entities.service;
+    if (intent.entities.date) session.collected.date = intent.entities.date;
+    if (intent.entities.time) session.collected.time = intent.entities.time;
+    if (intent.entities.name) session.collected.name = intent.entities.name;
+    if (intent.entities.phone) session.collected.phone = intent.entities.phone;
+  }
+
+  // Bepaal state op basis van wat al verzameld is
+  if (session.collected.service) session.state = AppointmentState.COLLECT_DATE;
+  if (session.collected.date) session.state = AppointmentState.COLLECT_TIME;
+  if (session.collected.time) session.state = AppointmentState.COLLECT_NAME;
+  if (session.collected.name) session.state = AppointmentState.CHECK_AVAILABILITY;
+
+  return session;
+}
+
 /**
  * POST /api/vapi/chat
  *
  * Custom LLM endpoint voor Vapi EU.
  * Ontvangt OpenAI-compatible chat completion requests,
  * orkestreert via deterministische state machine,
- * retourneert SSE stream of JSON.
+ * retourneert altijd SSE stream (nooit plain JSON).
  */
 export async function POST(request: NextRequest) {
   const startMs = Date.now();
 
   try {
     const body = await request.json();
+
+    console.log('[vapi/chat] Request keys:', Object.keys(body));
+    console.log('[vapi/chat] body.call:', JSON.stringify(body.call || null).slice(0, 500));
+    console.log('[vapi/chat] body.metadata:', JSON.stringify(body.metadata || null).slice(0, 300));
+    console.log('[vapi/chat] messages count:', (body.messages || []).length);
+
     const messages: { role: string; content: string }[] = body.messages || [];
     const callId = body.call?.id || body.metadata?.call_id || `call_${Date.now()}`;
-    const assistantId = body.call?.assistantId || body.metadata?.assistantId || '';
+    const assistantId =
+      body.call?.assistantId ||
+      body.call?.assistant?.id ||
+      body.metadata?.assistantId ||
+      process.env.VAPI_ASSISTANT_ID ||
+      '';
 
-    // Pak de laatste user message
     const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
     const transcript = lastUserMsg?.content?.trim() || '';
 
-    logInfo(ROUTE, 'Inkomend transcript', { callId, transcript: transcript.slice(0, 100) });
+    console.log('[vapi/chat] callId:', callId, '| assistantId:', assistantId, '| transcript:', transcript.slice(0, 120));
+    logInfo(ROUTE, 'Inkomend', { callId, assistantId, transcript: transcript.slice(0, 100) });
 
-    // Lookup business
+    // --- Business lookup (met meerdere fallback niveaus) ---
     let businessId = '';
     let businessName = 'onze zaak';
+    let dbAvailable = true;
 
-    if (assistantId) {
-      const biz = await getBusinessByAssistantId(assistantId);
-      if (biz) {
-        businessId = biz.id;
-        businessName = biz.name;
+    try {
+      if (assistantId) {
+        const biz = await getBusinessByAssistantId(assistantId);
+        if (biz) {
+          businessId = biz.id;
+          businessName = biz.name;
+        }
       }
+
+      if (!businessId) {
+        const fallback = process.env.DEFAULT_TENANT_ID;
+        if (fallback) {
+          businessId = fallback;
+          console.log('[vapi/chat] Fallback naar DEFAULT_TENANT_ID:', fallback);
+        }
+      }
+    } catch (bizError) {
+      console.error('[vapi/chat] Business lookup fout:', bizError instanceof Error ? bizError.message : bizError);
+      dbAvailable = false;
     }
 
-    if (!businessId) {
-      const fallback = process.env.DEFAULT_TENANT_ID;
-      if (fallback) {
-        businessId = fallback;
-      } else {
-        logError(ROUTE, 'Geen business gevonden', { assistantId });
-        return jsonResponse('Er ging iets mis. Probeer later opnieuw.');
-      }
-    }
+    // --- Session ophalen of reconstrueren ---
+    let session: SessionState;
 
-    // Haal of maak sessie
-    const session = await getSession(callId, businessId);
+    if (businessId && dbAvailable) {
+      try {
+        session = await getSession(callId, businessId);
+        console.log('[vapi/chat] DB session state:', session.state, '| collected:', JSON.stringify(session.collected));
+      } catch (sessionError) {
+        console.error('[vapi/chat] Session ophalen mislukt, rebuild van messages:', sessionError instanceof Error ? sessionError.message : sessionError);
+        session = rebuildSessionFromMessages(messages, callId, businessId);
+        dbAvailable = false;
+      }
+    } else {
+      console.log('[vapi/chat] Geen business gevonden, stateless mode');
+      session = rebuildSessionFromMessages(messages, callId, businessId || 'no-tenant');
+      dbAvailable = false;
+    }
 
     // Als dit het eerste bericht is (GREETING state en geen transcript)
     if (session.state === AppointmentState.GREETING && !transcript) {
-      const services = await getServices(businessId);
+      let services;
+      try { services = businessId ? await getServices(businessId) : undefined; } catch { /* ignore */ }
       const greeting = generateResponse('GREETING', session.collected, businessName, { services });
       return sseResponse(greeting);
     }
 
     // Parse het transcript
     const intent = parseTranscript(transcript);
+    console.log('[vapi/chat] Intent:', intent.intent, '| entities:', JSON.stringify(intent.entities));
     logInfo(ROUTE, 'Parsed intent', {
-      callId,
-      intent: intent.intent,
-      entities: intent.entities,
-      confidence: intent.confidence,
+      callId, intent: intent.intent, entities: intent.entities, confidence: intent.confidence,
     });
 
-    // In COLLECT_SERVICE state: probeer de input te matchen tegen diensten
-    if (session.state === AppointmentState.COLLECT_SERVICE && !session.collected.service) {
-      const services = await getServices(businessId);
-      if (services.length > 0) {
-        const matched = matchService(transcript, services);
-        if (matched) {
-          intent.entities.service = matched.name;
-          session.collected.service = matched.name;
+    // In GREETING of COLLECT_SERVICE: probeer service te matchen
+    if (
+      (session.state === AppointmentState.GREETING || session.state === AppointmentState.COLLECT_SERVICE)
+      && !session.collected.service
+    ) {
+      try {
+        const services = businessId ? await getServices(businessId) : [];
+        if (services.length > 0) {
+          const matched = matchService(transcript, services);
+          if (matched) {
+            intent.entities.service = matched.name;
+            session.collected.service = matched.name;
+            console.log('[vapi/chat] Service gematcht:', matched.name);
+          }
         }
-      }
-      // Als het niet matcht, laat de state machine het afhandelen via retry
+      } catch { /* services ophalen mislukt, gaat door met state machine */ }
     }
 
     // State machine transition
     const result = transition(session, intent);
-
-    // Update session state
     session.state = result.newState;
+    console.log('[vapi/chat] Transition →', result.newState, '| response:', result.response);
 
-    // Check availability als nodig
-    if (result.shouldCheckAvailability && session.collected.date && session.collected.time) {
-      const services = await getServices(businessId);
-      const matchedService = session.collected.service
-        ? services.find(s => s.name.toLowerCase() === session.collected.service!.toLowerCase())
-        : null;
-      const duration = matchedService?.duration_minutes || 30;
+    // Check availability
+    if (result.shouldCheckAvailability && session.collected.date && session.collected.time && businessId) {
+      try {
+        const services = await getServices(businessId);
+        const matchedService = session.collected.service
+          ? services.find(s => s.name.toLowerCase() === session.collected.service!.toLowerCase())
+          : null;
+        const duration = matchedService?.duration_minutes || 30;
 
-      const avail = await checkAvailability(
-        businessId,
-        session.collected.date,
-        session.collected.time,
-        duration,
-      );
+        const avail = await checkAvailability(
+          businessId, session.collected.date, session.collected.time, duration,
+        );
 
-      if (!avail.available) {
-        // Slot niet beschikbaar — genereer response met alternatieven
-        const responseCode = avail.reason?.includes('gesloten') ? 'CLOSED_ON_DAY' : 'SLOT_UNAVAILABLE';
-        session.state = AppointmentState.COLLECT_TIME;
-        // Reset tijd zodat klant nieuw uur kan kiezen
-        if (responseCode === 'SLOT_UNAVAILABLE') {
-          session.collected.time = null;
-        } else {
-          session.collected.date = null;
-          session.collected.time = null;
+        if (!avail.available) {
+          const responseCode = avail.reason?.includes('gesloten') ? 'CLOSED_ON_DAY' : 'SLOT_UNAVAILABLE';
+          session.state = AppointmentState.COLLECT_TIME;
+          if (responseCode === 'SLOT_UNAVAILABLE') {
+            session.collected.time = null;
+          } else {
+            session.collected.date = null;
+            session.collected.time = null;
+          }
+          if (dbAvailable) await saveSession(session);
+
+          const response = generateResponse(responseCode, session.collected, businessName, { availability: avail });
+          return sseResponse(response);
         }
-        await saveSession(session);
 
-        const response = generateResponse(responseCode, session.collected, businessName, {
-          availability: avail,
-        });
-        logInfo(ROUTE, 'Slot niet beschikbaar', { callId, avail });
-        return sseResponse(response);
+        session.state = AppointmentState.CONFIRM;
+        if (dbAvailable) await saveSession(session);
+        return sseResponse(generateResponse('CONFIRM_DETAILS', session.collected, businessName));
+      } catch (availError) {
+        console.error('[vapi/chat] Availability check mislukt:', availError instanceof Error ? availError.message : availError);
       }
-
-      // Slot beschikbaar → ga naar CONFIRM
-      session.state = AppointmentState.CONFIRM;
-      await saveSession(session);
-
-      const response = generateResponse('CONFIRM_DETAILS', session.collected, businessName);
-      return sseResponse(response);
     }
 
     // Boek als nodig
-    if (result.shouldBook) {
-      const bookingResult = await bookAppointment(session, businessId);
-      if (bookingResult.success) {
-        session.state = AppointmentState.SUCCESS;
-        await saveSession(session);
-        const response = generateResponse('BOOKING_SUCCESS', session.collected, businessName);
-        logInfo(ROUTE, 'Afspraak geboekt', {
-          callId,
-          naam: session.collected.name,
-          datum: session.collected.date,
-          tijd: session.collected.time,
-        });
-        return sseResponse(response);
-      } else {
-        session.state = AppointmentState.ERROR;
-        await saveSession(session);
-        const response = generateResponse('BOOKING_FAILED', session.collected, businessName);
-        logError(ROUTE, bookingResult.error || 'Booking failed', { callId });
-        return sseResponse(response);
+    if (result.shouldBook && businessId) {
+      try {
+        const bookingResult = await bookAppointment(session, businessId);
+        if (bookingResult.success) {
+          session.state = AppointmentState.SUCCESS;
+          if (dbAvailable) await saveSession(session);
+          const response = generateResponse('BOOKING_SUCCESS', session.collected, businessName);
+          logInfo(ROUTE, 'Afspraak geboekt', { callId, naam: session.collected.name });
+          return sseResponse(response);
+        } else {
+          session.state = AppointmentState.ERROR;
+          if (dbAvailable) await saveSession(session);
+          return sseResponse(generateResponse('BOOKING_FAILED', session.collected, businessName));
+        }
+      } catch (bookError) {
+        console.error('[vapi/chat] Booking mislukt:', bookError instanceof Error ? bookError.message : bookError);
+        return sseResponse(generateResponse('BOOKING_FAILED', session.collected, businessName));
       }
     }
 
-    // Sla sessie op
-    await saveSession(session);
+    // Sla sessie op (als DB beschikbaar)
+    if (dbAvailable) {
+      try { await saveSession(session); } catch { /* ignore save errors */ }
+    }
 
     // Genereer response
-    const services = session.state === AppointmentState.COLLECT_SERVICE
-      ? await getServices(businessId) : undefined;
+    let services;
+    try {
+      services = session.state === AppointmentState.COLLECT_SERVICE && businessId
+        ? await getServices(businessId) : undefined;
+    } catch { /* ignore */ }
 
-    const response = generateResponse(
-      result.response,
-      session.collected,
-      businessName,
-      { services },
-    );
+    const response = generateResponse(result.response, session.collected, businessName, { services });
 
     logInfo(ROUTE, 'Response', {
-      callId,
-      state: session.state,
-      response: response.slice(0, 100),
-      durationMs: Date.now() - startMs,
+      callId, state: session.state, response: response.slice(0, 100), durationMs: Date.now() - startMs,
     });
 
     return sseResponse(response);
 
   } catch (error) {
     logError(ROUTE, error);
-    return jsonResponse('Er ging iets mis. Probeer het later opnieuw.');
+    console.error('[vapi/chat] FATAL:', error instanceof Error ? `${error.message}\n${error.stack}` : error);
+    return sseResponse('Sorry, er ging iets mis. Probeer het later opnieuw.');
   }
 }
 
@@ -298,20 +365,3 @@ function sseResponse(content: string): Response {
   });
 }
 
-/**
- * Fallback JSON response (non-streaming).
- */
-function jsonResponse(content: string): Response {
-  return Response.json({
-    id: `chatcmpl-voxapp-${Date.now()}`,
-    object: 'chat.completion',
-    created: Math.floor(Date.now() / 1000),
-    model: 'voxapp-orchestrator',
-    choices: [{
-      index: 0,
-      message: { role: 'assistant', content },
-      finish_reason: 'stop',
-    }],
-    usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
-  });
-}
