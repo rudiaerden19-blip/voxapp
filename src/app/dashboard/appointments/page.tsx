@@ -11,6 +11,7 @@ interface Service {
   id: string;
   name: string;
   duration_minutes: number;
+  price: number | null;
 }
 
 interface Staff {
@@ -40,6 +41,51 @@ const statusOptions = [
 ];
 
 type ViewMode = 'day' | 'week' | 'month';
+
+function VapiFixBanner({ businessId, onFixed }: { businessId: string; onFixed: () => void }) {
+  const [fixing, setFixing] = useState(false);
+  const [result, setResult] = useState<{ ok: boolean; msg: string; fixUrl?: string } | null>(null);
+  const handleFix = async () => {
+    setFixing(true);
+    setResult(null);
+    try {
+      const r = await fetch('/api/fix-vapi-setup', { method: 'POST' });
+      const d = await r.json();
+      if (r.ok) {
+        setResult({ ok: true, msg: d.message || 'Klaar' });
+        onFixed();
+      } else {
+        setResult({ ok: false, msg: d.hint || d.error || 'Onbekend', fixUrl: d.fix_url });
+      }
+    } catch (e) {
+      setResult({ ok: false, msg: 'Fout: ' + String(e) });
+    } finally {
+      setFixing(false);
+    }
+  };
+  return (
+    <div style={{ background: 'rgba(249, 115, 22, 0.1)', border: '1px solid rgba(249, 115, 22, 0.3)', borderRadius: 12, padding: '12px 16px', marginBottom: 16, fontSize: 14 }}>
+      <span style={{ color: '#f97316' }}>Geen afspraken na call?</span>{' '}
+      <button onClick={handleFix} disabled={fixing} style={{ marginLeft: 8, padding: '6px 12px', background: '#f97316', color: 'white', border: 'none', borderRadius: 6, cursor: fixing ? 'wait' : 'pointer', fontWeight: 600 }}>
+        {fixing ? 'Bezig...' : 'Fix Vapi-koppeling'}
+      </button>
+      {' '}
+      <a href={`/api/debug/appointments?business_id=${businessId}`} target="_blank" rel="noopener noreferrer" style={{ color: '#f97316', textDecoration: 'underline', marginLeft: 8 }}>
+        Debug
+      </a>
+      {result && (
+        <div style={{ marginTop: 8, color: result.ok ? '#22c55e' : '#ef4444' }}>
+          {result.ok ? '✓ ' : ''}{result.msg}
+          {result.fixUrl && (
+            <a href={result.fixUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'block', marginTop: 4, color: '#f97316', textDecoration: 'underline' }}>
+              → Open Supabase en voer SQL uit
+            </a>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function AppointmentsPage() {
   const { t } = useLanguage();
@@ -429,24 +475,29 @@ export default function AppointmentsPage() {
                 alignItems: 'flex-start',
               }}
             >
-              {slotAppointments.map(apt => (
-                <div
-                  key={apt.id}
-                  onClick={(e) => { e.stopPropagation(); openEditModal(apt); }}
-                  style={{
-                    flex: `0 0 calc(${100 / slotsPerHour}% - 8px)`,
-                    padding: '8px 12px',
-                    borderRadius: 8,
-                    background: statusOptions.find(s => s.value === apt.status)?.color || '#6b7280',
-                    color: 'white',
-                    cursor: 'pointer',
-                    fontSize: 13,
-                  }}
-                >
-                  <div style={{ fontWeight: 600 }}>{apt.customer_name}</div>
-                  <div style={{ fontSize: 11, opacity: 0.9 }}>{formatTime(apt.start_time)}</div>
-                </div>
-              ))}
+              {slotAppointments.map(apt => {
+                const svc = apt.service_id ? services.find(s => s.id === apt.service_id) : null;
+                return (
+                  <div
+                    key={apt.id}
+                    onClick={(e) => { e.stopPropagation(); openEditModal(apt); }}
+                    style={{
+                      flex: `0 0 calc(${100 / slotsPerHour}% - 8px)`,
+                      padding: '8px 12px',
+                      borderRadius: 8,
+                      background: statusOptions.find(s => s.value === apt.status)?.color || '#6b7280',
+                      color: 'white',
+                      cursor: 'pointer',
+                      fontSize: 13,
+                    }}
+                  >
+                    <div style={{ fontWeight: 600 }}>{apt.customer_name}</div>
+                    {svc && <div style={{ fontSize: 11, opacity: 0.95 }}>{svc.name} · {svc.duration_minutes} min{svc.price != null ? ` · €${svc.price}` : ''}</div>}
+                    {!svc && apt.notes && <div style={{ fontSize: 11, opacity: 0.9 }}>{apt.notes.split('—')[0]?.trim() || formatTime(apt.start_time)}</div>}
+                    {!svc && !apt.notes && <div style={{ fontSize: 11, opacity: 0.9 }}>{formatTime(apt.start_time)}</div>}
+                  </div>
+                );
+              })}
               {slotsAvailable > 0 && slotAppointments.length > 0 && (
                 <div style={{ flex: `0 0 calc(${100 / slotsPerHour}% - 8px)`, padding: '8px 12px', borderRadius: 8, border: '2px dashed #3f3f4e', color: '#6b7280', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Plus size={14} style={{ marginRight: 4 }} /> Vrij
@@ -515,26 +566,29 @@ export default function AppointmentsPage() {
                     cursor: slotsAvailable > 0 ? 'pointer' : 'not-allowed',
                   }}
                 >
-                  {slotAppointments.slice(0, 2).map(apt => (
-                    <div
-                      key={apt.id}
-                      onClick={(e) => { e.stopPropagation(); openEditModal(apt); }}
-                      style={{
-                        padding: '4px 6px',
-                        borderRadius: 4,
-                        marginBottom: 2,
-                        background: statusOptions.find(s => s.value === apt.status)?.color || '#6b7280',
-                        color: 'white',
-                        cursor: 'pointer',
-                        fontSize: 10,
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                    >
-                      {apt.customer_name}
-                    </div>
-                  ))}
+                  {slotAppointments.slice(0, 2).map(apt => {
+                    const svc = apt.service_id ? services.find(s => s.id === apt.service_id) : null;
+                    return (
+                      <div
+                        key={apt.id}
+                        onClick={(e) => { e.stopPropagation(); openEditModal(apt); }}
+                        style={{
+                          padding: '4px 6px',
+                          borderRadius: 4,
+                          marginBottom: 2,
+                          background: statusOptions.find(s => s.value === apt.status)?.color || '#6b7280',
+                          color: 'white',
+                          cursor: 'pointer',
+                          fontSize: 10,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
+                      >
+                        {apt.customer_name}{svc ? ` · ${svc.name}` : ''}
+                      </div>
+                    );
+                  })}
                   {slotAppointments.length > 2 && (
                     <div style={{ fontSize: 10, color: '#6b7280', paddingLeft: 4 }}>+{slotAppointments.length - 2}</div>
                   )}
@@ -585,19 +639,22 @@ export default function AppointmentsPage() {
               }}>
                 {date.getDate()}
               </div>
-              {dayAppointments.slice(0, 3).map(apt => (
-                <div
-                  key={apt.id}
-                  onClick={(e) => { e.stopPropagation(); openEditModal(apt); }}
-                  style={{
-                    fontSize: 11, padding: '3px 6px', borderRadius: 4, marginBottom: 2,
-                    background: statusOptions.find(s => s.value === apt.status)?.color || '#6b7280',
-                    color: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                  }}
-                >
-                  {formatTime(apt.start_time)} {apt.customer_name}
-                </div>
-              ))}
+              {dayAppointments.slice(0, 3).map(apt => {
+                const svc = apt.service_id ? services.find(s => s.id === apt.service_id) : null;
+                return (
+                  <div
+                    key={apt.id}
+                    onClick={(e) => { e.stopPropagation(); openEditModal(apt); }}
+                    style={{
+                      fontSize: 11, padding: '3px 6px', borderRadius: 4, marginBottom: 2,
+                      background: statusOptions.find(s => s.value === apt.status)?.color || '#6b7280',
+                      color: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {formatTime(apt.start_time)} {apt.customer_name}{svc ? ` · ${svc.name}` : ''}
+                  </div>
+                );
+              })}
               {dayAppointments.length > 3 && (
                 <div style={{ fontSize: 10, color: '#6b7280', paddingLeft: 6 }}>
                   +{dayAppointments.length - 3} meer
@@ -637,6 +694,11 @@ export default function AppointmentsPage() {
         <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 12, padding: '12px 16px', marginBottom: 16, color: '#ef4444', fontSize: 14 }}>
           {error}
         </div>
+      )}
+
+      {/* Debug + Fix: geen afspraken na call */}
+      {!loading && appointments.length === 0 && businessId && (
+        <VapiFixBanner businessId={businessId} onFixed={() => loadAppointments()} />
       )}
 
       {/* View Mode Toggle */}

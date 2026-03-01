@@ -1,0 +1,259 @@
+Goedendag, u spreekt met kapsalon Bella. Waarvoor mag ik u helpen?
+
+Goedemorgen, hoe kan ik u vandaag helpen?
+
+Dag mevrouw, dag meneer, welkom bij kapsalon Bella.
+
+Fijn dat u belt. Waarvoor mag ik u helpen?
+
+Wenst u een afspraak te maken? Dat kan zeker.
+
+Voor welke behandeling wenst u een afspraak?
+
+Wilt u alleen laten knippen, of ook wassen en föhnen?
+
+Wenst u een kleurbehandeling? Dan voorzien we wat meer tijd.
+
+Voor highlights of een volledig kleuring, plan ik een uur en een half in.
+
+Voor een gewone knipbeurt rekenen we een halfuur.
+
+Voor knippen en wassen een drie kwartier.
+
+Wanneer wilt u langskomen?
+
+Heeft u een voorkeur voor de voormiddag of de namiddag?
+
+In de voormiddag zijn we open vanaf negen uur.
+
+In de namiddag kunnen we u ontvangen tot achtien uur.
+
+Op vrijdag werken we tot negentien uur.
+
+Op zaterdag sluiten we om zestien uur.
+
+Laat me even kijken wat er nog vrij is.
+
+Op maandag de tweede hebben we een plaatsje om negen uur.
+
+Op maandag om tien uur is er ook nog plaats.
+
+Op maandag om elf uur is er een opening.
+
+Op dinsdag de derde hebben we een afspraak vrij om twaalf uur.
+
+Op dinsdag om dertien uur is er ook nog een plaatsje.
+
+Op woensdag de vierde hebben we een gaatje om veertien uur.
+
+Op woensdag om vijftien uur is er ook nog plaats.
+
+Op donderdag de vijfde hebben we een opening om zestien uur.
+
+Op donderdag om zeventien uur is er nog een plaatsje.
+
+Op vrijdag de zesde hebben we plaats om negen uur dertig.
+
+Op vrijdag om tien uur dertig is er ook nog een afspraak vrij.
+
+Op zaterdag de zevende hebben we een plaatsje om tien uur.
+
+Op zaterdag om elf uur is er ook nog een afspraak beschikbaar.
+
+Welke dag past u het best?
+
+En hoe laat wenst u te komen?
+
+Dat is in orde, ik noteer dat.
+
+Op wiens naam mag ik de afspraak zetten?
+
+Uw voornaam graag?
+
+En uw familienaam?
+
+Heeft u een gsm-nummer?
+
+Uw afspraak is bevestigd voor maandag de tweede om negen uur.
+
+Uw afspraak staat ingepland voor dinsdag de derde om twaalf uur.
+
+Uw afspraak is genoteerd voor woensdag de vierde om veertien uur.
+
+We verwachten u op donderdag de vijfde om zestien uur.
+
+Tot vrijdag de zesde om negen uur dertig.
+
+We zien u graag op zaterdag de zevende om tien uur.
+
+U ontvangt een sms ter bevestiging.
+
+De dag voor uw afspraak sturen wij u een herinnering.
+
+Als u niet kunt komen, gelieve ons dan tijdig te verwittigen.
+
+Annuleren kan tot vierentwintig uur voor uw afspraak.
+
+Goedendag, u spreekt met autogaragebedrijf Peters. Waarvoor mag ik u helpen?
+
+Wenst u een afspraak te maken voor uw voertuig?
+
+Voor welk merk en model is de afspraak?
+
+Is het voor een gewone onderhoudsbeurt?
+
+Of heeft u een specifiek probleem met uw wagen?
+
+Hoeveel kilometer heeft uw wagen gereden?
+
+Dan is een grote beurt aangeraden.
+
+We plannen normaal twee uur in voor een onderhoudsbeurt.
+
+Voor een grotere ingreep kan het een volledige dag duren.
+
+Wanneer kunt u uw wagen binnenbrengen?
+
+Kunt u uw wagen 's morgens vroeg binnenbrengen?
+
+We openen om zeven uur dertig.
+
+U kunt uw sleutel afgeven aan de balie.
+
+We nemen contact met u op zodra de wagen klaar is.
+
+Uw afspraak is bevestigd voor dinsdag de tiende om acht uur.
+
+We verwachten uw voertuig op woensdag de elfde om zeven uur dertig.
+
+Goedendag, u spreekt met de praktijk van dokter Maes. Waarvoor mag ik u helpen?
+
+Wenst u een afspraak bij de dokter?
+
+Is het dringend of kan het wachten?
+
+Heeft u koorts of andere ernstige klachten?
+
+Voor een dringende raadpleging kunnen we u vandaag nog inplannen.
+
+Voor een gewone consultatie hebben we een afspraak beschikbaar morgen.
+
+Uw afspraak is ingepland voor morgen om tien uur vijftien.
+
+Vergeet uw identiteitskaart niet mee te brengen.
+
+Goedendag, u spreekt met tandartspraktijk Smeets. Waarvoor mag ik u helpen?
+
+Heeft u last van tandpijn?
+
+Is het voor een routinecontrole of een dringende afspraak?
+
+Voor een spoedgeval kunnen we u zo snel mogelijk inplannen.
+
+Uw afspraak is bevestigd voor donderdag om veertien uur.
+
+Goedendag, welkom bij schoonheidssalon Lumière. Hoe kan ik u helpen?
+
+Wenst u een behandeling te reserveren?
+
+Voor een gezichtsbehandeling rekenen we een uur.
+
+Voor een manicure een half uur.
+
+Voor een pedicure drie kwartier.
+
+Wenst u een combinatie van behandelingen?
+
+Dan plannen we meerdere tijdslots na elkaar in.
+
+Uw afspraak staat ingepland voor vrijdag om vijftien uur.
+
+Goedendag, u spreekt met dierenartsenpraktijk Van Acker. Waarvoor mag ik u helpen?
+
+Voor welk dier wenst u een afspraak?
+
+Is het een hond, een kat of een ander huisdier?
+
+Is het dringend of voor een routinecontrole?
+
+Voor een vaccinatie plannen we een kwartier in.
+
+Uw afspraak is bevestigd voor zaterdag om negen uur.
+
+Goedendag, u spreekt met fysiotherapiepraktijk Janssens. Waarvoor mag ik u helpen?
+
+Heeft u een voorschrift van de dokter?
+
+Voor welk klacht wenst u een afspraak?
+
+Heeft u last van uw rug, nek of schouder?
+
+Voor een eerste consultatie plannen we een uur in.
+
+Uw afspraak is bevestigd voor maandag om elf uur.
+
+Goedendag, u spreekt met het secretariaat van advocatenkantoor De Backer. Waarvoor mag ik u helpen?
+
+Wenst u een afspraak met een van onze advocaten?
+
+Over welk onderwerp gaat het?
+
+We plannen een eerste gesprek van een uur in.
+
+Uw afspraak is genoteerd voor dinsdag om tien uur.
+
+Ik wil u graag even samenvatten.
+
+U wenst een afspraak op maandag om negen uur voor een knipbeurt.
+
+U wenst een afspraak op dinsdag om twaalf uur voor een kleurbehandeling.
+
+U wenst een afspraak op woensdag om veertien uur voor een onderhoudsbeurt.
+
+U wenst een afspraak op donderdag om zestien uur voor een consultatie.
+
+U wenst een afspraak op vrijdag om negen uur dertig voor een behandeling.
+
+U wenst een afspraak op zaterdag om tien uur voor een controle.
+
+Klopt dat zo?
+
+Ik herhaal: uw afspraak is op maandag de tweede om negen uur.
+
+Ik bevestig: uw afspraak is op dinsdag de derde om twaalf uur.
+
+Uw naam is Janssen, Jan. Uw afspraak is op woensdag om veertien uur.
+
+Is die informatie correct?
+
+Heeft u nog vragen?
+
+Is er nog iets waarmee ik u kan helpen?
+
+Dat is dan alles in orde.
+
+Bedankt voor uw oproep.
+
+Fijne dag verder.
+
+Prettig weekend.
+
+Tot dan.
+
+Tot maandag.
+
+Tot dinsdag.
+
+Tot woensdag.
+
+Tot donderdag.
+
+Tot vrijdag.
+
+Tot zaterdag.
+
+We kijken ernaar uit u te verwelkomen.
+
+U bent van harte welkom.
+
+Tot ziens.

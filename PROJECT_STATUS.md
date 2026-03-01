@@ -1,6 +1,6 @@
 # PROJECT STATUS — VOXAPP ENTERPRISE PLATFORM
 # ⚠ ELKE AGENT MOET DIT EERST LEZEN ⚠
-# Laatste update: 2026-02-23 01:30
+# Laatste update: 2026-02-28
 
 =====================================================================
 WAT IS DIT?
@@ -109,6 +109,14 @@ WAT IS AF ✅
 =====================================================================
 WAT NOG MOET ❌
 =====================================================================
+
+## Vapi afspraken (2026-02-28)
+- [x] appointments/save: Vapi response format `{ results: [...] }` (2026-02-28 fix)
+- [x] appointments/save: parameters uit `toolCall.parameters` of `function.arguments`
+- [x] appointments/save: business lookup via vapi_assistant_id, agent_id, elevenlabs_agent_id
+- [x] businesses.vapi_assistant_id kolom + migratie
+- [x] AI-instellingen: Vapi Assistant ID veld
+- [ ] Migratie uitvoeren in Supabase (20260228_vapi_assistant_id.sql)
 
 ## P0 — Moet af voor Bol.com demo (deadline: ~maart 2026)
 - [ ] 5/5 echte beltesten met correcte bon

@@ -17,7 +17,7 @@ const ALLOWED_UPDATE_FIELDS = [
   'voice_id', 'welcome_message', 'opening_hours',
   'fallback_action', 'transfer_number',
   'delivery_fee', 'minimum_order',
-  'agent_id'
+  'agent_id', 'vapi_assistant_id'
 ];
 
 // Toegestane business types
@@ -125,6 +125,12 @@ export async function PUT(request: NextRequest) {
           safeUpdates.welcome_message = null;
         } else {
           safeUpdates.welcome_message = sanitizeString(value as string, 500);
+        }
+      } else if (key === 'vapi_assistant_id') {
+        if (value === null || value === '') {
+          safeUpdates.vapi_assistant_id = null;
+        } else if (typeof value === 'string' && value.length <= 100) {
+          safeUpdates.vapi_assistant_id = value.trim();
         }
       } else {
         // Andere toegestane velden - sanitize strings

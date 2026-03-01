@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from('appointments')
-      .select('id, business_id, staff_id, customer_name, customer_email, customer_phone, service, start_time, end_time, status, notes, created_at, updated_at')
+      .select('id, business_id, staff_id, service_id, customer_name, customer_email, customer_phone, start_time, end_time, status, notes, created_at, updated_at')
       .eq('business_id', businessId)
       .order('start_time', { ascending: true });
 
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Ongeldige JSON data' }, { status: 400 });
     }
 
-    const { id, business_id, staff_id, customer_name, customer_email, customer_phone, service, start_time, end_time, status, notes } = body;
+    const { id, business_id, staff_id, service_id, customer_name, customer_email, customer_phone, start_time, end_time, status, notes } = body;
 
     // Validatie
     if (!business_id) {
@@ -104,6 +104,10 @@ export async function POST(request: NextRequest) {
 
     if (staff_id && !isValidUUID(staff_id)) {
       return NextResponse.json({ error: 'Ongeldig staff_id formaat' }, { status: 400 });
+    }
+
+    if (service_id && !isValidUUID(service_id)) {
+      return NextResponse.json({ error: 'Ongeldig service_id formaat' }, { status: 400 });
     }
 
     // Klantgegevens validatie
@@ -152,10 +156,10 @@ export async function POST(request: NextRequest) {
     // Bouw data object
     const appointmentData = {
       staff_id: staff_id || null,
+      service_id: service_id || null,
       customer_name: sanitizedName,
       customer_email: customer_email ? sanitizeString(customer_email, 255) : null,
       customer_phone: customer_phone ? sanitizeString(customer_phone, 20) : null,
-      service: sanitizeString(service, 200) || null,
       start_time,
       end_time: end_time || null,
       status: validStatus,

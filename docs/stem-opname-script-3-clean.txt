@@ -1,0 +1,239 @@
+Goedendag, u spreekt met kapsalon Elisa. Hoe kan ik u helpen?
+
+Goedemorgen, fijn dat u belt.
+
+Dag, waarvoor mag ik u helpen vandaag?
+
+Wenst u een afspraak te maken bij ons?
+
+Natuurlijk, dat regelen we graag voor u.
+
+Voor welke behandeling wenst u langs te komen?
+
+Wilt u uw haar laten knippen?
+
+Of wenst u ook een wassing en föhnbeurt erbij?
+
+Wilt u uw haar laten kleuren?
+
+We hebben verschillende kleuropties: een volledige kleuring, highlights of een babylights behandeling.
+
+Voor een volledige kleuring plannen we twee uur in.
+
+Voor highlights een uur en een kwartier.
+
+Voor een gewone knipbeurt een half uur.
+
+Wanneer wilt u langskomen?
+
+Heeft u een voorkeurdag?
+
+Maandag, dinsdag, woensdag, donderdag, vrijdag of zaterdag?
+
+Op maandag zijn we open van negen uur tot achttien uur.
+
+Op dinsdag van negen uur tot achttien uur.
+
+Op woensdag van negen uur tot achttien uur.
+
+Op donderdag van negen uur tot achttien uur.
+
+Op vrijdag van negen uur tot negentien uur.
+
+Op zaterdag van negen uur tot zestien uur.
+
+Op zondag zijn we gesloten.
+
+Laat me even kijken in de agenda.
+
+Op maandag de eerste maart hebben we een plaatsje om negen uur.
+
+Op maandag de eerste om tien uur is er ook nog een opening.
+
+Op maandag om elf uur is er een vrij moment.
+
+Op maandag om twaalf uur is er een gaatje.
+
+Op dinsdag de tweede maart hebben we een afspraak vrij om negen uur dertig.
+
+Op dinsdag de tweede om tien uur dertig is er ook nog een plaatsje.
+
+Op dinsdag de tweede om dertien uur is er een opening.
+
+Op woensdag de derde maart hebben we een vrij tijdslot om veertien uur.
+
+Op woensdag de derde om vijftien uur is er ook nog een plaatsje.
+
+Op woensdag de derde om zestien uur is er een opening.
+
+Op donderdag de vierde maart hebben we een afspraak vrij om negen uur.
+
+Op donderdag de vierde om tien uur is er ook een gaatje.
+
+Op donderdag de vierde om zeventien uur is er nog een vrij moment.
+
+Op vrijdag de vijfde maart hebben we een plaatsje om tien uur.
+
+Op vrijdag de vijfde om elf uur is er ook nog een opening.
+
+Op vrijdag de vijfde om veertien uur dertig is er een vrij tijdslot.
+
+Op zaterdag de zesde maart hebben we een afspraak vrij om negen uur.
+
+Op zaterdag de zesde om tien uur is er ook een gaatje.
+
+Op zaterdag de zesde om elf uur is er een vrij moment.
+
+Welke dag en welk uur past u het best?
+
+Dat is uitstekend, ik noteer dat voor u.
+
+Op wiens naam mag ik de afspraak zetten?
+
+Uw voornaam graag.
+
+En uw familienaam.
+
+Mag ik ook uw telefoonnummer noteren?
+
+Uw afspraak is bevestigd voor maandag de eerste maart om negen uur.
+
+Uw afspraak staat ingepland voor dinsdag de tweede maart om tien uur dertig.
+
+We verwachten u op woensdag de derde maart om veertien uur.
+
+Uw afspraak is genoteerd voor donderdag de vierde maart om zeventien uur.
+
+Tot vrijdag de vijfde maart om veertien uur dertig.
+
+We zien u graag op zaterdag de zesde maart om tien uur.
+
+U ontvangt een sms-bevestiging binnen enkele minuten.
+
+De dag voor uw afspraak sturen wij een herinnering.
+
+Wenst u uw afspraak te annuleren of te verplaatsen?
+
+Op welke datum stond uw afspraak?
+
+En hoe laat was de afspraak?
+
+De afspraak van maandag om negen uur is geannuleerd.
+
+Wenst u een nieuwe afspraak in te plannen?
+
+Uw afspraak is verplaatst naar donderdag om veertien uur.
+
+Goedendag, u spreekt met autogarage Lievens. Hoe kan ik u helpen?
+
+Wenst u uw wagen binnen te brengen voor een onderhoudsbeurt?
+
+Voor een kleine beurt rekenen we anderhalf uur.
+
+Voor een grote beurt een volledige dag.
+
+Kunt u uw wagen maandag de eerste binnenbrengen?
+
+Of liever dinsdag de tweede?
+
+Woensdag de derde is ook mogelijk.
+
+Donderdag de vierde of vrijdag de vijfde?
+
+Uw wagen is verwacht op maandag de eerste om acht uur.
+
+We bellen u op zodra de wagen klaar is.
+
+Goedendag, u spreekt met huisartsenpraktijk Dubois. Waarvoor mag ik u helpen?
+
+Wenst u een afspraak bij de dokter?
+
+Is het dringend of kan het wachten tot morgen?
+
+Voor morgen hebben we een plaatsje om tien uur.
+
+Of liever om veertien uur?
+
+Uw afspraak is bevestigd voor morgen om tien uur.
+
+Vergeet uw identiteitskaart niet.
+
+Goedendag, u spreekt met kinesitherapiepraktijk Nijs. Hoe kan ik u helpen?
+
+Voor een eerste consultatie plannen we een uur in.
+
+Heeft u een voorschrift van uw dokter?
+
+Op maandag om elf uur is er een opening.
+
+Op dinsdag om dertien uur is er ook een vrij moment.
+
+Uw afspraak is bevestigd voor dinsdag om dertien uur.
+
+Goedendag, u spreekt met restaurant De Gouden Lepel. Waarvoor mag ik u helpen?
+
+Wenst u een tafel te reserveren?
+
+Voor hoeveel personen?
+
+Voor twee personen, vier personen, zes personen of meer?
+
+Op welke datum wenst u te komen?
+
+Vrijdag de vijfde of zaterdag de zesde?
+
+En hoe laat? Om twaalf uur, om dertien uur, om negentien uur of om twintig uur?
+
+Uw reservering is bevestigd voor zaterdag de zesde om negentien uur, voor vier personen.
+
+Fijn, we kijken ernaar uit u te verwelkomen.
+
+Wenst u nog iets speciaals, zoals een verjaardagstaart of een speciale tafelschikking?
+
+Dat noteren we graag voor u.
+
+Is er iemand in uw gezelschap met een voedselintolerantie of allergie?
+
+Dat geven we door aan de keuken.
+
+Tot zaterdag dan. Fijne dag.
+
+Goedendag, u spreekt met schoenmakerij en sleutelservice Van Dam. Waarvoor mag ik u helpen?
+
+Wenst u schoenen te laten herstellen?
+
+Of heeft u een sleutel nodig die nagesneden wordt?
+
+Dat kan dezelfde dag nog.
+
+Kunt u langskomen morgen?
+
+We zijn open van maandag tot zaterdag, van negen uur tot zestien uur.
+
+Bedankt voor uw oproep. Fijne dag verder.
+
+Tot ziens en tot dan.
+
+Prettig weekend nog.
+
+Bedankt en tot dan.
+
+Fijne dag.
+
+U bent van harte welkom bij ons.
+
+We kijken ernaar uit u te helpen.
+
+Tot maandag.
+
+Tot dinsdag.
+
+Tot woensdag.
+
+Tot donderdag.
+
+Tot vrijdag.
+
+Tot zaterdag.
+
+Tot ziens.

@@ -25,6 +25,7 @@ interface Business {
   voice_id: string | null;
   welcome_message: string | null;
   agent_id: string | null;
+  vapi_assistant_id: string | null;
   fallback_action: string | null;
   transfer_number: string | null;
   subscription_status: string | null;
@@ -63,6 +64,54 @@ interface VoiceCardProps {
   onSelect: (voiceId: string) => void;
   playVoiceSample: (voiceId: string) => void;
   playingVoice: string | null;
+}
+
+function VapiAansluitingFix() {
+  const [fixing, setFixing] = useState(false);
+  const [result, setResult] = useState<{ ok: boolean; msg: string; results?: { step: string; ok: boolean; message: string }[] } | null>(null);
+  const handleFix = async () => {
+    setFixing(true);
+    setResult(null);
+    try {
+      const r = await fetch('/api/fix-vapi-phone', { method: 'POST' });
+      const d = await r.json();
+      setResult({
+        ok: d.ok ?? false,
+        msg: d.message || d.error || 'Klaar',
+        results: d.results,
+      });
+    } catch (e) {
+      setResult({ ok: false, msg: 'Fout: ' + String(e) });
+    } finally {
+      setFixing(false);
+    }
+  };
+  return (
+    <div style={{ marginTop: 12, padding: 12, background: 'rgba(249, 115, 22, 0.08)', borderRadius: 8, border: '1px solid rgba(249, 115, 22, 0.2)' }}>
+      <span style={{ color: '#9ca3af', fontSize: 13 }}>Geen aansluiting bij bellen?</span>{' '}
+      <button
+        type="button"
+        onClick={handleFix}
+        disabled={fixing}
+        style={{
+          marginLeft: 8, padding: '6px 12px', background: '#f97316', color: 'white',
+          border: 'none', borderRadius: 6, cursor: fixing ? 'wait' : 'pointer', fontWeight: 600, fontSize: 13,
+        }}
+      >
+        {fixing ? 'Bezig...' : 'Fix aansluiting'}
+      </button>
+      {result && (
+        <div style={{ marginTop: 8, color: result.ok ? '#22c55e' : '#ef4444', fontSize: 13 }}>
+          {result.ok ? '✓ ' : ''}{result.msg}
+          {result.results?.map((r, i) => (
+            <div key={i} style={{ marginTop: 4, color: r.ok ? '#22c55e' : '#ef4444', fontSize: 12 }}>
+              {r.ok ? '✓' : '✗'} {r.step}: {r.message}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function VoiceCard({ voice, selectedVoiceId, onSelect, playVoiceSample, playingVoice }: VoiceCardProps) {
@@ -148,6 +197,7 @@ export default function AISettingsPage() {
     style: '',
     fallback_action: 'voicemail',
     transfer_number: '',
+    vapi_assistant_id: '',
     // Bedrijfsgegevens
     address_street: '',
     address_postal: '',
@@ -459,6 +509,7 @@ export default function AISettingsPage() {
         // Load fallback settings
         fallback_action: biz.fallback_action || 'voicemail',
         transfer_number: biz.transfer_number || '',
+        vapi_assistant_id: (biz as { vapi_assistant_id?: string }).vapi_assistant_id || '',
       }));
     setLoading(false);
   };
@@ -530,6 +581,7 @@ export default function AISettingsPage() {
           // Fallback settings
           fallback_action: config.fallback_action,
           transfer_number: config.transfer_number || null,
+          vapi_assistant_id: config.vapi_assistant_id || null,
         }),
       });
       
@@ -1073,6 +1125,21 @@ export default function AISettingsPage() {
               />
             </div>
           )}
+          <div style={{ marginTop: 16 }}>
+            <label style={{ display: 'block', color: '#9ca3af', fontSize: 14, marginBottom: 8 }}>
+              Vapi Assistant ID <span style={{ color: '#6b7280', fontWeight: 400 }}>(alleen bij Vapi)</span>
+            </label>
+            <input
+              value={config.vapi_assistant_id}
+              onChange={(e) => setConfig({ ...config, vapi_assistant_id: e.target.value })}
+              style={{ width: '100%', maxWidth: 300, padding: '12px 16px', background: '#0a0a0f', border: '1px solid #2a2a35', borderRadius: 8, color: 'white', fontSize: 16 }}
+              placeholder="UUID van je Vapi assistant (voor afspraken in agenda)"
+            />
+            <p style={{ color: '#6b7280', fontSize: 12, marginTop: 6 }}>
+              Als je Vapi gebruikt voor telefoongesprekken: plak hier het Assistant ID uit je Vapi dashboard. Dan verschijnen geboekte afspraken in je agenda.
+            </p>
+            <VapiAansluitingFix />
+          </div>
         </div>
 
         {/* Status */}
