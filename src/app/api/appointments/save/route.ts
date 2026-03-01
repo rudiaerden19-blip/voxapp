@@ -7,10 +7,6 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-function vapiResult(toolCallId: string, result: string) {
-  return Response.json({ results: [{ toolCallId, result }] })
-}
-
 function dagNaarDatum(dag: string): string {
   const DAGEN: Record<string, number> = {
     zondag: 0, maandag: 1, dinsdag: 2, woensdag: 3,
@@ -36,15 +32,10 @@ function dagNaarDatum(dag: string): string {
 }
 
 export async function POST(req: Request) {
-  let toolCallId = "unknown"
-
   try {
     const body = await req.json()
 
-    // Vapi stuurt function call in dit format
     const toolCall = body?.message?.toolCallList?.[0]
-    toolCallId = toolCall?.id ?? "unknown"
-
     let args: Record<string, string> = {}
     if (toolCall?.function?.arguments) {
       args = typeof toolCall.function.arguments === "string"
@@ -55,7 +46,7 @@ export async function POST(req: Request) {
     const { naam, dienst, datum, tijdstip } = args
 
     if (!naam || !datum || !tijdstip) {
-      return vapiResult(toolCallId, "Ik heb je naam, dag en tijdstip nodig.")
+      return Response.json({ success: false, message: "Ontbrekende velden" })
     }
 
     const isoDate = dagNaarDatum(datum)
@@ -78,13 +69,13 @@ export async function POST(req: Request) {
 
     if (error) {
       console.error("[appointments/save] DB error:", error.message, error.code)
-      return vapiResult(toolCallId, "Er ging iets mis bij het opslaan.")
+      return Response.json({ success: false, message: "Database fout" })
     }
 
-    return vapiResult(toolCallId, `Afspraak bevestigd voor ${naam} op ${datum} om ${tijdstip}.`)
+    return Response.json({ success: true, message: `Afspraak bevestigd voor ${naam} op ${datum} om ${tijdstip}.` })
 
   } catch (e) {
     console.error("[appointments/save] Error:", e)
-    return vapiResult(toolCallId, "Er ging iets mis.")
+    return Response.json({ success: false, message: "Server fout" })
   }
 }
